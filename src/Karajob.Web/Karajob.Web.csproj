@@ -2,4 +2,10 @@
   <PropertyGroup>
     <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Karajob.Application\Karajob.Application.csproj" />
+    <ProjectReference Include="..\Karajob.Infrastructure\Karajob.Infrastructure.csproj" />
+    <ProjectReference Include="..\Karajob.Domain\Karajob.Domain.csproj" />
+  </ItemGroup>
 </Project>

@@ -1,2 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\Karajob.Application\Karajob.Application.csproj" />
+    <ProjectReference Include="..\Karajob.Domain\Karajob.Domain.csproj" />
+  </ItemGroup>
 </Project>
