@@ -1,5 +1,6 @@
 using Karajob.Domain.Common;
 using Karajob.Domain.Hypotheses;
+using Karajob.Domain.Normalization;
 
 namespace Karajob.Domain.Vacancies;
 
@@ -30,13 +31,38 @@ public class Vacancy : IUserOwned
     set => publishedAt = UtcGuard.Ensure(value);
   }
 
-  public void ChangeUrl(string url) => throw new NotImplementedException();
+  public void ChangeUrl(string url)
+  {
+    Url = Normalize.VacancyUrl(url);
+  }
 
-  public VacancyMatch SetMatch(Guid hypothesisId, int? score, string? rationale, MatchAuthor matchedBy) =>
-    throw new NotImplementedException();
+  public VacancyMatch SetMatch(Guid hypothesisId, int? score, string? rationale, MatchAuthor matchedBy)
+  {
+    Require.NotEmpty(hypothesisId);
+    var existing = matches.FirstOrDefault(m => m.HypothesisId == hypothesisId);
+    if (existing is not null)
+    {
+      existing.Update(score, rationale, matchedBy);
+      return existing;
+    }
 
-  public void RemoveMatch(Guid hypothesisId) => throw new NotImplementedException();
+    var match = new VacancyMatch(UserId, Id, hypothesisId, score, rationale, matchedBy);
+    matches.Add(match);
+    return match;
+  }
 
-  public Vacancy(Guid userId, string url, VacancySource source, DateTime discoveredAt) =>
-    throw new NotImplementedException();
+  public void RemoveMatch(Guid hypothesisId)
+  {
+    matches.RemoveAll(m => m.HypothesisId == hypothesisId);
+  }
+
+  public Vacancy(Guid userId, string url, VacancySource source, DateTime discoveredAt)
+  {
+    Id = Guid.CreateVersion7();
+    UserId = Require.NotEmpty(userId);
+    Url = Normalize.VacancyUrl(url);
+    Source = source;
+    DiscoveredAt = UtcGuard.Ensure(discoveredAt);
+    Stage = VacancyStage.Inbox;
+  }
 }

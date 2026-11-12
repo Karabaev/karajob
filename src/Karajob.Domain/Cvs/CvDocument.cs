@@ -19,8 +19,19 @@ public class CvDocument : IUserOwned
     string contentType,
     long sizeBytes,
     string? comment,
-    DateTime createdAt) => throw new NotImplementedException();
+    DateTime createdAt)
+  {
+    var version = new CvVersion(UserId, Id, fileName, storagePath, contentType, sizeBytes, comment, createdAt);
+    versions.Add(version);
+    return version;
+  }
 
-  public CvDocument(Guid userId, string name, string language, DateTime createdAt) =>
-    throw new NotImplementedException();
+  public CvDocument(Guid userId, string name, string language, DateTime createdAt)
+  {
+    Id = Guid.CreateVersion7();
+    UserId = Require.NotEmpty(userId);
+    Name = Require.NotBlank(name);
+    Language = Require.NotBlank(language);
+    CreatedAt = UtcGuard.Ensure(createdAt);
+  }
 }

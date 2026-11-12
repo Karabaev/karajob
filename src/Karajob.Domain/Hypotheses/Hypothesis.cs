@@ -25,6 +25,14 @@ public class Hypothesis : IUserOwned
     set => startedAt = UtcGuard.Ensure(value);
   }
 
-  public Hypothesis(Guid userId, string name, string role, string language, DateTime createdAt) =>
-    throw new NotImplementedException();
+  public Hypothesis(Guid userId, string name, string role, string language, DateTime createdAt)
+  {
+    Id = Guid.CreateVersion7();
+    UserId = Require.NotEmpty(userId);
+    Name = Require.NotBlank(name);
+    Role = Require.NotBlank(role);
+    Language = Require.NotBlank(language);
+    Status = HypothesisStatus.Draft;
+    CreatedAt = UtcGuard.Ensure(createdAt);
+  }
 }

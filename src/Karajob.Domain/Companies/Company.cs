@@ -1,3 +1,6 @@
+using Karajob.Domain.Common;
+using Karajob.Domain.Normalization;
+
 namespace Karajob.Domain.Companies;
 
 public class Company
@@ -14,15 +17,55 @@ public class Company
   public IReadOnlyCollection<CompanyDomain> Domains => domains;
   public IReadOnlyCollection<CompanyAlias> Aliases => aliases;
 
-  public void ChangeSlug(string slug) => throw new NotImplementedException();
+  public void ChangeSlug(string slug)
+  {
+    Slug = Normalize.Slug(slug);
+  }
 
-  public CompanyDomain AddDomain(string domain) => throw new NotImplementedException();
+  public CompanyDomain AddDomain(string domain)
+  {
+    var value = Normalize.Domain(domain);
+    var existing = domains.FirstOrDefault(d => d.Value == value);
+    if (existing is not null)
+    {
+      return existing;
+    }
 
-  public void RemoveDomain(string domain) => throw new NotImplementedException();
+    var added = new CompanyDomain(Id, value);
+    domains.Add(added);
+    return added;
+  }
 
-  public CompanyAlias AddAlias(string alias) => throw new NotImplementedException();
+  public void RemoveDomain(string domain)
+  {
+    var value = Normalize.Domain(domain);
+    domains.RemoveAll(d => d.Value == value);
+  }
 
-  public void RemoveAlias(string alias) => throw new NotImplementedException();
+  public CompanyAlias AddAlias(string alias)
+  {
+    var value = Normalize.Alias(alias);
+    var existing = aliases.FirstOrDefault(a => a.Value == value);
+    if (existing is not null)
+    {
+      return existing;
+    }
 
-  public Company(string slug, string name) => throw new NotImplementedException();
+    var added = new CompanyAlias(Id, value);
+    aliases.Add(added);
+    return added;
+  }
+
+  public void RemoveAlias(string alias)
+  {
+    var value = Normalize.Alias(alias);
+    aliases.RemoveAll(a => a.Value == value);
+  }
+
+  public Company(string slug, string name)
+  {
+    Id = Guid.CreateVersion7();
+    Slug = Normalize.Slug(slug);
+    Name = Require.NotBlank(name);
+  }
 }

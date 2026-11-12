@@ -21,5 +21,15 @@ public class JobApplication : IUserOwned
     Guid cvVersionId,
     ApplicationChannel channel,
     DateTime appliedAt,
-    string? coverLetter) => throw new NotImplementedException();
+    string? coverLetter)
+  {
+    Id = Guid.CreateVersion7();
+    UserId = Require.NotEmpty(userId);
+    VacancyId = Require.NotEmpty(vacancyId);
+    HypothesisId = Require.NotEmpty(hypothesisId);
+    CvVersionId = Require.NotEmpty(cvVersionId);
+    Channel = channel;
+    AppliedAt = UtcGuard.Ensure(appliedAt);
+    CoverLetter = coverLetter;
+  }
 }

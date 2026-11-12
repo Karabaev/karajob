@@ -1,3 +1,5 @@
+using Karajob.Domain.Common;
+
 namespace Karajob.Domain.Users;
 
 public class User
@@ -6,5 +8,10 @@ public class User
   public string Name { get; set; }
   public DateTime CreatedAt { get; private set; }
 
-  public User(string name, DateTime createdAt) => throw new NotImplementedException();
+  public User(string name, DateTime createdAt)
+  {
+    Id = Guid.CreateVersion7();
+    Name = Require.NotBlank(name);
+    CreatedAt = UtcGuard.Ensure(createdAt);
+  }
 }

@@ -21,5 +21,16 @@ public class ApplicationEvent : IUserOwned
     DateTime occurredAt,
     VacancyStage? fromStage,
     VacancyStage? toStage,
-    string? note) => throw new NotImplementedException();
+    string? note)
+  {
+    if (type == ApplicationEventType.StageChanged && toStage is null) throw new ArgumentException("StageChanged requires a target stage.", nameof(toStage));
+    Id = Guid.CreateVersion7();
+    UserId = Require.NotEmpty(userId);
+    VacancyId = Require.NotEmpty(vacancyId);
+    Type = type;
+    OccurredAt = UtcGuard.Ensure(occurredAt);
+    FromStage = fromStage;
+    ToStage = toStage;
+    Note = note;
+  }
 }

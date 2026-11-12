@@ -22,5 +22,17 @@ public class CvVersion : IUserOwned
     string contentType,
     long sizeBytes,
     string? comment,
-    DateTime createdAt) => throw new NotImplementedException();
+    DateTime createdAt)
+  {
+    ArgumentOutOfRangeException.ThrowIfNegativeOrZero(sizeBytes);
+    Id = Guid.CreateVersion7();
+    UserId = Require.NotEmpty(userId);
+    CvDocumentId = Require.NotEmpty(cvDocumentId);
+    FileName = Require.NotBlank(fileName);
+    StoragePath = Require.NotBlank(storagePath);
+    ContentType = Require.NotBlank(contentType);
+    SizeBytes = sizeBytes;
+    Comment = comment;
+    CreatedAt = UtcGuard.Ensure(createdAt);
+  }
 }

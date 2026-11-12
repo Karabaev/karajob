@@ -10,5 +10,10 @@ public class UserCompanyNote : IUserOwned
   public string? Note { get; set; }
   public bool IsBlacklisted { get; set; }
 
-  public UserCompanyNote(Guid userId, Guid companyId) => throw new NotImplementedException();
+  public UserCompanyNote(Guid userId, Guid companyId)
+  {
+    Id = Guid.CreateVersion7();
+    UserId = Require.NotEmpty(userId);
+    CompanyId = Require.NotEmpty(companyId);
+  }
 }

@@ -12,7 +12,18 @@ public class VacancyMatch : IUserOwned
   public string? Rationale { get; private set; }
   public MatchAuthor MatchedBy { get; private set; }
 
-  internal void Update(int? score, string? rationale, MatchAuthor matchedBy) => throw new NotImplementedException();
+  internal void Update(int? score, string? rationale, MatchAuthor matchedBy)
+  {
+    if (score is not null)
+    {
+      ArgumentOutOfRangeException.ThrowIfLessThan(score.Value, 0, nameof(score));
+      ArgumentOutOfRangeException.ThrowIfGreaterThan(score.Value, 100, nameof(score));
+    }
+
+    Score = score;
+    Rationale = rationale;
+    MatchedBy = matchedBy;
+  }
 
   internal VacancyMatch(
     Guid userId,
@@ -20,5 +31,12 @@ public class VacancyMatch : IUserOwned
     Guid hypothesisId,
     int? score,
     string? rationale,
-    MatchAuthor matchedBy) => throw new NotImplementedException();
+    MatchAuthor matchedBy)
+  {
+    Id = Guid.CreateVersion7();
+    UserId = Require.NotEmpty(userId);
+    VacancyId = Require.NotEmpty(vacancyId);
+    HypothesisId = Require.NotEmpty(hypothesisId);
+    Update(score, rationale, matchedBy);
+  }
 }
