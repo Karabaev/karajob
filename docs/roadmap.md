@@ -18,7 +18,7 @@
 
 ### День 1 — каркас и данные
 
-- [ ] #1 Репозиторий на GitHub: решение из проектов `Karajob.Domain`, `Karajob.Application`, `Karajob.Infrastructure`, `Karajob.Web`, `Karajob.Tests`; `.gitignore` с `.env`, `*.db`, `data/`.
+- [x] #1 Репозиторий на GitHub: решение из проектов `Karajob.Domain`, `Karajob.Application`, `Karajob.Infrastructure`, `Karajob.Web`, `Karajob.Tests`; `.gitignore` с `.env`, `*.db`, `data/`.
 - [ ] #2 Сущности: User, Company (slug, домены, алиасы), Hypothesis, CvDocument + CvVersion, Vacancy, Application, ApplicationEvent. Время — UTC `DateTime`, деньги — целыми числами, slug и домены — в нижнем регистре.
 - [ ] #3 Правила переходов стадий в Domain (в Applied — только с гипотезой и версией CV, в Closed — только с исходом) + юнит-тесты на них.
 - [ ] #4 EF Core + SQLite, первая миграция, уникальные индексы (slug, домен, нормализованный URL вакансии), фильтр по `UserId`. Один пользователь создаётся сидом.
