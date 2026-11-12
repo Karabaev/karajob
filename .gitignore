@@ -1,0 +1,38 @@
+# Secrets and personal data (never commit)
+.env
+.env.*
+!.env.example
+*.db
+*.db-shm
+*.db-wal
+data/
+cv/
+
+# .NET build output
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+*.user
+*.suo
+*.userprefs
+TestResults/
+*.trx
+coverage*.xml
+publish/
+artifacts/
+
+# IDE
+.vs/
+.idea/
+.vscode/
+*.DotSettings.user
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Claude Code local state
+.claude/settings.local.json
+.claude/worktrees/
