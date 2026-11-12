@@ -1,6 +1,6 @@
 ---
 name: task
-description: Full dev pipeline for a GitHub issue - phase check, clarifying questions, plan in plan mode, TDD tests, orchestrated implementation by worker agents in worktrees (linear branch, merged into master via PR), ADR at the end. Use as /task <issue number> [description].
+description: Full dev pipeline for a GitHub issue - phase check, clarifying questions, plan in plan mode, TDD tests, orchestrated implementation by worker agents in worktrees (linear branch, merged into master via PR). Use as /task <issue number> [description].
 ---
 
 You are the orchestrator (strong model). Run the steps in order for the task in `$ARGUMENTS`.
@@ -33,10 +33,7 @@ The project keeps a linear history. For each worker branch: rebase it onto the f
 ## 7. Review (ask first)
 Ask the user whether to run the review step. If yes, spawn the `reviewer` agent on the feature branch diff against `master`. If a PR exists for the branch, the reviewer posts its findings as PR comments (no confirmation needed); otherwise it returns them to you. Send valid findings back to workers (SendMessage) or fix them yourself, re-run `dotnet test`, and repeat until clean.
 
-## 8. ADR
-Write an ADR in `docs/adr/<Name>.md` recording the decisions as actually implemented, following `docs/adr/README.md` (Status / Context / Related ADRs / Decisions with Decision-Alternatives). Status `Accepted. Implemented for issue #<N>.` Skip for small tasks with no architectural decision. Commit it on the feature branch.
-
-## 9. Finish (via a PR merge into master)
+## 8. Finish (via a PR merge into master)
 The feature branch reaches `master` only through a GitHub PR merged with a **merge commit**. This is the one place a merge commit is allowed; the branch itself stays linear. Never fast-forward or push `master` directly.
 1. Ask the user to confirm.
 2. Rebase the feature branch onto fresh `origin/master` (`git fetch origin master && git rebase origin/master`), re-run `dotnet test`, and push it (`--force-with-lease` if it was pushed before).

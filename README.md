@@ -13,4 +13,4 @@ Self-hosted: один Docker-контейнер (ASP.NET Core + Blazor Server + 
 
 - Задачи — GitHub Issues, сгруппированы по milestone'ам фаз (`Phase 0`, `Phase 0.5`, …).
 - Ветка на задачу `feature/<issue>-<slug>`, история ветки линейная (rebase), в `master` — только через PR с merge commit.
-- Для Claude Code: `/task <номер issue>` — полный цикл (уточнение → план → тесты → реализация → ревью → ADR → PR).
+- Для Claude Code: `/task <номер issue>` — полный цикл (уточнение → план → тесты → реализация → ревью → PR).
