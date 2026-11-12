@@ -35,6 +35,24 @@ public class ApplicationEventTests
   }
 
   [Fact]
+  public void Ctor_StageChangedToSameStage_Throws()
+  {
+    Assert.ThrowsAny<ArgumentException>(() =>
+      new ApplicationEvent(
+        Guid.NewGuid(), Guid.NewGuid(), ApplicationEventType.StageChanged, Now, VacancyStage.Targeted, VacancyStage.Targeted, null));
+  }
+
+  [Theory]
+  [InlineData(VacancyStage.Applied, null)]
+  [InlineData(null, VacancyStage.Interviewing)]
+  public void Ctor_NonStageEventWithStages_Throws(VacancyStage? fromStage, VacancyStage? toStage)
+  {
+    Assert.ThrowsAny<ArgumentException>(() =>
+      new ApplicationEvent(
+        Guid.NewGuid(), Guid.NewGuid(), ApplicationEventType.Screening, Now, fromStage, toStage, null));
+  }
+
+  [Fact]
   public void Ctor_NoteWithoutStages_Succeeds()
   {
     var evt = new ApplicationEvent(

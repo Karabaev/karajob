@@ -23,7 +23,16 @@ public class ApplicationEvent : IUserOwned
     VacancyStage? toStage,
     string? note)
   {
-    if (type == ApplicationEventType.StageChanged && toStage is null) throw new ArgumentException("StageChanged requires a target stage.", nameof(toStage));
+    if (type == ApplicationEventType.StageChanged)
+    {
+      if (toStage is null) throw new ArgumentException("StageChanged requires a target stage.", nameof(toStage));
+      if (fromStage == toStage) throw new ArgumentException("StageChanged must change the stage.", nameof(toStage));
+    }
+    else if (fromStage is not null || toStage is not null)
+    {
+      throw new ArgumentException($"Only StageChanged events carry stages, got {type}.", nameof(type));
+    }
+
     Id = Guid.CreateVersion7();
     UserId = Require.NotEmpty(userId);
     VacancyId = Require.NotEmpty(vacancyId);

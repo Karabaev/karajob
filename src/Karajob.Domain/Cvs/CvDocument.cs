@@ -8,8 +8,8 @@ public class CvDocument : IUserOwned
 
   public Guid Id { get; private set; }
   public Guid UserId { get; private set; }
-  public string Name { get; set; }
-  public string Language { get; set; }
+  public string Name { get; set => field = Require.NotBlank(value); }
+  public string Language { get; set => field = Require.NotBlank(value); }
   public DateTime CreatedAt { get; private set; }
   public IReadOnlyCollection<CvVersion> Versions => versions;
 
@@ -30,8 +30,8 @@ public class CvDocument : IUserOwned
   {
     Id = Guid.CreateVersion7();
     UserId = Require.NotEmpty(userId);
-    Name = Require.NotBlank(name);
-    Language = Require.NotBlank(language);
+    Name = name;
+    Language = language;
     CreatedAt = UtcGuard.Ensure(createdAt);
   }
 }

@@ -10,8 +10,8 @@ public class Company
 
   public Guid Id { get; private set; }
   public string Slug { get; private set; }
-  public string Name { get; set; }
-  public string? Website { get; set; }
+  public string Name { get; set => field = Require.NotBlank(value); }
+  public string? Website { get; set => field = value is null ? null : Normalize.WebUrl(value); }
   public string? Description { get; set; }
   public string? IconPath { get; set; }
   public IReadOnlyCollection<CompanyDomain> Domains => domains;
@@ -66,6 +66,6 @@ public class Company
   {
     Id = Guid.CreateVersion7();
     Slug = Normalize.Slug(slug);
-    Name = Require.NotBlank(name);
+    Name = name;
   }
 }

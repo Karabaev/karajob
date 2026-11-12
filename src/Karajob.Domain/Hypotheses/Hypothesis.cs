@@ -8,12 +8,12 @@ public class Hypothesis : IUserOwned
 
   public Guid Id { get; private set; }
   public Guid UserId { get; private set; }
-  public string Name { get; set; }
-  public string Role { get; set; }
+  public string Name { get; set => field = Require.NotBlank(value); }
+  public string Role { get; set => field = Require.NotBlank(value); }
   public List<string> Locations { get; private set; } = [];
   public List<string> Industries { get; private set; } = [];
   public WorkFormat WorkFormat { get; set; }
-  public string Language { get; set; }
+  public string Language { get; set => field = Require.NotBlank(value); }
   public string? Positioning { get; set; }
   public Guid? PrimaryCvDocumentId { get; set; }
   public HypothesisStatus Status { get; set; }
@@ -29,9 +29,9 @@ public class Hypothesis : IUserOwned
   {
     Id = Guid.CreateVersion7();
     UserId = Require.NotEmpty(userId);
-    Name = Require.NotBlank(name);
-    Role = Require.NotBlank(role);
-    Language = Require.NotBlank(language);
+    Name = name;
+    Role = role;
+    Language = language;
     Status = HypothesisStatus.Draft;
     CreatedAt = UtcGuard.Ensure(createdAt);
   }

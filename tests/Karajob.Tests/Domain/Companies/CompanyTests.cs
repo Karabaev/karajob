@@ -23,6 +23,34 @@ public class CompanyTests
   }
 
   [Fact]
+  public void Website_Set_IsLowercased()
+  {
+    var company = new Company("ubisoft", "Ubisoft");
+
+    company.Website = "https://WWW.Ubisoft.com/";
+
+    Assert.Equal("https://www.ubisoft.com/", company.Website);
+  }
+
+  [Fact]
+  public void Website_SetInvalid_Throws()
+  {
+    var company = new Company("ubisoft", "Ubisoft");
+
+    Assert.ThrowsAny<ArgumentException>(() => company.Website = "ubisoft");
+  }
+
+  [Fact]
+  public void Website_SetNull_ClearsIt()
+  {
+    var company = new Company("ubisoft", "Ubisoft") { Website = "https://ubisoft.com" };
+
+    company.Website = null;
+
+    Assert.Null(company.Website);
+  }
+
+  [Fact]
   public void Ctor_InvalidSlug_Throws()
   {
     Assert.ThrowsAny<ArgumentException>(() => new Company("ubi soft", "Ubisoft"));
