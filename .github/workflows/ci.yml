@@ -42,3 +42,15 @@ jobs:
 
       - name: Test
         run: dotnet test Karajob.slnx --no-build -c Release --logger "console;verbosity=normal"
+
+  docker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Create .env from example
+        run: cp .env.example .env
+
+      - name: Verify image build and /data persistence
+        run: bash scripts/verify-docker-persistence.sh

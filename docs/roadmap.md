@@ -23,7 +23,7 @@
 - [x] #3 Правила переходов стадий в Domain (в Applied — только с гипотезой и версией CV, в Closed — только с исходом) + юнит-тесты на них.
 - [x] #4 EF Core + SQLite, первая миграция, уникальные индексы (slug, домен, нормализованный URL вакансии), фильтр по `UserId`. Один пользователь создаётся сидом.
 - [x] #5 Миграции при старте с бэкапом базы; режим `SqliteInMemory` с сид-данными для отладки.
-- [ ] #6, #7 Dockerfile + `docker-compose.yml` с volume `/data`; GitHub Actions с `dotnet test` (#7 ✅).
+- [x] #6, #7 Dockerfile + `docker-compose.yml` с volume `/data`; GitHub Actions с `dotnet test`.
 
 ### День 2 — справочники и карточка
 
