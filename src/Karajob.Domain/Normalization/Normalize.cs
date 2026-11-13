@@ -99,6 +99,11 @@ public static partial class Normalize
     return WhitespacePattern().Replace(value.Trim(), " ").ToLowerInvariant();
   }
 
+  public static string LanguageCode(string value, [CallerArgumentExpression(nameof(value))] string? paramName = null)
+  {
+    throw new NotImplementedException();
+  }
+
   public static string WebUrl(string value, [CallerArgumentExpression(nameof(value))] string? paramName = null)
   {
     ParseHttpUrl(value, paramName);

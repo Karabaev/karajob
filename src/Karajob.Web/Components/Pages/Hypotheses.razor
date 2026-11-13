@@ -30,7 +30,7 @@ else
       <MudTd DataLabel="Название"><MudLink Href="@($"/hypotheses/{context.Id}")">@context.Name</MudLink></MudTd>
       <MudTd DataLabel="Роль">@context.Role</MudTd>
       <MudTd DataLabel="Формат">@HypothesisText.Format(context.WorkFormat)</MudTd>
-      <MudTd DataLabel="Язык">@context.Language.ToUpperInvariant()</MudTd>
+      <MudTd DataLabel="Язык">@context.LanguageCode.ToUpperInvariant()</MudTd>
       <MudTd DataLabel="Статус">
         <MudChip T="string" Size="Size.Small" Color="@HypothesisText.StatusColor(context.Status)">@HypothesisText.Status(context.Status)</MudChip>
       </MudTd>

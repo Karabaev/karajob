@@ -1,3 +1,4 @@
+using Karajob.Application.Catalogs;
 using Karajob.Application.Companies;
 using Karajob.Application.Hypotheses;
 using Karajob.Application.Users;
@@ -27,6 +28,7 @@ builder.Services.AddKarajobPersistence(databaseOptions);
 builder.Services.AddSingleton<ICurrentUser>(new FixedCurrentUser(SeedData.OwnerId));
 builder.Services.AddScoped<CompanyService>();
 builder.Services.AddScoped<HypothesisService>();
+builder.Services.AddScoped<CatalogService>();
 
 var app = builder.Build();
 

@@ -1,4 +1,5 @@
 using Karajob.Domain.Applications;
+using Karajob.Domain.Catalogs;
 using Karajob.Domain.Companies;
 using Karajob.Domain.Vacancies;
 using Microsoft.EntityFrameworkCore;
@@ -12,6 +13,9 @@ public class VacancyConfiguration : IEntityTypeConfiguration<Vacancy>
   {
     builder.HasIndex(v => new { v.UserId, v.Url }).IsUnique();
     builder.HasOne<Company>().WithMany().HasForeignKey(v => v.CompanyId).OnDelete(DeleteBehavior.Restrict);
+    builder.HasOne<Role>().WithMany().HasForeignKey(v => v.RoleId).OnDelete(DeleteBehavior.Restrict);
+    builder.HasOne<Location>().WithMany().HasForeignKey(v => v.LocationId).OnDelete(DeleteBehavior.Restrict);
+    builder.HasOne<Language>().WithMany().HasForeignKey(v => v.LanguageId).OnDelete(DeleteBehavior.Restrict);
     builder.ComplexProperty(v => v.Salary, salary =>
     {
       // Get-only properties are not mapped by convention; mapping them lets EF bind the constructor.

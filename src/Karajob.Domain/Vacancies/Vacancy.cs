@@ -14,9 +14,10 @@ public class Vacancy : IUserOwned
   public Guid Id { get; private set; }
   public Guid UserId { get; private set; }
   public Guid? CompanyId { get; set; }
-  public string? Role { get; set; }
+  public Guid? RoleId { get; set; }
   public string Url { get; private set; }
-  public string? Location { get; set; }
+  public Guid? LocationId { get; set; }
+  public Guid? LanguageId { get; set; }
   public WorkFormat? WorkFormat { get; set; }
   public SalaryRange? Salary { get; set; }
   public string? Description { get; set; }

@@ -30,10 +30,10 @@ else if (_loaded)
                           Error="HasError(nameof(HypothesisInput.Name))" ErrorText="@ErrorOf(nameof(HypothesisInput.Name))" />
             <MudTextField T="string" Class="hypothesis-role" Label="Роль" Required="true" Immediate="true"
                           Value="_role" ValueChanged="OnRoleChanged"
-                          Error="HasError(nameof(HypothesisInput.Role))" ErrorText="@ErrorOf(nameof(HypothesisInput.Role))" />
+                          Error="HasError(nameof(HypothesisInput.RoleId))" ErrorText="@ErrorOf(nameof(HypothesisInput.RoleId))" />
             <MudSelect T="string" Class="hypothesis-language" Label="Язык"
                        Value="_language" ValueChanged="OnLanguageChanged"
-                       Error="HasError(nameof(HypothesisInput.Language))" ErrorText="@ErrorOf(nameof(HypothesisInput.Language))">
+                       Error="HasError(nameof(HypothesisInput.LanguageId))" ErrorText="@ErrorOf(nameof(HypothesisInput.LanguageId))">
               @foreach (var language in LanguageOptions())
               {
                 <MudSelectItem T="string" Value="@language.Code">@language.Label</MudSelectItem>
@@ -60,7 +60,7 @@ else if (_loaded)
 
             <MudTextField T="string" Class="hypothesis-locations" Label="Локации" HelperText="по одной на строку"
                           Lines="3" Sizing="InputSizing.Auto" @bind-Value="_locations"
-                          Error="HasError(nameof(HypothesisInput.Locations))" ErrorText="@ErrorOf(nameof(HypothesisInput.Locations))" />
+                          Error="HasError(nameof(HypothesisInput.LocationIds))" ErrorText="@ErrorOf(nameof(HypothesisInput.LocationIds))" />
             <MudTextField T="string" Class="hypothesis-industries" Label="Индустрии" HelperText="по одной на строку"
                           Lines="3" Sizing="InputSizing.Auto" @bind-Value="_industries"
                           Error="HasError(nameof(HypothesisInput.Industries))" ErrorText="@ErrorOf(nameof(HypothesisInput.Industries))" />
@@ -73,7 +73,7 @@ else if (_loaded)
               <MudSelectItem T="Guid?" Value="@((Guid?)null)">— не выбран —</MudSelectItem>
               @foreach (var option in _cvOptions)
               {
-                <MudSelectItem T="Guid?" Value="@((Guid?)option.Id)">@option.Name (@option.Language.ToUpperInvariant())</MudSelectItem>
+                <MudSelectItem T="Guid?" Value="@((Guid?)option.Id)">@option.Name (@option.LanguageCode.ToUpperInvariant())</MudSelectItem>
               }
             </MudSelect>
             <MudSelect T="HypothesisStatus" Class="hypothesis-status" Label="Статус" @bind-Value="_status">
@@ -155,10 +155,10 @@ else if (_loaded)
   {
     _nameEdited = _details is not null;
     _name = _details?.Name;
-    _role = _details?.Role;
-    _language = _details?.Language ?? "ru";
+    _role = null;
+    _language = "ru";
     _format = _details?.WorkFormat ?? WorkFormat.Remote;
-    _locations = _details is null ? null : string.Join('\n', _details.Locations);
+    _locations = null;
     _industries = _details is null ? null : string.Join('\n', _details.Industries);
     _positioning = _details?.Positioning;
     _primaryCvId = _details?.PrimaryCvDocumentId;
@@ -232,11 +232,11 @@ else if (_loaded)
   {
     var input = new HypothesisInput(
       _name ?? "",
-      _role ?? "",
-      SplitLines(_locations),
+      null,
+      [],
       SplitLines(_industries),
       _format,
-      _language,
+      null,
       _positioning,
       _primaryCvId,
       _status);
