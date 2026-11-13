@@ -12,8 +12,9 @@ public class VacancyStageTransitionTests
   public static IEnumerable<object[]> AllowedPairs() => StageTable.AllowedPairs();
 
   public static IEnumerable<object[]> MoveToForbiddenTargets() =>
-    StageTable.AllPairs().Where(p =>
-      (VacancyStage)p[1] is VacancyStage.Applied or VacancyStage.Closed or VacancyStage.Dismissed);
+    StageTable.AllPairs()
+      .Where(p => (VacancyStage)p[1] is VacancyStage.Applied or VacancyStage.Closed or VacancyStage.Dismissed)
+      .Where(p => !((VacancyStage)p[0] == VacancyStage.Closed && (VacancyStage)p[1] == VacancyStage.Applied));
 
   public static IEnumerable<object[]> MoveToDisallowedPairs() =>
     StageTable.DisallowedPairs().Where(p =>

@@ -62,12 +62,38 @@ public class Vacancy : IUserOwned
 
   public ApplicationEvent MoveTo(VacancyStage target, DateTime at)
   {
-    throw new NotImplementedException();
+    UtcGuard.Ensure(at);
+    var reopensApplication = Stage == VacancyStage.Closed && target == VacancyStage.Applied;
+    if (target is VacancyStage.Closed or VacancyStage.Dismissed || target == VacancyStage.Applied && !reopensApplication)
+    {
+      throw new StageTransitionException(Stage, target, $"Use the dedicated method to move to {target}.");
+    }
+
+    EnsureCanMove(target);
+    if (target is VacancyStage.Targeted or VacancyStage.Preparing && matches.Count == 0)
+    {
+      throw new StageTransitionException(Stage, target, $"{target} requires at least one matched hypothesis.");
+    }
+
+    if (Stage == VacancyStage.Dismissed)
+    {
+      DismissReason = null;
+    }
+
+    if (Stage == VacancyStage.Closed)
+    {
+      Application!.SetOutcome(null);
+    }
+
+    return ChangeStage(target, at, null);
   }
 
   public ApplicationEvent Dismiss(DismissReason reason, string? comment, DateTime at)
   {
-    throw new NotImplementedException();
+    UtcGuard.Ensure(at);
+    EnsureCanMove(VacancyStage.Dismissed);
+    DismissReason = reason;
+    return ChangeStage(VacancyStage.Dismissed, at, comment);
   }
 
   public ApplicationEvent Apply(
@@ -77,12 +103,46 @@ public class Vacancy : IUserOwned
     DateTime appliedAt,
     string? coverLetter)
   {
-    throw new NotImplementedException();
+    Require.NotEmpty(hypothesisId);
+    Require.NotEmpty(cvVersionId);
+    UtcGuard.Ensure(appliedAt);
+    EnsureCanMove(VacancyStage.Applied);
+    if (Application is not null)
+    {
+      throw new StageTransitionException(Stage, VacancyStage.Applied, "The vacancy already has an application; reopen it instead.");
+    }
+
+    if (matches.All(m => m.HypothesisId != hypothesisId))
+    {
+      throw new StageTransitionException(Stage, VacancyStage.Applied, "The hypothesis is not matched to this vacancy.");
+    }
+
+    Application = new JobApplication(UserId, Id, hypothesisId, cvVersionId, channel, appliedAt, coverLetter);
+    return ChangeStage(VacancyStage.Applied, appliedAt, null);
   }
 
   public ApplicationEvent Close(ApplicationOutcome outcome, DateTime at)
   {
-    throw new NotImplementedException();
+    UtcGuard.Ensure(at);
+    EnsureCanMove(VacancyStage.Closed);
+    Application!.SetOutcome(outcome);
+    return ChangeStage(VacancyStage.Closed, at, null);
+  }
+
+  private void EnsureCanMove(VacancyStage target)
+  {
+    if (!VacancyStageRules.CanMove(Stage, target))
+    {
+      throw new StageTransitionException(Stage, target, $"Cannot move a vacancy from {Stage} to {target}.");
+    }
+  }
+
+  private ApplicationEvent ChangeStage(VacancyStage target, DateTime at, string? note)
+  {
+    var stageChanged = new ApplicationEvent(UserId, Id, ApplicationEventType.StageChanged, at, Stage, target, note);
+    events.Add(stageChanged);
+    Stage = target;
+    return stageChanged;
   }
 
   public Vacancy(Guid userId, string url, VacancySource source, DateTime discoveredAt)
