@@ -1,3 +1,4 @@
+using Karajob.Application.Persistence;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -32,6 +33,7 @@ public static class PersistenceServiceCollectionExtensions
           $"Supported: {DatabaseOptions.SqliteProvider}, {DatabaseOptions.SqliteInMemoryProvider}.");
     }
 
+    services.AddSingleton<IKarajobDbContextFactory, KarajobDbContextFactory>();
     services.AddSingleton(options);
     services.TryAddSingleton(TimeProvider.System);
     services.AddSingleton<DatabaseInitializer>();

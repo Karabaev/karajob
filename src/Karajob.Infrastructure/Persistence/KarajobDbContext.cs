@@ -1,4 +1,5 @@
 using System.Reflection;
+using Karajob.Application.Persistence;
 using Karajob.Application.Users;
 using Karajob.Domain.Applications;
 using Karajob.Domain.Common;
@@ -12,7 +13,7 @@ using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace Karajob.Infrastructure.Persistence;
 
-public class KarajobDbContext(DbContextOptions<KarajobDbContext> options, ICurrentUser currentUser) : DbContext(options)
+public class KarajobDbContext(DbContextOptions<KarajobDbContext> options, ICurrentUser currentUser) : DbContext(options), IKarajobDbContext
 {
   public const string UserFilterName = "UserId";
 

@@ -59,6 +59,11 @@ public static partial class Normalize
     return WhitespacePattern().Replace(value.Trim(), " ").ToLowerInvariant();
   }
 
+  public static string Slugify(string name)
+  {
+    throw new NotImplementedException();
+  }
+
   public static string WebUrl(string value, [CallerArgumentExpression(nameof(value))] string? paramName = null)
   {
     ParseHttpUrl(value, paramName);
