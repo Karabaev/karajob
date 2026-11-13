@@ -1,3 +1,4 @@
+using Karajob.Domain.Applications;
 using Karajob.Domain.Common;
 using Karajob.Domain.Hypotheses;
 using Karajob.Domain.Normalization;
@@ -7,6 +8,7 @@ namespace Karajob.Domain.Vacancies;
 public class Vacancy : IUserOwned
 {
   private readonly List<VacancyMatch> matches = [];
+  private readonly List<ApplicationEvent> events = [];
   private DateTime? publishedAt;
 
   public Guid Id { get; private set; }
@@ -24,6 +26,8 @@ public class Vacancy : IUserOwned
   public VacancyStage Stage { get; private set; }
   public DismissReason? DismissReason { get; private set; }
   public IReadOnlyCollection<VacancyMatch> Matches => matches;
+  public IReadOnlyCollection<ApplicationEvent> Events => events;
+  public JobApplication? Application { get; private set; }
 
   public DateTime? PublishedAt
   {
@@ -54,6 +58,92 @@ public class Vacancy : IUserOwned
   public void RemoveMatch(Guid hypothesisId)
   {
     matches.RemoveAll(m => m.HypothesisId == hypothesisId);
+  }
+
+  public ApplicationEvent MoveTo(VacancyStage target, DateTime at)
+  {
+    UtcGuard.Ensure(at);
+    var reopensApplication = Stage == VacancyStage.Closed && target == VacancyStage.Applied;
+    if (target is VacancyStage.Closed or VacancyStage.Dismissed || target == VacancyStage.Applied && !reopensApplication)
+    {
+      throw new StageTransitionException(Stage, target, $"Use the dedicated method to move to {target}.");
+    }
+
+    EnsureCanMove(target);
+    var entersBoard = Stage is VacancyStage.Inbox or VacancyStage.Dismissed && target != VacancyStage.Inbox;
+    if (entersBoard && matches.Count == 0)
+    {
+      throw new StageTransitionException(Stage, target, $"{target} requires at least one matched hypothesis.");
+    }
+
+    if (Stage == VacancyStage.Dismissed)
+    {
+      DismissReason = null;
+    }
+
+    if (Stage == VacancyStage.Closed)
+    {
+      Application!.SetOutcome(null);
+    }
+
+    return ChangeStage(target, at, null);
+  }
+
+  public ApplicationEvent Dismiss(DismissReason reason, string? comment, DateTime at)
+  {
+    UtcGuard.Ensure(at);
+    EnsureCanMove(VacancyStage.Dismissed);
+    DismissReason = reason;
+    return ChangeStage(VacancyStage.Dismissed, at, comment);
+  }
+
+  public ApplicationEvent Apply(
+    Guid hypothesisId,
+    Guid cvVersionId,
+    ApplicationChannel channel,
+    DateTime appliedAt,
+    string? coverLetter)
+  {
+    Require.NotEmpty(hypothesisId);
+    Require.NotEmpty(cvVersionId);
+    UtcGuard.Ensure(appliedAt);
+    EnsureCanMove(VacancyStage.Applied);
+    if (Application is not null)
+    {
+      throw new StageTransitionException(Stage, VacancyStage.Applied, "The vacancy already has an application; reopen it instead.");
+    }
+
+    if (matches.All(m => m.HypothesisId != hypothesisId))
+    {
+      throw new StageTransitionException(Stage, VacancyStage.Applied, "The hypothesis is not matched to this vacancy.");
+    }
+
+    Application = new JobApplication(UserId, Id, hypothesisId, cvVersionId, channel, appliedAt, coverLetter);
+    return ChangeStage(VacancyStage.Applied, appliedAt, null);
+  }
+
+  public ApplicationEvent Close(ApplicationOutcome outcome, DateTime at)
+  {
+    UtcGuard.Ensure(at);
+    EnsureCanMove(VacancyStage.Closed);
+    Application!.SetOutcome(outcome);
+    return ChangeStage(VacancyStage.Closed, at, null);
+  }
+
+  private void EnsureCanMove(VacancyStage target)
+  {
+    if (!VacancyStageRules.CanMove(Stage, target))
+    {
+      throw new StageTransitionException(Stage, target, $"Cannot move a vacancy from {Stage} to {target}.");
+    }
+  }
+
+  private ApplicationEvent ChangeStage(VacancyStage target, DateTime at, string? note)
+  {
+    var stageChanged = new ApplicationEvent(UserId, Id, ApplicationEventType.StageChanged, at, Stage, target, note);
+    events.Add(stageChanged);
+    Stage = target;
+    return stageChanged;
   }
 
   public Vacancy(Guid userId, string url, VacancySource source, DateTime discoveredAt)
