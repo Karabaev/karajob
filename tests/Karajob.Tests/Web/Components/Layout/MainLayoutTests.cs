@@ -6,10 +6,12 @@ using MudBlazor.Services;
 
 namespace Karajob.Tests.Web.Components.Layout;
 
-public class MainLayoutTests : BunitContext
+public class MainLayoutTests : IAsyncLifetime
 {
   private const string BodyMarker = "body-marker-text";
   private const string DialogTitle = "Новая вакансия";
+
+  private readonly BunitContext _context = new();
 
   [Fact]
   public void Render_RendersBody()
@@ -95,12 +97,23 @@ public class MainLayoutTests : BunitContext
 
   private IRenderedComponent<MainLayout> RenderLayout()
   {
-    return Render<MainLayout>(p => p.Add(l => l.Body, (RenderFragment)(b => b.AddContent(0, BodyMarker))));
+    return _context.Render<MainLayout>(p => p.Add(l => l.Body, (RenderFragment)(b => b.AddContent(0, BodyMarker))));
+  }
+
+  public Task InitializeAsync()
+  {
+    return Task.CompletedTask;
+  }
+
+  // MudBlazor services are IAsyncDisposable only, and xUnit v2 disposes test classes synchronously.
+  public async Task DisposeAsync()
+  {
+    await _context.DisposeAsync();
   }
 
   public MainLayoutTests()
   {
-    JSInterop.Mode = JSRuntimeMode.Loose;
-    Services.AddMudServices();
+    _context.JSInterop.Mode = JSRuntimeMode.Loose;
+    _context.Services.AddMudServices();
   }
 }

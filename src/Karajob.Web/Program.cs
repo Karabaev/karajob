@@ -2,12 +2,14 @@ using Karajob.Application.Users;
 using Karajob.Infrastructure.Persistence;
 using Karajob.Infrastructure.Users;
 using Karajob.Web.Components;
+using MudBlazor.Services;
 using Microsoft.AspNetCore.DataProtection;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddRazorComponents()
   .AddInteractiveServerComponents();
+builder.Services.AddMudServices();
 
 // In Docker the default key ring lives inside the container and is lost on recreation.
 var keysDirectory = builder.Configuration["DataProtection:KeysDirectory"];
