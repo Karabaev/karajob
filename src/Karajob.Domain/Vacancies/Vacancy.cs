@@ -1,3 +1,4 @@
+using Karajob.Domain.Applications;
 using Karajob.Domain.Common;
 using Karajob.Domain.Hypotheses;
 using Karajob.Domain.Normalization;
@@ -7,6 +8,7 @@ namespace Karajob.Domain.Vacancies;
 public class Vacancy : IUserOwned
 {
   private readonly List<VacancyMatch> matches = [];
+  private readonly List<ApplicationEvent> events = [];
   private DateTime? publishedAt;
 
   public Guid Id { get; private set; }
@@ -24,6 +26,8 @@ public class Vacancy : IUserOwned
   public VacancyStage Stage { get; private set; }
   public DismissReason? DismissReason { get; private set; }
   public IReadOnlyCollection<VacancyMatch> Matches => matches;
+  public IReadOnlyCollection<ApplicationEvent> Events => events;
+  public JobApplication? Application { get; private set; }
 
   public DateTime? PublishedAt
   {
@@ -54,6 +58,31 @@ public class Vacancy : IUserOwned
   public void RemoveMatch(Guid hypothesisId)
   {
     matches.RemoveAll(m => m.HypothesisId == hypothesisId);
+  }
+
+  public ApplicationEvent MoveTo(VacancyStage target, DateTime at)
+  {
+    throw new NotImplementedException();
+  }
+
+  public ApplicationEvent Dismiss(DismissReason reason, string? comment, DateTime at)
+  {
+    throw new NotImplementedException();
+  }
+
+  public ApplicationEvent Apply(
+    Guid hypothesisId,
+    Guid cvVersionId,
+    ApplicationChannel channel,
+    DateTime appliedAt,
+    string? coverLetter)
+  {
+    throw new NotImplementedException();
+  }
+
+  public ApplicationEvent Close(ApplicationOutcome outcome, DateTime at)
+  {
+    throw new NotImplementedException();
   }
 
   public Vacancy(Guid userId, string url, VacancySource source, DateTime discoveredAt)

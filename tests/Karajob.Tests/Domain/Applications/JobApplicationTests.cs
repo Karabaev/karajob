@@ -1,4 +1,5 @@
 using Karajob.Domain.Applications;
+using Karajob.Domain.Vacancies;
 
 namespace Karajob.Tests.Domain.Applications;
 
@@ -6,20 +7,28 @@ public class JobApplicationTests
 {
   private static readonly DateTime Now = new(2026, 11, 12, 10, 0, 0, DateTimeKind.Utc);
 
-  [Fact]
-  public void Ctor_Valid_SetsAllFields()
+  private static (Vacancy Vacancy, Guid HypothesisId) CreateTargeted()
   {
-    var userId = Guid.NewGuid();
-    var vacancyId = Guid.NewGuid();
+    var vacancy = new Vacancy(Guid.NewGuid(), "https://example.com/jobs/1", VacancySource.Manual, Now);
     var hypothesisId = Guid.NewGuid();
+    vacancy.SetMatch(hypothesisId, null, null, MatchAuthor.Human);
+    vacancy.MoveTo(VacancyStage.Targeted, Now);
+    return (vacancy, hypothesisId);
+  }
+
+  [Fact]
+  public void Apply_Valid_SetsAllFields()
+  {
+    var (vacancy, hypothesisId) = CreateTargeted();
     var cvVersionId = Guid.NewGuid();
 
-    var application = new JobApplication(
-      userId, vacancyId, hypothesisId, cvVersionId, ApplicationChannel.Referral, Now, "Hello");
+    vacancy.Apply(hypothesisId, cvVersionId, ApplicationChannel.Referral, Now, "Hello");
 
+    var application = vacancy.Application;
+    Assert.NotNull(application);
     Assert.NotEqual(Guid.Empty, application.Id);
-    Assert.Equal(userId, application.UserId);
-    Assert.Equal(vacancyId, application.VacancyId);
+    Assert.Equal(vacancy.UserId, application.UserId);
+    Assert.Equal(vacancy.Id, application.VacancyId);
     Assert.Equal(hypothesisId, application.HypothesisId);
     Assert.Equal(cvVersionId, application.CvVersionId);
     Assert.Equal(ApplicationChannel.Referral, application.Channel);
@@ -28,28 +37,34 @@ public class JobApplicationTests
     Assert.Null(application.Outcome);
   }
 
-  [Theory]
-  [InlineData(0)]
-  [InlineData(1)]
-  [InlineData(2)]
-  [InlineData(3)]
-  public void Ctor_EmptyId_Throws(int emptyIndex)
+  [Fact]
+  public void Apply_EmptyHypothesisId_Throws()
   {
-    var ids = new[] { Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid() };
-    ids[emptyIndex] = Guid.Empty;
+    var (vacancy, _) = CreateTargeted();
 
     Assert.ThrowsAny<ArgumentException>(() =>
-      new JobApplication(ids[0], ids[1], ids[2], ids[3], ApplicationChannel.Website, Now, null));
+      vacancy.Apply(Guid.Empty, Guid.NewGuid(), ApplicationChannel.Website, Now, null));
+  }
+
+  [Fact]
+  public void Apply_EmptyCvVersionId_Throws()
+  {
+    var (vacancy, hypothesisId) = CreateTargeted();
+
+    Assert.ThrowsAny<ArgumentException>(() =>
+      vacancy.Apply(hypothesisId, Guid.Empty, ApplicationChannel.Website, Now, null));
   }
 
   [Theory]
   [InlineData(DateTimeKind.Local)]
   [InlineData(DateTimeKind.Unspecified)]
-  public void Ctor_NonUtcAppliedAt_Throws(DateTimeKind kind)
+  public void Apply_NonUtcAppliedAt_Throws(DateTimeKind kind)
   {
+    var (vacancy, hypothesisId) = CreateTargeted();
+
     Assert.ThrowsAny<ArgumentException>(() =>
-      new JobApplication(
-        Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), ApplicationChannel.Website,
+      vacancy.Apply(
+        hypothesisId, Guid.NewGuid(), ApplicationChannel.Website,
         new DateTime(2026, 11, 12, 10, 0, 0, kind), null));
   }
 }

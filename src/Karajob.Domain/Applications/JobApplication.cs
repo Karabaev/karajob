@@ -14,7 +14,12 @@ public class JobApplication : IUserOwned
   public string? CoverLetter { get; set; }
   public ApplicationOutcome? Outcome { get; private set; }
 
-  public JobApplication(
+  internal void SetOutcome(ApplicationOutcome? outcome)
+  {
+    Outcome = outcome;
+  }
+
+  internal JobApplication(
     Guid userId,
     Guid vacancyId,
     Guid hypothesisId,
