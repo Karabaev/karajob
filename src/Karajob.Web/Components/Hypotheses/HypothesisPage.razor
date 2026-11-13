@@ -135,6 +135,7 @@ else if (_loaded)
 
   private async Task LoadAsync()
   {
+    _loaded = false;
     _errors = new Dictionary<string, string>();
     _notFound = false;
     _details = null;
@@ -260,6 +261,10 @@ else if (_loaded)
     {
       _errors = exception.Errors;
     }
+    catch (KeyNotFoundException)
+    {
+      _notFound = true;
+    }
     finally
     {
       _saving = false;
@@ -286,6 +291,10 @@ else if (_loaded)
     catch (ValidationFailedException exception)
     {
       Snackbar.Add(exception.Message, Severity.Error);
+    }
+    catch (KeyNotFoundException)
+    {
+      _notFound = true;
     }
   }
 }
