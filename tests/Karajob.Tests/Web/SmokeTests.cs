@@ -1,18 +1,44 @@
+using System.Net;
 using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace Karajob.Tests.Web;
 
 public class SmokeTests(WebApplicationFactory<Program> factory) : IClassFixture<WebApplicationFactory<Program>>
 {
-  [Fact]
-  public async Task GetHome_ReturnsSuccessAndHomeTitle()
+  [Theory]
+  [InlineData("/", "Доска")]
+  [InlineData("/inbox", "Inbox")]
+  [InlineData("/companies", "Компании")]
+  [InlineData("/hypotheses", "Гипотезы")]
+  [InlineData("/cvs", "CV")]
+  public async Task GetPage_ReturnsSuccessAndPageTitle(string route, string title)
   {
     var client = factory.CreateClient();
 
-    var response = await client.GetAsync("/");
+    var response = await client.GetAsync(route);
 
     response.EnsureSuccessStatusCode();
-    var html = await response.Content.ReadAsStringAsync();
-    Assert.Contains("<title>Home</title>", html);
+    var html = WebUtility.HtmlDecode(await response.Content.ReadAsStringAsync());
+    Assert.Contains($"<title>{title}</title>", html);
+  }
+
+  [Fact]
+  public async Task GetHome_LinksMudBlazorCss()
+  {
+    var client = factory.CreateClient();
+
+    var html = await client.GetStringAsync("/");
+
+    Assert.Matches(@"<link[^>]+href=""[^""]*MudBlazor\.min[^""]*\.css""", html);
+  }
+
+  [Fact]
+  public async Task GetHome_DoesNotReferenceBootstrap()
+  {
+    var client = factory.CreateClient();
+
+    var html = await client.GetStringAsync("/");
+
+    Assert.DoesNotContain("bootstrap", html, StringComparison.OrdinalIgnoreCase);
   }
 }
