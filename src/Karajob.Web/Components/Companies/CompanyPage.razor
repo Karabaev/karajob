@@ -48,7 +48,7 @@ else if (_loaded)
             <MudTextField T="string" Label="Описание" Lines="3" Sizing="InputSizing.Auto" @bind-Value="_description"
                           Error="HasError(nameof(CompanyInput.Description))" ErrorText="@ErrorOf(nameof(CompanyInput.Description))" />
             <MudStack Row="true" Justify="Justify.SpaceBetween">
-              <MudButton Class="company-save" Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveAsync">Сохранить</MudButton>
+              <MudButton Class="company-save" Variant="Variant.Filled" Color="Color.Primary" Disabled="_saving" OnClick="SaveAsync">Сохранить</MudButton>
               @if (_details is not null)
               {
                 <MudButton Color="Color.Error" OnClick="DeleteAsync">Удалить компанию</MudButton>
@@ -66,7 +66,7 @@ else if (_loaded)
           <MudPaper Class="pa-4">
             <MudText Typo="Typo.h6" GutterBottom="true">Моя заметка</MudText>
             <MudStack Spacing="2">
-              <MudTextField T="string" Label="Заметка" Lines="3" Sizing="InputSizing.Auto" @bind-Value="_note" />
+              <MudTextField T="string" Class="company-note" Label="Заметка" Lines="3" Sizing="InputSizing.Auto" @bind-Value="_note" />
               <MudSwitch T="bool" Label="Чёрный список" Color="Color.Error" @bind-Value="_blacklisted" />
               <MudButton Class="note-save" Variant="Variant.Outlined" OnClick="SaveNoteAsync">Сохранить заметку</MudButton>
             </MudStack>
@@ -124,6 +124,7 @@ else if (_loaded)
   private bool _loaded;
   private bool _notFound;
   private bool _slugEdited;
+  private bool _saving;
   private string? _name;
   private string? _slug;
   private string? _website;
@@ -138,9 +139,13 @@ else if (_loaded)
 
   private string Title => _details?.Name ?? (Slug is null ? "Новая компания" : "Компания не найдена");
 
-  // The same component instance is reused when the route changes (e.g. after a slug rename), so load here, not in OnInitialized.
+  // The same component instance is reused when the route changes, so load here, not in OnInitialized.
+  // After our own save navigates to the saved slug the page already holds that company:
+  // reloading would overwrite unsaved edits in the note card.
   protected override async Task OnParametersSetAsync()
   {
+    if (_loaded && Slug is not null && Slug == _details?.Slug) return;
+
     await LoadAsync();
   }
 
@@ -156,6 +161,14 @@ else if (_loaded)
       _notFound = _details is null;
     }
 
+    FillCompanyFields();
+    _note = _details?.Note;
+    _blacklisted = _details?.IsBlacklisted ?? false;
+    _loaded = true;
+  }
+
+  private void FillCompanyFields()
+  {
     _slugEdited = _details is not null;
     _name = _details?.Name;
     _slug = _details?.Slug;
@@ -163,9 +176,12 @@ else if (_loaded)
     _description = _details?.Description;
     _domains = _details is null ? null : string.Join('\n', _details.Domains);
     _aliases = _details is null ? null : string.Join('\n', _details.Aliases);
-    _note = _details?.Note;
-    _blacklisted = _details?.IsBlacklisted ?? false;
-    _loaded = true;
+  }
+
+  private async Task RefreshProjectsAsync()
+  {
+    var fresh = await CompanyService.FindBySlugAsync(_details!.Slug);
+    _details = _details with { Projects = fresh!.Projects };
   }
 
   private void OnNameChanged(string? name)
@@ -216,24 +232,29 @@ else if (_loaded)
       SplitLines(_domains),
       SplitLines(_aliases));
 
+    _saving = true;
     try
     {
       var saved = _details is null
         ? await CompanyService.CreateAsync(input)
         : await CompanyService.UpdateAsync(_details.Id, input);
 
+      _errors = new Dictionary<string, string>();
+      _details = saved;
+      FillCompanyFields();
       Snackbar.Add("Сохранено", Severity.Success);
-      if (_details is null || saved.Slug != _details.Slug)
+      if (Slug != saved.Slug)
       {
         Navigation.NavigateTo($"/companies/{saved.Slug}");
-        return;
       }
-
-      await LoadAsync();
     }
     catch (ValidationFailedException exception)
     {
       _errors = exception.Errors;
+    }
+    finally
+    {
+      _saving = false;
     }
   }
 
@@ -281,7 +302,7 @@ else if (_loaded)
     var result = await reference.Result;
     if (result is { Canceled: false })
     {
-      await LoadAsync();
+      await RefreshProjectsAsync();
     }
   }
 
@@ -298,6 +319,6 @@ else if (_loaded)
     }
 
     await CompanyService.DeleteProjectAsync(project.Id);
-    await LoadAsync();
+    await RefreshProjectsAsync();
   }
 }

@@ -68,6 +68,22 @@ public class CompanyPageTests : CompanyWebFixture
     });
   }
 
+  [Fact]
+  public async Task SaveCompany_ExistingCompany_KeepsUnsavedNote()
+  {
+    await Service.CreateAsync(Input("pixel-forge", "Pixel Forge"));
+    var cut = Context.Render<CompanyPage>(p => p.Add(c => c.Slug, "pixel-forge"));
+    cut.WaitForAssertion(() => Assert.Equal("Pixel Forge", cut.Find(".company-name input").GetAttribute("value")));
+    cut.Find(".company-note textarea").Change("draft note");
+    cut.Find(".company-name input").Input("Pixel Forge Studio");
+
+    cut.Find(".company-save").Click();
+
+    cut.WaitForAssertion(() => Assert.Equal("Pixel Forge Studio", cut.Find("h1").TextContent.Trim()));
+    Assert.Equal("Pixel Forge Studio", (await Service.FindBySlugAsync("pixel-forge"))!.Name);
+    Assert.Equal("draft note", cut.Find(".company-note textarea").GetAttribute("value"));
+  }
+
   private async Task WaitForCompanyAsync(string slug)
   {
     for (var attempt = 0; attempt < 50; attempt++)

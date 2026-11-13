@@ -1,8 +1,9 @@
 using Bunit;
+using Karajob.Tests.Web.Components.Companies;
 using Microsoft.AspNetCore.Components;
 using CompaniesPage = Karajob.Web.Components.Pages.Companies;
 
-namespace Karajob.Tests.Web.Components.Companies;
+namespace Karajob.Tests.Web.Components.Pages;
 
 public class CompaniesPageTests : CompanyWebFixture
 {

@@ -72,6 +72,15 @@ public class CompanyServiceTests : CompanyServiceFixture
   }
 
   [Fact]
+  public async Task CreateAsync_ReservedSlug_ReportsSlugErrorAndSavesNothing()
+  {
+    var exception = await Assert.ThrowsAsync<ValidationFailedException>(() => Service.CreateAsync(Input(slug: "New")));
+
+    Assert.Equal([nameof(CompanyInput.Slug)], exception.Errors.Keys);
+    Assert.Empty(await Service.SearchAsync(null));
+  }
+
+  [Fact]
   public async Task CreateAsync_MultipleInvalidFields_ReportsAllErrorsAtOnce()
   {
     var exception = await Assert.ThrowsAsync<ValidationFailedException>(

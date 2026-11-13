@@ -9,6 +9,9 @@ namespace Karajob.Application.Companies;
 
 public class CompanyService(IKarajobDbContextFactory dbContextFactory, ICurrentUser currentUser)
 {
+  // Company pages live at /companies/{slug}; these slugs collide with fixed routes there.
+  private static readonly HashSet<string> ReservedSlugs = ["new"];
+
   public async Task<IReadOnlyList<CompanyListItem>> SearchAsync(string? query, CancellationToken cancellationToken = default)
   {
     await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
@@ -243,6 +246,12 @@ public class CompanyService(IKarajobDbContextFactory dbContextFactory, ICurrentU
       .Distinct()
       .ToList();
     domains = domains.Distinct().ToList();
+
+    if (slug is not null && ReservedSlugs.Contains(slug))
+    {
+      errors[nameof(CompanyInput.Slug)] = $"Slug «{slug}» зарезервирован";
+      slug = null;
+    }
 
     if (slug is not null)
     {

@@ -72,6 +72,11 @@ else
 
   private async Task LoadAsync()
   {
-    _items = await CompanyService.SearchAsync(_query);
+    var query = _query;
+    var items = await CompanyService.SearchAsync(query);
+    // A slower earlier search must not overwrite the results of a later one.
+    if (query != _query) return;
+
+    _items = items;
   }
 }
