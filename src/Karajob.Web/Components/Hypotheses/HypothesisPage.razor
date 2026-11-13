@@ -1,9 +1,291 @@
 @page "/hypotheses/new"
 @page "/hypotheses/{Id:guid}"
+@inject HypothesisService HypothesisService
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
 
-<PageTitle>Гипотеза</PageTitle>
+<PageTitle>@Title</PageTitle>
+
+@if (_notFound)
+{
+  <MudText Typo="Typo.h4" HtmlTag="h1" GutterBottom="true">Гипотеза не найдена</MudText>
+  <MudButton Href="/hypotheses">К списку гипотез</MudButton>
+}
+else if (_loaded)
+{
+  <MudText Typo="Typo.h4" HtmlTag="h1" Class="mb-4">@Title</MudText>
+
+  <MudGrid>
+    <MudItem xs="12" md="7">
+      <MudPaper Class="pa-4">
+        <MudForm>
+          <MudStack Spacing="2">
+            @if (_errors.TryGetValue("", out var general))
+            {
+              <MudAlert Severity="Severity.Error">@general</MudAlert>
+            }
+            <MudTextField T="string" Class="hypothesis-name" Label="Название" Immediate="true"
+                          Value="_name" ValueChanged="OnNameChanged"
+                          Error="HasError(nameof(HypothesisInput.Name))" ErrorText="@ErrorOf(nameof(HypothesisInput.Name))" />
+            <MudTextField T="string" Class="hypothesis-role" Label="Роль" Required="true" Immediate="true"
+                          Value="_role" ValueChanged="OnRoleChanged"
+                          Error="HasError(nameof(HypothesisInput.Role))" ErrorText="@ErrorOf(nameof(HypothesisInput.Role))" />
+            <MudSelect T="string" Class="hypothesis-language" Label="Язык"
+                       Value="_language" ValueChanged="OnLanguageChanged"
+                       Error="HasError(nameof(HypothesisInput.Language))" ErrorText="@ErrorOf(nameof(HypothesisInput.Language))">
+              @foreach (var language in LanguageOptions())
+              {
+                <MudSelectItem T="string" Value="@language.Code">@language.Label</MudSelectItem>
+              }
+            </MudSelect>
+
+            <div>
+              <MudText Typo="Typo.subtitle2">Формат работы</MudText>
+              <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="2">
+                <MudCheckBox T="bool" Class="hypothesis-format-remote" Label="Удалёнка"
+                             Value="HasFormat(WorkFormat.Remote)" ValueChanged="value => SetFormat(WorkFormat.Remote, value)" />
+                <MudCheckBox T="bool" Class="hypothesis-format-hybrid" Label="Гибрид"
+                             Value="HasFormat(WorkFormat.Hybrid)" ValueChanged="value => SetFormat(WorkFormat.Hybrid, value)" />
+                <MudCheckBox T="bool" Class="hypothesis-format-onsite" Label="Офис"
+                             Value="HasFormat(WorkFormat.OnSite)" ValueChanged="value => SetFormat(WorkFormat.OnSite, value)" />
+                <MudCheckBox T="bool" Class="hypothesis-format-relocation" Label="Релокация"
+                             Value="HasFormat(WorkFormat.Relocation)" ValueChanged="value => SetFormat(WorkFormat.Relocation, value)" />
+              </MudStack>
+              @if (HasError(nameof(HypothesisInput.WorkFormat)))
+              {
+                <MudText Typo="Typo.caption" Color="Color.Error">@ErrorOf(nameof(HypothesisInput.WorkFormat))</MudText>
+              }
+            </div>
+
+            <MudTextField T="string" Class="hypothesis-locations" Label="Локации" HelperText="по одной на строку"
+                          Lines="3" Sizing="InputSizing.Auto" @bind-Value="_locations"
+                          Error="HasError(nameof(HypothesisInput.Locations))" ErrorText="@ErrorOf(nameof(HypothesisInput.Locations))" />
+            <MudTextField T="string" Class="hypothesis-industries" Label="Индустрии" HelperText="по одной на строку"
+                          Lines="3" Sizing="InputSizing.Auto" @bind-Value="_industries"
+                          Error="HasError(nameof(HypothesisInput.Industries))" ErrorText="@ErrorOf(nameof(HypothesisInput.Industries))" />
+            <MudTextField T="string" Class="hypothesis-positioning" Label="Позиционирование"
+                          Lines="3" Sizing="InputSizing.Auto" @bind-Value="_positioning"
+                          Error="HasError(nameof(HypothesisInput.Positioning))" ErrorText="@ErrorOf(nameof(HypothesisInput.Positioning))" />
+            <MudSelect T="Guid?" Class="hypothesis-cv" Label="Основной CV" @bind-Value="_primaryCvId"
+                       HelperText="@(_cvOptions.Count == 0 ? "CV появятся после загрузки в разделе CV" : null)"
+                       Error="HasError(nameof(HypothesisInput.PrimaryCvDocumentId))" ErrorText="@ErrorOf(nameof(HypothesisInput.PrimaryCvDocumentId))">
+              <MudSelectItem T="Guid?" Value="@((Guid?)null)">— не выбран —</MudSelectItem>
+              @foreach (var option in _cvOptions)
+              {
+                <MudSelectItem T="Guid?" Value="@((Guid?)option.Id)">@option.Name (@option.Language.ToUpperInvariant())</MudSelectItem>
+              }
+            </MudSelect>
+            <MudSelect T="HypothesisStatus" Class="hypothesis-status" Label="Статус" @bind-Value="_status">
+              @foreach (var status in Enum.GetValues<HypothesisStatus>())
+              {
+                <MudSelectItem T="HypothesisStatus" Value="status">@HypothesisText.Status(status)</MudSelectItem>
+              }
+            </MudSelect>
+            @if (_details?.StartedAt is { } startedAt)
+            {
+              <MudText Typo="Typo.caption" Class="mud-text-secondary">Запущена @startedAt.ToString("dd.MM.yyyy")</MudText>
+            }
+
+            <MudStack Row="true" Justify="Justify.SpaceBetween">
+              <MudButton Class="hypothesis-save" Variant="Variant.Filled" Color="Color.Primary" Disabled="_saving" OnClick="SaveAsync">Сохранить</MudButton>
+              @if (_details is not null)
+              {
+                <MudButton Class="hypothesis-delete" Color="Color.Error" OnClick="DeleteAsync">Удалить гипотезу</MudButton>
+              }
+            </MudStack>
+          </MudStack>
+        </MudForm>
+      </MudPaper>
+    </MudItem>
+  </MudGrid>
+}
 
 @code {
+  private IReadOnlyDictionary<string, string> _errors = new Dictionary<string, string>();
+  private IReadOnlyList<CvOption> _cvOptions = [];
+  private HypothesisDetails? _details;
+  private bool _loaded;
+  private bool _notFound;
+  private bool _nameEdited;
+  private bool _saving;
+  private string? _name;
+  private string? _role;
+  private string _language = "ru";
+  private WorkFormat _format = WorkFormat.Remote;
+  private string? _locations;
+  private string? _industries;
+  private string? _positioning;
+  private Guid? _primaryCvId;
+  private HypothesisStatus _status = HypothesisStatus.Draft;
+
   [Parameter]
   public Guid? Id { get; set; }
+
+  private string Title => _details?.Name ?? (Id is null ? "Новая гипотеза" : "Гипотеза не найдена");
+
+  // The same component instance is reused when the route changes, so load here, not in OnInitialized.
+  // After our own save navigates to the saved id the page already holds that hypothesis.
+  protected override async Task OnParametersSetAsync()
+  {
+    if (_loaded && Id is not null && Id == _details?.Id) return;
+
+    await LoadAsync();
+  }
+
+  private async Task LoadAsync()
+  {
+    _errors = new Dictionary<string, string>();
+    _notFound = false;
+    _details = null;
+    _cvOptions = await HypothesisService.ListCvOptionsAsync();
+
+    if (Id is not null)
+    {
+      _details = await HypothesisService.FindAsync(Id.Value);
+      _notFound = _details is null;
+    }
+
+    FillFields();
+    _loaded = true;
+  }
+
+  private void FillFields()
+  {
+    _nameEdited = _details is not null;
+    _name = _details?.Name;
+    _role = _details?.Role;
+    _language = _details?.Language ?? "ru";
+    _format = _details?.WorkFormat ?? WorkFormat.Remote;
+    _locations = _details is null ? null : string.Join('\n', _details.Locations);
+    _industries = _details is null ? null : string.Join('\n', _details.Industries);
+    _positioning = _details?.Positioning;
+    _primaryCvId = _details?.PrimaryCvDocumentId;
+    _status = _details?.Status ?? HypothesisStatus.Draft;
+  }
+
+  private IEnumerable<(string Code, string Label)> LanguageOptions()
+  {
+    yield return ("ru", "Русский");
+    yield return ("en", "English");
+    if (_language is not ("ru" or "en"))
+    {
+      yield return (_language, _language.ToUpperInvariant());
+    }
+  }
+
+  private void SuggestName()
+  {
+    if (_nameEdited) return;
+
+    var role = (_role ?? "").Trim();
+    _name = role.Length == 0 ? "" : $"{role} {_language.ToUpperInvariant()}";
+  }
+
+  private void OnNameChanged(string? name)
+  {
+    _name = name;
+    _nameEdited = true;
+  }
+
+  private void OnRoleChanged(string? role)
+  {
+    _role = role;
+    SuggestName();
+  }
+
+  private void OnLanguageChanged(string? language)
+  {
+    _language = language ?? "ru";
+    SuggestName();
+  }
+
+  private bool HasFormat(WorkFormat flag)
+  {
+    return _format.HasFlag(flag);
+  }
+
+  private void SetFormat(WorkFormat flag, bool value)
+  {
+    _format = value ? _format | flag : _format & ~flag;
+  }
+
+  private bool HasError(string key)
+  {
+    return _errors.ContainsKey(key);
+  }
+
+  private string? ErrorOf(string key)
+  {
+    return _errors.GetValueOrDefault(key);
+  }
+
+  private static IReadOnlyList<string> SplitLines(string? text)
+  {
+    return (text ?? "")
+      .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+      .ToList();
+  }
+
+  private async Task SaveAsync()
+  {
+    var input = new HypothesisInput(
+      _name ?? "",
+      _role ?? "",
+      SplitLines(_locations),
+      SplitLines(_industries),
+      _format,
+      _language,
+      _positioning,
+      _primaryCvId,
+      _status);
+
+    _saving = true;
+    try
+    {
+      var saved = _details is null
+        ? await HypothesisService.CreateAsync(input)
+        : await HypothesisService.UpdateAsync(_details.Id, input);
+
+      _errors = new Dictionary<string, string>();
+      _details = saved;
+      FillFields();
+      Snackbar.Add("Сохранено", Severity.Success);
+      if (Id != saved.Id)
+      {
+        Navigation.NavigateTo($"/hypotheses/{saved.Id}");
+      }
+    }
+    catch (ValidationFailedException exception)
+    {
+      _errors = exception.Errors;
+    }
+    finally
+    {
+      _saving = false;
+    }
+  }
+
+  private async Task DeleteAsync()
+  {
+    var confirmed = await DialogService.ShowMessageBoxAsync(
+      "Удалить гипотезу?",
+      $"Гипотеза «{_details!.Name}» будет удалена.",
+      yesText: "Удалить",
+      cancelText: "Отмена");
+    if (confirmed != true)
+    {
+      return;
+    }
+
+    try
+    {
+      await HypothesisService.DeleteAsync(_details.Id);
+      Navigation.NavigateTo("/hypotheses");
+    }
+    catch (ValidationFailedException exception)
+    {
+      Snackbar.Add(exception.Message, Severity.Error);
+    }
+  }
 }
