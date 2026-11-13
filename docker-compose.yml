@@ -1,7 +1,7 @@
 services:
   karajob:
     build: .
-    image: karajob
+    image: ${KARAJOB_IMAGE:-karajob}
     restart: unless-stopped
     env_file: .env
     ports:

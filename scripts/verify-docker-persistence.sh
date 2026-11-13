@@ -23,15 +23,18 @@ chmod 777 "$data_dir"
 
 export KARAJOB_DATA_DIR="$data_dir"
 export KARAJOB_PORT="${VERIFY_PORT:-18080}"
+# Separate tag, so verifying never replaces the image the real deployment runs.
+export KARAJOB_IMAGE=karajob-verify
 compose=(docker compose -p karajob-verify)
 url="http://localhost:$KARAJOB_PORT/"
 
 cleanup() {
   "${compose[@]}" down --remove-orphans > /dev/null 2>&1 || true
   # Files are owned by the container user, so remove them from inside a container.
-  docker run --rm --user root --entrypoint rm -v "$data_dir:/d" karajob -rf /d/keys /d/backups /d/karajob.db \
-    /d/karajob.db-shm /d/karajob.db-wal > /dev/null 2>&1 || true
-  rm -rf "$data_dir" || true
+  docker run --rm --pull=never --user root -v "$data_dir:/d" --entrypoint sh "$KARAJOB_IMAGE" \
+    -c 'rm -rf /d/* /d/.[!.]*' > /dev/null 2>&1 || true
+  docker image rm -f "$KARAJOB_IMAGE" > /dev/null 2>&1 || true
+  rm -rf "$data_dir" || echo "WARN: could not remove $data_dir" >&2
 }
 trap cleanup EXIT
 
@@ -52,7 +55,10 @@ wait_for_http() {
 }
 
 expect_log() {
-  "${compose[@]}" logs --no-color karajob | grep -Eq "$1" || fail "log line matching '$1' not found"
+  # Captured first: grep -q closing the pipe early would fail the step with SIGPIPE under pipefail.
+  local logs
+  logs="$("${compose[@]}" logs --no-color karajob)"
+  grep -Eq "$1" <<< "$logs" || fail "log line matching '$1' not found"
 }
 
 key_files() {
