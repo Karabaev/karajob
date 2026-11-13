@@ -1,6 +1,48 @@
 @page "/hypotheses"
+@inject HypothesisService HypothesisService
 
 <PageTitle>Гипотезы</PageTitle>
 
-<MudText Typo="Typo.h4" HtmlTag="h1" GutterBottom="true">Гипотезы</MudText>
-<MudText Class="mud-text-secondary">Раздел в разработке.</MudText>
+<MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
+  <MudText Typo="Typo.h4" HtmlTag="h1">Гипотезы</MudText>
+  <MudButton Href="/hypotheses/new" Variant="Variant.Filled" Color="Color.Primary">+ Гипотеза</MudButton>
+</MudStack>
+
+@if (_items is null)
+{
+  <MudProgressLinear Indeterminate="true" />
+}
+else if (_items.Count == 0)
+{
+  <MudText Class="mud-text-secondary">Гипотез пока нет.</MudText>
+}
+else
+{
+  <MudTable Items="_items" Breakpoint="Breakpoint.Sm" Hover="true" Dense="true">
+    <HeaderContent>
+      <MudTh>Название</MudTh>
+      <MudTh>Роль</MudTh>
+      <MudTh>Формат</MudTh>
+      <MudTh>Язык</MudTh>
+      <MudTh>Статус</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+      <MudTd DataLabel="Название"><MudLink Href="@($"/hypotheses/{context.Id}")">@context.Name</MudLink></MudTd>
+      <MudTd DataLabel="Роль">@context.Role</MudTd>
+      <MudTd DataLabel="Формат">@HypothesisText.Format(context.WorkFormat)</MudTd>
+      <MudTd DataLabel="Язык">@context.Language.ToUpperInvariant()</MudTd>
+      <MudTd DataLabel="Статус">
+        <MudChip T="string" Size="Size.Small" Color="@HypothesisText.StatusColor(context.Status)">@HypothesisText.Status(context.Status)</MudChip>
+      </MudTd>
+    </RowTemplate>
+  </MudTable>
+}
+
+@code {
+  private IReadOnlyList<HypothesisListItem>? _items;
+
+  protected override async Task OnInitializedAsync()
+  {
+    _items = await HypothesisService.ListAsync();
+  }
+}

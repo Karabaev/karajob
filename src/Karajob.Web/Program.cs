@@ -1,4 +1,5 @@
 using Karajob.Application.Companies;
+using Karajob.Application.Hypotheses;
 using Karajob.Application.Users;
 using Karajob.Infrastructure.Persistence;
 using Karajob.Infrastructure.Users;
@@ -25,6 +26,7 @@ builder.Services.AddKarajobPersistence(databaseOptions);
 // Single seeded user until profile selection lands (Phase 0.5).
 builder.Services.AddSingleton<ICurrentUser>(new FixedCurrentUser(SeedData.OwnerId));
 builder.Services.AddScoped<CompanyService>();
+builder.Services.AddScoped<HypothesisService>();
 
 var app = builder.Build();
 
