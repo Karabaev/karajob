@@ -18,6 +18,17 @@
         "environmentVariables": {
           "ASPNETCORE_ENVIRONMENT": "Development"
         }
+      },
+      "http-file": {
+        "commandName": "Project",
+        "dotnetRunMessages": true,
+        "launchBrowser": true,
+        "applicationUrl": "http://localhost:5008",
+        "environmentVariables": {
+          "ASPNETCORE_ENVIRONMENT": "Development",
+          "Database__Provider": "Sqlite",
+          "Database__ConnectionString": "Data Source=../../data/karajob.db"
+        }
       }
     }
   }

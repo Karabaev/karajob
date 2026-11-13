@@ -16,6 +16,9 @@ builder.Services.AddSingleton<ICurrentUser>(new FixedCurrentUser(SeedData.OwnerI
 
 var app = builder.Build();
 
+// Before Run: Kestrel is not listening yet, so no request ever sees an unmigrated schema.
+await app.Services.InitializeKarajobDatabaseAsync();
+
 if (!app.Environment.IsDevelopment())
 {
   app.UseExceptionHandler("/Error", createScopeForErrors: true);
@@ -30,4 +33,4 @@ app.MapStaticAssets();
 app.MapRazorComponents<App>()
   .AddInteractiveServerRenderMode();
 
-app.Run();
+await app.RunAsync();
