@@ -10,7 +10,7 @@ public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<KarajobDbC
   public KarajobDbContext CreateDbContext(string[] args)
   {
     var options = new DbContextOptionsBuilder<KarajobDbContext>()
-      .UseSqlite("Data Source=design-time.db", b => b.MigrationsAssembly(typeof(DesignTimeDbContextFactory).Assembly.GetName().Name))
+      .UseSqlite("Data Source=design-time.db", b => b.MigrationsAssembly(DatabaseOptions.SqliteMigrationsAssembly))
       .Options;
     return new KarajobDbContext(options, new FixedCurrentUser(SeedData.OwnerId));
   }
