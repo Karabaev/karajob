@@ -1,6 +1,303 @@
 @page "/companies/new"
 @page "/companies/{Slug}"
+@inject CompanyService CompanyService
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<PageTitle>@Title</PageTitle>
+
+@if (_notFound)
+{
+  <MudText Typo="Typo.h4" HtmlTag="h1" GutterBottom="true">Компания не найдена</MudText>
+  <MudButton Href="/companies">К списку компаний</MudButton>
+}
+else if (_loaded)
+{
+  <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3" Class="mb-4">
+    @if (_details is not null)
+    {
+      <CompanyIcon Name="@_details.Name" IconUrl="@_details.IconUrl" Size="Size.Large" />
+    }
+    <MudText Typo="Typo.h4" HtmlTag="h1">@Title</MudText>
+  </MudStack>
+
+  <MudGrid>
+    <MudItem xs="12" md="7">
+      <MudPaper Class="pa-4">
+        <MudForm>
+          <MudStack Spacing="2">
+            @if (_errors.TryGetValue("", out var general))
+            {
+              <MudAlert Severity="Severity.Error">@general</MudAlert>
+            }
+            <MudTextField T="string" Class="company-name" Label="Название" Required="true"
+                          Immediate="true" Value="_name" ValueChanged="OnNameChanged"
+                          Error="HasError(nameof(CompanyInput.Name))" ErrorText="@ErrorOf(nameof(CompanyInput.Name))" />
+            <MudTextField T="string" Class="company-slug" Label="Slug" Required="true"
+                          Immediate="true" Value="_slug" ValueChanged="OnSlugChanged"
+                          Error="HasError(nameof(CompanyInput.Slug))" ErrorText="@ErrorOf(nameof(CompanyInput.Slug))" />
+            <MudTextField T="string" Label="Сайт" @bind-Value="_website"
+                          Error="HasError(nameof(CompanyInput.Website))" ErrorText="@ErrorOf(nameof(CompanyInput.Website))" />
+            <MudTextField T="string" Label="Домены" HelperText="по одному на строку" Lines="3" Sizing="InputSizing.Auto"
+                          @bind-Value="_domains"
+                          Error="HasError(nameof(CompanyInput.Domains))" ErrorText="@ErrorOf(nameof(CompanyInput.Domains))" />
+            <MudTextField T="string" Label="Алиасы" HelperText="по одному на строку" Lines="3" Sizing="InputSizing.Auto"
+                          @bind-Value="_aliases"
+                          Error="HasError(nameof(CompanyInput.Aliases))" ErrorText="@ErrorOf(nameof(CompanyInput.Aliases))" />
+            <MudTextField T="string" Label="Описание" Lines="3" Sizing="InputSizing.Auto" @bind-Value="_description"
+                          Error="HasError(nameof(CompanyInput.Description))" ErrorText="@ErrorOf(nameof(CompanyInput.Description))" />
+            <MudStack Row="true" Justify="Justify.SpaceBetween">
+              <MudButton Class="company-save" Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveAsync">Сохранить</MudButton>
+              @if (_details is not null)
+              {
+                <MudButton Color="Color.Error" OnClick="DeleteAsync">Удалить компанию</MudButton>
+              }
+            </MudStack>
+          </MudStack>
+        </MudForm>
+      </MudPaper>
+    </MudItem>
+
+    @if (_details is not null)
+    {
+      <MudItem xs="12" md="5">
+        <MudStack Spacing="3">
+          <MudPaper Class="pa-4">
+            <MudText Typo="Typo.h6" GutterBottom="true">Моя заметка</MudText>
+            <MudStack Spacing="2">
+              <MudTextField T="string" Label="Заметка" Lines="3" Sizing="InputSizing.Auto" @bind-Value="_note" />
+              <MudSwitch T="bool" Label="Чёрный список" Color="Color.Error" @bind-Value="_blacklisted" />
+              <MudButton Class="note-save" Variant="Variant.Outlined" OnClick="SaveNoteAsync">Сохранить заметку</MudButton>
+            </MudStack>
+          </MudPaper>
+
+          <MudPaper Class="pa-4">
+            <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-2">
+              <MudText Typo="Typo.h6">Проекты</MudText>
+              <MudButton Variant="Variant.Outlined" OnClick="() => OpenProjectDialogAsync(null)">+ Проект</MudButton>
+            </MudStack>
+            @if (_details.Projects.Count == 0)
+            {
+              <MudText Class="mud-text-secondary">Проектов пока нет.</MudText>
+            }
+            else
+            {
+              <MudList T="ProjectItem" Dense="true">
+                @foreach (var project in _details.Projects)
+                {
+                  var current = project;
+                  <MudListItem T="ProjectItem">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                      <div>
+                        @if (current.Url is null)
+                        {
+                          <MudText>@current.Name</MudText>
+                        }
+                        else
+                        {
+                          <MudLink Href="@current.Url" Target="_blank">@current.Name</MudLink>
+                        }
+                        <MudText Typo="Typo.caption" Class="mud-text-secondary">@ProjectSubtitle(current)</MudText>
+                      </div>
+                      <div>
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" aria-label="Изменить проект"
+                                       OnClick="() => OpenProjectDialogAsync(current)" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" aria-label="Удалить проект"
+                                       OnClick="() => DeleteProjectAsync(current)" />
+                      </div>
+                    </MudStack>
+                  </MudListItem>
+                }
+              </MudList>
+            }
+          </MudPaper>
+        </MudStack>
+      </MudItem>
+    }
+  </MudGrid>
+}
 
 @code {
-  [Parameter] public string? Slug { get; set; }
+  private IReadOnlyDictionary<string, string> _errors = new Dictionary<string, string>();
+  private CompanyDetails? _details;
+  private bool _loaded;
+  private bool _notFound;
+  private bool _slugEdited;
+  private string? _name;
+  private string? _slug;
+  private string? _website;
+  private string? _description;
+  private string? _domains;
+  private string? _aliases;
+  private string? _note;
+  private bool _blacklisted;
+
+  [Parameter]
+  public string? Slug { get; set; }
+
+  private string Title => _details?.Name ?? (Slug is null ? "Новая компания" : "Компания не найдена");
+
+  // The same component instance is reused when the route changes (e.g. after a slug rename), so load here, not in OnInitialized.
+  protected override async Task OnParametersSetAsync()
+  {
+    await LoadAsync();
+  }
+
+  private async Task LoadAsync()
+  {
+    _errors = new Dictionary<string, string>();
+    _notFound = false;
+    _details = null;
+
+    if (Slug is not null)
+    {
+      _details = await CompanyService.FindBySlugAsync(Slug);
+      _notFound = _details is null;
+    }
+
+    _slugEdited = _details is not null;
+    _name = _details?.Name;
+    _slug = _details?.Slug;
+    _website = _details?.Website;
+    _description = _details?.Description;
+    _domains = _details is null ? null : string.Join('\n', _details.Domains);
+    _aliases = _details is null ? null : string.Join('\n', _details.Aliases);
+    _note = _details?.Note;
+    _blacklisted = _details?.IsBlacklisted ?? false;
+    _loaded = true;
+  }
+
+  private void OnNameChanged(string? name)
+  {
+    _name = name;
+    if (!_slugEdited)
+    {
+      _slug = Normalize.Slugify(name ?? "");
+    }
+  }
+
+  private void OnSlugChanged(string? slug)
+  {
+    _slug = slug;
+    _slugEdited = true;
+  }
+
+  private bool HasError(string key)
+  {
+    return _errors.ContainsKey(key);
+  }
+
+  private string? ErrorOf(string key)
+  {
+    return _errors.GetValueOrDefault(key);
+  }
+
+  private static IReadOnlyList<string> SplitLines(string? text)
+  {
+    return (text ?? "")
+      .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+      .ToList();
+  }
+
+  private static string ProjectSubtitle(ProjectItem project)
+  {
+    var parts = new[] { project.Genre, project.Engine, ProjectDialog.StatusText(project.Status) };
+    return string.Join(" · ", parts.Where(part => !string.IsNullOrWhiteSpace(part)));
+  }
+
+  private async Task SaveAsync()
+  {
+    var input = new CompanyInput(
+      _slug ?? "",
+      _name ?? "",
+      _website,
+      _description,
+      SplitLines(_domains),
+      SplitLines(_aliases));
+
+    try
+    {
+      var saved = _details is null
+        ? await CompanyService.CreateAsync(input)
+        : await CompanyService.UpdateAsync(_details.Id, input);
+
+      Snackbar.Add("Сохранено", Severity.Success);
+      if (_details is null || saved.Slug != _details.Slug)
+      {
+        Navigation.NavigateTo($"/companies/{saved.Slug}");
+        return;
+      }
+
+      await LoadAsync();
+    }
+    catch (ValidationFailedException exception)
+    {
+      _errors = exception.Errors;
+    }
+  }
+
+  private async Task DeleteAsync()
+  {
+    var confirmed = await DialogService.ShowMessageBoxAsync(
+      "Удалить компанию?",
+      $"Компания «{_details!.Name}» будет удалена.",
+      yesText: "Удалить",
+      cancelText: "Отмена");
+    if (confirmed != true)
+    {
+      return;
+    }
+
+    try
+    {
+      await CompanyService.DeleteAsync(_details.Id);
+      Navigation.NavigateTo("/companies");
+    }
+    catch (ValidationFailedException exception)
+    {
+      Snackbar.Add(exception.Message, Severity.Error);
+    }
+  }
+
+  private async Task SaveNoteAsync()
+  {
+    await CompanyService.SaveNoteAsync(_details!.Id, _note, _blacklisted);
+    Snackbar.Add("Заметка сохранена", Severity.Success);
+  }
+
+  private async Task OpenProjectDialogAsync(ProjectItem? project)
+  {
+    var parameters = new DialogParameters<ProjectDialog>
+    {
+      { dialog => dialog.CompanyId, _details!.Id },
+      { dialog => dialog.Item, project }
+    };
+
+    var reference = await DialogService.ShowAsync<ProjectDialog>(
+      project is null ? "Новый проект" : "Проект",
+      parameters,
+      new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true });
+    var result = await reference.Result;
+    if (result is { Canceled: false })
+    {
+      await LoadAsync();
+    }
+  }
+
+  private async Task DeleteProjectAsync(ProjectItem project)
+  {
+    var confirmed = await DialogService.ShowMessageBoxAsync(
+      "Удалить проект?",
+      $"Проект «{project.Name}» будет удалён.",
+      yesText: "Удалить",
+      cancelText: "Отмена");
+    if (confirmed != true)
+    {
+      return;
+    }
+
+    await CompanyService.DeleteProjectAsync(project.Id);
+    await LoadAsync();
+  }
 }

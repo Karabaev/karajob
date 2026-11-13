@@ -1,0 +1,20 @@
+<span class="company-icon">
+  <MudAvatar Size="Size" Variant="Variant.Filled" Color="Color.Primary" Rounded="true">@Letter</MudAvatar>
+  @if (IconUrl is not null)
+  {
+    <img src="@IconUrl" alt="" onerror="this.remove()" />
+  }
+</span>
+
+@code {
+  [Parameter, EditorRequired]
+  public string Name { get; set; } = null!;
+
+  [Parameter]
+  public string? IconUrl { get; set; }
+
+  [Parameter]
+  public Size Size { get; set; } = Size.Medium;
+
+  private string Letter => Name.Length == 0 ? "?" : Name[..1].ToUpperInvariant();
+}
