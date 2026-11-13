@@ -1,4 +1,5 @@
 using Karajob.Application.Companies;
+using Karajob.Application.Hypotheses;
 using Karajob.Application.Persistence;
 using Karajob.Infrastructure.Users;
 using Karajob.Tests.Infrastructure.Persistence;
@@ -10,6 +11,11 @@ internal class TestDbContextFactory(SqliteTestDatabase database, Guid userId) : 
   public static CompanyService CreateCompanyService(SqliteTestDatabase database, Guid userId)
   {
     return new CompanyService(new TestDbContextFactory(database, userId), new FixedCurrentUser(userId));
+  }
+
+  public static HypothesisService CreateHypothesisService(SqliteTestDatabase database, Guid userId, TimeProvider timeProvider)
+  {
+    return new HypothesisService(new TestDbContextFactory(database, userId), new FixedCurrentUser(userId), timeProvider);
   }
 
   public Task<IKarajobDbContext> CreateDbContextAsync(CancellationToken cancellationToken = default)

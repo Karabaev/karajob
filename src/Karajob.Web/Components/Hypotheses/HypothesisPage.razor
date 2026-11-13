@@ -1,0 +1,9 @@
+@page "/hypotheses/new"
+@page "/hypotheses/{Id:guid}"
+
+<PageTitle>Гипотеза</PageTitle>
+
+@code {
+  [Parameter]
+  public Guid? Id { get; set; }
+}

@@ -85,4 +85,64 @@ public class HypothesisTests
 
     Assert.Null(hypothesis.StartedAt);
   }
+
+  [Theory]
+  [InlineData(HypothesisStatus.Active)]
+  [InlineData(HypothesisStatus.Expanded)]
+  public void ChangeStatus_ToActiveOrExpandedWithoutStart_SetsStartedAt(HypothesisStatus status)
+  {
+    var hypothesis = Create();
+
+    hypothesis.ChangeStatus(status, Now);
+
+    Assert.Equal(status, hypothesis.Status);
+    Assert.Equal(Now, hypothesis.StartedAt);
+  }
+
+  [Theory]
+  [InlineData(HypothesisStatus.Draft)]
+  [InlineData(HypothesisStatus.Paused)]
+  [InlineData(HypothesisStatus.Disabled)]
+  public void ChangeStatus_ToNonRunningStatus_LeavesStartedAtNull(HypothesisStatus status)
+  {
+    var hypothesis = Create();
+
+    hypothesis.ChangeStatus(status, Now);
+
+    Assert.Equal(status, hypothesis.Status);
+    Assert.Null(hypothesis.StartedAt);
+  }
+
+  [Fact]
+  public void ChangeStatus_ReactivateAfterPause_KeepsOriginalStartedAt()
+  {
+    var hypothesis = Create();
+    hypothesis.ChangeStatus(HypothesisStatus.Active, Now);
+    hypothesis.ChangeStatus(HypothesisStatus.Paused, Now.AddDays(1));
+
+    hypothesis.ChangeStatus(HypothesisStatus.Active, Now.AddDays(2));
+
+    Assert.Equal(HypothesisStatus.Active, hypothesis.Status);
+    Assert.Equal(Now, hypothesis.StartedAt);
+  }
+
+  [Fact]
+  public void ChangeStatus_ActiveToExpanded_KeepsStartedAt()
+  {
+    var hypothesis = Create();
+    hypothesis.ChangeStatus(HypothesisStatus.Active, Now);
+
+    hypothesis.ChangeStatus(HypothesisStatus.Expanded, Now.AddDays(3));
+
+    Assert.Equal(Now, hypothesis.StartedAt);
+  }
+
+  [Fact]
+  public void ChangeStatus_ActiveWithNonUtcNow_Throws()
+  {
+    var hypothesis = Create();
+
+    Assert.ThrowsAny<ArgumentException>(() =>
+      hypothesis.ChangeStatus(HypothesisStatus.Active, new DateTime(2026, 11, 12, 10, 0, 0, DateTimeKind.Local)));
+  }
 }

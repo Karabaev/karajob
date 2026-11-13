@@ -25,6 +25,11 @@ public class Hypothesis : IUserOwned
     set => startedAt = UtcGuard.Ensure(value);
   }
 
+  public void ChangeStatus(HypothesisStatus status, DateTime utcNow)
+  {
+    throw new NotImplementedException();
+  }
+
   public Hypothesis(Guid userId, string name, string role, string language, DateTime createdAt)
   {
     Id = Guid.CreateVersion7();

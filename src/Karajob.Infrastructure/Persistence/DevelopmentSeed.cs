@@ -13,9 +13,9 @@ public static class DevelopmentSeed
     var userId = SeedData.OwnerId;
     var start = utcNow.AddDays(-30);
 
-    var unityRu = CreateHypothesis(userId, "Unity RU", "Unity Developer", "ru", WorkFormat.Remote, start);
-    var unrealRu = CreateHypothesis(userId, "Unreal RU", "Unreal Developer", "ru", WorkFormat.Remote, start);
-    var unityEn = CreateHypothesis(userId, "Unity EN", "Unity Developer", "en", WorkFormat.Remote | WorkFormat.Relocation, start);
+    var unityRu = CreateHypothesis(userId, "Unity Developer RU", "Unity Developer", "ru", WorkFormat.Remote, start);
+    var unrealRu = CreateHypothesis(userId, "Unreal Developer RU", "Unreal Developer", "ru", WorkFormat.Remote, start);
+    var unityEn = CreateHypothesis(userId, "Unity Developer EN", "Unity Developer", "en", WorkFormat.Remote | WorkFormat.Relocation, start);
     unityEn.Locations.Add("EU");
     context.Hypotheses.AddRange(unityRu, unrealRu, unityEn);
 
@@ -97,12 +97,14 @@ public static class DevelopmentSeed
     WorkFormat workFormat,
     DateTime startedAt)
   {
-    return new Hypothesis(userId, name, role, language, startedAt)
+    var hypothesis = new Hypothesis(userId, name, role, language, startedAt)
     {
       WorkFormat = workFormat,
       Status = HypothesisStatus.Active,
       StartedAt = startedAt,
     };
+    hypothesis.Industries.Add("PC");
+    return hypothesis;
   }
 
   private static Company CreateCompany(string slug, string name, string domain)
