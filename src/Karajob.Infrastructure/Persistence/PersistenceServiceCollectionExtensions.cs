@@ -13,6 +13,7 @@ public static class PersistenceServiceCollectionExtensions
         $"Unsupported {DatabaseOptions.SectionName}:Provider '{options.Provider}'. Supported: {DatabaseOptions.SqliteProvider}.");
     }
 
+    ArgumentException.ThrowIfNullOrWhiteSpace(options.ConnectionString);
     services.AddDbContextFactory<KarajobDbContext>(builder => builder.UseSqlite(
       options.ConnectionString,
       sqlite => sqlite.MigrationsAssembly(DatabaseOptions.SqliteMigrationsAssembly)));

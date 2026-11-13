@@ -17,7 +17,15 @@ public class PersistenceRegistrationTests
   }
 
   [Fact]
-  public void AddKarajobPersistence_SqliteProvider_ResolvesContextFactory()
+  public void AddKarajobPersistence_BlankConnectionString_ThrowsArgumentException()
+  {
+    var options = new DatabaseOptions { Provider = DatabaseOptions.SqliteProvider, ConnectionString = " " };
+
+    Assert.Throws<ArgumentException>(() => new ServiceCollection().AddKarajobPersistence(options));
+  }
+
+  [Fact]
+  public void AddKarajobPersistence_SqliteProvider_ResolvesContextFactoryWithMigrations()
   {
     var options = new DatabaseOptions { Provider = DatabaseOptions.SqliteProvider, ConnectionString = "DataSource=:memory:" };
     var services = new ServiceCollection();
@@ -28,6 +36,6 @@ public class PersistenceRegistrationTests
     var factory = provider.GetRequiredService<IDbContextFactory<KarajobDbContext>>();
     using var context = factory.CreateDbContext();
 
-    Assert.NotNull(context);
+    Assert.Contains(context.Database.GetMigrations(), m => m.EndsWith("_Initial", StringComparison.Ordinal));
   }
 }

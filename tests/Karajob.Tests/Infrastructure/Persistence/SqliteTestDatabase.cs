@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Karajob.Tests.Infrastructure.Persistence;
 
-public sealed class SqliteTestDatabase : IAsyncDisposable
+public class SqliteTestDatabase : IAsyncDisposable
 {
   private readonly SqliteConnection connection;
   private readonly DbContextOptions<KarajobDbContext> options;
@@ -33,7 +33,7 @@ public sealed class SqliteTestDatabase : IAsyncDisposable
     connection = new SqliteConnection("DataSource=:memory:");
     connection.Open();
     options = new DbContextOptionsBuilder<KarajobDbContext>()
-      .UseSqlite(connection, b => b.MigrationsAssembly("Karajob.Migrations.Sqlite"))
+      .UseSqlite(connection, b => b.MigrationsAssembly(DatabaseOptions.SqliteMigrationsAssembly))
       .Options;
   }
 }

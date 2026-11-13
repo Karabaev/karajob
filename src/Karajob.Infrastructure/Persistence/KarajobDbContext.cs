@@ -39,6 +39,7 @@ public class KarajobDbContext(DbContextOptions<KarajobDbContext> options, ICurre
   {
     configurationBuilder.Properties<DateTime>().HaveConversion<UtcDateTimeConverter>();
     configurationBuilder.Properties<DateTime?>().HaveConversion<UtcDateTimeConverter>();
+    // Without it SalaryRange is discovered as a keyless entity type before VacancyConfiguration maps it as complex.
     configurationBuilder.ComplexProperties<SalaryRange>();
   }
 
