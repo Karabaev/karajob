@@ -3,6 +3,7 @@
     <Project Path="src/Karajob.Application/Karajob.Application.csproj" />
     <Project Path="src/Karajob.Domain/Karajob.Domain.csproj" />
     <Project Path="src/Karajob.Infrastructure/Karajob.Infrastructure.csproj" />
+    <Project Path="src/Karajob.Migrations.Sqlite/Karajob.Migrations.Sqlite.csproj" />
     <Project Path="src/Karajob.Web/Karajob.Web.csproj" />
   </Folder>
   <Folder Name="/tests/">

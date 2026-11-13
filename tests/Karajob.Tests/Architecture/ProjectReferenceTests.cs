@@ -31,11 +31,19 @@ public class ProjectReferenceTests
   }
 
   [Fact]
-  public void Web_ReferencesApplicationInfrastructureAndDomain()
+  public void MigrationsSqlite_ReferencesOnlyInfrastructure()
+  {
+    var project = LoadProject("Karajob.Migrations.Sqlite");
+
+    Assert.Equal(["Karajob.Infrastructure"], project.ProjectReferences);
+  }
+
+  [Fact]
+  public void Web_ReferencesApplicationInfrastructureMigrationsAndDomain()
   {
     var project = LoadProject("Karajob.Web");
 
-    Assert.Equal(["Karajob.Application", "Karajob.Domain", "Karajob.Infrastructure"], project.ProjectReferences);
+    Assert.Equal(["Karajob.Application", "Karajob.Domain", "Karajob.Infrastructure", "Karajob.Migrations.Sqlite"], project.ProjectReferences);
   }
 
   private static ProjectInfo LoadProject(string name)
