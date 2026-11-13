@@ -2,11 +2,19 @@ using Karajob.Application.Users;
 using Karajob.Infrastructure.Persistence;
 using Karajob.Infrastructure.Users;
 using Karajob.Web.Components;
+using Microsoft.AspNetCore.DataProtection;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddRazorComponents()
   .AddInteractiveServerComponents();
+
+// In Docker the default key ring lives inside the container and is lost on recreation.
+var keysDirectory = builder.Configuration["DataProtection:KeysDirectory"];
+if (!string.IsNullOrWhiteSpace(keysDirectory))
+{
+  builder.Services.AddDataProtection().PersistKeysToFileSystem(new DirectoryInfo(keysDirectory));
+}
 
 var databaseOptions = builder.Configuration.GetRequiredSection(DatabaseOptions.SectionName).Get<DatabaseOptions>()
   ?? throw new InvalidOperationException($"Configuration section '{DatabaseOptions.SectionName}' is empty.");
