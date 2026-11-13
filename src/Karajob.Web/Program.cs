@@ -17,7 +17,16 @@ builder.Services.AddSingleton<ICurrentUser>(new FixedCurrentUser(SeedData.OwnerI
 var app = builder.Build();
 
 // Before Run: Kestrel is not listening yet, so no request ever sees an unmigrated schema.
-await app.Services.InitializeKarajobDatabaseAsync();
+try
+{
+  await app.Services.InitializeKarajobDatabaseAsync();
+}
+catch
+{
+  // Disposing flushes the console logger, so the critical entry with the backup path reaches the log.
+  await app.DisposeAsync();
+  throw;
+}
 
 if (!app.Environment.IsDevelopment())
 {

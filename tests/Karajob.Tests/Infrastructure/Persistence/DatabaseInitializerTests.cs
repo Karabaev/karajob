@@ -6,6 +6,7 @@ using Karajob.Infrastructure.Users;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace Karajob.Tests.Infrastructure.Persistence;
 
@@ -14,6 +15,7 @@ public class DatabaseInitializerTests : IAsyncLifetime
   private static readonly DateTimeOffset Now = new(2026, 11, 13, 10, 15, 0, TimeSpan.Zero);
 
   private readonly string directory = Path.Combine(Path.GetTempPath(), "karajob-tests-" + Guid.NewGuid().ToString("N"));
+  private readonly CapturingLoggerProvider logs = new();
 
   private string DatabasePath => Path.Combine(directory, "karajob.db");
   private string BackupsDirectory => Path.Combine(directory, DatabaseInitializer.BackupsFolderName);
@@ -81,6 +83,7 @@ public class DatabaseInitializerTests : IAsyncLifetime
     Assert.NotNull(exception.BackupPath);
     Assert.True(File.Exists(exception.BackupPath));
     Assert.Contains(exception.BackupPath, exception.Message);
+    Assert.Contains(logs.Entries, e => e.Level == LogLevel.Critical && e.Message.Contains(exception.BackupPath));
   }
 
   [Fact]
@@ -145,22 +148,30 @@ public class DatabaseInitializerTests : IAsyncLifetime
 
   private ServiceProvider BuildFileProvider()
   {
-    return Build(new DatabaseOptions
-    {
-      Provider = DatabaseOptions.SqliteProvider,
-      ConnectionString = $"Data Source={DatabasePath}",
-    });
+    return Build(
+      new DatabaseOptions
+      {
+        Provider = DatabaseOptions.SqliteProvider,
+        ConnectionString = $"Data Source={DatabasePath}",
+      },
+      logs);
   }
 
   private static ServiceProvider BuildInMemoryProvider()
   {
-    return Build(new DatabaseOptions { Provider = DatabaseOptions.SqliteInMemoryProvider });
+    return Build(new DatabaseOptions { Provider = DatabaseOptions.SqliteInMemoryProvider }, null);
   }
 
-  private static ServiceProvider Build(DatabaseOptions options)
+  private static ServiceProvider Build(DatabaseOptions options, ILoggerProvider? loggerProvider)
   {
     var services = new ServiceCollection();
-    services.AddLogging();
+    services.AddLogging(logging =>
+    {
+      if (loggerProvider is not null)
+      {
+        logging.AddProvider(loggerProvider);
+      }
+    });
     services.AddSingleton<ICurrentUser>(new FixedCurrentUser(SeedData.OwnerId));
     services.AddSingleton<TimeProvider>(new FixedTimeProvider(Now));
     services.AddKarajobPersistence(options);
@@ -197,6 +208,44 @@ public class DatabaseInitializerTests : IAsyncLifetime
     var factory = provider.GetRequiredService<IDbContextFactory<KarajobDbContext>>();
     await using var context = await factory.CreateDbContextAsync();
     return (await context.Database.GetPendingMigrationsAsync()).ToList();
+  }
+
+  private class CapturingLoggerProvider : ILoggerProvider, ILogger
+  {
+    public List<(LogLevel Level, string Message)> Entries { get; } = [];
+
+    public ILogger CreateLogger(string categoryName)
+    {
+      return this;
+    }
+
+    public IDisposable? BeginScope<TState>(TState state)
+      where TState : notnull
+    {
+      return null;
+    }
+
+    public bool IsEnabled(LogLevel logLevel)
+    {
+      return true;
+    }
+
+    public void Log<TState>(
+      LogLevel logLevel,
+      EventId eventId,
+      TState state,
+      Exception? exception,
+      Func<TState, Exception?, string> formatter)
+    {
+      lock (Entries)
+      {
+        Entries.Add((logLevel, formatter(state, exception)));
+      }
+    }
+
+    public void Dispose()
+    {
+    }
   }
 
   private class FixedTimeProvider(DateTimeOffset now) : TimeProvider
