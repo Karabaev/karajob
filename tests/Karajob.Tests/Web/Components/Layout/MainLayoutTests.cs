@@ -90,6 +90,22 @@ public class MainLayoutTests : IAsyncLifetime
     cut.WaitForAssertion(() => Assert.Contains(DialogTitle, cut.Markup));
   }
 
+  [Fact]
+  public void ClickMenuButton_TogglesDrawer()
+  {
+    var cut = RenderLayout();
+    var wasOpen = IsDrawerOpen(cut);
+
+    cut.Find("button[aria-label='Меню']").Click();
+
+    Assert.NotEqual(wasOpen, IsDrawerOpen(cut));
+  }
+
+  private static bool IsDrawerOpen(IRenderedComponent<MainLayout> cut)
+  {
+    return cut.Find(".mud-drawer").ClassList.Contains("mud-drawer--open");
+  }
+
   private static IElement FindNavLink(IRenderedComponent<MainLayout> cut, string text)
   {
     return cut.FindAll("a").First(a => a.TextContent.Trim() == text);

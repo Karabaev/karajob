@@ -6,7 +6,7 @@ h1:focus {
   position: fixed;
   right: 16px;
   bottom: 16px;
-  z-index: var(--mud-zindex-appbar);
+  z-index: 1000;
 }
 
 .valid.modified:not([type=checkbox]) {
