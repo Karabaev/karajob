@@ -2,7 +2,7 @@ namespace Karajob.Domain.Companies;
 
 public enum ProjectStatus
 {
-  Announced,
-  InDevelopment,
-  Released,
+  Announced = 0,
+  InDevelopment = 1,
+  Released = 2,
 }

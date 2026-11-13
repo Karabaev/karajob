@@ -2,11 +2,11 @@ namespace Karajob.Domain.Vacancies;
 
 public enum VacancyStage
 {
-  Inbox,
-  Targeted,
-  Preparing,
-  Applied,
-  Interviewing,
-  Closed,
-  Dismissed,
+  Inbox = 0,
+  Targeted = 1,
+  Preparing = 2,
+  Applied = 3,
+  Interviewing = 4,
+  Closed = 5,
+  Dismissed = 6,
 }

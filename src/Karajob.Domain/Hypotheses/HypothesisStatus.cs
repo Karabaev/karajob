@@ -2,9 +2,9 @@ namespace Karajob.Domain.Hypotheses;
 
 public enum HypothesisStatus
 {
-  Draft,
-  Active,
-  Expanded,
-  Paused,
-  Disabled,
+  Draft = 0,
+  Active = 1,
+  Expanded = 2,
+  Paused = 3,
+  Disabled = 4,
 }

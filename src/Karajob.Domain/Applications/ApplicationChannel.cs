@@ -2,9 +2,9 @@ namespace Karajob.Domain.Applications;
 
 public enum ApplicationChannel
 {
-  Website,
-  Referral,
-  Recruiter,
-  ColdEmail,
-  Other,
+  Website = 0,
+  Referral = 1,
+  Recruiter = 2,
+  ColdEmail = 3,
+  Other = 4,
 }

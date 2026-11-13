@@ -21,7 +21,7 @@
 | `src/` | Проекты решения (см. ниже) |
 | `tests/` | `Karajob.Tests` |
 | `docs/` | `design.md`, `roadmap.md`, `backlog.md`, ADR в `docs/adr/` |
-| `scripts/` | Вспомогательные скрипты (`add-migration` и т.п.) |
+| `scripts/` | Вспомогательные скрипты (`add-migration.ps1 <Name>` — миграция для всех провайдеров) |
 | `.claude/` | Скил `/task`, агенты `test-writer` / `worker` / `reviewer` |
 | `.claude/worktrees/` | Git worktree для feature-веток и воркеров (в `.gitignore`) |
 
@@ -30,13 +30,15 @@
 - `Karajob.Domain` — сущности, правила переходов стадий, без зависимостей от EF и ASP.NET
 - `Karajob.Application` — сервисы сценариев (`VacancyService`, `ApplicationService`, `HypothesisService`, `IngestService`). UI, REST и (позже) MCP вызывают только их.
 - `Karajob.Infrastructure` — EF Core, файлы, внешние клиенты
+- `Karajob.Migrations.Sqlite` — миграции EF Core для SQLite (по проекту на провайдера); создаются только через `scripts/add-migration.ps1`
 - `Karajob.Web` — Blazor-страницы, Minimal API, composition root
 - `Karajob.Tests` — юнит- и интеграционные тесты
 
 ### Направление зависимостей
 
 ```
-Web  →  Application, Infrastructure, Domain
+Web  →  Application, Infrastructure, Migrations.Sqlite, Domain
+Migrations.Sqlite  →  Infrastructure
 Infrastructure  →  Application, Domain
 Application  →  Domain
 Domain  →  ничего (только BCL)
@@ -65,6 +67,7 @@ Domain  →  ничего (только BCL)
 - Microsoft C# style guide; **2 пробела** отступ; file-scoped namespaces (`namespace X;`).
 - `Nullable` включён везде. Не проверять на `null` всё подряд — только там, где `null` реально ожидается. `= null!` — только для свойств, которые гарантированно заполняет фреймворк (`[Inject]`, `[Parameter, EditorRequired]` в Blazor, EF navigation properties).
 - События — глагол в прошедшем времени (`Moved`), обработчики — с префиксом `On` (`OnMoved`).
+- У enum'ов значения всегда присваиваются явно (`Inbox = 0, Targeted = 1`): enum'ы хранятся в БД числами, значение — часть схемы. Новые члены только добавляются с новым числом, существующие не перенумеровываются.
 - Конструктор класса — внизу, после полей, свойств и методов (primary constructors допустимы).
 - **Фигурные скобки**: тело `if` / `else` / `for` / `foreach` / `while` всегда в скобках, даже одна инструкция. Исключение — guard, чьё тело целиком `return;` / `continue;` / `break;` / `throw ...;`: он может остаться на строке `if`. Лучше инвертировать условие в такой guard, чем оборачивать остаток тела.
 - SOLID и clean code; без ненужного `sealed`, без непрошенного кэширования.

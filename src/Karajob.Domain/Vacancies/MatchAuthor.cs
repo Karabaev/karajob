@@ -2,6 +2,6 @@ namespace Karajob.Domain.Vacancies;
 
 public enum MatchAuthor
 {
-  Human,
-  Ai,
+  Human = 0,
+  Ai = 1,
 }

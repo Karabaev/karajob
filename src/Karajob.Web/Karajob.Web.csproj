@@ -7,5 +7,6 @@
     <ProjectReference Include="..\Karajob.Application\Karajob.Application.csproj" />
     <ProjectReference Include="..\Karajob.Infrastructure\Karajob.Infrastructure.csproj" />
     <ProjectReference Include="..\Karajob.Domain\Karajob.Domain.csproj" />
+    <ProjectReference Include="..\Karajob.Migrations.Sqlite\Karajob.Migrations.Sqlite.csproj" />
   </ItemGroup>
 </Project>
