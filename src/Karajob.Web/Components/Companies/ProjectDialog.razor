@@ -1,0 +1,108 @@
+@inject CompanyService CompanyService
+
+<MudDialog>
+  <DialogContent>
+    <MudStack Spacing="2">
+      @if (_errors.TryGetValue("", out var general))
+      {
+        <MudAlert Severity="Severity.Error">@general</MudAlert>
+      }
+      <MudTextField T="string" Label="Название" @bind-Value="_name" Required="true"
+                    Error="HasError(nameof(ProjectInput.Name))" ErrorText="@ErrorOf(nameof(ProjectInput.Name))" />
+      <MudTextField T="string" Label="Жанр" @bind-Value="_genre" />
+      <MudTextField T="string" Label="Движок" @bind-Value="_engine" />
+      <MudSelect T="ProjectStatus" Label="Статус" @bind-Value="_status">
+        @foreach (var status in Enum.GetValues<ProjectStatus>())
+        {
+          <MudSelectItem T="ProjectStatus" Value="status">@StatusText(status)</MudSelectItem>
+        }
+      </MudSelect>
+      <MudTextField T="string" Label="Ссылка" @bind-Value="_url"
+                    Error="HasError(nameof(ProjectInput.Url))" ErrorText="@ErrorOf(nameof(ProjectInput.Url))" />
+    </MudStack>
+  </DialogContent>
+  <DialogActions>
+    <MudButton OnClick="Cancel">Отмена</MudButton>
+    <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="SaveAsync">Сохранить</MudButton>
+  </DialogActions>
+</MudDialog>
+
+@code {
+  private IReadOnlyDictionary<string, string> _errors = new Dictionary<string, string>();
+  private string? _name;
+  private string? _genre;
+  private string? _engine;
+  private string? _url;
+  private ProjectStatus _status = ProjectStatus.Announced;
+
+  [CascadingParameter]
+  private IMudDialogInstance MudDialog { get; set; } = null!;
+
+  [Parameter, EditorRequired]
+  public Guid CompanyId { get; set; }
+
+  [Parameter]
+  public ProjectItem? Item { get; set; }
+
+  public static string StatusText(ProjectStatus status)
+  {
+    return status switch
+    {
+      ProjectStatus.Announced => "Анонс",
+      ProjectStatus.InDevelopment => "В разработке",
+      ProjectStatus.Released => "Выпущен",
+      _ => throw new ArgumentOutOfRangeException(nameof(status), status, null)
+    };
+  }
+
+  protected override void OnInitialized()
+  {
+    if (Item is null)
+    {
+      return;
+    }
+
+    _name = Item.Name;
+    _genre = Item.Genre;
+    _engine = Item.Engine;
+    _url = Item.Url;
+    _status = Item.Status;
+  }
+
+  private bool HasError(string key)
+  {
+    return _errors.ContainsKey(key);
+  }
+
+  private string? ErrorOf(string key)
+  {
+    return _errors.GetValueOrDefault(key);
+  }
+
+  private async Task SaveAsync()
+  {
+    var input = new ProjectInput(_name ?? "", _genre, _engine, _status, _url);
+    try
+    {
+      if (Item is null)
+      {
+        await CompanyService.AddProjectAsync(CompanyId, input);
+      }
+      else
+      {
+        await CompanyService.UpdateProjectAsync(Item.Id, input);
+      }
+
+      MudDialog.Close(DialogResult.Ok(true));
+    }
+    catch (ValidationFailedException exception)
+    {
+      _errors = exception.Errors;
+    }
+  }
+
+  private void Cancel()
+  {
+    MudDialog.Cancel();
+  }
+}

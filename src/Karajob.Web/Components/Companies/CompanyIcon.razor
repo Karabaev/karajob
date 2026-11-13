@@ -1,0 +1,37 @@
+<span class="company-icon">
+  <MudAvatar Size="Size" Variant="Variant.Filled" Color="Color.Primary" Rounded="true">@Letter</MudAvatar>
+  @if (IconUrl is not null && !_failed)
+  {
+    <img src="@IconUrl" alt="" @onerror="OnError" />
+  }
+</span>
+
+@code {
+  private bool _failed;
+  private string? _shownUrl;
+
+  [Parameter, EditorRequired]
+  public string Name { get; set; } = null!;
+
+  [Parameter]
+  public string? IconUrl { get; set; }
+
+  [Parameter]
+  public Size Size { get; set; } = Size.Medium;
+
+  private string Letter => Name.Length == 0 ? "?" : Name[..1].ToUpperInvariant();
+
+  // The instance is reused when a list row or the page shows another company, so a failure is per URL.
+  protected override void OnParametersSet()
+  {
+    if (IconUrl == _shownUrl) return;
+
+    _shownUrl = IconUrl;
+    _failed = false;
+  }
+
+  private void OnError()
+  {
+    _failed = true;
+  }
+}

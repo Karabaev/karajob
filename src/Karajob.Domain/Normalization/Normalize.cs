@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -14,12 +15,51 @@ public static partial class Normalize
     "hhtmfrom", "hhtmsource",
   };
 
+  private static readonly Dictionary<char, string> CyrillicMap = new()
+  {
+    ['а'] = "a", ['б'] = "b", ['в'] = "v", ['г'] = "g", ['д'] = "d", ['е'] = "e", ['ё'] = "e",
+    ['ж'] = "zh", ['з'] = "z", ['и'] = "i", ['й'] = "y", ['к'] = "k", ['л'] = "l", ['м'] = "m",
+    ['н'] = "n", ['о'] = "o", ['п'] = "p", ['р'] = "r", ['с'] = "s", ['т'] = "t", ['у'] = "u",
+    ['ф'] = "f", ['х'] = "kh", ['ц'] = "ts", ['ч'] = "ch", ['ш'] = "sh", ['щ'] = "shch",
+    ['ъ'] = "", ['ы'] = "y", ['ь'] = "", ['э'] = "e", ['ю'] = "yu", ['я'] = "ya",
+  };
+
   public static string Slug(string value, [CallerArgumentExpression(nameof(value))] string? paramName = null)
   {
     ArgumentException.ThrowIfNullOrWhiteSpace(value, paramName);
     var slug = value.Trim().ToLowerInvariant();
     if (!SlugPattern().IsMatch(slug)) throw new ArgumentException($"'{value}' is not a valid slug.", paramName);
     return slug;
+  }
+
+  public static string Slugify(string value)
+  {
+    var builder = new StringBuilder();
+    var pendingSeparator = false;
+    foreach (var ch in Transliterate(value.ToLowerInvariant()).Normalize(NormalizationForm.FormD))
+    {
+      if (CharUnicodeInfo.GetUnicodeCategory(ch) == UnicodeCategory.NonSpacingMark)
+      {
+        continue;
+      }
+
+      if (ch is (>= 'a' and <= 'z') or (>= '0' and <= '9'))
+      {
+        if (pendingSeparator && builder.Length > 0)
+        {
+          builder.Append('-');
+        }
+
+        pendingSeparator = false;
+        builder.Append(ch);
+      }
+      else
+      {
+        pendingSeparator = true;
+      }
+    }
+
+    return builder.ToString();
   }
 
   public static string Domain(string value, [CallerArgumentExpression(nameof(value))] string? paramName = null)
@@ -93,6 +133,17 @@ public static partial class Normalize
     }
 
     return result.ToString().ToLowerInvariant();
+  }
+
+  private static string Transliterate(string value)
+  {
+    var builder = new StringBuilder(value.Length);
+    foreach (var ch in value)
+    {
+      builder.Append(CyrillicMap.TryGetValue(ch, out var latin) ? latin : ch.ToString());
+    }
+
+    return builder.ToString();
   }
 
   private static Uri ParseHttpUrl(string value, string? paramName)

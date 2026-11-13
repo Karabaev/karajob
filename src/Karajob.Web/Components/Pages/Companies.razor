@@ -1,6 +1,82 @@
 @page "/companies"
+@inject CompanyService CompanyService
 
 <PageTitle>Компании</PageTitle>
 
-<MudText Typo="Typo.h4" HtmlTag="h1" GutterBottom="true">Компании</MudText>
-<MudText Class="mud-text-secondary">Раздел в разработке.</MudText>
+<MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
+  <MudText Typo="Typo.h4" HtmlTag="h1">Компании</MudText>
+  <MudButton Href="/companies/new" Variant="Variant.Filled" Color="Color.Primary">+ Компания</MudButton>
+</MudStack>
+
+<MudTextField T="string"
+              Class="company-search mb-4"
+              Placeholder="Название, домен, алиас"
+              Variant="Variant.Outlined"
+              Adornment="Adornment.Start"
+              AdornmentIcon="@Icons.Material.Filled.Search"
+              Immediate="true"
+              DebounceInterval="300"
+              Value="_query"
+              ValueChanged="OnSearchChanged" />
+
+@if (_items is null)
+{
+  <MudProgressLinear Indeterminate="true" />
+}
+else if (_items.Count == 0)
+{
+  <MudText Class="mud-text-secondary">Компаний не найдено.</MudText>
+}
+else
+{
+  <MudTable Items="_items" Breakpoint="Breakpoint.Sm" Hover="true" Dense="true">
+    <HeaderContent>
+      <MudTh>Компания</MudTh>
+      <MudTh>Slug</MudTh>
+      <MudTh>Домены</MudTh>
+      <MudTh></MudTh>
+    </HeaderContent>
+    <RowTemplate>
+      <MudTd DataLabel="Компания">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+          <CompanyIcon Name="@context.Name" IconUrl="@context.IconUrl" Size="Size.Small" />
+          <MudLink Href="@($"/companies/{context.Slug}")">@context.Name</MudLink>
+        </MudStack>
+      </MudTd>
+      <MudTd DataLabel="Slug">@context.Slug</MudTd>
+      <MudTd DataLabel="Домены">@string.Join(", ", context.Domains)</MudTd>
+      <MudTd>
+        @if (context.IsBlacklisted)
+        {
+          <MudChip T="string" Size="Size.Small" Color="Color.Error">Чёрный список</MudChip>
+        }
+      </MudTd>
+    </RowTemplate>
+  </MudTable>
+}
+
+@code {
+  private IReadOnlyList<CompanyListItem>? _items;
+  private string? _query;
+
+  protected override async Task OnInitializedAsync()
+  {
+    await LoadAsync();
+  }
+
+  private async Task OnSearchChanged(string? query)
+  {
+    _query = query;
+    await LoadAsync();
+  }
+
+  private async Task LoadAsync()
+  {
+    var query = _query;
+    var items = await CompanyService.SearchAsync(query);
+    // A slower earlier search must not overwrite the results of a later one.
+    if (query != _query) return;
+
+    _items = items;
+  }
+}

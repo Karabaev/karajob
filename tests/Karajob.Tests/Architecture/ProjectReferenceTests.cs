@@ -23,6 +23,14 @@ public class ProjectReferenceTests
   }
 
   [Fact]
+  public void Application_ReferencesOnlyEntityFrameworkCorePackage()
+  {
+    var project = LoadProject("Karajob.Application");
+
+    Assert.Equal(["Microsoft.EntityFrameworkCore"], project.PackageReferences);
+  }
+
+  [Fact]
   public void Infrastructure_ReferencesOnlyApplicationAndDomain()
   {
     var project = LoadProject("Karajob.Infrastructure");
