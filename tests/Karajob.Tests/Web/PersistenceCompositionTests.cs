@@ -17,6 +17,15 @@ public class PersistenceCompositionTests(WebApplicationFactory<Program> factory)
   }
 
   [Fact]
+  public async Task Host_StartsWithMigratedSeededInMemoryDatabase()
+  {
+    var contextFactory = factory.Services.GetRequiredService<IDbContextFactory<KarajobDbContext>>();
+    await using var context = await contextFactory.CreateDbContextAsync();
+
+    Assert.Equal(3, await context.Hypotheses.CountAsync());
+  }
+
+  [Fact]
   public void Host_ResolvesCurrentUserAsOwner()
   {
     using var scope = factory.Services.CreateScope();

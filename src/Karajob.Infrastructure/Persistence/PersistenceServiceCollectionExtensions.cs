@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Karajob.Infrastructure.Persistence;
 
@@ -14,6 +15,9 @@ public static class PersistenceServiceCollectionExtensions
     }
 
     ArgumentException.ThrowIfNullOrWhiteSpace(options.ConnectionString);
+    services.AddSingleton(options);
+    services.TryAddSingleton(TimeProvider.System);
+    services.AddSingleton<DatabaseInitializer>();
     services.AddDbContextFactory<KarajobDbContext>(builder => builder.UseSqlite(
       options.ConnectionString,
       sqlite => sqlite.MigrationsAssembly(DatabaseOptions.SqliteMigrationsAssembly)));
