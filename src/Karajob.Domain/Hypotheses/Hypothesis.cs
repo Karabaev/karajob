@@ -27,7 +27,11 @@ public class Hypothesis : IUserOwned
 
   public void ChangeStatus(HypothesisStatus status, DateTime utcNow)
   {
-    throw new NotImplementedException();
+    Status = status;
+    if (status is HypothesisStatus.Active or HypothesisStatus.Expanded && StartedAt is null)
+    {
+      StartedAt = utcNow;
+    }
   }
 
   public Hypothesis(Guid userId, string name, string role, string language, DateTime createdAt)
