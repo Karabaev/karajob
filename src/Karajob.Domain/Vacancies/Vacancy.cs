@@ -70,7 +70,8 @@ public class Vacancy : IUserOwned
     }
 
     EnsureCanMove(target);
-    if (target is VacancyStage.Targeted or VacancyStage.Preparing && matches.Count == 0)
+    var entersBoard = Stage is VacancyStage.Inbox or VacancyStage.Dismissed && target != VacancyStage.Inbox;
+    if (entersBoard && matches.Count == 0)
     {
       throw new StageTransitionException(Stage, target, $"{target} requires at least one matched hypothesis.");
     }
