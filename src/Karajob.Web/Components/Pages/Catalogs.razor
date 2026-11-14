@@ -3,3 +3,15 @@
 <PageTitle>Справочники</PageTitle>
 
 <MudText Typo="Typo.h4" HtmlTag="h1" Class="mb-4">Справочники</MudText>
+
+<MudTabs Rounded="true" Elevation="0" ApplyEffectsToContainer="true">
+  <MudTabPanel Text="Роли">
+    <CatalogList Kind="CatalogKind.Role" />
+  </MudTabPanel>
+  <MudTabPanel Text="Локации">
+    <CatalogList Kind="CatalogKind.Location" />
+  </MudTabPanel>
+  <MudTabPanel Text="Языки">
+    <CatalogList Kind="CatalogKind.Language" />
+  </MudTabPanel>
+</MudTabs>
