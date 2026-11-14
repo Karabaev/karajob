@@ -1,0 +1,11 @@
+@page "/vacancies/new"
+@page "/vacancies/{Id:guid}"
+
+<PageTitle>Вакансия</PageTitle>
+
+<MudText Typo="Typo.h4" HtmlTag="h1">Вакансия</MudText>
+
+@code {
+  [Parameter]
+  public Guid? Id { get; set; }
+}

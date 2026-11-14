@@ -61,6 +61,16 @@ public class Vacancy : IUserOwned
     matches.RemoveAll(m => m.HypothesisId == hypothesisId);
   }
 
+  public ApplicationEvent AddEvent(ApplicationEventType type, DateTime at, string? note)
+  {
+    throw new NotImplementedException();
+  }
+
+  public void RemoveEvent(Guid eventId)
+  {
+    throw new NotImplementedException();
+  }
+
   public ApplicationEvent MoveTo(VacancyStage target, DateTime at)
   {
     UtcGuard.Ensure(at);
