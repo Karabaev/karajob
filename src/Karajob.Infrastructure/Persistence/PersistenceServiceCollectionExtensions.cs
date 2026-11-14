@@ -40,6 +40,12 @@ public static class PersistenceServiceCollectionExtensions
     return services;
   }
 
+  public static IServiceCollection AddKarajobDailyBackup(
+    this IServiceCollection services, DatabaseOptions databaseOptions, BackupOptions options)
+  {
+    throw new NotImplementedException();
+  }
+
   private static void AddSqliteContextFactory(IServiceCollection services, string connectionString, bool keepAlive)
   {
     services.AddDbContextFactory<KarajobDbContext>((serviceProvider, builder) =>
