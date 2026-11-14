@@ -49,6 +49,6 @@
 
   private Task OpenAddVacancyAsync()
   {
-    return DialogService.ShowAsync<AddVacancyDialog>("Новая вакансия");
+    return DialogService.ShowAsync<AddVacancyDialog>("Новая вакансия", new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true });
   }
 }

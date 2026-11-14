@@ -1,11 +1,14 @@
 @page "/inbox"
+@implements IDisposable
 @inject VacancyService VacancyService
+@inject InboxNotifier InboxNotifier
+@inject IDialogService DialogService
 
 <PageTitle>Inbox</PageTitle>
 
 <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
   <MudText Typo="Typo.h4" HtmlTag="h1">Inbox</MudText>
-  <MudButton Class="inbox-add" Href="/vacancies/new" Variant="Variant.Filled" Color="Color.Primary">Добавить вручную</MudButton>
+  <MudButton Class="inbox-add" Href="/vacancies/new" Variant="Variant.Outlined" Color="Color.Primary">Добавить вручную</MudButton>
 </MudStack>
 
 @if (_items is null)
@@ -20,16 +23,31 @@ else
 {
   <MudTable Items="_items" Breakpoint="Breakpoint.Sm" Hover="true" Dense="true">
     <HeaderContent>
+      <MudTh>Ссылка</MudTh>
       <MudTh>Компания</MudTh>
       <MudTh>Роль</MudTh>
-      <MudTh>Ссылка</MudTh>
       <MudTh>Найдена</MudTh>
+      <MudTh></MudTh>
     </HeaderContent>
     <RowTemplate>
+      <MudTd DataLabel="Ссылка">
+        <MudLink Href="@($"/vacancies/{context.Id}")" Style="overflow-wrap: anywhere;">@context.Url</MudLink>
+        @if (context.Notes is { } notes)
+        {
+          <MudText Class="inbox-note mud-text-secondary" Typo="Typo.caption" Style="display: block; white-space: pre-line;">@notes</MudText>
+        }
+      </MudTd>
       <MudTd DataLabel="Компания">@(context.CompanyName ?? "—")</MudTd>
       <MudTd DataLabel="Роль">@(context.RoleName ?? "—")</MudTd>
-      <MudTd DataLabel="Ссылка"><MudLink Href="@($"/vacancies/{context.Id}")" Style="overflow-wrap: anywhere;">@context.Url</MudLink></MudTd>
       <MudTd DataLabel="Найдена">@VacancyText.Date(context.DiscoveredAt)</MudTd>
+      <MudTd>
+        <MudStack Row="true" Spacing="1" Justify="Justify.FlexEnd">
+          <MudButton Class="inbox-to-board" Size="Size.Small" Variant="Variant.Filled" Color="Color.Primary"
+                     Style="white-space: nowrap;" OnClick="() => MoveToBoardAsync(context.Id)">→ На доску</MudButton>
+          <MudButton Class="inbox-dismiss" Size="Size.Small" Variant="Variant.Text" Color="Color.Error"
+                     Style="white-space: nowrap;" OnClick="() => DismissAsync(context.Id)">Отклонить</MudButton>
+        </MudStack>
+      </MudTd>
     </RowTemplate>
   </MudTable>
 }
@@ -39,6 +57,68 @@ else
 
   protected override async Task OnInitializedAsync()
   {
+    InboxNotifier.Changed += OnInboxChanged;
+    await LoadAsync();
+  }
+
+  private async Task LoadAsync()
+  {
     _items = await VacancyService.ListAsync(VacancyStage.Inbox);
+  }
+
+  // Raised by other components of the same circuit (the header dialog, this page's own dialogs);
+  // InvokeAsync marshals the reload onto the renderer's synchronization context. Nobody awaits this task,
+  // so failures are routed to the circuit explicitly instead of being lost.
+  private void OnInboxChanged()
+  {
+    _ = InvokeAsync(async () =>
+    {
+      try
+      {
+        await LoadAsync();
+        StateHasChanged();
+      }
+      catch (Exception ex)
+      {
+        await DispatchExceptionAsync(ex);
+      }
+    });
+  }
+
+  private Task MoveToBoardAsync(Guid vacancyId)
+  {
+    var parameters = new DialogParameters<MoveToBoardDialog> { { d => d.VacancyId, vacancyId } };
+    return ShowAndNotifyAsync<MoveToBoardDialog>("На доску", parameters);
+  }
+
+  private Task DismissAsync(Guid vacancyId)
+  {
+    var parameters = new DialogParameters<DismissVacancyDialog>
+    {
+      { d => d.VacancyId, vacancyId },
+      { d => d.ExpectedStage, VacancyStage.Inbox },
+    };
+    return ShowAndNotifyAsync<DismissVacancyDialog>("Отклонить вакансию", parameters);
+  }
+
+  private async Task ShowAndNotifyAsync<TDialog>(string title, DialogParameters<TDialog> parameters)
+    where TDialog : ComponentBase
+  {
+    var options = new DialogOptions { MaxWidth = MaxWidth.ExtraSmall, FullWidth = true };
+    var dialog = await DialogService.ShowAsync<TDialog>(title, parameters, options);
+    var result = await dialog.Result;
+    if (result is null || result.Canceled)
+    {
+      // The dialog may have been cancelled after "no longer in Inbox"; reload so the stale row goes away.
+      await LoadAsync();
+      return;
+    }
+
+    InboxNotifier.NotifyChanged();
+  }
+
+  public void Dispose()
+  {
+    InboxNotifier.Changed -= OnInboxChanged;
   }
 }

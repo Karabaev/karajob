@@ -7,6 +7,7 @@
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
+@inject InboxNotifier InboxNotifier
 
 <PageTitle>@Title</PageTitle>
 
@@ -403,9 +404,16 @@ else if (_loaded)
     _saving = true;
     try
     {
-      var saved = _details is null
-        ? await VacancyService.CreateAsync(input)
-        : await VacancyService.UpdateAsync(_details.Id, input);
+      VacancyDetails saved;
+      if (_details is null)
+      {
+        saved = await VacancyService.CreateAsync(input);
+        InboxNotifier.NotifyChanged();
+      }
+      else
+      {
+        saved = await VacancyService.UpdateAsync(_details.Id, input);
+      }
 
       _errors = new Dictionary<string, string>();
       _details = saved;

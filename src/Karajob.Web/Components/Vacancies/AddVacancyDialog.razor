@@ -1,18 +1,87 @@
+@inject VacancyService VacancyService
+@inject InboxNotifier InboxNotifier
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+
 <MudDialog>
   <DialogContent>
-    <MudText>Скоро здесь можно будет добавить вакансию по ссылке.</MudText>
+    <MudStack Spacing="2">
+      <MudTextField T="string" Class="quick-add-url" Label="Ссылка на вакансию" Placeholder="https://…" AutoFocus="true"
+                    InputType="InputType.Url" Immediate="true" @bind-Value="_url" @bind-Value:after="ClearUrlError" OnKeyDown="OnUrlKeyDown"
+                    Error="_urlError is not null" ErrorText="@_urlError" />
+      <MudTextField T="string" Class="quick-add-note" Label="Заметка (необязательно)" Lines="2" Sizing="InputSizing.Auto"
+                    Immediate="true" @bind-Value="_note" />
+    </MudStack>
   </DialogContent>
   <DialogActions>
-    <MudButton OnClick="Close">Закрыть</MudButton>
+    <MudButton OnClick="Cancel">Отмена</MudButton>
+    <MudButton Class="quick-add-submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="_saving" OnClick="SubmitAsync">
+      Добавить
+    </MudButton>
   </DialogActions>
 </MudDialog>
 
 @code {
+  private string? _url;
+  private string? _note;
+  private string? _urlError;
+  private bool _saving;
+
   [CascadingParameter]
   private IMudDialogInstance MudDialog { get; set; } = null!;
 
-  private void Close()
+  private void ClearUrlError()
   {
-    MudDialog.Close();
+    _urlError = null;
+  }
+
+  private async Task OnUrlKeyDown(KeyboardEventArgs args)
+  {
+    if (args.Key != "Enter") return;
+
+    await SubmitAsync();
+  }
+
+  private async Task SubmitAsync()
+  {
+    if (_saving) return;
+
+    _saving = true;
+    try
+    {
+      var result = await VacancyService.QuickAddAsync(new QuickAddInput(_url ?? string.Empty, _note));
+      var cardUrl = $"/vacancies/{result.VacancyId}";
+      MudDialog.Close(DialogResult.Ok(result.VacancyId));
+      if (result.AlreadyExisted)
+      {
+        Snackbar.Add($"Вакансия уже есть: {VacancyText.Stage(result.Stage)}", Severity.Info);
+        Navigation.NavigateTo(cardUrl);
+        return;
+      }
+
+      InboxNotifier.NotifyChanged();
+      Snackbar.Add("Добавлено в Inbox", Severity.Success, options =>
+      {
+        options.Action = "Открыть";
+        options.OnClick = _ =>
+        {
+          Navigation.NavigateTo(cardUrl);
+          return Task.CompletedTask;
+        };
+      });
+    }
+    catch (ValidationFailedException ex)
+    {
+      _urlError = ex.Errors.GetValueOrDefault(nameof(QuickAddInput.Url)) ?? ex.Message;
+    }
+    finally
+    {
+      _saving = false;
+    }
+  }
+
+  private void Cancel()
+  {
+    MudDialog.Cancel();
   }
 }

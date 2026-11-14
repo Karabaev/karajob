@@ -1,0 +1,67 @@
+@inject VacancyService VacancyService
+
+<MudDialog>
+  <DialogContent>
+    <MudStack Spacing="2">
+      @if (_error is not null)
+      {
+        <MudAlert Severity="Severity.Error">@_error</MudAlert>
+      }
+      <MudSelect T="DismissReason" Class="dismiss-reason" Label="Причина" @bind-Value="_reason">
+        @foreach (var reason in Enum.GetValues<DismissReason>())
+        {
+          <MudSelectItem T="DismissReason" Value="reason">@VacancyText.Dismiss(reason)</MudSelectItem>
+        }
+      </MudSelect>
+      <MudTextField T="string" Class="dismiss-comment" Label="Комментарий (необязательно)" Lines="2" Sizing="InputSizing.Auto"
+                    Immediate="true" @bind-Value="_comment" />
+    </MudStack>
+  </DialogContent>
+  <DialogActions>
+    <MudButton OnClick="Cancel">Отмена</MudButton>
+    <MudButton Class="dismiss-submit" Variant="Variant.Filled" Color="Color.Error" Disabled="_saving" OnClick="SubmitAsync">
+      Отклонить
+    </MudButton>
+  </DialogActions>
+</MudDialog>
+
+@code {
+  private DismissReason _reason = DismissReason.WrongRole;
+  private string? _comment;
+  private string? _error;
+  private bool _saving;
+
+  [CascadingParameter]
+  private IMudDialogInstance MudDialog { get; set; } = null!;
+
+  [Parameter, EditorRequired]
+  public Guid VacancyId { get; set; }
+
+  [Parameter]
+  public VacancyStage? ExpectedStage { get; set; }
+
+  private async Task SubmitAsync()
+  {
+    if (_saving) return;
+
+    _saving = true;
+    try
+    {
+      await VacancyService.DismissAsync(VacancyId, new DismissInput(_reason, _comment), ExpectedStage);
+      MudDialog.Close(DialogResult.Ok(true));
+    }
+    catch (ValidationFailedException ex)
+    {
+      _error = ex.Message;
+    }
+    finally
+    {
+      _saving = false;
+    }
+  }
+
+  private void Cancel()
+  {
+    MudDialog.Cancel();
+  }
+}
