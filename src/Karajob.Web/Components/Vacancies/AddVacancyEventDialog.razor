@@ -16,7 +16,7 @@
         }
       </MudSelect>
       <MudDatePicker Class="event-date" Label="Дата" @bind-Date="_date" Editable="true" />
-      <MudTextField T="string" Class="event-note" Label="Заметка" Lines="3" Sizing="InputSizing.Auto" @bind-Value="_note"
+      <MudTextField T="string" Class="event-note" Label="Заметка" Lines="3" Sizing="InputSizing.Auto" Immediate="true" @bind-Value="_note"
                     Error="HasError(nameof(VacancyEventInput.Note))" ErrorText="@ErrorOf(nameof(VacancyEventInput.Note))" />
     </MudStack>
   </DialogContent>
