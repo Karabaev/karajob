@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Builds the image, starts the container on a throwaway data folder, rebuilds the image from scratch,
-# recreates the container and checks that the database and Data Protection keys survived.
+# recreates the container and checks that the database and Data Protection keys survived
+# and that the daily snapshot was written to the data folder.
 # Usage (from anywhere): bash scripts/verify-docker-persistence.sh
 set -euo pipefail
 
@@ -61,6 +62,17 @@ expect_log() {
   grep -Eq "$1" <<< "$logs" || fail "log line matching '$1' not found"
 }
 
+wait_for_daily_snapshot() {
+  # The hosted service takes the first snapshot right after start, asynchronously.
+  for _ in $(seq 1 20); do
+    if compgen -G "$data_dir/backups/daily/*.db" > /dev/null; then
+      return 0
+    fi
+    sleep 1
+  done
+  fail "no daily snapshot was written to /data/backups/daily within 20 s"
+}
+
 key_files() {
   ls "$data_dir/keys" 2> /dev/null | sort
 }
@@ -72,6 +84,7 @@ wait_for_http
 expect_log "Applying [0-9]+ migration"
 keys_before="$(key_files)"
 [[ -n "$keys_before" ]] || fail "no Data Protection keys were written to /data/keys"
+wait_for_daily_snapshot
 
 echo "== Rebuild image without cache and recreate container"
 "${compose[@]}" down
