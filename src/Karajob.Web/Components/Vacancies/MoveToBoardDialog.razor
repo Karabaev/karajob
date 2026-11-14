@@ -1,11 +1,96 @@
+@inject VacancyService VacancyService
+@inject HypothesisService HypothesisService
+
 <MudDialog>
-  <DialogContent />
+  <DialogContent>
+    @if (_hypotheses is null)
+    {
+      <MudProgressLinear Indeterminate="true" />
+    }
+    else
+    {
+      <MudStack Spacing="1">
+        @if (_error is not null)
+        {
+          <MudAlert Severity="Severity.Error">@_error</MudAlert>
+        }
+        <MudText Typo="Typo.body2" Class="mud-text-secondary">Подходящие гипотезы</MudText>
+        @if (_hypotheses.Count == 0)
+        {
+          <MudText Class="move-to-board-empty">Сначала создайте гипотезу</MudText>
+        }
+        @foreach (var hypothesis in _hypotheses)
+        {
+          <MudCheckBox T="bool" Class="move-to-board-hypothesis" Label="@hypothesis.Name" Color="Color.Primary"
+                       Value="_selected.Contains(hypothesis.Id)" ValueChanged="checkedNow => Toggle(hypothesis.Id, checkedNow)" />
+        }
+      </MudStack>
+    }
+  </DialogContent>
+  <DialogActions>
+    <MudButton OnClick="Cancel">Отмена</MudButton>
+    <MudButton Class="move-to-board-submit" Variant="Variant.Filled" Color="Color.Primary"
+               Disabled="_saving || _selected.Count == 0" OnClick="SubmitAsync">
+      На доску
+    </MudButton>
+  </DialogActions>
 </MudDialog>
 
 @code {
+  private IReadOnlyList<HypothesisListItem>? _hypotheses;
+  private readonly HashSet<Guid> _selected = [];
+  private string? _error;
+  private bool _saving;
+
   [CascadingParameter]
   private IMudDialogInstance MudDialog { get; set; } = null!;
 
   [Parameter, EditorRequired]
   public Guid VacancyId { get; set; }
+
+  protected override async Task OnInitializedAsync()
+  {
+    var details = await VacancyService.FindAsync(VacancyId)
+      ?? throw new KeyNotFoundException($"Vacancy {VacancyId} was not found.");
+    _selected.UnionWith(details.HypothesisIds);
+    var hypotheses = await HypothesisService.ListAsync();
+    _hypotheses = hypotheses.Where(h => h.Status != HypothesisStatus.Disabled || _selected.Contains(h.Id)).ToList();
+  }
+
+  private void Toggle(Guid hypothesisId, bool isChecked)
+  {
+    if (isChecked)
+    {
+      _selected.Add(hypothesisId);
+    }
+    else
+    {
+      _selected.Remove(hypothesisId);
+    }
+  }
+
+  private async Task SubmitAsync()
+  {
+    if (_saving) return;
+
+    _saving = true;
+    try
+    {
+      await VacancyService.MoveToBoardAsync(VacancyId, _selected.ToList());
+      MudDialog.Close(DialogResult.Ok(true));
+    }
+    catch (ValidationFailedException ex)
+    {
+      _error = ex.Message;
+    }
+    finally
+    {
+      _saving = false;
+    }
+  }
+
+  private void Cancel()
+  {
+    MudDialog.Cancel();
+  }
 }

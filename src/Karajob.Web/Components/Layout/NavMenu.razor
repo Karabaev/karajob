@@ -1,8 +1,44 @@
+@implements IDisposable
+@inject VacancyService VacancyService
+@inject InboxNotifier InboxNotifier
+
 <MudNavMenu>
-  <MudNavLink Href="inbox" Icon="@Icons.Material.Filled.Inbox">Inbox</MudNavLink>
+  <MudNavLink Href="inbox" Icon="@Icons.Material.Filled.Inbox">
+    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+      <span>Inbox</span>
+      @if (_inboxCount > 0)
+      {
+        <MudChip T="string" Class="inbox-count" Size="Size.Small" Color="Color.Primary">@_inboxCount</MudChip>
+      }
+    </MudStack>
+  </MudNavLink>
   <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.ViewKanban">Доска</MudNavLink>
   <MudNavLink Href="companies" Icon="@Icons.Material.Filled.Business">Компании</MudNavLink>
   <MudNavLink Href="hypotheses" Icon="@Icons.Material.Filled.Lightbulb">Гипотезы</MudNavLink>
   <MudNavLink Href="cvs" Icon="@Icons.Material.Filled.Description">CV</MudNavLink>
   <MudNavLink Href="catalogs" Icon="@Icons.Material.Filled.LibraryBooks">Справочники</MudNavLink>
 </MudNavMenu>
+
+@code {
+  private int _inboxCount;
+
+  protected override async Task OnInitializedAsync()
+  {
+    InboxNotifier.Changed += OnInboxChanged;
+    _inboxCount = await VacancyService.CountAsync(VacancyStage.Inbox);
+  }
+
+  private void OnInboxChanged()
+  {
+    _ = InvokeAsync(async () =>
+    {
+      _inboxCount = await VacancyService.CountAsync(VacancyStage.Inbox);
+      StateHasChanged();
+    });
+  }
+
+  public void Dispose()
+  {
+    InboxNotifier.Changed -= OnInboxChanged;
+  }
+}

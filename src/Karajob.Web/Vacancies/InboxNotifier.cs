@@ -6,6 +6,6 @@ public class InboxNotifier
 
   public void NotifyChanged()
   {
-    throw new NotImplementedException();
+    Changed?.Invoke();
   }
 }

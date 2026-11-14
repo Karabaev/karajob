@@ -24,7 +24,8 @@ public record VacancyListItem(
   string? CompanyName,
   string? RoleName,
   VacancyStage Stage,
-  DateTime DiscoveredAt);
+  DateTime DiscoveredAt,
+  string? Notes);
 
 public record VacancyDetails(
   Guid Id,

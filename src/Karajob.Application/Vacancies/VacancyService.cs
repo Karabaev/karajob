@@ -35,28 +35,106 @@ public class VacancyService(IKarajobDbContextFactory dbContextFactory, ICurrentU
         v.CompanyId is { } companyId ? companyNames[companyId] : null,
         v.RoleId is { } roleId ? roleNames[roleId] : null,
         v.Stage,
-        v.DiscoveredAt))
+        v.DiscoveredAt,
+        v.Notes))
       .ToList();
   }
 
-  public Task<int> CountAsync(VacancyStage stage, CancellationToken cancellationToken = default)
+  public async Task<int> CountAsync(VacancyStage stage, CancellationToken cancellationToken = default)
   {
-    throw new NotImplementedException();
+    await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+    return await db.Vacancies.CountAsync(v => v.Stage == stage, cancellationToken);
   }
 
-  public Task<QuickAddResult> QuickAddAsync(QuickAddInput input, CancellationToken cancellationToken = default)
+  public async Task<QuickAddResult> QuickAddAsync(QuickAddInput input, CancellationToken cancellationToken = default)
   {
-    throw new NotImplementedException();
+    string url;
+    try
+    {
+      url = Normalize.VacancyUrl(input.Url);
+    }
+    catch (ArgumentException)
+    {
+      throw new ValidationFailedException(new Dictionary<string, string>
+      {
+        [nameof(QuickAddInput.Url)] = "Некорректная ссылка на вакансию",
+      });
+    }
+
+    await using (var db = await dbContextFactory.CreateDbContextAsync(cancellationToken))
+    {
+      if (await FindByUrlAsync(db, url, cancellationToken) is { } existing) return existing;
+
+      var vacancy = new Vacancy(currentUser.UserId, url, VacancySource.Manual, timeProvider.GetUtcNow().UtcDateTime)
+      {
+        Notes = BlankToNull(input.Note),
+      };
+      db.Vacancies.Add(vacancy);
+      try
+      {
+        await db.SaveChangesAsync(cancellationToken);
+        return new QuickAddResult(vacancy.Id, false, vacancy.Stage);
+      }
+      catch (DbUpdateException)
+      {
+        // The same URL was added concurrently (another tab or device) and the unique index rejected this insert.
+      }
+    }
+
+    await using var retryDb = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+    return await FindByUrlAsync(retryDb, url, cancellationToken)
+      ?? throw new InvalidOperationException($"Saving vacancy {url} failed, and no existing vacancy has this URL.");
   }
 
-  public Task MoveToBoardAsync(Guid vacancyId, IReadOnlyList<Guid> hypothesisIds, CancellationToken cancellationToken = default)
+  public async Task MoveToBoardAsync(Guid vacancyId, IReadOnlyList<Guid> hypothesisIds, CancellationToken cancellationToken = default)
   {
-    throw new NotImplementedException();
+    await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+    var vacancy = await FindVacancyAsync(db, vacancyId, cancellationToken);
+    if (vacancy.Stage is not (VacancyStage.Inbox or VacancyStage.Dismissed))
+    {
+      throw new ValidationFailedException(new Dictionary<string, string> { [string.Empty] = "Вакансия уже на доске" });
+    }
+
+    var ids = hypothesisIds.Distinct().ToList();
+    var error = ids.Count == 0
+      ? "Выберите хотя бы одну гипотезу"
+      : await FindHypothesesErrorAsync(db, ids, vacancy, cancellationToken);
+    if (error is not null)
+    {
+      throw new ValidationFailedException(new Dictionary<string, string> { [nameof(VacancyInput.HypothesisIds)] = error });
+    }
+
+    try
+    {
+      ReplaceMatches(vacancy, ids);
+      vacancy.MoveTo(VacancyStage.Targeted, timeProvider.GetUtcNow().UtcDateTime);
+    }
+    catch (InvalidOperationException ex)
+    {
+      throw new ValidationFailedException(new Dictionary<string, string> { [string.Empty] = ex.Message });
+    }
+
+    await db.SaveChangesAsync(cancellationToken);
   }
 
-  public Task DismissAsync(Guid vacancyId, DismissInput input, CancellationToken cancellationToken = default)
+  public async Task DismissAsync(Guid vacancyId, DismissInput input, CancellationToken cancellationToken = default)
   {
-    throw new NotImplementedException();
+    await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+    var vacancy = await FindVacancyAsync(db, vacancyId, cancellationToken);
+
+    try
+    {
+      vacancy.Dismiss(input.Reason, BlankToNull(input.Comment), timeProvider.GetUtcNow().UtcDateTime);
+    }
+    catch (StageTransitionException)
+    {
+      throw new ValidationFailedException(new Dictionary<string, string>
+      {
+        [string.Empty] = "Вакансию на этой стадии нельзя отклонить",
+      });
+    }
+
+    await db.SaveChangesAsync(cancellationToken);
   }
 
   public async Task<VacancyDetails?> FindAsync(Guid vacancyId, CancellationToken cancellationToken = default)
@@ -188,16 +266,48 @@ public class VacancyService(IKarajobDbContextFactory dbContextFactory, ICurrentU
     vacancy.Salary = normalized.Salary;
     vacancy.Description = normalized.Description;
     vacancy.Notes = normalized.Notes;
+    ReplaceMatches(vacancy, normalized.HypothesisIds);
+  }
 
-    foreach (var hypothesisId in normalized.HypothesisIds.Where(id => vacancy.Matches.All(m => m.HypothesisId != id)))
+  private static void ReplaceMatches(Vacancy vacancy, List<Guid> hypothesisIds)
+  {
+    foreach (var hypothesisId in hypothesisIds.Where(id => vacancy.Matches.All(m => m.HypothesisId != id)))
     {
       vacancy.SetMatch(hypothesisId, null, null, MatchAuthor.Human);
     }
 
-    foreach (var hypothesisId in vacancy.Matches.Select(m => m.HypothesisId).Where(id => !normalized.HypothesisIds.Contains(id)).ToList())
+    foreach (var hypothesisId in vacancy.Matches.Select(m => m.HypothesisId).Where(id => !hypothesisIds.Contains(id)).ToList())
     {
       vacancy.RemoveMatch(hypothesisId);
     }
+  }
+
+  private static async Task<QuickAddResult?> FindByUrlAsync(IKarajobDbContext db, string url, CancellationToken cancellationToken)
+  {
+    return await db.Vacancies.AsNoTracking()
+      .Where(v => v.Url == url)
+      .Select(v => new QuickAddResult(v.Id, true, v.Stage))
+      .FirstOrDefaultAsync(cancellationToken);
+  }
+
+  private static async Task<string?> FindHypothesesErrorAsync(
+    IKarajobDbContext db,
+    List<Guid> hypothesisIds,
+    Vacancy? existing,
+    CancellationToken cancellationToken)
+  {
+    var knownHypotheses = await db.Hypotheses
+      .Where(h => hypothesisIds.Contains(h.Id))
+      .Select(h => new { h.Id, h.Status })
+      .ToListAsync(cancellationToken);
+    if (knownHypotheses.Count != hypothesisIds.Count)
+    {
+      return "Гипотеза не найдена";
+    }
+
+    var addsDisabled = knownHypotheses.Any(h => h.Status == HypothesisStatus.Disabled
+      && (existing is null || existing.Matches.All(m => m.HypothesisId != h.Id)));
+    return addsDisabled ? "Гипотеза отключена" : null;
   }
 
   private async Task<NormalizedVacancy> ValidateAsync(
@@ -258,25 +368,15 @@ public class VacancyService(IKarajobDbContextFactory dbContextFactory, ICurrentU
     }
 
     var hypothesisIds = input.HypothesisIds.Distinct().ToList();
-    var knownHypotheses = await db.Hypotheses
-      .Where(h => hypothesisIds.Contains(h.Id))
-      .Select(h => new { h.Id, h.Status })
-      .ToListAsync(cancellationToken);
-    if (knownHypotheses.Count != hypothesisIds.Count)
+    var hypothesesError = await FindHypothesesErrorAsync(db, hypothesisIds, existing, cancellationToken);
+    if (hypothesesError is null && existing is not null)
     {
-      errors[nameof(VacancyInput.HypothesisIds)] = "Гипотеза не найдена";
+      hypothesesError = FindMatchRemovalError(existing, hypothesisIds);
     }
-    else if (knownHypotheses.Any(h => h.Status == HypothesisStatus.Disabled && (existing is null || existing.Matches.All(m => m.HypothesisId != h.Id))))
+
+    if (hypothesesError is not null)
     {
-      errors[nameof(VacancyInput.HypothesisIds)] = "Гипотеза отключена";
-    }
-    else if (existing is not null)
-    {
-      var message = FindMatchRemovalError(existing, hypothesisIds);
-      if (message is not null)
-      {
-        errors[nameof(VacancyInput.HypothesisIds)] = message;
-      }
+      errors[nameof(VacancyInput.HypothesisIds)] = hypothesesError;
     }
 
     if (errors.Count > 0)
