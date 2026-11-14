@@ -23,11 +23,28 @@ public static class BoardMoves
 
   public static BoardMoveKind Classify(VacancyStage from, VacancyStage to)
   {
-    throw new NotImplementedException();
+    if (from == to || !Columns.Contains(from) || !Columns.Contains(to) || !VacancyStageRules.CanMove(from, to))
+    {
+      return BoardMoveKind.Invalid;
+    }
+
+    if (to == VacancyStage.Closed)
+    {
+      return BoardMoveKind.Close;
+    }
+
+    return to == VacancyStage.Applied && from != VacancyStage.Closed ? BoardMoveKind.Apply : BoardMoveKind.Direct;
   }
 
   public static VacancyStage? Next(VacancyStage stage)
   {
-    throw new NotImplementedException();
+    return stage switch
+    {
+      VacancyStage.Targeted => VacancyStage.Preparing,
+      VacancyStage.Preparing => VacancyStage.Applied,
+      VacancyStage.Applied => VacancyStage.Interviewing,
+      VacancyStage.Interviewing => VacancyStage.Closed,
+      _ => null,
+    };
   }
 }
