@@ -66,6 +66,6 @@ public static class VacancyText
 
   public static string Date(DateTime utc)
   {
-    return utc.ToString("dd.MM.yyyy HH:mm");
+    return utc.ToString(utc.TimeOfDay == TimeSpan.Zero ? "dd.MM.yyyy" : "dd.MM.yyyy HH:mm");
   }
 }

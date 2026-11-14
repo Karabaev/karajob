@@ -7,6 +7,7 @@ using Karajob.Infrastructure.Persistence;
 using Karajob.Web.Components.Vacancies;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
+using MudBlazor;
 
 namespace Karajob.Tests.Web.Components.Vacancies;
 
@@ -102,6 +103,97 @@ public class VacancyPageTests : VacancyWebFixture
 
     cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindAll(".vacancy-url .mud-input-error")));
     Assert.Empty(await Vacancies.ListAsync(VacancyStage.Inbox));
+  }
+
+  [Fact]
+  public async Task Select_CompanyAndRoleMatchingExistingVacancyOnNewPage_ShowsSimilarWarning()
+  {
+    var company = await Companies.CreateAsync(new CompanyInput("pixel-forge", "Pixel Forge", null, null, [], []));
+    await Vacancies.CreateAsync(Input("https://example.com/jobs/1", company.Id, SeedData.UnityDeveloperRoleId));
+    var cut = Context.Render<VacancyPage>();
+    cut.WaitForElement(".vacancy-url");
+
+    await SelectCompanyAsync(cut, ToItem(company));
+    Assert.Empty(cut.FindAll(".vacancy-similar"));
+    await SelectRoleAsync(cut, SeedData.UnityDeveloperRoleId);
+
+    cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindAll(".vacancy-similar")));
+  }
+
+  [Fact]
+  public async Task AddEvent_NoteFromTimelineDialog_AppearsInTimeline()
+  {
+    var created = await Vacancies.CreateAsync(Input("https://example.com/jobs/1"));
+    Context.Render<MudPopoverProvider>();
+    var provider = Context.Render<MudDialogProvider>();
+    var cut = Context.Render<VacancyPage>(p => p.Add(c => c.Id, created.Id));
+    cut.WaitForElement(".timeline-add").Click();
+    provider.WaitForElement(".event-note textarea, .event-note input").Input("Позвонил рекрутер");
+
+    provider.Find(".event-save").Click();
+
+    cut.WaitForAssertion(() => Assert.Contains(
+      cut.FindAll(".vacancy-timeline .timeline-item"),
+      item => item.TextContent.Contains("Позвонил рекрутер")));
+  }
+
+  [Fact]
+  public async Task Select_CreateEntryAndCancelDialog_KeepsPreviousCompany()
+  {
+    var company = await Companies.CreateAsync(new CompanyInput("pixel-forge", "Pixel Forge", null, null, [], []));
+    await Vacancies.CreateAsync(Input("https://example.com/jobs/1", company.Id, SeedData.UnityDeveloperRoleId));
+    Context.Render<MudPopoverProvider>();
+    var provider = Context.Render<MudDialogProvider>();
+    var cut = Context.Render<VacancyPage>();
+    cut.WaitForElement(".vacancy-url input").Input("https://example.com/jobs/2");
+    await SelectCompanyAsync(cut, ToItem(company));
+    await SelectRoleAsync(cut, SeedData.UnityDeveloperRoleId);
+    cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindAll(".vacancy-similar")));
+
+    var pending = cut.InvokeAsync(() => CompanyAutocomplete(cut).Instance.ValueChanged.InvokeAsync(
+      new CompanyListItem(Guid.Empty, "", "+ Создать «Other»", null, [], false)));
+    provider.WaitForElement(".company-name");
+    provider.FindAll("button").First(b => b.TextContent.Contains("Отмена")).Click();
+    await pending.WaitAsync(TimeSpan.FromSeconds(5));
+
+    cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindAll(".vacancy-similar")));
+    cut.Find(".vacancy-save").Click();
+    var saved = await WaitForInboxCountAsync(2);
+    Assert.Contains(saved, v => v.CompanyName == "Pixel Forge");
+  }
+
+  private static CompanyListItem ToItem(CompanyDetails company)
+  {
+    return new CompanyListItem(company.Id, company.Slug, company.Name, company.IconUrl, company.Domains, company.IsBlacklisted);
+  }
+
+  private static IRenderedComponent<MudAutocomplete<CompanyListItem>> CompanyAutocomplete(IRenderedComponent<VacancyPage> cut)
+  {
+    return cut.FindComponent<MudAutocomplete<CompanyListItem>>();
+  }
+
+  private static async Task SelectCompanyAsync(IRenderedComponent<VacancyPage> cut, CompanyListItem company)
+  {
+    await cut.InvokeAsync(() => CompanyAutocomplete(cut).Instance.ValueChanged.InvokeAsync(company));
+  }
+
+  private static async Task SelectRoleAsync(IRenderedComponent<VacancyPage> cut, Guid roleId)
+  {
+    var select = cut.FindComponents<MudSelect<Guid?>>().Single(c => c.Instance.Class!.Contains("vacancy-role"));
+    await cut.InvokeAsync(() => select.Instance.ValueChanged.InvokeAsync(roleId));
+  }
+
+  private async Task<IReadOnlyList<VacancyListItem>> WaitForInboxCountAsync(int count)
+  {
+    var deadline = DateTime.UtcNow.AddSeconds(5);
+    var items = await Vacancies.ListAsync(VacancyStage.Inbox);
+    while (DateTime.UtcNow < deadline && items.Count < count)
+    {
+      await Task.Delay(50);
+      items = await Vacancies.ListAsync(VacancyStage.Inbox);
+    }
+
+    return items;
   }
 
   private async Task<VacancyListItem> WaitForSingleInboxVacancyAsync()

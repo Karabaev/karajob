@@ -317,7 +317,13 @@ else if (_loaded)
       return;
     }
 
-    _similar = await VacancyService.FindSimilarAsync(_company.Id, _roleId.Value, _details?.Id);
+    var companyId = _company.Id;
+    var roleId = _roleId.Value;
+    var similar = await VacancyService.FindSimilarAsync(companyId, roleId, _details?.Id);
+    if (_company?.Id == companyId && _roleId == roleId)
+    {
+      _similar = similar;
+    }
   }
 
   private void OnHypothesesChanged(IReadOnlyCollection<Guid>? hypothesisIds)
@@ -377,6 +383,8 @@ else if (_loaded)
 
   private async Task SaveAsync()
   {
+    if (_saving) return;
+
     var hasSalary = _salaryMin is not null || _salaryMax is not null;
     var input = new VacancyInput(
       _url ?? "",
@@ -429,6 +437,7 @@ else if (_loaded)
     {
       { d => d.VacancyId, _details!.Id },
       { d => d.HasApplication, _details.ApplicationHypothesisId is not null },
+      { d => d.DiscoveredAt, _details.DiscoveredAt },
     };
     var reference = await DialogService.ShowAsync<AddVacancyEventDialog>("Новое событие", parameters);
     var result = await reference.Result;
@@ -458,6 +467,10 @@ else if (_loaded)
     catch (ValidationFailedException exception)
     {
       Snackbar.Add(exception.Message, Severity.Error);
+    }
+    catch (KeyNotFoundException)
+    {
+      await ReloadTimelineAsync();
     }
   }
 

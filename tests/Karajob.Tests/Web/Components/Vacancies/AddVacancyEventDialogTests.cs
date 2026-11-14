@@ -15,6 +15,7 @@ public class AddVacancyEventDialogTests : VacancyWebFixture
     {
       { d => d.VacancyId, created.Id },
       { d => d.HasApplication, false },
+      { d => d.DiscoveredAt, created.DiscoveredAt },
     };
     var (provider, reference) = await ShowDialogAsync(parameters);
     provider.WaitForElement(".event-note textarea, .event-note input").Input("Позвонил рекрутер");
