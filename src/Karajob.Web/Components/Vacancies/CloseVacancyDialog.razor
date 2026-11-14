@@ -1,6 +1,33 @@
-<div class="dialog-stub"></div>
+@inject VacancyService VacancyService
+
+<MudDialog>
+  <DialogContent>
+    <MudStack Spacing="2">
+      @if (_error is not null)
+      {
+        <MudAlert Severity="Severity.Error">@_error</MudAlert>
+      }
+      <MudSelect T="ApplicationOutcome" Class="close-outcome" Label="Исход" @bind-Value="_outcome">
+        @foreach (var outcome in Enum.GetValues<ApplicationOutcome>())
+        {
+          <MudSelectItem T="ApplicationOutcome" Value="outcome">@VacancyText.Outcome(outcome)</MudSelectItem>
+        }
+      </MudSelect>
+    </MudStack>
+  </DialogContent>
+  <DialogActions>
+    <MudButton Class="close-cancel" OnClick="Cancel">Отмена</MudButton>
+    <MudButton Class="close-submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="_saving" OnClick="SubmitAsync">
+      Закрыть
+    </MudButton>
+  </DialogActions>
+</MudDialog>
 
 @code {
+  private ApplicationOutcome _outcome = ApplicationOutcome.Rejected;
+  private string? _error;
+  private bool _saving;
+
   [CascadingParameter]
   private IMudDialogInstance MudDialog { get; set; } = null!;
 
@@ -9,4 +36,29 @@
 
   [Parameter, EditorRequired]
   public VacancyStage ExpectedStage { get; set; }
+
+  private async Task SubmitAsync()
+  {
+    if (_saving) return;
+
+    _saving = true;
+    try
+    {
+      await VacancyService.CloseAsync(VacancyId, ExpectedStage, _outcome);
+      MudDialog.Close(DialogResult.Ok(true));
+    }
+    catch (ValidationFailedException ex)
+    {
+      _error = ex.Message;
+    }
+    finally
+    {
+      _saving = false;
+    }
+  }
+
+  private void Cancel()
+  {
+    MudDialog.Cancel();
+  }
 }

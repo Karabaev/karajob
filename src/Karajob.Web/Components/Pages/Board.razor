@@ -1,6 +1,212 @@
 @page "/"
+@inject VacancyService VacancyService
+@inject HypothesisService HypothesisService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
 
 <PageTitle>Доска</PageTitle>
 
-<MudText Typo="Typo.h4" HtmlTag="h1" GutterBottom="true">Доска</MudText>
-<MudText Class="mud-text-secondary">Раздел в разработке.</MudText>
+<MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
+  <MudText Typo="Typo.h4" HtmlTag="h1">Доска</MudText>
+  <MudSelect T="Guid?" Class="board-filter" Label="Гипотеза" Variant="Variant.Outlined" Dense="true" Style="max-width: 280px;"
+             Value="_hypothesisId" ValueChanged="OnFilterChangedAsync">
+    <MudSelectItem T="Guid?" Value="@((Guid?)null)">Все гипотезы</MudSelectItem>
+    @foreach (var hypothesis in _hypotheses)
+    {
+      <MudSelectItem T="Guid?" Value="@((Guid?)hypothesis.Id)">@hypothesis.Name</MudSelectItem>
+    }
+  </MudSelect>
+</MudStack>
+
+@if (_view is null)
+{
+  <MudProgressLinear Indeterminate="true" />
+}
+else
+{
+  <MudDropContainer T="BoardCard" @key="_version" Items="_view.Cards" ItemsSelector="IsInZone" CanDrop="CanDropCard"
+                    ItemDropped="OnItemDropped" Class="board">
+    <ChildContent>
+      <div class="board-columns">
+        @foreach (var stage in BoardMoves.Columns)
+        {
+          <div class="board-column" data-stage="@stage">
+            <div class="board-column-header">
+              <MudText Typo="Typo.subtitle1">@VacancyText.Stage(stage) · @CountIn(stage)</MudText>
+              @if (stage == VacancyStage.Closed)
+              {
+                <MudButton Class="board-closed-toggle" Size="Size.Small" Variant="Variant.Text" OnClick="ToggleClosed">
+                  @(_closedExpanded ? "Свернуть" : "Показать")
+                </MudButton>
+              }
+            </div>
+            @if (stage == VacancyStage.Closed)
+            {
+              <div class="board-outcomes">
+                @foreach (var outcome in Enum.GetValues<ApplicationOutcome>())
+                {
+                  <MudTooltip Text="@VacancyText.Outcome(outcome)">
+                    <MudChip T="string" Class="board-outcome-count" Size="Size.Small" Variant="Variant.Outlined"
+                             data-outcome="@outcome">@OutcomeCount(outcome)</MudChip>
+                  </MudTooltip>
+                }
+              </div>
+            }
+            <MudDropZone T="BoardCard" Identifier="@stage.ToString()" Class="board-zone" />
+          </div>
+        }
+      </div>
+    </ChildContent>
+    <ItemRenderer>
+      <BoardCardView Card="context" OnMoveRequested="target => MoveCardAsync(context, target)"
+                     OnDismissRequested="() => DismissCardAsync(context)" />
+    </ItemRenderer>
+  </MudDropContainer>
+}
+
+@code {
+  private IReadOnlyList<HypothesisListItem> _hypotheses = [];
+  private BoardView? _view;
+  private Guid? _hypothesisId;
+  private bool _closedExpanded;
+  private int _version;
+
+  protected override async Task OnInitializedAsync()
+  {
+    _hypotheses = await HypothesisService.ListAsync();
+    await ReloadAsync();
+  }
+
+  // MudDropContainer keeps a dragged card in its target zone internally, even when the move is cancelled or rejected.
+  // Changing @key recreates the container, so every reload snaps cards back to what the server says.
+  private async Task ReloadAsync()
+  {
+    _view = await VacancyService.GetBoardAsync(_hypothesisId);
+    _version++;
+  }
+
+  private Task OnFilterChangedAsync(Guid? hypothesisId)
+  {
+    _hypothesisId = hypothesisId;
+    return ReloadAsync();
+  }
+
+  private bool IsInZone(BoardCard card, string zone)
+  {
+    if (card.Stage.ToString() != zone) return false;
+
+    return card.Stage != VacancyStage.Closed || _closedExpanded;
+  }
+
+  private static bool CanDropCard(BoardCard card, string zone)
+  {
+    return BoardMoves.Classify(card.Stage, Enum.Parse<VacancyStage>(zone)) != BoardMoveKind.Invalid;
+  }
+
+  private int CountIn(VacancyStage stage)
+  {
+    return stage == VacancyStage.Closed
+      ? _view!.ClosedOutcomes.Values.Sum()
+      : _view!.Cards.Count(c => c.Stage == stage);
+  }
+
+  private int OutcomeCount(ApplicationOutcome outcome)
+  {
+    return _view!.ClosedOutcomes.GetValueOrDefault(outcome);
+  }
+
+  private void ToggleClosed()
+  {
+    _closedExpanded = !_closedExpanded;
+    _version++;
+  }
+
+  private Task OnItemDropped(MudItemDropInfo<BoardCard> info)
+  {
+    return MoveCardAsync(info.Item!, Enum.Parse<VacancyStage>(info.DropzoneIdentifier));
+  }
+
+  private async Task MoveCardAsync(BoardCard card, VacancyStage target)
+  {
+    try
+    {
+      switch (BoardMoves.Classify(card.Stage, target))
+      {
+        case BoardMoveKind.Direct:
+          await VacancyService.MoveAsync(card.Id, card.Stage, target);
+          break;
+        case BoardMoveKind.Apply:
+          await ShowDialogAsync<ApplyDialog>("Отклик", new DialogParameters<ApplyDialog>
+          {
+            { d => d.VacancyId, card.Id },
+            { d => d.ExpectedStage, card.Stage },
+          });
+          break;
+        case BoardMoveKind.Close:
+          await ShowDialogAsync<CloseVacancyDialog>("Закрыть вакансию", new DialogParameters<CloseVacancyDialog>
+          {
+            { d => d.VacancyId, card.Id },
+            { d => d.ExpectedStage, card.Stage },
+          });
+          break;
+        default:
+          if (target != card.Stage)
+          {
+            Snackbar.Add($"Недопустимый переход: {VacancyText.Stage(card.Stage)} → {VacancyText.Stage(target)}", Severity.Warning);
+          }
+
+          break;
+      }
+    }
+    catch (ValidationFailedException ex)
+    {
+      Snackbar.Add(ex.Message, Severity.Error);
+    }
+    catch (Exception ex)
+    {
+      await DispatchExceptionAsync(ex);
+      return;
+    }
+
+    await ReloadSafelyAsync();
+  }
+
+  private async Task DismissCardAsync(BoardCard card)
+  {
+    try
+    {
+      await ShowDialogAsync<DismissVacancyDialog>("Отклонить вакансию", new DialogParameters<DismissVacancyDialog>
+      {
+        { d => d.VacancyId, card.Id },
+        { d => d.ExpectedStage, card.Stage },
+      });
+    }
+    catch (Exception ex)
+    {
+      await DispatchExceptionAsync(ex);
+      return;
+    }
+
+    await ReloadSafelyAsync();
+  }
+
+  private async Task ReloadSafelyAsync()
+  {
+    try
+    {
+      await ReloadAsync();
+    }
+    catch (Exception ex)
+    {
+      await DispatchExceptionAsync(ex);
+    }
+  }
+
+  private async Task ShowDialogAsync<TDialog>(string title, DialogParameters<TDialog> parameters)
+    where TDialog : ComponentBase
+  {
+    var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
+    var dialog = await DialogService.ShowAsync<TDialog>(title, parameters, options);
+    await dialog.Result;
+  }
+}

@@ -1,6 +1,45 @@
-<div class="board-card-view"></div>
+<div class="board-card" data-id="@Card.Id">
+  <MudPaper Elevation="1" Class="pa-2">
+    <MudStack Spacing="1">
+      <MudLink Href="@($"/vacancies/{Card.Id}")" Style="overflow-wrap: anywhere;">
+        @if (Card.CompanyName is not null || Card.RoleName is not null)
+        {
+          <strong>@(Card.CompanyName ?? "—")</strong>
+          <span> · @(Card.RoleName ?? "—")</span>
+        }
+        else
+        {
+          @Card.Url
+        }
+      </MudLink>
+      <MudText Typo="Typo.caption" Class="mud-text-secondary">@VacancyText.Date(Card.DiscoveredAt)</MudText>
+      @if (Card.Outcome is { } outcome)
+      {
+        <MudChip T="string" Class="board-outcome" Size="Size.Small" Variant="Variant.Outlined">@VacancyText.Outcome(outcome)</MudChip>
+      }
+      @if (_next is { } next || CanDismiss)
+      {
+        <MudStack Row="true" Spacing="1" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+          @if (_next is { } target)
+          {
+            <MudButton Class="board-next" Size="Size.Small" Variant="Variant.Filled" Color="Color.Primary"
+                       OnClick="() => OnMoveRequested.InvokeAsync(target)">→ @VacancyText.Stage(target)</MudButton>
+          }
+          @if (CanDismiss)
+          {
+            <MudMenu Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small" Dense="true" AriaLabel="Действия">
+              <MudMenuItem Class="board-dismiss" OnClick="() => OnDismissRequested.InvokeAsync()">Отклонить</MudMenuItem>
+            </MudMenu>
+          }
+        </MudStack>
+      }
+    </MudStack>
+  </MudPaper>
+</div>
 
 @code {
+  private VacancyStage? _next;
+
   [Parameter, EditorRequired]
   public BoardCard Card { get; set; } = null!;
 
@@ -9,4 +48,11 @@
 
   [Parameter]
   public EventCallback OnDismissRequested { get; set; }
+
+  private bool CanDismiss => Card.Stage is VacancyStage.Targeted or VacancyStage.Preparing;
+
+  protected override void OnParametersSet()
+  {
+    _next = BoardMoves.Next(Card.Stage);
+  }
 }
