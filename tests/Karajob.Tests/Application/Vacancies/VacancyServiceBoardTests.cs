@@ -349,7 +349,8 @@ public class VacancyServiceBoardTests : VacancyServiceFixture
     var hypothesisId = await CreateHypothesisAsync();
     var (_, cvVersionId) = await CreateCvAsync();
     var id = await CreateOnBoardAsync(from, hypothesisId);
-    var appliedAt = Now.AddHours(-1);
+    Clock.UtcNow = Now.AddHours(5);
+    var appliedAt = Now.AddHours(3);
 
     await Service.ApplyAsync(id, from, new ApplyInput(hypothesisId, cvVersionId, ApplicationChannel.Referral, appliedAt, "  hello  "));
 
@@ -475,6 +476,41 @@ public class VacancyServiceBoardTests : VacancyServiceFixture
   }
 
   [Fact]
+  public async Task ApplyAsync_AppliedAtOnDayBeforeLastTransition_FailsOnAppliedAt()
+  {
+    var hypothesisId = await CreateHypothesisAsync();
+    var (_, cvVersionId) = await CreateCvAsync();
+    var id = await CreateOnBoardAsync(VacancyStage.Preparing, hypothesisId);
+    var lastDay = LastStageChange(await LoadAsync(id)).Date;
+    Clock.UtcNow = lastDay.AddDays(3);
+
+    var exception = await Assert.ThrowsAsync<ValidationFailedException>(
+      () => Service.ApplyAsync(id, VacancyStage.Preparing, Valid(hypothesisId, cvVersionId, appliedAt: lastDay.AddDays(-1).AddHours(23))));
+
+    Assert.Contains("AppliedAt", exception.Errors.Keys);
+    await AssertNothingAppliedAsync(id, VacancyStage.Preparing);
+  }
+
+  [Fact]
+  public async Task ApplyAsync_AppliedAtEarlierOnLastTransitionDay_UsesLastTransitionTime()
+  {
+    var hypothesisId = await CreateHypothesisAsync();
+    var (_, cvVersionId) = await CreateCvAsync();
+    var id = await CreateOnBoardAsync(VacancyStage.Preparing, hypothesisId);
+    var last = LastStageChange(await LoadAsync(id));
+    Clock.UtcNow = last.AddHours(5);
+
+    await Service.ApplyAsync(id, VacancyStage.Preparing, Valid(hypothesisId, cvVersionId, appliedAt: last.Date));
+
+    var vacancy = await LoadAsync(id);
+    Assert.Equal(last, vacancy.Application!.AppliedAt);
+    var applied = Assert.Single(vacancy.Events, e => e.ToStage == VacancyStage.Applied);
+    Assert.Equal(last, applied.OccurredAt);
+    var ordered = vacancy.Events.Where(e => e.Type == ApplicationEventType.StageChanged).OrderBy(e => e.OccurredAt).Select(e => e.ToStage);
+    Assert.Equal(VacancyStage.Applied, ordered.Last());
+  }
+
+  [Fact]
   public async Task ApplyAsync_StaleExpectedStage_ThrowsValidationAndAppliesNothing()
   {
     var hypothesisId = await CreateHypothesisAsync();
@@ -562,6 +598,11 @@ public class VacancyServiceBoardTests : VacancyServiceFixture
   {
     await Assert.ThrowsAsync<KeyNotFoundException>(
       () => Service.CloseAsync(Guid.NewGuid(), VacancyStage.Applied, ApplicationOutcome.Rejected));
+  }
+
+  private static DateTime LastStageChange(Vacancy vacancy)
+  {
+    return vacancy.Events.Where(e => e.Type == ApplicationEventType.StageChanged).Max(e => e.OccurredAt);
   }
 
   private static ApplyInput Valid(Guid hypothesisId, Guid cvVersionId, DateTime? appliedAt = null, string? coverLetter = null)

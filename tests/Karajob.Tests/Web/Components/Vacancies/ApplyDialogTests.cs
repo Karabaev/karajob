@@ -1,4 +1,5 @@
 using Bunit;
+using Karajob.Application.Cvs;
 using Karajob.Domain.Applications;
 using Karajob.Domain.Vacancies;
 using Karajob.Infrastructure.Persistence;
@@ -14,7 +15,8 @@ public class ApplyDialogTests : VacancyWebFixture
   public async Task Submit_WithPrimaryCvOfHypothesis_AppliesWithNewestVersionAndCloses()
   {
     var hypothesisId = await CreateHypothesisAsync();
-    var (documentId, firstVersionId) = await CreateCvAsync("Primary", "v1.pdf");
+    var (documentId, _) = await CreateCvAsync("Primary", "v1.pdf");
+    var newestVersionId = await AddVersionAsync(documentId, "v2.pdf");
     await SetPrimaryCvAsync(hypothesisId, documentId);
     var vacancyId = await CreateOnBoardAsync(VacancyStage.Preparing, hypothesisId, "https://example.com/jobs/1");
     var (provider, reference) = await ShowAsync(vacancyId, VacancyStage.Preparing);
@@ -27,7 +29,7 @@ public class ApplyDialogTests : VacancyWebFixture
     var vacancy = await FindWithApplicationAsync(vacancyId);
     Assert.Equal(VacancyStage.Applied, vacancy.Stage);
     Assert.Equal(hypothesisId, vacancy.Application!.HypothesisId);
-    Assert.Equal(firstVersionId, vacancy.Application.CvVersionId);
+    Assert.Equal(newestVersionId, vacancy.Application.CvVersionId);
   }
 
   [Fact]
@@ -79,6 +81,41 @@ public class ApplyDialogTests : VacancyWebFixture
 
     Assert.True(result!.Canceled);
     Assert.Equal(VacancyStage.Preparing, (await FindWithApplicationAsync(vacancyId)).Stage);
+  }
+
+  [Fact]
+  public async Task Render_WithPreferredHypothesis_PreselectsItAndAppliesWithIt()
+  {
+    var alpha = await CreateHypothesisAsync("Alpha");
+    var beta = await CreateHypothesisAsync("Beta");
+    var (documentId, versionId) = await CreateCvAsync();
+    await SetPrimaryCvAsync(beta, documentId);
+    var vacancy = await Vacancies.CreateAsync(Input("https://example.com/jobs/1", hypothesisIds: [alpha, beta]));
+    await Vacancies.MoveToBoardAsync(vacancy.Id, [alpha, beta]);
+    await Vacancies.MoveAsync(vacancy.Id, VacancyStage.Targeted, VacancyStage.Preparing);
+    var (provider, reference) = await ShowDialogAsync(new DialogParameters<ApplyDialog>
+    {
+      { d => d.VacancyId, vacancy.Id },
+      { d => d.ExpectedStage, VacancyStage.Preparing },
+      { d => d.PreferredHypothesisId, beta },
+    });
+    provider.WaitForElement(".apply-submit");
+
+    provider.WaitForAssertion(() => Assert.False(provider.Find(".apply-submit").HasAttribute("disabled")));
+    provider.Find(".apply-submit").Click();
+
+    await reference.Result!.WaitAsync(TimeSpan.FromSeconds(5));
+    var applied = await FindWithApplicationAsync(vacancy.Id);
+    Assert.Equal(beta, applied.Application!.HypothesisId);
+    Assert.Equal(versionId, applied.Application.CvVersionId);
+  }
+
+  private async Task<Guid> AddVersionAsync(Guid documentId, string fileName)
+  {
+    await Task.Delay(20);
+    var content = new byte[] { 0x25, 0x50, 0x44, 0x46, 4, 5, 6 };
+    var details = await Cvs.AddVersionAsync(documentId, new CvUpload(fileName, content.Length, () => new MemoryStream(content), null));
+    return details.Versions.Single(v => v.FileName == fileName).Id;
   }
 
   private async Task<Vacancy> FindWithApplicationAsync(Guid vacancyId)

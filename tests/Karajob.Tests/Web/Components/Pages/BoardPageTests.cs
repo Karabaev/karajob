@@ -1,7 +1,9 @@
 using Bunit;
+using Karajob.Application.Vacancies;
 using Karajob.Domain.Applications;
 using Karajob.Domain.Vacancies;
 using Karajob.Tests.Web.Components.Vacancies;
+using Karajob.Web.Components.Vacancies;
 using MudBlazor;
 using BoardPage = Karajob.Web.Components.Pages.Board;
 
@@ -175,7 +177,98 @@ public class BoardPageTests : VacancyWebFixture
     Assert.Equal(VacancyStage.Preparing, (await Vacancies.FindAsync(id))!.Stage);
   }
 
-  private (IRenderedComponent<BoardPage> Page, IRenderedComponent<MudDialogProvider> Dialogs) RenderWithDialogs()
+  [Fact]
+  public async Task Drop_PreparingCardOnApplied_OpensApplyDialogAndCancelKeepsCardInPreparing()
+  {
+    var hypothesisId = await CreateHypothesisAsync();
+    var id = await CreateOnBoardAsync(VacancyStage.Preparing, hypothesisId, "https://example.com/jobs/1");
+    var (cut, dialogs) = RenderWithDialogs();
+    cut.WaitForAssertion(() => Assert.NotEmpty(CardsIn(cut, VacancyStage.Preparing, id)));
+
+    var drop = DropAsync(cut, id, VacancyStage.Applied);
+    dialogs.WaitForElement(".apply-cancel").Click();
+
+    dialogs.WaitForAssertion(() => Assert.Empty(dialogs.FindAll(".apply-submit")));
+    await drop;
+    cut.WaitForAssertion(() => Assert.NotEmpty(CardsIn(cut, VacancyStage.Preparing, id)));
+    Assert.Empty(CardsIn(cut, VacancyStage.Applied, id));
+    Assert.Equal(VacancyStage.Preparing, (await Vacancies.FindAsync(id))!.Stage);
+  }
+
+  [Fact]
+  public async Task Drop_TargetedCardOnInterviewing_IsRejectedAndKeepsCardInTargeted()
+  {
+    var hypothesisId = await CreateHypothesisAsync();
+    var id = await CreateOnBoardAsync(VacancyStage.Targeted, hypothesisId, "https://example.com/jobs/1");
+    var cut = Context.Render<BoardPage>();
+    cut.WaitForAssertion(() => Assert.NotEmpty(CardsIn(cut, VacancyStage.Targeted, id)));
+    var eventsBefore = (await Vacancies.FindAsync(id))!.Timeline.Count;
+
+    await DropAsync(cut, id, VacancyStage.Interviewing);
+
+    cut.WaitForAssertion(() => Assert.NotEmpty(CardsIn(cut, VacancyStage.Targeted, id)));
+    Assert.Empty(CardsIn(cut, VacancyStage.Interviewing, id));
+    var found = (await Vacancies.FindAsync(id))!;
+    Assert.Equal(VacancyStage.Targeted, found.Stage);
+    Assert.Equal(eventsBefore, found.Timeline.Count);
+  }
+
+  [Fact]
+  public async Task Drop_TargetedCardOnPreparing_MovesCard()
+  {
+    var hypothesisId = await CreateHypothesisAsync();
+    var id = await CreateOnBoardAsync(VacancyStage.Targeted, hypothesisId, "https://example.com/jobs/1");
+    var cut = Context.Render<BoardPage>();
+    cut.WaitForAssertion(() => Assert.NotEmpty(CardsIn(cut, VacancyStage.Targeted, id)));
+
+    await DropAsync(cut, id, VacancyStage.Preparing);
+
+    cut.WaitForAssertion(() => Assert.NotEmpty(CardsIn(cut, VacancyStage.Preparing, id)));
+    Assert.Equal(VacancyStage.Preparing, (await Vacancies.FindAsync(id))!.Stage);
+  }
+
+  [Fact]
+  public async Task FilterByHypothesis_ShowsOnlyMatchingCards()
+  {
+    var first = await CreateHypothesisAsync("First");
+    var second = await CreateHypothesisAsync("Second");
+    var firstId = await CreateOnBoardAsync(VacancyStage.Targeted, first, "https://example.com/jobs/1");
+    var secondId = await CreateOnBoardAsync(VacancyStage.Targeted, second, "https://example.com/jobs/2");
+    var cut = Context.Render<BoardPage>();
+    cut.WaitForAssertion(() => Assert.NotEmpty(CardsIn(cut, VacancyStage.Targeted, secondId)));
+    var filter = cut.FindComponents<MudSelect<Guid?>>().Single(c => c.Instance.Class!.Contains("board-filter"));
+
+    await cut.InvokeAsync(() => filter.Instance.ValueChanged.InvokeAsync(first));
+
+    cut.WaitForAssertion(() => Assert.Empty(CardsIn(cut, VacancyStage.Targeted, secondId)));
+    Assert.NotEmpty(CardsIn(cut, VacancyStage.Targeted, firstId));
+  }
+
+  [Fact]
+  public async Task DismissFromCardMenu_SubmitDialogRemovesCardAndDismissesVacancy()
+  {
+    var hypothesisId = await CreateHypothesisAsync();
+    var id = await CreateOnBoardAsync(VacancyStage.Targeted, hypothesisId, "https://example.com/jobs/1");
+    var (cut, dialogs) = RenderWithDialogs();
+    cut.WaitForAssertion(() => Assert.NotEmpty(CardsIn(cut, VacancyStage.Targeted, id)));
+    var card = cut.FindComponents<BoardCardView>().Single(c => c.Instance.Card.Id == id);
+
+    var dismiss = cut.InvokeAsync(() => card.Instance.OnDismissRequested.InvokeAsync());
+    dialogs.WaitForElement(".dismiss-submit").Click();
+
+    await dismiss;
+    cut.WaitForAssertion(() => Assert.Empty(CardsIn(cut, VacancyStage.Targeted, id)));
+    Assert.Equal(VacancyStage.Dismissed, (await Vacancies.FindAsync(id))!.Stage);
+  }
+
+  private static async Task DropAsync(IRenderedComponent<BoardPage> cut, Guid id, VacancyStage zone)
+  {
+    var container = cut.FindComponent<MudDropContainer<BoardCard>>();
+    var card = container.Instance.Items!.Single(c => c.Id == id);
+    await cut.InvokeAsync(() => container.Instance.ItemDropped.InvokeAsync(new MudItemDropInfo<BoardCard>(card, zone.ToString(), 0)));
+  }
+
+  private (IRenderedComponent<BoardPage> Page,IRenderedComponent<MudDialogProvider> Dialogs) RenderWithDialogs()
   {
     Context.Render<MudPopoverProvider>();
     var dialogs = Context.Render<MudDialogProvider>();

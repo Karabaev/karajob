@@ -17,7 +17,7 @@
       {
         <MudChip T="string" Class="board-outcome" Size="Size.Small" Variant="Variant.Outlined">@VacancyText.Outcome(outcome)</MudChip>
       }
-      @if (_next is { } next || CanDismiss)
+      @if (_next is not null || CanDismiss)
       {
         <MudStack Row="true" Spacing="1" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
           @if (_next is { } target)

@@ -88,6 +88,9 @@
   [Parameter, EditorRequired]
   public VacancyStage ExpectedStage { get; set; }
 
+  [Parameter]
+  public Guid? PreferredHypothesisId { get; set; }
+
   private bool CanSubmit => _options is { Hypotheses.Count: > 0, CvVersions.Count: > 0 } && _cvVersionId is not null;
 
   protected override async Task OnInitializedAsync()
@@ -96,7 +99,8 @@
     _options = await VacancyService.GetApplyOptionsAsync(VacancyId);
     if (_options.Hypotheses.Count > 0)
     {
-      OnHypothesisChanged(_options.Hypotheses[0].Id);
+      var preferred = _options.Hypotheses.FirstOrDefault(h => h.Id == PreferredHypothesisId) ?? _options.Hypotheses[0];
+      OnHypothesisChanged(preferred.Id);
     }
   }
 
@@ -127,8 +131,7 @@
     if (_saving) return;
 
     var now = TimeProvider.GetUtcNow().UtcDateTime;
-    var date = _date?.Date ?? now.Date;
-    var appliedAt = date == now.Date ? now : DateTime.SpecifyKind(date, DateTimeKind.Utc);
+    var appliedAt = AppliedAtConverter.ToAppliedAt(_date ?? now, now);
 
     _saving = true;
     try

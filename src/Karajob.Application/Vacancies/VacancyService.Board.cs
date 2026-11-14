@@ -120,14 +120,20 @@ public partial class VacancyService
     }
 
     var now = timeProvider.GetUtcNow().UtcDateTime;
-    UtcGuard.Ensure(input.AppliedAt);
-    if (input.AppliedAt > now)
+    var appliedAt = UtcGuard.Ensure(input.AppliedAt);
+    var last = vacancy.Events.Where(e => e.Type == ApplicationEventType.StageChanged).Max(e => e.OccurredAt);
+    if (appliedAt > now)
     {
       errors[nameof(ApplyInput.AppliedAt)] = "Дата отклика в будущем";
     }
-    else if (input.AppliedAt < vacancy.DiscoveredAt.Date)
+    else if (appliedAt.Date < last.Date)
     {
-      errors[nameof(ApplyInput.AppliedAt)] = "Дата отклика раньше даты, когда вакансия найдена";
+      errors[nameof(ApplyInput.AppliedAt)] = "Дата отклика раньше последней смены стадии";
+    }
+    else if (appliedAt < last)
+    {
+      // The dialog picks a day, not a time; moving to the last transition keeps the timeline ordered.
+      appliedAt = last;
     }
 
     if (errors.Count > 0)
@@ -137,7 +143,7 @@ public partial class VacancyService
 
     try
     {
-      vacancy.Apply(input.HypothesisId, input.CvVersionId, input.Channel, input.AppliedAt, BlankToNull(input.CoverLetter));
+      vacancy.Apply(input.HypothesisId, input.CvVersionId, input.Channel, appliedAt, BlankToNull(input.CoverLetter));
     }
     catch (StageTransitionException)
     {

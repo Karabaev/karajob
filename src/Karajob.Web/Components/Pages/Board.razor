@@ -70,6 +70,7 @@ else
   private Guid? _hypothesisId;
   private bool _closedExpanded;
   private int _version;
+  private bool _busy;
 
   protected override async Task OnInitializedAsync()
   {
@@ -93,9 +94,7 @@ else
 
   private bool IsInZone(BoardCard card, string zone)
   {
-    if (card.Stage.ToString() != zone) return false;
-
-    return card.Stage != VacancyStage.Closed || _closedExpanded;
+    return card.Stage.ToString() == zone && (card.Stage != VacancyStage.Closed || _closedExpanded);
   }
 
   private static bool CanDropCard(BoardCard card, string zone)
@@ -126,7 +125,32 @@ else
     return MoveCardAsync(info.Item!, Enum.Parse<VacancyStage>(info.DropzoneIdentifier));
   }
 
-  private async Task MoveCardAsync(BoardCard card, VacancyStage target)
+  private Task MoveCardAsync(BoardCard card, VacancyStage target)
+  {
+    return RunExclusiveAsync(() => PerformMoveAsync(card, target));
+  }
+
+  private Task DismissCardAsync(BoardCard card)
+  {
+    return RunExclusiveAsync(() => PerformDismissAsync(card));
+  }
+
+  private async Task RunExclusiveAsync(Func<Task> action)
+  {
+    if (_busy) return;
+
+    _busy = true;
+    try
+    {
+      await action();
+    }
+    finally
+    {
+      _busy = false;
+    }
+  }
+
+  private async Task PerformMoveAsync(BoardCard card, VacancyStage target)
   {
     try
     {
@@ -140,6 +164,7 @@ else
           {
             { d => d.VacancyId, card.Id },
             { d => d.ExpectedStage, card.Stage },
+            { d => d.PreferredHypothesisId, _hypothesisId },
           });
           break;
         case BoardMoveKind.Close:
@@ -171,7 +196,7 @@ else
     await ReloadSafelyAsync();
   }
 
-  private async Task DismissCardAsync(BoardCard card)
+  private async Task PerformDismissAsync(BoardCard card)
   {
     try
     {
