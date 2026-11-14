@@ -1,0 +1,58 @@
+<MudPaper Class="vacancy-timeline pa-4">
+  <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-2">
+    <MudText Typo="Typo.h6" HtmlTag="h2">История</MudText>
+    <MudButton Class="timeline-add" Variant="Variant.Outlined" Size="Size.Small" OnClick="OnAdd">Добавить событие</MudButton>
+  </MudStack>
+  <MudStack Spacing="2">
+    @foreach (var item in Items)
+    {
+      <div class="timeline-item">
+        <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Start">
+          <div style="min-width: 0;">
+            <MudText Typo="Typo.subtitle2">@Title(item)</MudText>
+            <MudText Typo="Typo.caption" Class="mud-text-secondary">@VacancyText.Date(item.OccurredAt)</MudText>
+            @if (!string.IsNullOrWhiteSpace(item.Note))
+            {
+              <MudText Typo="Typo.body2" Style="white-space: pre-wrap; overflow-wrap: anywhere;">@item.Note</MudText>
+            }
+          </div>
+          @if (item.Type != ApplicationEventType.StageChanged)
+          {
+            <MudIconButton Class="timeline-delete" Icon="@Icons.Material.Filled.Delete" Size="Size.Small"
+                           aria-label="Удалить событие" OnClick="() => OnDelete.InvokeAsync(item)" />
+          }
+        </MudStack>
+      </div>
+    }
+    <div class="timeline-item timeline-discovered">
+      <MudText Typo="Typo.subtitle2">Найдена</MudText>
+      <MudText Typo="Typo.caption" Class="mud-text-secondary">@VacancyText.Date(DiscoveredAt)</MudText>
+    </div>
+  </MudStack>
+</MudPaper>
+
+@code {
+  [Parameter, EditorRequired]
+  public IReadOnlyList<TimelineItem> Items { get; set; } = null!;
+
+  [Parameter, EditorRequired]
+  public DateTime DiscoveredAt { get; set; }
+
+  [Parameter]
+  public EventCallback OnAdd { get; set; }
+
+  [Parameter]
+  public EventCallback<TimelineItem> OnDelete { get; set; }
+
+  private static string Title(TimelineItem item)
+  {
+    if (item.Type != ApplicationEventType.StageChanged || item.ToStage is not { } to)
+    {
+      return VacancyText.EventType(item.Type);
+    }
+
+    return item.FromStage is { } from
+      ? $"{VacancyText.Stage(from)} → {VacancyText.Stage(to)}"
+      : $"Стадия: {VacancyText.Stage(to)}";
+  }
+}

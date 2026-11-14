@@ -1,11 +1,476 @@
 @page "/vacancies/new"
 @page "/vacancies/{Id:guid}"
+@inject VacancyService VacancyService
+@inject CompanyService CompanyService
+@inject HypothesisService HypothesisService
+@inject CatalogService CatalogService
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
 
-<PageTitle>Вакансия</PageTitle>
+<PageTitle>@Title</PageTitle>
 
-<MudText Typo="Typo.h4" HtmlTag="h1">Вакансия</MudText>
+@if (_notFound)
+{
+  <MudText Typo="Typo.h4" HtmlTag="h1" GutterBottom="true">Вакансия не найдена</MudText>
+  <MudButton Href="/inbox">В Inbox</MudButton>
+}
+else if (_loaded)
+{
+  <MudStack Row="true" AlignItems="AlignItems.Center" Wrap="Wrap.Wrap" Class="mb-4">
+    <MudText Typo="Typo.h4" HtmlTag="h1">@Title</MudText>
+    @if (_details is not null)
+    {
+      <MudChip T="string" Class="vacancy-stage" Size="Size.Small" Color="@VacancyText.StageColor(_details.Stage)">
+        @VacancyText.Stage(_details.Stage)@(_details.DismissReason is { } reason ? $": {VacancyText.Dismiss(reason)}" : "")
+      </MudChip>
+    }
+  </MudStack>
+
+  <MudGrid>
+    <MudItem xs="12" md="7">
+      <MudPaper Class="pa-4">
+        <MudForm>
+          <MudStack Spacing="2">
+            @if (_errors.TryGetValue("", out var general))
+            {
+              <MudAlert Severity="Severity.Error">@general</MudAlert>
+            }
+            @if (_similar.Count > 0)
+            {
+              <MudAlert Class="vacancy-similar" Severity="Severity.Warning">
+                <div>Похожие вакансии (та же компания и роль за последние 30 дней):</div>
+                @foreach (var similar in _similar)
+                {
+                  <div>
+                    <MudLink Href="@($"/vacancies/{similar.Id}")" Style="overflow-wrap: anywhere;">@similar.Url</MudLink>
+                    <MudText Typo="Typo.caption" Inline="true">· @VacancyText.Stage(similar.Stage), @VacancyText.Date(similar.DiscoveredAt)</MudText>
+                  </div>
+                }
+              </MudAlert>
+            }
+
+            <MudTextField T="string" Class="vacancy-url" Label="Ссылка" Required="true" Immediate="true" spellcheck="false"
+                          @bind-Value="_url"
+                          Error="HasError(nameof(VacancyInput.Url))" ErrorText="@ErrorOf(nameof(VacancyInput.Url))" />
+
+            <MudAutocomplete T="CompanyListItem" @key="_companyKey" Class="vacancy-company" Label="Компания"
+                             Value="_company" ValueChanged="OnCompanyChangedAsync"
+                             SearchFunc="SearchCompaniesAsync" ToStringFunc="CompanyText"
+                             Clearable="true" ResetValueOnEmptyText="true" DebounceInterval="200"
+                             Error="HasError(nameof(VacancyInput.CompanyId))" ErrorText="@ErrorOf(nameof(VacancyInput.CompanyId))" />
+
+            <MudSelect T="Guid?" Class="vacancy-role" Label="Роль"
+                       Value="_roleId" ValueChanged="OnRoleChangedAsync" ToStringFunc="RoleName"
+                       HelperText="@EmptyHint(_roles)"
+                       Error="HasError(nameof(VacancyInput.RoleId))" ErrorText="@ErrorOf(nameof(VacancyInput.RoleId))">
+              <MudSelectItem T="Guid?" Value="@((Guid?)null)">— не выбрана —</MudSelectItem>
+              @foreach (var role in _roles)
+              {
+                <MudSelectItem T="Guid?" Value="@((Guid?)role.Id)">@role.Name</MudSelectItem>
+              }
+            </MudSelect>
+            <MudSelect T="Guid?" Class="vacancy-location" Label="Локация" @bind-Value="_locationId" ToStringFunc="LocationName"
+                       HelperText="@EmptyHint(_locations)"
+                       Error="HasError(nameof(VacancyInput.LocationId))" ErrorText="@ErrorOf(nameof(VacancyInput.LocationId))">
+              <MudSelectItem T="Guid?" Value="@((Guid?)null)">— не выбрана —</MudSelectItem>
+              @foreach (var location in _locations)
+              {
+                <MudSelectItem T="Guid?" Value="@((Guid?)location.Id)">@location.Name</MudSelectItem>
+              }
+            </MudSelect>
+            <MudSelect T="Guid?" Class="vacancy-language" Label="Язык" @bind-Value="_languageId" ToStringFunc="LanguageName"
+                       HelperText="@EmptyHint(_languages)"
+                       Error="HasError(nameof(VacancyInput.LanguageId))" ErrorText="@ErrorOf(nameof(VacancyInput.LanguageId))">
+              <MudSelectItem T="Guid?" Value="@((Guid?)null)">— не выбран —</MudSelectItem>
+              @foreach (var language in _languages)
+              {
+                <MudSelectItem T="Guid?" Value="@((Guid?)language.Id)">@language.Name</MudSelectItem>
+              }
+            </MudSelect>
+
+            <div>
+              <MudText Typo="Typo.subtitle2">Формат работы</MudText>
+              <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="2">
+                <MudCheckBox T="bool" Class="vacancy-format-remote" Label="Удалёнка"
+                             Value="HasFormat(WorkFormat.Remote)" ValueChanged="value => SetFormat(WorkFormat.Remote, value)" />
+                <MudCheckBox T="bool" Class="vacancy-format-hybrid" Label="Гибрид"
+                             Value="HasFormat(WorkFormat.Hybrid)" ValueChanged="value => SetFormat(WorkFormat.Hybrid, value)" />
+                <MudCheckBox T="bool" Class="vacancy-format-onsite" Label="Офис"
+                             Value="HasFormat(WorkFormat.OnSite)" ValueChanged="value => SetFormat(WorkFormat.OnSite, value)" />
+                <MudCheckBox T="bool" Class="vacancy-format-relocation" Label="Релокация"
+                             Value="HasFormat(WorkFormat.Relocation)" ValueChanged="value => SetFormat(WorkFormat.Relocation, value)" />
+              </MudStack>
+            </div>
+
+            <div>
+              <MudGrid Spacing="2">
+                <MudItem xs="6" sm="4">
+                  <MudNumericField T="long?" Class="vacancy-salary-min" Label="ЗП от" HideSpinButtons="true"
+                                   @bind-Value="_salaryMin" Error="HasError(SalaryKey)" />
+                </MudItem>
+                <MudItem xs="6" sm="4">
+                  <MudNumericField T="long?" Class="vacancy-salary-max" Label="ЗП до" HideSpinButtons="true"
+                                   @bind-Value="_salaryMax" Error="HasError(SalaryKey)" />
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                  <MudTextField T="string" Class="vacancy-salary-currency" Label="Валюта" @bind-Value="_salaryCurrency"
+                                Error="HasError(SalaryKey)" />
+                </MudItem>
+              </MudGrid>
+              @if (HasError(SalaryKey))
+              {
+                <MudText Typo="Typo.caption" Color="Color.Error">@ErrorOf(SalaryKey)</MudText>
+              }
+            </div>
+
+            <MudSelect T="Guid" Class="vacancy-hypotheses" Label="Подходящие гипотезы" MultiSelection="true"
+                       SelectedValues="_hypothesisIds" SelectedValuesChanged="OnHypothesesChanged"
+                       ToStringFunc="HypothesisName" MultiSelectionTextFunc="JoinNames"
+                       HelperText="@(_hypotheses.Count == 0 ? "Сначала создайте гипотезу" : null)"
+                       Error="HasError(nameof(VacancyInput.HypothesisIds))" ErrorText="@ErrorOf(nameof(VacancyInput.HypothesisIds))">
+              @foreach (var hypothesis in _hypotheses)
+              {
+                <MudSelectItem T="Guid" Value="hypothesis.Id">@hypothesis.Name</MudSelectItem>
+              }
+            </MudSelect>
+
+            <MudTextField T="string" Class="vacancy-description" Label="Описание" Lines="4" Sizing="InputSizing.Auto"
+                          @bind-Value="_description" />
+            <MudTextField T="string" Class="vacancy-notes" Label="Заметки" Lines="3" Sizing="InputSizing.Auto"
+                          @bind-Value="_notes" />
+
+            <MudButton Class="vacancy-save" Variant="Variant.Filled" Color="Color.Primary" Disabled="_saving" OnClick="SaveAsync">Сохранить</MudButton>
+          </MudStack>
+        </MudForm>
+      </MudPaper>
+    </MudItem>
+
+    @if (_details is not null)
+    {
+      <MudItem xs="12" md="5">
+        <VacancyTimeline Items="_details.Timeline" DiscoveredAt="_details.DiscoveredAt"
+                         OnAdd="AddEventAsync" OnDelete="DeleteEventAsync" />
+      </MudItem>
+    }
+  </MudGrid>
+}
 
 @code {
+  private const string SalaryKey = "Salary";
+  private const string DefaultCurrency = "RUB";
+
+  private IReadOnlyDictionary<string, string> _errors = new Dictionary<string, string>();
+  private IReadOnlyList<CatalogListItem> _roles = [];
+  private IReadOnlyList<CatalogListItem> _locations = [];
+  private IReadOnlyList<CatalogListItem> _languages = [];
+  private IReadOnlyList<HypothesisListItem> _hypotheses = [];
+  private IReadOnlyList<SimilarVacancy> _similar = [];
+  private VacancyDetails? _details;
+  private Guid? _currentId;
+  private bool _loaded;
+  private bool _notFound;
+  private bool _saving;
+  private int _companyKey;
+  private string? _companyQuery;
+  private string? _url;
+  private CompanyListItem? _company;
+  private Guid? _roleId;
+  private Guid? _locationId;
+  private Guid? _languageId;
+  private WorkFormat _format = WorkFormat.None;
+  private long? _salaryMin;
+  private long? _salaryMax;
+  private string? _salaryCurrency = DefaultCurrency;
+  private IReadOnlyCollection<Guid> _hypothesisIds = [];
+  private string? _description;
+  private string? _notes;
+
   [Parameter]
   public Guid? Id { get; set; }
+
+  private string Title => _details is not null ? "Вакансия" : Id is null ? "Новая вакансия" : "Вакансия не найдена";
+
+  // The same component instance is reused when the route changes, so load here, not in OnInitialized.
+  // After our own create the page already holds the saved vacancy, so the navigation to its id must not reload.
+  protected override async Task OnParametersSetAsync()
+  {
+    if (_loaded && Id == _currentId) return;
+
+    await LoadAsync();
+  }
+
+  private async Task LoadAsync()
+  {
+    _loaded = false;
+    _errors = new Dictionary<string, string>();
+    _notFound = false;
+    _details = null;
+    _currentId = Id;
+    _roles = await CatalogService.ListAsync(CatalogKind.Role);
+    _locations = await CatalogService.ListAsync(CatalogKind.Location);
+    _languages = await CatalogService.ListAsync(CatalogKind.Language);
+
+    if (Id is not null)
+    {
+      _details = await VacancyService.FindAsync(Id.Value);
+      _notFound = _details is null;
+    }
+
+    var matched = _details?.HypothesisIds ?? [];
+    var hypotheses = await HypothesisService.ListAsync();
+    _hypotheses = hypotheses.Where(h => h.Status != HypothesisStatus.Disabled || matched.Contains(h.Id)).ToList();
+
+    FillFields();
+    _loaded = true;
+  }
+
+  private void FillFields()
+  {
+    _url = _details?.Url;
+    _company = _details?.CompanyId is { } companyId
+      ? new CompanyListItem(companyId, "", _details.CompanyName ?? "", null, [], false)
+      : null;
+    _companyKey++;
+    _roleId = _details?.RoleId;
+    _locationId = _details?.LocationId;
+    _languageId = _details?.LanguageId;
+    _format = _details?.WorkFormat ?? WorkFormat.None;
+    _salaryMin = _details?.SalaryMin;
+    _salaryMax = _details?.SalaryMax;
+    _salaryCurrency = _details?.SalaryCurrency ?? DefaultCurrency;
+    _hypothesisIds = _details?.HypothesisIds.ToList() ?? [];
+    _description = _details?.Description;
+    _notes = _details?.Notes;
+    _similar = _details?.Similar ?? [];
+  }
+
+  private async Task<IEnumerable<CompanyListItem>> SearchCompaniesAsync(string? text, CancellationToken cancellationToken)
+  {
+    _companyQuery = text;
+    var found = (await CompanyService.SearchAsync(text, cancellationToken)).ToList();
+    var name = text?.Trim();
+    if (!string.IsNullOrEmpty(name) && !found.Any(c => string.Equals(c.Name, name, StringComparison.OrdinalIgnoreCase)))
+    {
+      found.Add(CreateEntry(name));
+    }
+
+    return found;
+  }
+
+  // The autocomplete has no "create new" slot when nothing matches, so the offer is a sentinel list entry with an empty id.
+  private static CompanyListItem CreateEntry(string name)
+  {
+    return new CompanyListItem(Guid.Empty, "", $"+ Создать «{name}»", null, [], false);
+  }
+
+  private static string CompanyText(CompanyListItem? company)
+  {
+    return company?.Name ?? "";
+  }
+
+  private async Task OnCompanyChangedAsync(CompanyListItem? company)
+  {
+    if (company is not null && company.Id == Guid.Empty)
+    {
+      var created = await CreateCompanyAsync();
+      if (created is not null)
+      {
+        _company = created;
+      }
+
+      // Recreate the autocomplete so its text shows the actual selection instead of the "create" entry.
+      _companyKey++;
+    }
+    else
+    {
+      _company = company;
+    }
+
+    await RefreshSimilarAsync();
+  }
+
+  private async Task<CompanyListItem?> CreateCompanyAsync()
+  {
+    var parameters = new DialogParameters<CreateCompanyDialog> { { d => d.InitialName, _companyQuery?.Trim() } };
+    var reference = await DialogService.ShowAsync<CreateCompanyDialog>("Новая компания", parameters);
+    var result = await reference.Result;
+    if (result is not { Canceled: false, Data: CompanyDetails details })
+    {
+      return null;
+    }
+
+    return new CompanyListItem(details.Id, details.Slug, details.Name, details.IconUrl, details.Domains, details.IsBlacklisted);
+  }
+
+  private async Task OnRoleChangedAsync(Guid? roleId)
+  {
+    _roleId = roleId;
+    await RefreshSimilarAsync();
+  }
+
+  private async Task RefreshSimilarAsync()
+  {
+    if (_company is null || _roleId is null)
+    {
+      _similar = [];
+      return;
+    }
+
+    _similar = await VacancyService.FindSimilarAsync(_company.Id, _roleId.Value, _details?.Id);
+  }
+
+  private void OnHypothesesChanged(IReadOnlyCollection<Guid>? hypothesisIds)
+  {
+    _hypothesisIds = hypothesisIds?.ToList() ?? [];
+  }
+
+  private string RoleName(Guid? id)
+  {
+    return _roles.FirstOrDefault(r => r.Id == id)?.Name ?? "";
+  }
+
+  private string LocationName(Guid? id)
+  {
+    return _locations.FirstOrDefault(l => l.Id == id)?.Name ?? "";
+  }
+
+  private string LanguageName(Guid? id)
+  {
+    return _languages.FirstOrDefault(l => l.Id == id)?.Name ?? "";
+  }
+
+  private string HypothesisName(Guid id)
+  {
+    return _hypotheses.FirstOrDefault(h => h.Id == id)?.Name ?? "";
+  }
+
+  private static string JoinNames(IReadOnlyList<string?> names)
+  {
+    return string.Join(", ", names);
+  }
+
+  private static string? EmptyHint(IReadOnlyList<CatalogListItem> items)
+  {
+    return items.Count == 0 ? "Добавьте в разделе Справочники" : null;
+  }
+
+  private bool HasFormat(WorkFormat flag)
+  {
+    return _format.HasFlag(flag);
+  }
+
+  private void SetFormat(WorkFormat flag, bool value)
+  {
+    _format = value ? _format | flag : _format & ~flag;
+  }
+
+  private bool HasError(string key)
+  {
+    return _errors.ContainsKey(key);
+  }
+
+  private string? ErrorOf(string key)
+  {
+    return _errors.GetValueOrDefault(key);
+  }
+
+  private async Task SaveAsync()
+  {
+    var hasSalary = _salaryMin is not null || _salaryMax is not null;
+    var input = new VacancyInput(
+      _url ?? "",
+      _company?.Id,
+      _roleId,
+      _locationId,
+      _languageId,
+      _format == WorkFormat.None ? null : _format,
+      _salaryMin,
+      _salaryMax,
+      hasSalary ? _salaryCurrency : null,
+      _hypothesisIds.ToList(),
+      _description,
+      _notes);
+
+    _saving = true;
+    try
+    {
+      var saved = _details is null
+        ? await VacancyService.CreateAsync(input)
+        : await VacancyService.UpdateAsync(_details.Id, input);
+
+      _errors = new Dictionary<string, string>();
+      _details = saved;
+      _currentId = saved.Id;
+      FillFields();
+      Snackbar.Add("Сохранено", Severity.Success);
+      if (Id != saved.Id)
+      {
+        Navigation.NavigateTo($"/vacancies/{saved.Id}");
+      }
+    }
+    catch (ValidationFailedException exception)
+    {
+      _errors = exception.Errors;
+    }
+    catch (KeyNotFoundException)
+    {
+      _notFound = true;
+    }
+    finally
+    {
+      _saving = false;
+    }
+  }
+
+  private async Task AddEventAsync()
+  {
+    var parameters = new DialogParameters<AddVacancyEventDialog>
+    {
+      { d => d.VacancyId, _details!.Id },
+      { d => d.HasApplication, _details.ApplicationHypothesisId is not null },
+    };
+    var reference = await DialogService.ShowAsync<AddVacancyEventDialog>("Новое событие", parameters);
+    var result = await reference.Result;
+    if (result is { Canceled: false })
+    {
+      await ReloadTimelineAsync();
+    }
+  }
+
+  private async Task DeleteEventAsync(TimelineItem item)
+  {
+    var confirmed = await DialogService.ShowMessageBoxAsync(
+      "Удалить событие?",
+      $"Событие «{VacancyText.EventType(item.Type)}» будет удалено.",
+      yesText: "Удалить",
+      cancelText: "Отмена");
+    if (confirmed != true)
+    {
+      return;
+    }
+
+    try
+    {
+      await VacancyService.DeleteEventAsync(_details!.Id, item.Id);
+      await ReloadTimelineAsync();
+    }
+    catch (ValidationFailedException exception)
+    {
+      Snackbar.Add(exception.Message, Severity.Error);
+    }
+  }
+
+  // Only the timeline is refreshed so unsaved edits in the form survive.
+  private async Task ReloadTimelineAsync()
+  {
+    var fresh = await VacancyService.FindAsync(_details!.Id);
+    if (fresh is null)
+    {
+      _notFound = true;
+      return;
+    }
+
+    _details = _details with { Timeline = fresh.Timeline };
+  }
 }

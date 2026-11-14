@@ -1,11 +1,104 @@
+@inject CompanyService CompanyService
+
 <MudDialog>
-  <DialogContent />
+  <DialogContent>
+    <MudStack Spacing="2">
+      @if (_errors.TryGetValue("", out var general))
+      {
+        <MudAlert Severity="Severity.Error">@general</MudAlert>
+      }
+      <MudTextField T="string" Class="company-name" Label="Название" Required="true" Immediate="true"
+                    Value="_name" ValueChanged="OnNameChanged"
+                    Error="HasError(nameof(CompanyInput.Name))" ErrorText="@ErrorOf(nameof(CompanyInput.Name))" />
+      <MudTextField T="string" Class="company-slug" Label="Slug" Required="true" spellcheck="false"
+                    Immediate="true" Value="_slug" ValueChanged="OnSlugChanged"
+                    Error="HasError(nameof(CompanyInput.Slug))" ErrorText="@ErrorOf(nameof(CompanyInput.Slug))" />
+      <MudTextField T="string" Class="company-domain" Label="Домен" HelperText="необязательно" spellcheck="false"
+                    @bind-Value="_domain"
+                    Error="HasError(nameof(CompanyInput.Domains))" ErrorText="@ErrorOf(nameof(CompanyInput.Domains))" />
+    </MudStack>
+  </DialogContent>
+  <DialogActions>
+    <MudButton OnClick="Cancel">Отмена</MudButton>
+    <MudButton Class="company-save" Color="Color.Primary" Variant="Variant.Filled" Disabled="_saving" OnClick="SaveAsync">Создать</MudButton>
+  </DialogActions>
 </MudDialog>
 
 @code {
+  private IReadOnlyDictionary<string, string> _errors = new Dictionary<string, string>();
+  private string? _name;
+  private string? _slug;
+  private string? _domain;
+  private bool _slugEdited;
+  private bool _saving;
+
   [CascadingParameter]
   private IMudDialogInstance MudDialog { get; set; } = null!;
 
   [Parameter]
   public string? InitialName { get; set; }
+
+  protected override void OnInitialized()
+  {
+    _name = InitialName;
+    SuggestSlug();
+  }
+
+  private void SuggestSlug()
+  {
+    if (_slugEdited)
+    {
+      return;
+    }
+
+    _slug = string.IsNullOrWhiteSpace(_name) ? null : Normalize.Slugify(_name);
+  }
+
+  private void OnNameChanged(string? name)
+  {
+    _name = name;
+    SuggestSlug();
+  }
+
+  private void OnSlugChanged(string? slug)
+  {
+    _slug = slug;
+    _slugEdited = true;
+  }
+
+  private bool HasError(string key)
+  {
+    return _errors.ContainsKey(key);
+  }
+
+  private string? ErrorOf(string key)
+  {
+    return _errors.GetValueOrDefault(key);
+  }
+
+  private async Task SaveAsync()
+  {
+    IReadOnlyList<string> domains = string.IsNullOrWhiteSpace(_domain) ? [] : [_domain];
+    var input = new CompanyInput(_slug ?? "", _name ?? "", null, null, domains, []);
+
+    _saving = true;
+    try
+    {
+      var details = await CompanyService.CreateAsync(input);
+      MudDialog.Close(DialogResult.Ok(details));
+    }
+    catch (ValidationFailedException exception)
+    {
+      _errors = exception.Errors;
+    }
+    finally
+    {
+      _saving = false;
+    }
+  }
+
+  private void Cancel()
+  {
+    MudDialog.Cancel();
+  }
 }
