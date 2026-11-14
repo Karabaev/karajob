@@ -28,7 +28,7 @@ public class Hypothesis : IUserOwned
 
   public void SetLocations(IEnumerable<Guid> locationIds)
   {
-    var wanted = locationIds.Select(id => Require.NotEmpty(id, nameof(locationIds))).ToHashSet();
+    var wanted = locationIds.Select(id => Require.NotEmpty(id, nameof(locationIds))).Distinct().ToList();
     locations.RemoveAll(l => !wanted.Contains(l.LocationId));
     foreach (var locationId in wanted.Where(id => locations.All(l => l.LocationId != id)))
     {
