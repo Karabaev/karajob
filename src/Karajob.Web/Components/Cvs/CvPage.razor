@@ -154,6 +154,13 @@ else if (_loaded)
     _details = null;
     _file = null;
     _comment = null;
+    _versionFile = null;
+    _versionComment = null;
+    if (_versionUpload is not null)
+    {
+      await _versionUpload.ClearAsync();
+    }
+
     _languages = await CatalogService.ListAsync(CatalogKind.Language);
 
     if (Id is not null)
@@ -235,14 +242,7 @@ else if (_loaded)
     {
       if (_details is null)
       {
-        var upload = ToUpload(_file, _comment);
-        if (upload is null)
-        {
-          _errors = new Dictionary<string, string> { [CvService.FileErrorKey] = "Выберите файл" };
-          return;
-        }
-
-        var created = await CvService.CreateAsync(BuildInput(), upload);
+        var created = await CvService.CreateAsync(BuildInput(), ToUpload(_file, _comment));
         _errors = new Dictionary<string, string>();
         _details = created;
         Snackbar.Add("Сохранено", Severity.Success);
@@ -260,6 +260,11 @@ else if (_loaded)
     {
       _errors = exception.Errors;
     }
+    catch (IOException)
+    {
+      // The browser stream broke or turned out larger than the reported size.
+      _errors = new Dictionary<string, string> { [CvService.FileErrorKey] = "Не удалось прочитать файл — выберите его заново" };
+    }
     catch (KeyNotFoundException)
     {
       _notFound = true;
@@ -272,17 +277,10 @@ else if (_loaded)
 
   private async Task UploadVersionAsync()
   {
-    var upload = ToUpload(_versionFile, _versionComment);
-    if (upload is null)
-    {
-      _errors = new Dictionary<string, string> { [CvService.FileErrorKey] = "Выберите файл" };
-      return;
-    }
-
     _saving = true;
     try
     {
-      _details = await CvService.AddVersionAsync(_details!.Id, upload);
+      _details = await CvService.AddVersionAsync(_details!.Id, ToUpload(_versionFile, _versionComment));
       _errors = new Dictionary<string, string>();
       _versionFile = null;
       _versionComment = null;
@@ -296,6 +294,11 @@ else if (_loaded)
     catch (ValidationFailedException exception)
     {
       _errors = exception.Errors;
+    }
+    catch (IOException)
+    {
+      // The browser stream broke or turned out larger than the reported size.
+      _errors = new Dictionary<string, string> { [CvService.FileErrorKey] = "Не удалось прочитать файл — выберите его заново" };
     }
     catch (KeyNotFoundException)
     {

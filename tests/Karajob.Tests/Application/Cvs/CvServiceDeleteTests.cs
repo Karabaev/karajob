@@ -140,4 +140,28 @@ public class CvServiceDeleteTests : CvServiceFixture
     Assert.NotNull(await otherService.FindAsync(foreign.Id));
     Assert.Single(Storage.Paths);
   }
+
+  [Fact]
+  public async Task DeleteVersionAsync_FileDeleteFails_StillRemovesVersion()
+  {
+    var created = await Service.CreateAsync(Input(), Upload("v1.pdf"));
+    Clock.UtcNow = Now.AddDays(1);
+    var withTwo = await Service.AddVersionAsync(created.Id, Upload("v2.pdf"));
+    Storage.DeleteFailure = new IOException("File is in use");
+
+    await Service.DeleteVersionAsync(withTwo.Versions.Single(v => v.FileName == "v1.pdf").Id);
+
+    Assert.Equal(1, await CountVersionsAsync());
+  }
+
+  [Fact]
+  public async Task DeleteAsync_FileDeleteFails_StillRemovesDocument()
+  {
+    var created = await Service.CreateAsync(Input(), Upload());
+    Storage.DeleteFailure = new UnauthorizedAccessException();
+
+    await Service.DeleteAsync(created.Id);
+
+    Assert.Equal(0, await CountDocumentsAsync());
+  }
 }

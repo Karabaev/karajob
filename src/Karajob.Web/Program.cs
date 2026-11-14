@@ -35,6 +35,10 @@ builder.Services.AddScoped<CatalogService>();
 
 var cvOptions = builder.Configuration.GetRequiredSection(CvOptions.SectionName).Get<CvOptions>()
   ?? throw new InvalidOperationException($"Configuration section '{CvOptions.SectionName}' is empty.");
+if (cvOptions.MaxFileSizeMb <= 0)
+{
+  throw new InvalidOperationException($"{CvOptions.SectionName}:{nameof(CvOptions.MaxFileSizeMb)} must be positive.");
+}
 builder.Services.AddSingleton(cvOptions);
 var fileStorageOptions = builder.Configuration.GetRequiredSection(FileStorageOptions.SectionName).Get<FileStorageOptions>()
   ?? throw new InvalidOperationException($"Configuration section '{FileStorageOptions.SectionName}' is empty.");

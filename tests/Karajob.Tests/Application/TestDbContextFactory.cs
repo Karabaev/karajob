@@ -6,6 +6,7 @@ using Karajob.Application.Hypotheses;
 using Karajob.Application.Persistence;
 using Karajob.Infrastructure.Users;
 using Karajob.Tests.Infrastructure.Persistence;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Karajob.Tests.Application;
 
@@ -33,7 +34,7 @@ internal class TestDbContextFactory(SqliteTestDatabase database, Guid userId) : 
     TimeProvider timeProvider,
     CvOptions options)
   {
-    return new CvService(new TestDbContextFactory(database, userId), new FixedCurrentUser(userId), fileStorage, timeProvider, options);
+    return new CvService(new TestDbContextFactory(database, userId), new FixedCurrentUser(userId), fileStorage, timeProvider, options, NullLogger<CvService>.Instance);
   }
 
   public Task<IKarajobDbContext> CreateDbContextAsync(CancellationToken cancellationToken = default)

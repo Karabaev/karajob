@@ -28,6 +28,14 @@ public class LocalFileStorageTests : IDisposable
   }
 
   [Fact]
+  public async Task SaveAsync_StreamFailsMidCopy_LeavesNoFile()
+  {
+    await Assert.ThrowsAsync<IOException>(() => storage.SaveAsync("cv/abc/file.pdf", new FailingStream()));
+
+    Assert.False(File.Exists(Path.Combine(root, "cv", "abc", "file.pdf")));
+  }
+
+  [Fact]
   public async Task SaveAsync_ExistingPath_ThrowsIOExceptionAndKeepsOriginal()
   {
     await storage.SaveAsync("file.pdf", new MemoryStream([1, 1, 1]));
@@ -140,4 +148,35 @@ public class LocalFileStorageTests : IDisposable
   {
     storage = new LocalFileStorage(new FileStorageOptions { RootDirectory = root });
   }
+}
+
+internal class FailingStream : Stream
+{
+  private bool served;
+
+  public override bool CanRead => true;
+  public override bool CanSeek => false;
+  public override bool CanWrite => false;
+  public override long Length => throw new NotSupportedException();
+  public override long Position { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+
+  public override int Read(byte[] buffer, int offset, int count)
+  {
+    if (served)
+    {
+      throw new IOException("Upload stream broke");
+    }
+
+    served = true;
+    buffer[offset] = 1;
+    return 1;
+  }
+
+  public override void Flush()
+  {
+  }
+
+  public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+  public override void SetLength(long value) => throw new NotSupportedException();
+  public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
 }

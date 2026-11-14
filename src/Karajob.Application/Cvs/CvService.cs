@@ -4,6 +4,7 @@ using Karajob.Application.Persistence;
 using Karajob.Application.Users;
 using Karajob.Domain.Cvs;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Karajob.Application.Cvs;
 
@@ -12,7 +13,8 @@ public class CvService(
   ICurrentUser currentUser,
   IFileStorage fileStorage,
   TimeProvider timeProvider,
-  CvOptions options)
+  CvOptions options,
+  ILogger<CvService> logger)
 {
   public const string FileErrorKey = "File";
 
@@ -46,7 +48,7 @@ public class CvService(
     return document is null ? null : ToDetails(document);
   }
 
-  public async Task<CvDetails> CreateAsync(CvInput input, CvUpload upload, CancellationToken cancellationToken = default)
+  public async Task<CvDetails> CreateAsync(CvInput input, CvUpload? upload, CancellationToken cancellationToken = default)
   {
     await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
     var errors = await ValidateInputAsync(db, input, cancellationToken);
@@ -57,8 +59,8 @@ public class CvService(
     var document = new CvDocument(currentUser.UserId, input.Name.Trim(), input.LanguageId!.Value, now);
     document.Tags.AddRange(CleanList(input.Tags));
 
-    var storagePath = await StoreAsync(upload, file!, cancellationToken);
-    document.AddVersion(file!.FileName, storagePath, file.ContentType, upload.SizeBytes, BlankToNull(upload.Comment), now);
+    var storagePath = await StoreAsync(upload!, file!, cancellationToken);
+    document.AddVersion(file!.FileName, storagePath, file.ContentType, upload!.SizeBytes, BlankToNull(upload.Comment), now);
     db.CvDocuments.Add(document);
     await SaveOrDiscardFileAsync(db, [storagePath], cancellationToken);
     return ToDetails(document);
@@ -80,7 +82,7 @@ public class CvService(
     return ToDetails(document);
   }
 
-  public async Task<CvDetails> AddVersionAsync(Guid cvDocumentId, CvUpload upload, CancellationToken cancellationToken = default)
+  public async Task<CvDetails> AddVersionAsync(Guid cvDocumentId, CvUpload? upload, CancellationToken cancellationToken = default)
   {
     await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
     var document = await db.CvDocuments.Include(d => d.Versions).FirstOrDefaultAsync(d => d.Id == cvDocumentId, cancellationToken)
@@ -90,8 +92,8 @@ public class CvService(
     ThrowIfAny(errors);
 
     var now = timeProvider.GetUtcNow().UtcDateTime;
-    var storagePath = await StoreAsync(upload, file!, cancellationToken);
-    document.AddVersion(file!.FileName, storagePath, file.ContentType, upload.SizeBytes, BlankToNull(upload.Comment), now);
+    var storagePath = await StoreAsync(upload!, file!, cancellationToken);
+    document.AddVersion(file!.FileName, storagePath, file.ContentType, upload!.SizeBytes, BlankToNull(upload.Comment), now);
     await SaveOrDiscardFileAsync(db, [storagePath], cancellationToken);
     return ToDetails(document);
   }
@@ -115,7 +117,7 @@ public class CvService(
 
     document.RemoveVersion(cvVersionId);
     await db.SaveChangesAsync(cancellationToken);
-    fileStorage.Delete(version.StoragePath);
+    DeleteCommittedFiles([version.StoragePath]);
   }
 
   public async Task DeleteAsync(Guid cvDocumentId, CancellationToken cancellationToken = default)
@@ -138,10 +140,7 @@ public class CvService(
     var paths = document.Versions.Select(v => v.StoragePath).ToList();
     db.CvDocuments.Remove(document);
     await db.SaveChangesAsync(cancellationToken);
-    foreach (var path in paths)
-    {
-      fileStorage.Delete(path);
-    }
+    DeleteCommittedFiles(paths);
   }
 
   public async Task<CvFile?> OpenVersionAsync(Guid cvVersionId, CancellationToken cancellationToken = default)
@@ -176,6 +175,22 @@ public class CvService(
     }
   }
 
+  // The rows are already gone, so a file left behind is only wasted space — not a reason to report the delete as failed.
+  private void DeleteCommittedFiles(IEnumerable<string> paths)
+  {
+    foreach (var path in paths)
+    {
+      try
+      {
+        fileStorage.Delete(path);
+      }
+      catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+      {
+        logger.LogWarning(exception, "Could not delete stored file {Path} of a deleted CV version", path);
+      }
+    }
+  }
+
   private async Task<Dictionary<string, string>> ValidateInputAsync(IKarajobDbContext db, CvInput input, CancellationToken cancellationToken)
   {
     var errors = new Dictionary<string, string>();
@@ -198,8 +213,14 @@ public class CvService(
     return errors;
   }
 
-  private ValidatedFile? ValidateUpload(CvUpload upload, Dictionary<string, string> errors)
+  private ValidatedFile? ValidateUpload(CvUpload? upload, Dictionary<string, string> errors)
   {
+    if (upload is null)
+    {
+      errors[FileErrorKey] = "Выберите файл";
+      return null;
+    }
+
     var fileName = upload.FileName.Split('\\', '/')[^1];
     var extension = Path.GetExtension(fileName).ToLowerInvariant();
     var contentType = extension switch

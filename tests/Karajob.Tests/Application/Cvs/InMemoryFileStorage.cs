@@ -6,6 +6,8 @@ internal class InMemoryFileStorage : IFileStorage
 {
   private readonly Dictionary<string, byte[]> files = [];
 
+  public Exception? DeleteFailure { get; set; }
+
   public IReadOnlyCollection<string> Paths => files.Keys.ToList();
 
   public byte[] ReadAll(string path)
@@ -32,6 +34,11 @@ internal class InMemoryFileStorage : IFileStorage
 
   public void Delete(string path)
   {
+    if (DeleteFailure is not null)
+    {
+      throw DeleteFailure;
+    }
+
     files.Remove(path);
   }
 }

@@ -1,7 +1,9 @@
 using Karajob.Application.Common;
 using Karajob.Application.Cvs;
+using Karajob.Domain.Catalogs;
 using Karajob.Infrastructure.Persistence;
 using Karajob.Tests.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 
 namespace Karajob.Tests.Application.Cvs;
 
@@ -370,5 +372,38 @@ public class CvServiceTests : CvServiceFixture
   public async Task UpdateAsync_Unknown_ThrowsKeyNotFound()
   {
     await Assert.ThrowsAsync<KeyNotFoundException>(() => Service.UpdateAsync(Guid.NewGuid(), Input()));
+  }
+
+  [Fact]
+  public async Task CreateAsync_NoFile_ReportsFileErrorTogetherWithOtherErrors()
+  {
+    var exception = await Assert.ThrowsAsync<ValidationFailedException>(() => Service.CreateAsync(NoLanguageInput(" "), null));
+
+    Assert.Contains(nameof(CvInput.Name), exception.Errors.Keys);
+    Assert.Contains(nameof(CvInput.LanguageId), exception.Errors.Keys);
+    Assert.Contains(CvService.FileErrorKey, exception.Errors.Keys);
+  }
+
+  [Fact]
+  public async Task CreateAsync_SaveChangesFails_DeletesStoredFile()
+  {
+    var language = new Language("de", "Немецкий");
+    await using (var context = Database.CreateContext(SeedData.OwnerId))
+    {
+      context.Languages.Add(language);
+      await context.SaveChangesAsync();
+    }
+
+    var upload = Upload(onOpen: () =>
+    {
+      using var context = Database.CreateContext(SeedData.OwnerId);
+      context.Languages.Remove(context.Languages.Single(l => l.Id == language.Id));
+      context.SaveChanges();
+    });
+
+    await Assert.ThrowsAsync<DbUpdateException>(() => Service.CreateAsync(Input(languageId: language.Id), upload));
+
+    Assert.Empty(Storage.Paths);
+    Assert.Equal(0, await CountDocumentsAsync());
   }
 }

@@ -8,8 +8,20 @@ public class LocalFileStorage(FileStorageOptions options) : IFileStorage
   {
     var fullPath = Resolve(path);
     Directory.CreateDirectory(Path.GetDirectoryName(fullPath)!);
-    await using var file = new FileStream(fullPath, FileMode.CreateNew, FileAccess.Write, FileShare.None);
-    await content.CopyToAsync(file, cancellationToken);
+    var file = new FileStream(fullPath, FileMode.CreateNew, FileAccess.Write, FileShare.None);
+    try
+    {
+      await using (file)
+      {
+        await content.CopyToAsync(file, cancellationToken);
+      }
+    }
+    catch
+    {
+      // A broken upload stream must not leave a truncated file that nothing points to.
+      File.Delete(fullPath);
+      throw;
+    }
   }
 
   public Stream OpenRead(string path)
