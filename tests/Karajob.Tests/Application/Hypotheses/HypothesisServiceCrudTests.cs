@@ -3,6 +3,7 @@ using Karajob.Application.Hypotheses;
 using Karajob.Domain.Hypotheses;
 using Karajob.Infrastructure.Persistence;
 using Karajob.Tests.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 
 namespace Karajob.Tests.Application.Hypotheses;
 
@@ -14,7 +15,7 @@ public class HypothesisServiceCrudTests : HypothesisServiceFixture
     var (cv, _) = await PersistenceFixtures.AddCvAsync(Database, SeedData.OwnerId);
 
     var created = await Service.CreateAsync(Input(
-      locations: ["EU", "US"],
+      locationIds: [SeedData.EuLocationId, SeedData.UsaLocationId],
       industries: ["Games"],
       workFormat: WorkFormat.Remote | WorkFormat.Relocation,
       positioning: "Tools expert",
@@ -23,38 +24,73 @@ public class HypothesisServiceCrudTests : HypothesisServiceFixture
     var found = await Service.FindAsync(created.Id);
     Assert.NotNull(found);
     Assert.Equal("Unity Developer RU", found.Name);
-    Assert.Equal("Unity Developer", found.Role);
-    Assert.Equal(["EU", "US"], found.Locations);
+    Assert.Equal(SeedData.UnityDeveloperRoleId, found.RoleId);
+    Assert.Equal(new[] { SeedData.EuLocationId, SeedData.UsaLocationId }.Order(), found.LocationIds.Order());
     Assert.Equal(["Games"], found.Industries);
     Assert.Equal(WorkFormat.Remote | WorkFormat.Relocation, found.WorkFormat);
-    Assert.Equal("ru", found.Language);
+    Assert.Equal(SeedData.RussianLanguageId, found.LanguageId);
     Assert.Equal("Tools expert", found.Positioning);
     Assert.Equal(cv.Id, found.PrimaryCvDocumentId);
   }
 
   [Fact]
-  public async Task CreateAsync_TextWithWhitespaceAndUpperCaseLanguage_TrimsAndLowerCases()
+  public async Task CreateAsync_NameWithWhitespace_Trims()
   {
-    var created = await Service.CreateAsync(Input(name: "  Name  ", role: "  Role ", language: " RU "));
+    var created = await Service.CreateAsync(Input(name: "  Name  "));
 
     Assert.Equal("Name", created.Name);
-    Assert.Equal("Role", created.Role);
-    Assert.Equal("ru", created.Language);
   }
 
   [Theory]
-  [InlineData("", "r", "ru", nameof(HypothesisInput.Name))]
-  [InlineData("   ", "r", "ru", nameof(HypothesisInput.Name))]
-  [InlineData("n", "", "ru", nameof(HypothesisInput.Role))]
-  [InlineData("n", "  ", "ru", nameof(HypothesisInput.Role))]
-  [InlineData("n", "r", "", nameof(HypothesisInput.Language))]
-  [InlineData("n", "r", " ", nameof(HypothesisInput.Language))]
-  public async Task CreateAsync_BlankRequiredField_ThrowsValidationWithKey(string name, string role, string language, string key)
+  [InlineData("")]
+  [InlineData("   ")]
+  public async Task CreateAsync_BlankName_ThrowsValidationWithKey(string name)
+  {
+    var exception = await Assert.ThrowsAsync<ValidationFailedException>(() => Service.CreateAsync(Input(name: name)));
+
+    Assert.Contains(nameof(HypothesisInput.Name), exception.Errors.Keys);
+    Assert.Empty(await Service.ListAsync());
+  }
+
+  [Fact]
+  public async Task CreateAsync_NullRoleId_ThrowsValidationWithKey()
+  {
+    var exception = await Assert.ThrowsAsync<ValidationFailedException>(() => Service.CreateAsync(Input() with { RoleId = null }));
+
+    Assert.Contains(nameof(HypothesisInput.RoleId), exception.Errors.Keys);
+  }
+
+  [Fact]
+  public async Task CreateAsync_UnknownRoleId_ThrowsValidationWithKey()
+  {
+    var exception = await Assert.ThrowsAsync<ValidationFailedException>(() => Service.CreateAsync(Input(roleId: Guid.NewGuid())));
+
+    Assert.Contains(nameof(HypothesisInput.RoleId), exception.Errors.Keys);
+  }
+
+  [Fact]
+  public async Task CreateAsync_NullLanguageId_ThrowsValidationWithKey()
+  {
+    var exception = await Assert.ThrowsAsync<ValidationFailedException>(() => Service.CreateAsync(Input() with { LanguageId = null }));
+
+    Assert.Contains(nameof(HypothesisInput.LanguageId), exception.Errors.Keys);
+  }
+
+  [Fact]
+  public async Task CreateAsync_UnknownLanguageId_ThrowsValidationWithKey()
+  {
+    var exception = await Assert.ThrowsAsync<ValidationFailedException>(() => Service.CreateAsync(Input(languageId: Guid.NewGuid())));
+
+    Assert.Contains(nameof(HypothesisInput.LanguageId), exception.Errors.Keys);
+  }
+
+  [Fact]
+  public async Task CreateAsync_UnknownLocationId_ThrowsValidationWithKey()
   {
     var exception = await Assert.ThrowsAsync<ValidationFailedException>(
-      () => Service.CreateAsync(Input(name: name, role: role, language: language)));
+      () => Service.CreateAsync(Input(locationIds: [SeedData.EuLocationId, Guid.NewGuid()])));
 
-    Assert.Contains(key, exception.Errors.Keys);
+    Assert.Contains(nameof(HypothesisInput.LocationIds), exception.Errors.Keys);
     Assert.Empty(await Service.ListAsync());
   }
 
@@ -70,19 +106,24 @@ public class HypothesisServiceCrudTests : HypothesisServiceFixture
   public async Task CreateAsync_SeveralInvalidFields_CollectsAllErrors()
   {
     var exception = await Assert.ThrowsAsync<ValidationFailedException>(
-      () => Service.CreateAsync(Input(name: "", role: "", language: "", workFormat: WorkFormat.None)));
+      () => Service.CreateAsync(Input(name: "", workFormat: WorkFormat.None) with { RoleId = null, LanguageId = null }));
 
     Assert.Equal(4, exception.Errors.Count);
   }
 
   [Fact]
-  public async Task CreateAsync_LocationsAndIndustries_TrimsDropsBlanksAndDedupesCaseInsensitively()
+  public async Task CreateAsync_DuplicateLocationIds_StoresEachOnce()
   {
-    var created = await Service.CreateAsync(Input(
-      locations: [" EU ", "", "  ", "eu", "US", "Eu"],
-      industries: ["Games", "games ", " ", "Tools"]));
+    var created = await Service.CreateAsync(Input(locationIds: [SeedData.EuLocationId, SeedData.EuLocationId, SeedData.UsaLocationId]));
 
-    Assert.Equal(["EU", "US"], created.Locations);
+    Assert.Equal(new[] { SeedData.EuLocationId, SeedData.UsaLocationId }.Order(), created.LocationIds.Order());
+  }
+
+  [Fact]
+  public async Task CreateAsync_Industries_TrimsDropsBlanksAndDedupesCaseInsensitively()
+  {
+    var created = await Service.CreateAsync(Input(industries: ["Games", "games ", " ", "Tools"]));
+
     Assert.Equal(["Games", "Tools"], created.Industries);
   }
 
@@ -144,22 +185,45 @@ public class HypothesisServiceCrudTests : HypothesisServiceFixture
 
     await Service.UpdateAsync(created.Id, Input(
       name: "Unreal EN",
-      role: "Unreal Developer",
-      locations: ["UK"],
+      roleId: SeedData.UnrealDeveloperRoleId,
+      locationIds: [SeedData.SerbiaLocationId],
       industries: ["Film"],
       workFormat: WorkFormat.Hybrid,
-      language: "EN",
+      languageId: SeedData.EnglishLanguageId,
       positioning: "Graphics"));
 
     var found = await Service.FindAsync(created.Id);
     Assert.NotNull(found);
     Assert.Equal("Unreal EN", found.Name);
-    Assert.Equal("Unreal Developer", found.Role);
-    Assert.Equal(["UK"], found.Locations);
+    Assert.Equal(SeedData.UnrealDeveloperRoleId, found.RoleId);
+    Assert.Equal([SeedData.SerbiaLocationId], found.LocationIds);
     Assert.Equal(["Film"], found.Industries);
     Assert.Equal(WorkFormat.Hybrid, found.WorkFormat);
-    Assert.Equal("en", found.Language);
+    Assert.Equal(SeedData.EnglishLanguageId, found.LanguageId);
     Assert.Equal("Graphics", found.Positioning);
+  }
+
+  [Fact]
+  public async Task UpdateAsync_ReplacingLocations_RemovesOldOnes()
+  {
+    var created = await Service.CreateAsync(Input(locationIds: [SeedData.EuLocationId, SeedData.UsaLocationId]));
+
+    await Service.UpdateAsync(created.Id, Input(locationIds: [SeedData.UsaLocationId, SeedData.SerbiaLocationId]));
+
+    var found = await Service.FindAsync(created.Id);
+    Assert.Equal(new[] { SeedData.UsaLocationId, SeedData.SerbiaLocationId }.Order(), found!.LocationIds.Order());
+    await using var context = Database.CreateContext(SeedData.OwnerId);
+    Assert.Equal(2, await context.HypothesisLocations.CountAsync(l => l.HypothesisId == created.Id));
+  }
+
+  [Fact]
+  public async Task UpdateAsync_EmptyLocations_ClearsThem()
+  {
+    var created = await Service.CreateAsync(Input(locationIds: [SeedData.EuLocationId]));
+
+    await Service.UpdateAsync(created.Id, Input(locationIds: []));
+
+    Assert.Empty((await Service.FindAsync(created.Id))!.LocationIds);
   }
 
   [Fact]
@@ -192,10 +256,11 @@ public class HypothesisServiceCrudTests : HypothesisServiceFixture
   {
     var created = await Service.CreateAsync(Input());
 
-    var exception = await Assert.ThrowsAsync<ValidationFailedException>(() => Service.UpdateAsync(created.Id, Input(role: " ")));
+    var exception = await Assert.ThrowsAsync<ValidationFailedException>(
+      () => Service.UpdateAsync(created.Id, Input() with { RoleId = null }));
 
-    Assert.Contains(nameof(HypothesisInput.Role), exception.Errors.Keys);
-    Assert.Equal("Unity Developer", (await Service.FindAsync(created.Id))!.Role);
+    Assert.Contains(nameof(HypothesisInput.RoleId), exception.Errors.Keys);
+    Assert.Equal(SeedData.UnityDeveloperRoleId, (await Service.FindAsync(created.Id))!.RoleId);
   }
 
   [Fact]

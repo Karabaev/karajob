@@ -1,3 +1,4 @@
+using Karajob.Application.Catalogs;
 using Karajob.Application.Companies;
 using Karajob.Application.Hypotheses;
 using Karajob.Application.Persistence;
@@ -11,6 +12,11 @@ internal class TestDbContextFactory(SqliteTestDatabase database, Guid userId) : 
   public static CompanyService CreateCompanyService(SqliteTestDatabase database, Guid userId)
   {
     return new CompanyService(new TestDbContextFactory(database, userId), new FixedCurrentUser(userId));
+  }
+
+  public static CatalogService CreateCatalogService(SqliteTestDatabase database, Guid userId)
+  {
+    return new CatalogService(new TestDbContextFactory(database, userId));
   }
 
   public static HypothesisService CreateHypothesisService(SqliteTestDatabase database, Guid userId, TimeProvider timeProvider)

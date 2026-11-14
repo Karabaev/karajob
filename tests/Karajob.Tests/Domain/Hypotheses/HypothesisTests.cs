@@ -6,20 +6,23 @@ public class HypothesisTests
 {
   private static readonly DateTime Now = new(2026, 11, 12, 10, 0, 0, DateTimeKind.Utc);
 
-  private static Hypothesis Create() => new(Guid.NewGuid(), "Gamedev EU", "Unity Developer", "en", Now);
+  private static readonly Guid RoleId = Guid.NewGuid();
+  private static readonly Guid LanguageId = Guid.NewGuid();
+
+  private static Hypothesis Create() => new(Guid.NewGuid(), "Gamedev EU", RoleId, LanguageId, Now);
 
   [Fact]
   public void Ctor_Valid_SetsFieldsAndDefaults()
   {
     var userId = Guid.NewGuid();
 
-    var hypothesis = new Hypothesis(userId, "Gamedev EU", "Unity Developer", "en", Now);
+    var hypothesis = new Hypothesis(userId, "Gamedev EU", RoleId, LanguageId, Now);
 
     Assert.NotEqual(Guid.Empty, hypothesis.Id);
     Assert.Equal(userId, hypothesis.UserId);
     Assert.Equal("Gamedev EU", hypothesis.Name);
-    Assert.Equal("Unity Developer", hypothesis.Role);
-    Assert.Equal("en", hypothesis.Language);
+    Assert.Equal(RoleId, hypothesis.RoleId);
+    Assert.Equal(LanguageId, hypothesis.LanguageId);
     Assert.Equal(Now, hypothesis.CreatedAt);
     Assert.Equal(HypothesisStatus.Draft, hypothesis.Status);
     Assert.Empty(hypothesis.Locations);
@@ -31,19 +34,118 @@ public class HypothesisTests
   [Fact]
   public void Ctor_EmptyUserId_Throws()
   {
-    Assert.ThrowsAny<ArgumentException>(() => new Hypothesis(Guid.Empty, "n", "r", "en", Now));
+    Assert.ThrowsAny<ArgumentException>(() => new Hypothesis(Guid.Empty, "n", RoleId, LanguageId, Now));
   }
 
-  [Theory]
-  [InlineData("", "r", "en")]
-  [InlineData("   ", "r", "en")]
-  [InlineData("n", "", "en")]
-  [InlineData("n", "   ", "en")]
-  [InlineData("n", "r", "")]
-  [InlineData("n", "r", "   ")]
-  public void Ctor_BlankTextField_Throws(string name, string role, string language)
+  [Fact]
+  public void Ctor_BlankName_Throws()
   {
-    Assert.ThrowsAny<ArgumentException>(() => new Hypothesis(Guid.NewGuid(), name, role, language, Now));
+    Assert.ThrowsAny<ArgumentException>(() => new Hypothesis(Guid.NewGuid(), "  ", RoleId, LanguageId, Now));
+  }
+
+  [Fact]
+  public void Ctor_EmptyRoleId_Throws()
+  {
+    Assert.ThrowsAny<ArgumentException>(() => new Hypothesis(Guid.NewGuid(), "n", Guid.Empty, LanguageId, Now));
+  }
+
+  [Fact]
+  public void Ctor_EmptyLanguageId_Throws()
+  {
+    Assert.ThrowsAny<ArgumentException>(() => new Hypothesis(Guid.NewGuid(), "n", RoleId, Guid.Empty, Now));
+  }
+
+  [Fact]
+  public void RoleId_SetEmpty_Throws()
+  {
+    var hypothesis = Create();
+
+    Assert.ThrowsAny<ArgumentException>(() => hypothesis.RoleId = Guid.Empty);
+  }
+
+  [Fact]
+  public void LanguageId_SetEmpty_Throws()
+  {
+    var hypothesis = Create();
+
+    Assert.ThrowsAny<ArgumentException>(() => hypothesis.LanguageId = Guid.Empty);
+  }
+
+  [Fact]
+  public void SetLocations_NewIds_AddsOneEntryPerIdOwnedByHypothesis()
+  {
+    var hypothesis = Create();
+    var first = Guid.NewGuid();
+    var second = Guid.NewGuid();
+
+    hypothesis.SetLocations([first, second]);
+
+    Assert.Equal([first, second], hypothesis.Locations.Select(l => l.LocationId).Order());
+    Assert.All(hypothesis.Locations, l =>
+    {
+      Assert.NotEqual(Guid.Empty, l.Id);
+      Assert.Equal(hypothesis.UserId, l.UserId);
+      Assert.Equal(hypothesis.Id, l.HypothesisId);
+    });
+  }
+
+  [Fact]
+  public void SetLocations_DuplicateIds_KeepsEachOnce()
+  {
+    var hypothesis = Create();
+    var id = Guid.NewGuid();
+
+    hypothesis.SetLocations([id, id, id]);
+
+    Assert.Equal(id, Assert.Single(hypothesis.Locations).LocationId);
+  }
+
+  [Fact]
+  public void SetLocations_IdsMissingFromNewSet_AreRemoved()
+  {
+    var hypothesis = Create();
+    var kept = Guid.NewGuid();
+    var removed = Guid.NewGuid();
+    hypothesis.SetLocations([kept, removed]);
+
+    hypothesis.SetLocations([kept]);
+
+    Assert.Equal(kept, Assert.Single(hypothesis.Locations).LocationId);
+  }
+
+  [Fact]
+  public void SetLocations_IdsThatStay_KeepSameEntryInstance()
+  {
+    var hypothesis = Create();
+    var kept = Guid.NewGuid();
+    hypothesis.SetLocations([kept]);
+    var original = Assert.Single(hypothesis.Locations);
+
+    hypothesis.SetLocations([kept, Guid.NewGuid()]);
+
+    var stayed = Assert.Single(hypothesis.Locations, l => l.LocationId == kept);
+    Assert.Same(original, stayed);
+    Assert.Equal(original.Id, stayed.Id);
+    Assert.Equal(2, hypothesis.Locations.Count);
+  }
+
+  [Fact]
+  public void SetLocations_Empty_ClearsLocations()
+  {
+    var hypothesis = Create();
+    hypothesis.SetLocations([Guid.NewGuid(), Guid.NewGuid()]);
+
+    hypothesis.SetLocations([]);
+
+    Assert.Empty(hypothesis.Locations);
+  }
+
+  [Fact]
+  public void SetLocations_EmptyGuid_Throws()
+  {
+    var hypothesis = Create();
+
+    Assert.ThrowsAny<ArgumentException>(() => hypothesis.SetLocations([Guid.NewGuid(), Guid.Empty]));
   }
 
   [Theory]
@@ -52,7 +154,7 @@ public class HypothesisTests
   public void Ctor_NonUtcCreatedAt_Throws(DateTimeKind kind)
   {
     Assert.ThrowsAny<ArgumentException>(() =>
-      new Hypothesis(Guid.NewGuid(), "n", "r", "en", new DateTime(2026, 11, 12, 10, 0, 0, kind)));
+      new Hypothesis(Guid.NewGuid(), "n", RoleId, LanguageId, new DateTime(2026, 11, 12, 10, 0, 0, kind)));
   }
 
   [Theory]

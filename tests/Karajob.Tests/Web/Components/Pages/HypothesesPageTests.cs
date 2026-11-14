@@ -1,4 +1,5 @@
 using Bunit;
+using Karajob.Infrastructure.Persistence;
 using Karajob.Tests.Web.Components.Hypotheses;
 using HypothesesPage = Karajob.Web.Components.Pages.Hypotheses;
 
@@ -41,5 +42,20 @@ public class HypothesesPageTests : HypothesisWebFixture
     cut.WaitForAssertion(() => Assert.Contains(
       cut.FindAll("a"),
       a => a.GetAttribute("href")!.TrimEnd('/').EndsWith("/hypotheses/new", StringComparison.Ordinal)));
+  }
+
+  [Fact]
+  public async Task Render_ShowsRoleNameAndUpperCaseLanguageCodeInRow()
+  {
+    await Service.CreateAsync(Input("Unreal EN", SeedData.UnrealDeveloperRoleId) with { LanguageId = SeedData.EnglishLanguageId });
+
+    var cut = Context.Render<HypothesesPage>();
+
+    cut.WaitForAssertion(() =>
+    {
+      var cells = cut.FindAll("tbody tr td").Select(td => td.TextContent.Trim()).ToList();
+      Assert.Contains("Unreal Developer", cells);
+      Assert.Contains("EN", cells);
+    });
   }
 }

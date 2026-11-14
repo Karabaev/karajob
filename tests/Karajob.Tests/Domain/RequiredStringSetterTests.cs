@@ -15,10 +15,7 @@ public class RequiredStringSetterTests
     { "Company.Name", value => new Company("ubisoft", "Ubisoft").Name = value },
     { "Project.Name", value => new Project(Guid.NewGuid(), "Game", ProjectStatus.Released).Name = value },
     { "CvDocument.Name", value => NewCv().Name = value },
-    { "CvDocument.Language", value => NewCv().Language = value },
     { "Hypothesis.Name", value => NewHypothesis().Name = value },
-    { "Hypothesis.Role", value => NewHypothesis().Role = value },
-    { "Hypothesis.Language", value => NewHypothesis().Language = value },
   };
 
   [Theory]
@@ -35,18 +32,18 @@ public class RequiredStringSetterTests
   {
     var hypothesis = NewHypothesis();
 
-    hypothesis.Role = "  Unity Developer ";
+    hypothesis.Name = "  Unity Developer ";
 
-    Assert.Equal("Unity Developer", hypothesis.Role);
+    Assert.Equal("Unity Developer", hypothesis.Name);
   }
 
   private static CvDocument NewCv()
   {
-    return new CvDocument(Guid.NewGuid(), "Unity CV", "en", Now);
+    return new CvDocument(Guid.NewGuid(), "Unity CV", Guid.NewGuid(), Now);
   }
 
   private static Hypothesis NewHypothesis()
   {
-    return new Hypothesis(Guid.NewGuid(), "Unity RU", "Unity Developer", "ru", Now);
+    return new Hypothesis(Guid.NewGuid(), "Unity RU", Guid.NewGuid(), Guid.NewGuid(), Now);
   }
 }

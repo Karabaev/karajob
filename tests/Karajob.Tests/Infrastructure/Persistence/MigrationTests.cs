@@ -48,4 +48,53 @@ public class MigrationTests
     Assert.Equal(SeedData.OwnerCreatedAt, owner.CreatedAt);
     Assert.Equal(DateTimeKind.Utc, owner.CreatedAt.Kind);
   }
+
+  [Fact]
+  public async Task Migrate_EmptyDatabase_SeedsRoles()
+  {
+    await using var database = await SqliteTestDatabase.CreateAsync();
+    await using var context = database.CreateContext(SeedData.OwnerId);
+
+    var roles = await context.Roles.OrderBy(r => r.Name).ToListAsync();
+
+    Assert.Equal(
+      [
+        (SeedData.UnityDeveloperRoleId, "Unity Developer", "unity developer"),
+        (SeedData.UnrealDeveloperRoleId, "Unreal Developer", "unreal developer"),
+      ],
+      roles.Select(r => (r.Id, r.Name, r.NormalizedName)));
+  }
+
+  [Fact]
+  public async Task Migrate_EmptyDatabase_SeedsLocations()
+  {
+    await using var database = await SqliteTestDatabase.CreateAsync();
+    await using var context = database.CreateContext(SeedData.OwnerId);
+
+    var locations = await context.Locations.OrderBy(l => l.Name).ToListAsync();
+
+    Assert.Equal(
+      [
+        (SeedData.EuLocationId, "EU", "eu"),
+        (SeedData.SerbiaLocationId, "Serbia", "serbia"),
+        (SeedData.UsaLocationId, "USA", "usa"),
+      ],
+      locations.Select(l => (l.Id, l.Name, l.NormalizedName)));
+  }
+
+  [Fact]
+  public async Task Migrate_EmptyDatabase_SeedsLanguages()
+  {
+    await using var database = await SqliteTestDatabase.CreateAsync();
+    await using var context = database.CreateContext(SeedData.OwnerId);
+
+    var languages = await context.Languages.OrderBy(l => l.Code).ToListAsync();
+
+    Assert.Equal(
+      [
+        (SeedData.EnglishLanguageId, "en", "English", "english"),
+        (SeedData.RussianLanguageId, "ru", "Русский", "русский"),
+      ],
+      languages.Select(l => (l.Id, l.Code, l.Name, l.NormalizedName)));
+  }
 }

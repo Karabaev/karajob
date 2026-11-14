@@ -38,14 +38,14 @@ public class HypothesisServiceListTests : HypothesisServiceFixture
   [Fact]
   public async Task ListAsync_MapsListItemFields()
   {
-    var created = await Service.CreateAsync(Input(workFormat: WorkFormat.Hybrid, language: "en", status: HypothesisStatus.Paused));
+    var created = await Service.CreateAsync(Input(workFormat: WorkFormat.Hybrid, languageId: SeedData.EnglishLanguageId, status: HypothesisStatus.Paused));
 
     var item = Assert.Single(await Service.ListAsync());
 
     Assert.Equal(created.Id, item.Id);
     Assert.Equal("Unity Developer", item.Role);
     Assert.Equal(WorkFormat.Hybrid, item.WorkFormat);
-    Assert.Equal("en", item.Language);
+    Assert.Equal("en", item.LanguageCode);
     Assert.Equal(HypothesisStatus.Paused, item.Status);
   }
 
@@ -56,15 +56,15 @@ public class HypothesisServiceListTests : HypothesisServiceFixture
     await PersistenceFixtures.AddCvAsync(Database, other.Id);
     await using (var context = Database.CreateContext(SeedData.OwnerId))
     {
-      context.CvDocuments.Add(new CvDocument(SeedData.OwnerId, "b CV", "en", Now));
-      context.CvDocuments.Add(new CvDocument(SeedData.OwnerId, "A CV", "ru", Now));
+      context.CvDocuments.Add(new CvDocument(SeedData.OwnerId, "b CV", SeedData.EnglishLanguageId, Now));
+      context.CvDocuments.Add(new CvDocument(SeedData.OwnerId, "A CV", SeedData.RussianLanguageId, Now));
       await context.SaveChangesAsync();
     }
 
     var options = await Service.ListCvOptionsAsync();
 
     Assert.Equal(["A CV", "b CV"], options.Select(o => o.Name));
-    Assert.Equal(["ru", "en"], options.Select(o => o.Language));
+    Assert.Equal(["ru", "en"], options.Select(o => o.LanguageCode));
   }
 
   [Fact]

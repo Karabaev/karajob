@@ -135,7 +135,7 @@ public class DatabaseInitializerTests : IAsyncLifetime
     var firstFactory = first.GetRequiredService<IDbContextFactory<KarajobDbContext>>();
     await using (var context = await firstFactory.CreateDbContextAsync())
     {
-      context.Hypotheses.Add(new Hypothesis(SeedData.OwnerId, "Extra", "Role", "en", Now.UtcDateTime));
+      context.Hypotheses.Add(new Hypothesis(SeedData.OwnerId, "Extra", SeedData.UnityDeveloperRoleId, SeedData.EnglishLanguageId, Now.UtcDateTime));
       await context.SaveChangesAsync();
     }
 
