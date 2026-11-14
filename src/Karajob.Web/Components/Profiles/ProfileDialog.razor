@@ -1,7 +1,101 @@
+@inject UserService Users
+
+<MudDialog>
+  <DialogContent>
+    <MudStack Spacing="3">
+      <MudTextField T="string" Class="profile-name" Label="Имя" AutoFocus="true" Immediate="true"
+                    @bind-Value="_name" @bind-Value:after="ClearNameError"
+                    Error="_nameError is not null" ErrorText="@_nameError" />
+      <div class="d-flex flex-wrap" style="gap:8px">
+        @foreach (var color in _colors)
+        {
+          var selected = color == _color;
+          <button type="button" class="profile-color" aria-label="@color" aria-pressed="@(selected ? "true" : "false")"
+                  style="@SwatchStyle(color, selected)" @onclick="() => SelectColor(color)"></button>
+        }
+      </div>
+      @if (_colorError is not null)
+      {
+        <MudText Typo="Typo.caption" Color="Color.Error">@_colorError</MudText>
+      }
+    </MudStack>
+  </DialogContent>
+  <DialogActions>
+    <MudButton OnClick="Cancel">Отмена</MudButton>
+    <MudButton Class="profile-save" Variant="Variant.Filled" Color="Color.Primary" Disabled="_saving" OnClick="SaveAsync">
+      Сохранить
+    </MudButton>
+  </DialogActions>
+</MudDialog>
+
 @code {
+  private string _name = string.Empty;
+  private string _color = ProfilePalette.Colors[0];
+  private IReadOnlyList<string> _colors = ProfilePalette.Colors;
+  private string? _nameError;
+  private string? _colorError;
+  private bool _saving;
+
   [CascadingParameter]
   private IMudDialogInstance MudDialog { get; set; } = null!;
 
   [Parameter]
   public UserDto? Profile { get; set; }
+
+  protected override void OnInitialized()
+  {
+    if (Profile is null) return;
+
+    _name = Profile.Name;
+    _color = Profile.Color;
+    if (!ProfilePalette.Colors.Contains(Profile.Color))
+    {
+      _colors = [Profile.Color, .. ProfilePalette.Colors];
+    }
+  }
+
+  private static string SwatchStyle(string color, bool selected)
+  {
+    var outline = selected ? "3px solid #fff" : "3px solid transparent";
+    return $"background-color:{color}; width:36px; height:36px; border-radius:50%; border:0; cursor:pointer; outline:{outline}; outline-offset:2px";
+  }
+
+  private void ClearNameError()
+  {
+    _nameError = null;
+  }
+
+  private void SelectColor(string color)
+  {
+    _color = color;
+  }
+
+  private async Task SaveAsync()
+  {
+    if (_saving) return;
+
+    _saving = true;
+    try
+    {
+      var input = new UserInput(_name, _color);
+      var dto = Profile is null
+        ? await Users.CreateAsync(input)
+        : await Users.UpdateAsync(Profile.Id, input);
+      MudDialog.Close(DialogResult.Ok(dto));
+    }
+    catch (ValidationFailedException ex)
+    {
+      _nameError = ex.Errors.GetValueOrDefault(nameof(UserInput.Name));
+      _colorError = ex.Errors.GetValueOrDefault(nameof(UserInput.Color));
+    }
+    finally
+    {
+      _saving = false;
+    }
+  }
+
+  private void Cancel()
+  {
+    MudDialog.Cancel();
+  }
 }

@@ -1,2 +1,51 @@
+@inject UserService Users
+@inject ICurrentUser CurrentUser
+@inject NavigationManager Navigation
+
+@if (_current is not null)
+{
+  <MudMenu @bind-Open="_open" Dense="true" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+    <ActivatorContent>
+      <MudIconButton Color="Color.Inherit" OnClick="ToggleMenu" aria-label="@($"Профиль: {_current.Name}")">
+        <ProfileAvatar Profile="_current" Size="Size.Small" />
+      </MudIconButton>
+    </ActivatorContent>
+    <ChildContent>
+      @foreach (var profile in _others)
+      {
+        <ProfileSelectForm ProfileId="profile.Id" ReturnUrl="@ReturnUrl()">
+          <button type="submit" class="d-flex align-center px-4 py-2"
+                  style="background:none; border:0; cursor:pointer; color:inherit; gap:12px; width:100%">
+            <ProfileAvatar Profile="profile" Size="Size.Small" />
+            <MudText>@profile.Name</MudText>
+          </button>
+        </ProfileSelectForm>
+      }
+      <MudDivider />
+      <MudMenuItem Href="@ProfileEndpoints.ProfilesPath" ForceLoad="true">Все профили</MudMenuItem>
+    </ChildContent>
+  </MudMenu>
+}
+
 @code {
+  private bool _open;
+  private UserDto? _current;
+  private IReadOnlyList<UserDto> _others = [];
+
+  protected override async Task OnInitializedAsync()
+  {
+    var profiles = await Users.ListAsync();
+    _current = profiles.Single(p => p.Id == CurrentUser.UserId);
+    _others = profiles.Where(p => p.Id != _current.Id).ToList();
+  }
+
+  private void ToggleMenu()
+  {
+    _open = !_open;
+  }
+
+  private string ReturnUrl()
+  {
+    return "/" + Navigation.ToBaseRelativePath(Navigation.Uri);
+  }
 }
