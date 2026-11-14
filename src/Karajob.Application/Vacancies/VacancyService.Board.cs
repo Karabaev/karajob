@@ -72,14 +72,15 @@ public partial class VacancyService
   public async Task<ApplyOptions> GetApplyOptionsAsync(Guid vacancyId, CancellationToken cancellationToken = default)
   {
     await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+    if (!await db.Vacancies.AnyAsync(v => v.Id == vacancyId, cancellationToken))
+    {
+      throw new KeyNotFoundException($"Vacancy {vacancyId} was not found.");
+    }
+
     var matchedIds = await db.VacancyMatches.AsNoTracking()
       .Where(m => m.VacancyId == vacancyId)
       .Select(m => m.HypothesisId)
       .ToListAsync(cancellationToken);
-    if (matchedIds.Count == 0 && !await db.Vacancies.AnyAsync(v => v.Id == vacancyId, cancellationToken))
-    {
-      throw new KeyNotFoundException($"Vacancy {vacancyId} was not found.");
-    }
 
     var hypotheses = await db.Hypotheses.AsNoTracking()
       .Where(h => matchedIds.Contains(h.Id))
