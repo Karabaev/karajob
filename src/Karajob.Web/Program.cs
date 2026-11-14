@@ -6,7 +6,6 @@ using Karajob.Application.Users;
 using Karajob.Application.Vacancies;
 using Karajob.Infrastructure.Files;
 using Karajob.Infrastructure.Persistence;
-using Karajob.Infrastructure.Users;
 using Karajob.Web.Components;
 using Karajob.Web.Cvs;
 using Karajob.Web.Persistence;
