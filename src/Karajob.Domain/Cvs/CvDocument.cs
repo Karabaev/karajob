@@ -10,6 +10,7 @@ public class CvDocument : IUserOwned
   public Guid UserId { get; private set; }
   public string Name { get; set => field = Require.NotBlank(value); }
   public Guid LanguageId { get; set => field = Require.NotEmpty(value); }
+  public List<string> Tags { get; private set; } = [];
   public DateTime CreatedAt { get; private set; }
   public IReadOnlyCollection<CvVersion> Versions => versions;
 
@@ -24,6 +25,18 @@ public class CvDocument : IUserOwned
     var version = new CvVersion(UserId, Id, fileName, storagePath, contentType, sizeBytes, comment, createdAt);
     versions.Add(version);
     return version;
+  }
+
+  public void RemoveVersion(Guid versionId)
+  {
+    var version = versions.FirstOrDefault(v => v.Id == versionId)
+      ?? throw new KeyNotFoundException($"CV version {versionId} was not found.");
+    if (versions.Count == 1)
+    {
+      throw new InvalidOperationException("A CV must keep at least one version.");
+    }
+
+    versions.Remove(version);
   }
 
   public CvDocument(Guid userId, string name, Guid languageId, DateTime createdAt)

@@ -105,4 +105,45 @@ public class CvDocumentTests
     Assert.ThrowsAny<ArgumentException>(() =>
       doc.AddVersion("f", "p", "c", 10, null, new DateTime(2026, 11, 12, 10, 0, 0, kind)));
   }
+
+  [Fact]
+  public void Ctor_Valid_HasNoTags()
+  {
+    Assert.Empty(Create().Tags);
+  }
+
+  [Fact]
+  public void RemoveVersion_OneOfTwo_RemovesOnlyThatVersion()
+  {
+    var doc = Create();
+    var first = doc.AddVersion("a.pdf", "p/a", "application/pdf", 10, null, Now);
+    var second = doc.AddVersion("b.pdf", "p/b", "application/pdf", 10, null, Now);
+
+    doc.RemoveVersion(first.Id);
+
+    Assert.Same(second, Assert.Single(doc.Versions));
+  }
+
+  [Fact]
+  public void RemoveVersion_OnlyVersion_ThrowsInvalidOperationAndKeepsIt()
+  {
+    var doc = Create();
+    var only = doc.AddVersion("a.pdf", "p/a", "application/pdf", 10, null, Now);
+
+    Assert.Throws<InvalidOperationException>(() => doc.RemoveVersion(only.Id));
+
+    Assert.Same(only, Assert.Single(doc.Versions));
+  }
+
+  [Fact]
+  public void RemoveVersion_UnknownId_ThrowsKeyNotFound()
+  {
+    var doc = Create();
+    doc.AddVersion("a.pdf", "p/a", "application/pdf", 10, null, Now);
+    doc.AddVersion("b.pdf", "p/b", "application/pdf", 10, null, Now);
+
+    Assert.Throws<KeyNotFoundException>(() => doc.RemoveVersion(Guid.NewGuid()));
+
+    Assert.Equal(2, doc.Versions.Count);
+  }
 }

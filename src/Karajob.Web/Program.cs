@@ -1,10 +1,13 @@
 using Karajob.Application.Catalogs;
 using Karajob.Application.Companies;
+using Karajob.Application.Cvs;
 using Karajob.Application.Hypotheses;
 using Karajob.Application.Users;
+using Karajob.Infrastructure.Files;
 using Karajob.Infrastructure.Persistence;
 using Karajob.Infrastructure.Users;
 using Karajob.Web.Components;
+using Karajob.Web.Cvs;
 using MudBlazor.Services;
 using Microsoft.AspNetCore.DataProtection;
 
@@ -29,6 +32,21 @@ builder.Services.AddSingleton<ICurrentUser>(new FixedCurrentUser(SeedData.OwnerI
 builder.Services.AddScoped<CompanyService>();
 builder.Services.AddScoped<HypothesisService>();
 builder.Services.AddScoped<CatalogService>();
+
+var cvOptions = builder.Configuration.GetRequiredSection(CvOptions.SectionName).Get<CvOptions>()
+  ?? throw new InvalidOperationException($"Configuration section '{CvOptions.SectionName}' is empty.");
+if (cvOptions.MaxFileSizeMb <= 0)
+{
+  throw new InvalidOperationException($"{CvOptions.SectionName}:{nameof(CvOptions.MaxFileSizeMb)} must be positive.");
+}
+builder.Services.AddSingleton(cvOptions);
+var fileStorageOptions = builder.Configuration.GetRequiredSection(FileStorageOptions.SectionName).Get<FileStorageOptions>()
+  ?? throw new InvalidOperationException($"Configuration section '{FileStorageOptions.SectionName}' is empty.");
+builder.Services.AddKarajobFileStorage(new FileStorageOptions
+{
+  RootDirectory = Path.GetFullPath(Path.Combine(builder.Environment.ContentRootPath, fileStorageOptions.RootDirectory))
+});
+builder.Services.AddScoped<CvService>();
 
 var app = builder.Build();
 
@@ -57,5 +75,6 @@ app.UseAntiforgery();
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
   .AddInteractiveServerRenderMode();
+app.MapCvEndpoints();
 
 await app.RunAsync();

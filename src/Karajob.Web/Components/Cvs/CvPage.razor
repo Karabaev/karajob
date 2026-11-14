@@ -1,0 +1,367 @@
+@page "/cvs/new"
+@page "/cvs/{Id:guid}"
+@inject CvService CvService
+@inject CatalogService CatalogService
+@inject CvOptions CvOptions
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<PageTitle>@Title</PageTitle>
+
+@if (_notFound)
+{
+  <MudText Typo="Typo.h4" HtmlTag="h1" GutterBottom="true">CV не найдено</MudText>
+  <MudButton Href="/cvs">К списку CV</MudButton>
+}
+else if (_loaded)
+{
+  <MudText Typo="Typo.h4" HtmlTag="h1" Class="mb-4">@Title</MudText>
+
+  <MudGrid>
+    <MudItem xs="12" md="7">
+      <MudPaper Class="pa-4">
+        <MudStack Spacing="2">
+          @if (_errors.TryGetValue("", out var general))
+          {
+            <MudAlert Severity="Severity.Error">@general</MudAlert>
+          }
+          <MudTextField T="string" Class="cv-name" Label="Название" Immediate="true" @bind-Value="_name"
+                        Error="HasError(nameof(CvInput.Name))" ErrorText="@ErrorOf(nameof(CvInput.Name))" />
+          <MudSelect T="Guid?" Class="cv-language" Label="Язык" @bind-Value="_languageId" ToStringFunc="LanguageName"
+                     HelperText="@(_languages.Count == 0 ? "Добавьте в разделе Справочники" : null)"
+                     Error="HasError(nameof(CvInput.LanguageId))" ErrorText="@ErrorOf(nameof(CvInput.LanguageId))">
+            @foreach (var language in _languages)
+            {
+              <MudSelectItem T="Guid?" Value="@((Guid?)language.Id)">@language.Name</MudSelectItem>
+            }
+          </MudSelect>
+          <MudTextField T="string" Class="cv-tags" Label="Теги" HelperText="по одному на строку"
+                        Lines="3" Sizing="InputSizing.Auto" @bind-Value="_tags"
+                        Error="HasError(nameof(CvInput.Tags))" ErrorText="@ErrorOf(nameof(CvInput.Tags))" />
+
+          @if (_details is null)
+          {
+            <div>
+              <MudFileUpload T="IBrowserFile" Accept=".pdf,.docx" Files="_file" FilesChanged="OnFileChanged">
+                <CustomContent>
+                  <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.AttachFile" OnClick="@context.OpenFilePickerAsync">Выбрать файл</MudButton>
+                </CustomContent>
+              </MudFileUpload>
+              @if (HasError(CvService.FileErrorKey))
+              {
+                <MudText Typo="Typo.caption" Color="Color.Error">@ErrorOf(CvService.FileErrorKey)</MudText>
+              }
+            </div>
+            <MudTextField T="string" Class="cv-comment" Label="Комментарий к версии" @bind-Value="_comment" />
+          }
+
+          <MudStack Row="true" Justify="Justify.SpaceBetween">
+            <MudButton Class="cv-save" Variant="Variant.Filled" Color="Color.Primary" Disabled="_saving" OnClick="SaveAsync">Сохранить</MudButton>
+            @if (_details is not null)
+            {
+              <MudButton Class="cv-delete" Color="Color.Error" OnClick="DeleteAsync">Удалить CV</MudButton>
+            }
+          </MudStack>
+        </MudStack>
+      </MudPaper>
+    </MudItem>
+
+    @if (_details is not null)
+    {
+      <MudItem xs="12" md="7">
+        <MudPaper Class="pa-4">
+          <MudStack Spacing="2">
+            <MudText Typo="Typo.h6" HtmlTag="h2">Версии</MudText>
+
+            <div>
+              <MudFileUpload @ref="_versionUpload" T="IBrowserFile" Accept=".pdf,.docx" Files="_versionFile" FilesChanged="OnVersionFileChanged">
+                <CustomContent>
+                  <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.AttachFile" OnClick="@context.OpenFilePickerAsync">Выбрать файл</MudButton>
+                </CustomContent>
+              </MudFileUpload>
+              @if (HasError(CvService.FileErrorKey))
+              {
+                <MudText Typo="Typo.caption" Color="Color.Error">@ErrorOf(CvService.FileErrorKey)</MudText>
+              }
+            </div>
+            <MudTextField T="string" Class="cv-version-comment" Label="Комментарий к версии" @bind-Value="_versionComment" />
+            <MudButton Class="cv-upload-version" Variant="Variant.Filled" Color="Color.Primary"
+                       Disabled="_saving" OnClick="UploadVersionAsync">Загрузить версию</MudButton>
+
+            <MudTable Items="_details.Versions" Breakpoint="Breakpoint.Sm" Dense="true" Elevation="0">
+              <HeaderContent>
+                <MudTh>Файл</MudTh>
+                <MudTh>Загружен</MudTh>
+                <MudTh>Размер</MudTh>
+                <MudTh>Комментарий</MudTh>
+                <MudTh></MudTh>
+              </HeaderContent>
+              <RowTemplate>
+                <MudTd DataLabel="Файл">@context.FileName</MudTd>
+                <MudTd DataLabel="Загружен">@context.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</MudTd>
+                <MudTd DataLabel="Размер">@FormatSize(context.SizeBytes)</MudTd>
+                <MudTd DataLabel="Комментарий">@context.Comment</MudTd>
+                <MudTd>
+                  <a class="mud-link mud-link-underline-hover" href="/cvs/versions/@context.Id/file" download="@context.FileName">Скачать</a>
+                  <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
+                                 aria-label="Удалить версию" OnClick="() => DeleteVersionAsync(context)" />
+                </MudTd>
+              </RowTemplate>
+            </MudTable>
+          </MudStack>
+        </MudPaper>
+      </MudItem>
+    }
+  </MudGrid>
+}
+
+@code {
+  private IReadOnlyDictionary<string, string> _errors = new Dictionary<string, string>();
+  private IReadOnlyList<CatalogListItem> _languages = [];
+  private CvDetails? _details;
+  private MudFileUpload<IBrowserFile>? _versionUpload;
+  private bool _loaded;
+  private bool _notFound;
+  private bool _saving;
+  private string? _name;
+  private Guid? _languageId;
+  private string? _tags;
+  private string? _comment;
+  private IBrowserFile? _file;
+  private string? _versionComment;
+  private IBrowserFile? _versionFile;
+
+  [Parameter]
+  public Guid? Id { get; set; }
+
+  private string Title => _details?.Name ?? (Id is null ? "Новое CV" : "CV не найдено");
+
+  // The same component instance is reused when the route changes, so load here, not in OnInitialized.
+  // After our own create navigates to the saved id the page already holds that CV.
+  protected override async Task OnParametersSetAsync()
+  {
+    if (_loaded && Id is not null && Id == _details?.Id) return;
+
+    await LoadAsync();
+  }
+
+  private async Task LoadAsync()
+  {
+    _loaded = false;
+    _errors = new Dictionary<string, string>();
+    _notFound = false;
+    _details = null;
+    _file = null;
+    _comment = null;
+    _versionFile = null;
+    _versionComment = null;
+    if (_versionUpload is not null)
+    {
+      await _versionUpload.ClearAsync();
+    }
+
+    _languages = await CatalogService.ListAsync(CatalogKind.Language);
+
+    if (Id is not null)
+    {
+      _details = await CvService.FindAsync(Id.Value);
+      _notFound = _details is null;
+    }
+
+    FillFields();
+    _loaded = true;
+  }
+
+  private void FillFields()
+  {
+    _name = _details?.Name;
+    _languageId = _details?.LanguageId ?? _languages.FirstOrDefault(l => l.Code == "ru")?.Id;
+    _tags = _details is null ? null : string.Join('\n', _details.Tags);
+  }
+
+  private void OnFileChanged(IBrowserFile? file)
+  {
+    _file = file;
+  }
+
+  private void OnVersionFileChanged(IBrowserFile? file)
+  {
+    _versionFile = file;
+  }
+
+  private string LanguageName(Guid? id)
+  {
+    return _languages.FirstOrDefault(l => l.Id == id)?.Name ?? "";
+  }
+
+  private bool HasError(string key)
+  {
+    return _errors.ContainsKey(key);
+  }
+
+  private string? ErrorOf(string key)
+  {
+    return _errors.GetValueOrDefault(key);
+  }
+
+  private static IReadOnlyList<string> SplitLines(string? text)
+  {
+    return (text ?? "")
+      .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+      .ToList();
+  }
+
+  private static string FormatSize(long bytes)
+  {
+    return bytes >= 1024 * 1024
+      ? $"{bytes / (1024.0 * 1024):0.#} МБ"
+      : $"{Math.Max(1, (bytes + 1023) / 1024)} КБ";
+  }
+
+  private CvUpload? ToUpload(IBrowserFile? file, string? comment)
+  {
+    if (file is null)
+    {
+      return null;
+    }
+
+    // OpenReadStream defaults to a 500 KB cap, so pass the configured limit explicitly.
+    return new CvUpload(file.Name, file.Size, () => file.OpenReadStream(CvOptions.MaxFileSizeBytes), comment);
+  }
+
+  private CvInput BuildInput()
+  {
+    return new CvInput(_name ?? "", _languageId, SplitLines(_tags));
+  }
+
+  private async Task SaveAsync()
+  {
+    _saving = true;
+    try
+    {
+      if (_details is null)
+      {
+        var created = await CvService.CreateAsync(BuildInput(), ToUpload(_file, _comment));
+        _errors = new Dictionary<string, string>();
+        _details = created;
+        Snackbar.Add("Сохранено", Severity.Success);
+        Navigation.NavigateTo($"/cvs/{created.Id}");
+      }
+      else
+      {
+        _details = await CvService.UpdateAsync(_details.Id, BuildInput());
+        _errors = new Dictionary<string, string>();
+        FillFields();
+        Snackbar.Add("Сохранено", Severity.Success);
+      }
+    }
+    catch (ValidationFailedException exception)
+    {
+      _errors = exception.Errors;
+    }
+    catch (IOException)
+    {
+      // The browser stream broke or turned out larger than the reported size.
+      _errors = new Dictionary<string, string> { [CvService.FileErrorKey] = "Не удалось прочитать файл — выберите его заново" };
+    }
+    catch (KeyNotFoundException)
+    {
+      _notFound = true;
+    }
+    finally
+    {
+      _saving = false;
+    }
+  }
+
+  private async Task UploadVersionAsync()
+  {
+    _saving = true;
+    try
+    {
+      _details = await CvService.AddVersionAsync(_details!.Id, ToUpload(_versionFile, _versionComment));
+      _errors = new Dictionary<string, string>();
+      _versionFile = null;
+      _versionComment = null;
+      if (_versionUpload is not null)
+      {
+        await _versionUpload.ClearAsync();
+      }
+
+      Snackbar.Add("Версия загружена", Severity.Success);
+    }
+    catch (ValidationFailedException exception)
+    {
+      _errors = exception.Errors;
+    }
+    catch (IOException)
+    {
+      // The browser stream broke or turned out larger than the reported size.
+      _errors = new Dictionary<string, string> { [CvService.FileErrorKey] = "Не удалось прочитать файл — выберите его заново" };
+    }
+    catch (KeyNotFoundException)
+    {
+      _notFound = true;
+    }
+    finally
+    {
+      _saving = false;
+    }
+  }
+
+  private async Task DeleteVersionAsync(CvVersionItem version)
+  {
+    var confirmed = await DialogService.ShowMessageBoxAsync(
+      "Удалить версию?",
+      $"Файл «{version.FileName}» будет удалён.",
+      yesText: "Удалить",
+      cancelText: "Отмена");
+    if (confirmed != true)
+    {
+      return;
+    }
+
+    try
+    {
+      await CvService.DeleteVersionAsync(version.Id);
+      _details = await CvService.FindAsync(_details!.Id);
+      _notFound = _details is null;
+    }
+    catch (ValidationFailedException exception)
+    {
+      Snackbar.Add(exception.Message, Severity.Error);
+    }
+    catch (KeyNotFoundException)
+    {
+      _notFound = true;
+    }
+  }
+
+  private async Task DeleteAsync()
+  {
+    var confirmed = await DialogService.ShowMessageBoxAsync(
+      "Удалить CV?",
+      $"CV «{_details!.Name}» и все его версии будут удалены.",
+      yesText: "Удалить",
+      cancelText: "Отмена");
+    if (confirmed != true)
+    {
+      return;
+    }
+
+    try
+    {
+      await CvService.DeleteAsync(_details.Id);
+      Navigation.NavigateTo("/cvs");
+    }
+    catch (ValidationFailedException exception)
+    {
+      Snackbar.Add(exception.Message, Severity.Error);
+    }
+    catch (KeyNotFoundException)
+    {
+      _notFound = true;
+    }
+  }
+}

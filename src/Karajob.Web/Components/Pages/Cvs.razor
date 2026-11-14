@@ -1,6 +1,51 @@
 @page "/cvs"
+@inject CvService CvService
 
 <PageTitle>CV</PageTitle>
 
-<MudText Typo="Typo.h4" HtmlTag="h1" GutterBottom="true">CV</MudText>
-<MudText Class="mud-text-secondary">Раздел в разработке.</MudText>
+<MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
+  <MudText Typo="Typo.h4" HtmlTag="h1">CV</MudText>
+  <MudButton Href="/cvs/new" Variant="Variant.Filled" Color="Color.Primary">+ CV</MudButton>
+</MudStack>
+
+@if (_items is null)
+{
+  <MudProgressLinear Indeterminate="true" />
+}
+else if (_items.Count == 0)
+{
+  <MudText Class="mud-text-secondary">CV пока нет.</MudText>
+}
+else
+{
+  <MudTable Items="_items" Breakpoint="Breakpoint.Sm" Hover="true" Dense="true">
+    <HeaderContent>
+      <MudTh>Название</MudTh>
+      <MudTh>Язык</MudTh>
+      <MudTh>Теги</MudTh>
+      <MudTh>Версий</MudTh>
+      <MudTh>Обновлено</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+      <MudTd DataLabel="Название"><MudLink Href="@($"/cvs/{context.Id}")">@context.Name</MudLink></MudTd>
+      <MudTd DataLabel="Язык">@context.LanguageCode.ToUpperInvariant()</MudTd>
+      <MudTd DataLabel="Теги">
+        @foreach (var tag in context.Tags)
+        {
+          <MudChip T="string" Size="Size.Small">@tag</MudChip>
+        }
+      </MudTd>
+      <MudTd DataLabel="Версий">@context.VersionCount</MudTd>
+      <MudTd DataLabel="Обновлено">@context.LatestVersionAt.ToLocalTime().ToString("dd.MM.yyyy")</MudTd>
+    </RowTemplate>
+  </MudTable>
+}
+
+@code {
+  private IReadOnlyList<CvListItem>? _items;
+
+  protected override async Task OnInitializedAsync()
+  {
+    _items = await CvService.ListAsync();
+  }
+}
