@@ -39,6 +39,26 @@ public class VacancyService(IKarajobDbContextFactory dbContextFactory, ICurrentU
       .ToList();
   }
 
+  public Task<int> CountAsync(VacancyStage stage, CancellationToken cancellationToken = default)
+  {
+    throw new NotImplementedException();
+  }
+
+  public Task<QuickAddResult> QuickAddAsync(QuickAddInput input, CancellationToken cancellationToken = default)
+  {
+    throw new NotImplementedException();
+  }
+
+  public Task MoveToBoardAsync(Guid vacancyId, IReadOnlyList<Guid> hypothesisIds, CancellationToken cancellationToken = default)
+  {
+    throw new NotImplementedException();
+  }
+
+  public Task DismissAsync(Guid vacancyId, DismissInput input, CancellationToken cancellationToken = default)
+  {
+    throw new NotImplementedException();
+  }
+
   public async Task<VacancyDetails?> FindAsync(Guid vacancyId, CancellationToken cancellationToken = default)
   {
     await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);

@@ -60,3 +60,9 @@ public record TimelineItem(
 public record SimilarVacancy(Guid Id, string Url, VacancyStage Stage, DateTime DiscoveredAt);
 
 public record VacancyEventInput(ApplicationEventType Type, DateTime OccurredAt, string? Note);
+
+public record QuickAddInput(string Url, string? Note);
+
+public record QuickAddResult(Guid VacancyId, bool AlreadyExisted, VacancyStage Stage);
+
+public record DismissInput(DismissReason Reason, string? Comment);

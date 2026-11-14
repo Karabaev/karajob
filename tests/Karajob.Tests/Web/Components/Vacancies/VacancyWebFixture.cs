@@ -11,6 +11,7 @@ using Karajob.Infrastructure.Persistence;
 using Karajob.Infrastructure.Users;
 using Karajob.Tests.Application;
 using Karajob.Tests.Infrastructure.Persistence;
+using Karajob.Web.Vacancies;
 using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -89,6 +90,7 @@ public abstract class VacancyWebFixture : IAsyncLifetime
     Context.Services.AddSingleton(Companies);
     Context.Services.AddSingleton(Hypotheses);
     Context.Services.AddSingleton(Catalogs);
+    Context.Services.AddScoped<InboxNotifier>();
   }
 
   // MudBlazor services are IAsyncDisposable only, and xUnit v2 disposes test classes synchronously.

@@ -1,7 +1,16 @@
 using AngleSharp.Dom;
 using Bunit;
+using Karajob.Application.Persistence;
+using Karajob.Application.Users;
+using Karajob.Application.Vacancies;
+using Karajob.Infrastructure.Persistence;
+using Karajob.Infrastructure.Users;
+using Karajob.Tests.Application;
+using Karajob.Tests.Infrastructure.Persistence;
 using Karajob.Web.Components.Layout;
+using Karajob.Web.Vacancies;
 using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.DependencyInjection;
 using MudBlazor.Services;
 
 namespace Karajob.Tests.Web.Components.Layout;
@@ -12,6 +21,8 @@ public class MainLayoutTests : IAsyncLifetime
   private const string DialogTitle = "Новая вакансия";
 
   private readonly BunitContext _context = new();
+  private SqliteTestDatabase _database = null!;
+  private VacancyService _vacancies = null!;
 
   [Fact]
   public void Render_RendersBody()
@@ -101,6 +112,55 @@ public class MainLayoutTests : IAsyncLifetime
     Assert.NotEqual(wasOpen, IsDrawerOpen(cut));
   }
 
+  [Fact]
+  public void Render_EmptyInbox_HasNoInboxCount()
+  {
+    var cut = RenderLayout();
+
+    Assert.Empty(cut.FindAll(".inbox-count"));
+  }
+
+  [Fact]
+  public async Task Render_InboxHasVacancies_ShowsInboxCount()
+  {
+    await _vacancies.CreateAsync(NewVacancy("https://example.com/jobs/1"));
+    await _vacancies.CreateAsync(NewVacancy("https://example.com/jobs/2"));
+
+    var cut = RenderLayout();
+
+    cut.WaitForAssertion(() => Assert.Equal("2", cut.Find(".inbox-count").TextContent.Trim()));
+  }
+
+  [Fact]
+  public async Task NotifyChanged_AfterVacancyAdded_UpdatesInboxCount()
+  {
+    var cut = RenderLayout();
+    Assert.Empty(cut.FindAll(".inbox-count"));
+    await _vacancies.CreateAsync(NewVacancy("https://example.com/jobs/1"));
+
+    cut.Services.GetRequiredService<InboxNotifier>().NotifyChanged();
+
+    cut.WaitForAssertion(() => Assert.Equal("1", cut.Find(".inbox-count").TextContent.Trim()));
+  }
+
+  [Fact]
+  public async Task NotifyChanged_AfterLastVacancyLeavesInbox_RemovesInboxCount()
+  {
+    var created = await _vacancies.CreateAsync(NewVacancy("https://example.com/jobs/1"));
+    var cut = RenderLayout();
+    cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindAll(".inbox-count")));
+    await _vacancies.DismissAsync(created.Id, new DismissInput(Karajob.Domain.Vacancies.DismissReason.Other, null));
+
+    cut.Services.GetRequiredService<InboxNotifier>().NotifyChanged();
+
+    cut.WaitForAssertion(() => Assert.Empty(cut.FindAll(".inbox-count")));
+  }
+
+  private static VacancyInput NewVacancy(string url)
+  {
+    return new VacancyInput(url, null, null, null, null, null, null, null, null, [], null, null);
+  }
+
   private static bool IsDrawerOpen(IRenderedComponent<MainLayout> cut)
   {
     return cut.Find(".mud-drawer").ClassList.Contains("mud-drawer--open");
@@ -116,15 +176,22 @@ public class MainLayoutTests : IAsyncLifetime
     return _context.Render<MainLayout>(p => p.Add(l => l.Body, (RenderFragment)(b => b.AddContent(0, BodyMarker))));
   }
 
-  public Task InitializeAsync()
+  public async Task InitializeAsync()
   {
-    return Task.CompletedTask;
+    _database = await SqliteTestDatabase.CreateAsync();
+    _vacancies = TestDbContextFactory.CreateVacancyService(_database, SeedData.OwnerId, TimeProvider.System);
+    _context.Services.AddSingleton<IKarajobDbContextFactory>(new TestDbContextFactory(_database, SeedData.OwnerId));
+    _context.Services.AddSingleton<ICurrentUser>(new FixedCurrentUser(SeedData.OwnerId));
+    _context.Services.AddSingleton(TimeProvider.System);
+    _context.Services.AddSingleton(_vacancies);
+    _context.Services.AddScoped<InboxNotifier>();
   }
 
   // MudBlazor services are IAsyncDisposable only, and xUnit v2 disposes test classes synchronously.
   public async Task DisposeAsync()
   {
     await _context.DisposeAsync();
+    await _database.DisposeAsync();
   }
 
   public MainLayoutTests()

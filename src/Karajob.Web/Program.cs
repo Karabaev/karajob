@@ -34,6 +34,7 @@ builder.Services.AddScoped<CompanyService>();
 builder.Services.AddScoped<HypothesisService>();
 builder.Services.AddScoped<CatalogService>();
 builder.Services.AddScoped<VacancyService>();
+builder.Services.AddScoped<Karajob.Web.Vacancies.InboxNotifier>();
 
 var cvOptions = builder.Configuration.GetRequiredSection(CvOptions.SectionName).Get<CvOptions>()
   ?? throw new InvalidOperationException($"Configuration section '{CvOptions.SectionName}' is empty.");

@@ -1,6 +1,10 @@
 using Bunit;
+using Karajob.Application.Vacancies;
 using Karajob.Domain.Vacancies;
 using Karajob.Tests.Web.Components.Vacancies;
+using Karajob.Web.Vacancies;
+using Microsoft.Extensions.DependencyInjection;
+using MudBlazor;
 using InboxPage = Karajob.Web.Components.Pages.Inbox;
 
 namespace Karajob.Tests.Web.Components.Pages;
@@ -53,6 +57,75 @@ public class InboxPageTests : VacancyWebFixture
 
     cut.WaitForAssertion(() => Assert.Contains(cut.FindAll("a"), a => LinksTo(a, inbox.Id)));
     Assert.DoesNotContain(cut.FindAll("a"), a => LinksTo(a, targeted.Id));
+  }
+
+  [Fact]
+  public async Task Render_VacancyWithNotes_ShowsNote()
+  {
+    await Vacancies.QuickAddAsync(new QuickAddInput("https://example.com/jobs/1", "from a friend"));
+
+    var cut = Context.Render<InboxPage>();
+
+    cut.WaitForAssertion(() => Assert.Contains("from a friend", cut.Find(".inbox-note").TextContent));
+  }
+
+  [Fact]
+  public async Task Render_VacancyWithoutNotes_HasNoNoteElement()
+  {
+    await Vacancies.CreateAsync(Input("https://example.com/jobs/1"));
+
+    var cut = Context.Render<InboxPage>();
+
+    cut.WaitForElement("a[href*='/vacancies/']");
+    Assert.Empty(cut.FindAll(".inbox-note"));
+  }
+
+  [Fact]
+  public async Task NotifyChanged_AfterVacancyAddedElsewhere_ShowsNewRow()
+  {
+    var cut = Context.Render<InboxPage>();
+    cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindAll(".inbox-empty")));
+    var created = await Vacancies.CreateAsync(Input("https://example.com/jobs/1"));
+
+    Context.Services.GetRequiredService<InboxNotifier>().NotifyChanged();
+
+    cut.WaitForAssertion(() => Assert.Contains(cut.FindAll("a"), a => LinksTo(a, created.Id)));
+  }
+
+  [Fact]
+  public async Task ClickDismiss_ThenSubmit_RemovesRow()
+  {
+    var created = await Vacancies.CreateAsync(Input("https://example.com/jobs/1"));
+    var (cut, dialogs) = RenderWithDialogs();
+    cut.WaitForElement(".inbox-dismiss").Click();
+
+    dialogs.WaitForElement(".dismiss-submit").Click();
+
+    cut.WaitForAssertion(() => Assert.DoesNotContain(cut.FindAll("a"), a => LinksTo(a, created.Id)));
+    Assert.Equal(VacancyStage.Dismissed, (await Vacancies.FindAsync(created.Id))!.Stage);
+  }
+
+  [Fact]
+  public async Task ClickToBoard_CheckHypothesisAndSubmit_RemovesRow()
+  {
+    await CreateHypothesisAsync();
+    var created = await Vacancies.CreateAsync(Input("https://example.com/jobs/1"));
+    var (cut, dialogs) = RenderWithDialogs();
+    cut.WaitForElement(".inbox-to-board").Click();
+    dialogs.WaitForElement(".move-to-board-hypothesis input").Change(true);
+    dialogs.WaitForAssertion(() => Assert.False(dialogs.Find(".move-to-board-submit").HasAttribute("disabled")));
+
+    dialogs.Find(".move-to-board-submit").Click();
+
+    cut.WaitForAssertion(() => Assert.DoesNotContain(cut.FindAll("a"), a => LinksTo(a, created.Id)));
+    Assert.Equal(VacancyStage.Targeted, (await Vacancies.FindAsync(created.Id))!.Stage);
+  }
+
+  private (IRenderedComponent<InboxPage> Page, IRenderedComponent<MudDialogProvider> Dialogs) RenderWithDialogs()
+  {
+    Context.Render<MudPopoverProvider>();
+    var dialogs = Context.Render<MudDialogProvider>();
+    return (Context.Render<InboxPage>(), dialogs);
   }
 
   private static bool LinksTo(AngleSharp.Dom.IElement anchor, Guid vacancyId)
