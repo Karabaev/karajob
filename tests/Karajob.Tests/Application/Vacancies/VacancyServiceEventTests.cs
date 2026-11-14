@@ -108,6 +108,39 @@ public class VacancyServiceEventTests : VacancyServiceFixture
   }
 
   [Fact]
+  public async Task AddEventAsync_NonUtcOccurredAt_ThrowsArgumentExceptionNotValidation()
+  {
+    var created = await Service.CreateAsync(Input());
+
+    var ex = await Record.ExceptionAsync(() =>
+      Service.AddEventAsync(created.Id, new VacancyEventInput(ApplicationEventType.Note, DateTime.SpecifyKind(Now, DateTimeKind.Unspecified), null)));
+
+    Assert.IsType<ArgumentException>(ex);
+  }
+
+  [Fact]
+  public async Task AddEventAsync_BeforeDiscoveryDay_FailsWithOccurredAtError()
+  {
+    var created = await Service.CreateAsync(Input());
+
+    var ex = await Assert.ThrowsAsync<ValidationFailedException>(() =>
+      Service.AddEventAsync(created.Id, new VacancyEventInput(ApplicationEventType.Note, Now.Date.AddSeconds(-1), null)));
+
+    Assert.Contains("OccurredAt", ex.Errors.Keys);
+    Assert.Empty((await Service.FindAsync(created.Id))!.Timeline);
+  }
+
+  [Fact]
+  public async Task AddEventAsync_StartOfDiscoveryDay_Succeeds()
+  {
+    var created = await Service.CreateAsync(Input());
+
+    var item = await Service.AddEventAsync(created.Id, new VacancyEventInput(ApplicationEventType.Note, Now.Date, null));
+
+    Assert.Equal(Now.Date, item.OccurredAt);
+  }
+
+  [Fact]
   public async Task AddEventAsync_UnknownVacancy_Throws()
   {
     await Assert.ThrowsAsync<KeyNotFoundException>(() =>

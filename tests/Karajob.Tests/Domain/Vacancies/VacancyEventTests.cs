@@ -50,6 +50,26 @@ public class VacancyEventTests
   }
 
   [Fact]
+  public void AddEvent_BeforeDiscoveryDay_ThrowsForAt()
+  {
+    var vacancy = Inbox();
+
+    var ex = Assert.Throws<ArgumentException>(() => vacancy.AddEvent(ApplicationEventType.Note, Now.Date.AddTicks(-1), null));
+
+    Assert.Equal("at", ex.ParamName);
+  }
+
+  [Fact]
+  public void AddEvent_StartOfDiscoveryDay_IsAllowed()
+  {
+    var vacancy = Inbox();
+
+    var added = vacancy.AddEvent(ApplicationEventType.Note, Now.Date, null);
+
+    Assert.Equal(Now.Date, added.OccurredAt);
+  }
+
+  [Fact]
   public void AddEvent_Screening_DoesNotChangeStage()
   {
     var vacancy = Applied();

@@ -62,7 +62,10 @@ public abstract class VacancyServiceFixture : IAsyncLifetime
     return company.Id;
   }
 
-  protected async Task<Guid> CreateHypothesisAsync(string name = "Unity Developer RU", Guid? userId = null)
+  protected async Task<Guid> CreateHypothesisAsync(
+    string name = "Unity Developer RU",
+    Guid? userId = null,
+    HypothesisStatus status = HypothesisStatus.Draft)
   {
     var service = userId is null
       ? Hypotheses
@@ -76,8 +79,16 @@ public abstract class VacancyServiceFixture : IAsyncLifetime
       SeedData.RussianLanguageId,
       null,
       null,
-      HypothesisStatus.Draft));
+      status));
     return hypothesis.Id;
+  }
+
+  protected async Task MutateHypothesisAsync(Guid hypothesisId, Action<Hypothesis> mutate)
+  {
+    await using var context = Database.CreateContext(SeedData.OwnerId);
+    var hypothesis = await context.Hypotheses.SingleAsync(h => h.Id == hypothesisId);
+    mutate(hypothesis);
+    await context.SaveChangesAsync();
   }
 
   protected async Task MutateAsync(Guid vacancyId, Action<Vacancy> mutate, Guid? userId = null)

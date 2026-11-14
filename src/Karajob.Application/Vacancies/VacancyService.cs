@@ -2,6 +2,7 @@ using Karajob.Application.Common;
 using Karajob.Application.Persistence;
 using Karajob.Application.Users;
 using Karajob.Domain.Applications;
+using Karajob.Domain.Common;
 using Karajob.Domain.Hypotheses;
 using Karajob.Domain.Normalization;
 using Karajob.Domain.Vacancies;
@@ -17,8 +18,14 @@ public class VacancyService(IKarajobDbContextFactory dbContextFactory, ICurrentU
   {
     await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
     var vacancies = await db.Vacancies.AsNoTracking().Where(v => v.Stage == stage).ToListAsync(cancellationToken);
-    var companyNames = await db.Companies.AsNoTracking().ToDictionaryAsync(c => c.Id, c => c.Name, cancellationToken);
-    var roleNames = await db.Roles.AsNoTracking().ToDictionaryAsync(r => r.Id, r => r.Name, cancellationToken);
+    var companyIds = vacancies.Where(v => v.CompanyId is not null).Select(v => v.CompanyId!.Value).Distinct().ToList();
+    var roleIds = vacancies.Where(v => v.RoleId is not null).Select(v => v.RoleId!.Value).Distinct().ToList();
+    var companyNames = await db.Companies.AsNoTracking()
+      .Where(c => companyIds.Contains(c.Id))
+      .ToDictionaryAsync(c => c.Id, c => c.Name, cancellationToken);
+    var roleNames = await db.Roles.AsNoTracking()
+      .Where(r => roleIds.Contains(r.Id))
+      .ToDictionaryAsync(r => r.Id, r => r.Name, cancellationToken);
 
     return vacancies
       .OrderByDescending(v => v.DiscoveredAt)
@@ -98,10 +105,19 @@ public class VacancyService(IKarajobDbContextFactory dbContextFactory, ICurrentU
     await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
     var vacancy = await FindVacancyAsync(db, vacancyId, cancellationToken);
 
+    UtcGuard.Ensure(input.OccurredAt);
+
     ApplicationEvent added;
     try
     {
       added = vacancy.AddEvent(input.Type, input.OccurredAt, BlankToNull(input.Note));
+    }
+    catch (ArgumentException ex) when (ex.ParamName == "at")
+    {
+      throw new ValidationFailedException(new Dictionary<string, string>
+      {
+        ["OccurredAt"] = "Дата события раньше даты, когда вакансия найдена",
+      });
     }
     catch (Exception ex) when (ex is ArgumentException or InvalidOperationException)
     {
@@ -224,11 +240,15 @@ public class VacancyService(IKarajobDbContextFactory dbContextFactory, ICurrentU
     var hypothesisIds = input.HypothesisIds.Distinct().ToList();
     var knownHypotheses = await db.Hypotheses
       .Where(h => hypothesisIds.Contains(h.Id))
-      .Select(h => h.Id)
+      .Select(h => new { h.Id, h.Status })
       .ToListAsync(cancellationToken);
     if (knownHypotheses.Count != hypothesisIds.Count)
     {
       errors[nameof(VacancyInput.HypothesisIds)] = "Гипотеза не найдена";
+    }
+    else if (knownHypotheses.Any(h => h.Status == HypothesisStatus.Disabled && (existing is null || existing.Matches.All(m => m.HypothesisId != h.Id))))
+    {
+      errors[nameof(VacancyInput.HypothesisIds)] = "Гипотеза отключена";
     }
     else if (existing is not null)
     {
@@ -323,13 +343,14 @@ public class VacancyService(IKarajobDbContextFactory dbContextFactory, ICurrentU
     DateTime reference,
     CancellationToken cancellationToken)
   {
-    // SQLite cannot translate DateTime arithmetic, so the window is applied in memory.
+    var from = reference - SimilarWindow;
+    var to = reference + SimilarWindow;
     var candidates = await db.Vacancies.AsNoTracking()
-      .Where(v => v.CompanyId == companyId && v.RoleId == roleId && v.Id != excludedVacancyId)
+      .Where(v => v.CompanyId == companyId && v.RoleId == roleId && v.Id != excludedVacancyId
+        && v.DiscoveredAt >= from && v.DiscoveredAt <= to)
       .ToListAsync(cancellationToken);
 
     return candidates
-      .Where(v => (v.DiscoveredAt - reference).Duration() <= SimilarWindow)
       .OrderByDescending(v => v.DiscoveredAt)
       .Select(v => new SimilarVacancy(v.Id, v.Url, v.Stage, v.DiscoveredAt))
       .ToList();

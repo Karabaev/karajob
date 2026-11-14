@@ -1,5 +1,6 @@
 using Karajob.Application.Common;
 using Karajob.Domain.Applications;
+using Karajob.Domain.Hypotheses;
 using Karajob.Domain.Vacancies;
 using Karajob.Infrastructure.Persistence;
 using Karajob.Tests.Infrastructure.Persistence;
@@ -19,6 +20,40 @@ public class VacancyServiceMatchTests : VacancyServiceFixture
     Assert.Equal(new[] { first, second }.Order(), details.HypothesisIds.Order());
     var found = await Service.FindAsync(details.Id);
     Assert.Equal(new[] { first, second }.Order(), found!.HypothesisIds.Order());
+  }
+
+  [Fact]
+  public async Task CreateAsync_DisabledHypothesis_FailsWithHypothesisError()
+  {
+    var disabled = await CreateHypothesisAsync("Off", status: HypothesisStatus.Disabled);
+
+    var ex = await Assert.ThrowsAsync<ValidationFailedException>(() => Service.CreateAsync(Input(hypothesisIds: [disabled])));
+
+    Assert.Contains("HypothesisIds", ex.Errors.Keys);
+    Assert.Equal(0, await CountVacanciesAsync());
+  }
+
+  [Fact]
+  public async Task UpdateAsync_NewlyAddedDisabledHypothesis_Fails()
+  {
+    var created = await Service.CreateAsync(Input());
+    var disabled = await CreateHypothesisAsync("Off", status: HypothesisStatus.Disabled);
+
+    var ex = await Assert.ThrowsAsync<ValidationFailedException>(() => Service.UpdateAsync(created.Id, Input(hypothesisIds: [disabled])));
+
+    Assert.Contains("HypothesisIds", ex.Errors.Keys);
+  }
+
+  [Fact]
+  public async Task UpdateAsync_AlreadyMatchedHypothesisThenDisabled_StaysAllowed()
+  {
+    var hypothesisId = await CreateHypothesisAsync("Soon off");
+    var created = await Service.CreateAsync(Input(hypothesisIds: [hypothesisId]));
+    await MutateHypothesisAsync(hypothesisId, h => h.Status = HypothesisStatus.Disabled);
+
+    var updated = await Service.UpdateAsync(created.Id, Input(hypothesisIds: [hypothesisId], notes: "kept"));
+
+    Assert.Equal([hypothesisId], updated.HypothesisIds);
   }
 
   [Fact]

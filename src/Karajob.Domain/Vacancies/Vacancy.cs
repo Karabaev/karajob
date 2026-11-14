@@ -80,6 +80,11 @@ public class Vacancy : IUserOwned
       throw new ArgumentException($"{type} events cannot be added manually.", nameof(type));
     }
 
+    if (at < DiscoveredAt.Date)
+    {
+      throw new ArgumentException("The event cannot be earlier than the day the vacancy was discovered.", nameof(at));
+    }
+
     if (type != ApplicationEventType.Note && Application is null)
     {
       throw new InvalidOperationException($"{type} requires an application.");
