@@ -138,6 +138,33 @@ public class CatalogServiceDeleteTests : CatalogServiceFixture
     await AssertDeleteBlockedAsync(CatalogKind.Language, SeedData.RussianLanguageId);
   }
 
+  [Fact]
+  public async Task DeleteAsync_LocationUsedByVacancyOfAnotherUser_ThrowsValidationWithEmptyKey()
+  {
+    var other = await PersistenceFixtures.AddUserAsync(Database);
+    await AddVacancyAsync(other.Id, locationId: SeedData.SerbiaLocationId);
+
+    await AssertDeleteBlockedAsync(CatalogKind.Location, SeedData.SerbiaLocationId);
+  }
+
+  [Fact]
+  public async Task DeleteAsync_LanguageUsedByHypothesisOfAnotherUser_ThrowsValidationWithEmptyKey()
+  {
+    var other = await PersistenceFixtures.AddUserAsync(Database);
+    await PersistenceFixtures.AddHypothesisAsync(Database, other.Id);
+
+    await AssertDeleteBlockedAsync(CatalogKind.Language, SeedData.EnglishLanguageId);
+  }
+
+  [Fact]
+  public async Task DeleteAsync_LanguageUsedByVacancyOfAnotherUser_ThrowsValidationWithEmptyKey()
+  {
+    var other = await PersistenceFixtures.AddUserAsync(Database);
+    await AddVacancyAsync(other.Id, languageId: SeedData.RussianLanguageId);
+
+    await AssertDeleteBlockedAsync(CatalogKind.Language, SeedData.RussianLanguageId);
+  }
+
   private async Task AssertDeleteBlockedAsync(CatalogKind kind, Guid id)
   {
     var exception = await Assert.ThrowsAsync<ValidationFailedException>(() => Service.DeleteAsync(kind, id));

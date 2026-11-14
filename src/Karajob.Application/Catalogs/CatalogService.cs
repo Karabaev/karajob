@@ -102,6 +102,8 @@ public class CatalogService(IKarajobDbContextFactory dbContextFactory)
       case Language language:
         db.Languages.Remove(language);
         break;
+      default:
+        throw new ArgumentOutOfRangeException(nameof(kind), kind, null);
     }
 
     await db.SaveChangesAsync(cancellationToken);
