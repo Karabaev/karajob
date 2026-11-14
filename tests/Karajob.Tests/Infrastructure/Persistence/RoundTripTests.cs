@@ -16,7 +16,7 @@ public class RoundTripTests
   public async Task User_SavedAndReloaded_PreservesValues()
   {
     await using var database = await SqliteTestDatabase.CreateAsync();
-    var user = new User("Alice", Moment);
+    var user = new User("Alice", "#26a69a", Moment);
     await using (var context = database.CreateContext(SeedData.OwnerId))
     {
       context.Users.Add(user);

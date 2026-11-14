@@ -107,6 +107,11 @@ public static partial class Normalize
     return code;
   }
 
+  public static string HexColor(string value, [CallerArgumentExpression(nameof(value))] string? paramName = null)
+  {
+    throw new NotImplementedException();
+  }
+
   public static string WebUrl(string value, [CallerArgumentExpression(nameof(value))] string? paramName = null)
   {
     ParseHttpUrl(value, paramName);

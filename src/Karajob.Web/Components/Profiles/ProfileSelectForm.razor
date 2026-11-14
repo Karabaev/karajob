@@ -1,0 +1,13 @@
+@code {
+  [Parameter, EditorRequired]
+  public Guid ProfileId { get; set; }
+
+  [Parameter]
+  public string? ReturnUrl { get; set; }
+
+  [Parameter]
+  public string? Class { get; set; }
+
+  [Parameter]
+  public RenderFragment? ChildContent { get; set; }
+}

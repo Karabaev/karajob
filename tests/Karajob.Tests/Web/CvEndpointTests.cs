@@ -47,7 +47,7 @@ public class CvEndpointTests : IDisposable
   {
     var contextFactory = factory.Services.GetRequiredService<IDbContextFactory<KarajobDbContext>>();
     await using var context = await contextFactory.CreateDbContextAsync();
-    var other = new User("Other", DateTime.UtcNow);
+    var other = new User("Other", "#26a69a", DateTime.UtcNow);
     var document = new CvDocument(other.Id, "Other CV", SeedData.EnglishLanguageId, DateTime.UtcNow);
     var version = document.AddVersion("other.pdf", "cv/other/other.pdf", "application/pdf", 3, null, DateTime.UtcNow);
     context.Users.Add(other);

@@ -1,0 +1,7 @@
+@code {
+  [Parameter, EditorRequired]
+  public UserDto Profile { get; set; } = null!;
+
+  [Parameter]
+  public Size Size { get; set; } = Size.Medium;
+}
