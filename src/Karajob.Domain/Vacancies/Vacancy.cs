@@ -58,17 +58,48 @@ public class Vacancy : IUserOwned
 
   public void RemoveMatch(Guid hypothesisId)
   {
+    if (matches.All(m => m.HypothesisId != hypothesisId)) return;
+    if (hypothesisId == Application?.HypothesisId)
+    {
+      throw new InvalidOperationException("The hypothesis of the application cannot be unmatched.");
+    }
+
+    if (matches.Count == 1 && Stage is not (VacancyStage.Inbox or VacancyStage.Dismissed))
+    {
+      throw new InvalidOperationException($"A vacancy in {Stage} requires at least one matched hypothesis.");
+    }
+
     matches.RemoveAll(m => m.HypothesisId == hypothesisId);
   }
 
   public ApplicationEvent AddEvent(ApplicationEventType type, DateTime at, string? note)
   {
-    throw new NotImplementedException();
+    UtcGuard.Ensure(at);
+    if (type is ApplicationEventType.StageChanged or ApplicationEventType.Rejected or ApplicationEventType.Offer)
+    {
+      throw new ArgumentException($"{type} events cannot be added manually.", nameof(type));
+    }
+
+    if (type != ApplicationEventType.Note && Application is null)
+    {
+      throw new InvalidOperationException($"{type} requires an application.");
+    }
+
+    var added = new ApplicationEvent(UserId, Id, type, at, null, null, note);
+    events.Add(added);
+    return added;
   }
 
   public void RemoveEvent(Guid eventId)
   {
-    throw new NotImplementedException();
+    var existing = events.FirstOrDefault(e => e.Id == eventId)
+      ?? throw new KeyNotFoundException($"Event {eventId} was not found.");
+    if (existing.Type == ApplicationEventType.StageChanged)
+    {
+      throw new InvalidOperationException("Stage transitions are immutable.");
+    }
+
+    events.Remove(existing);
   }
 
   public ApplicationEvent MoveTo(VacancyStage target, DateTime at)
