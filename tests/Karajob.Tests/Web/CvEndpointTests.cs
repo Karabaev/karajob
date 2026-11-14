@@ -1,9 +1,12 @@
 using System.Net;
+using System.Security.Claims;
 using Karajob.Application.Cvs;
 using Karajob.Application.Files;
+using Karajob.Application.Users;
 using Karajob.Domain.Cvs;
 using Karajob.Domain.Users;
 using Karajob.Infrastructure.Persistence;
+using Karajob.Web.Users;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,7 +23,7 @@ public class CvEndpointTests : IDisposable
   {
     byte[] bytes = [0x25, 0x50, 0x44, 0x46, 9, 8, 7];
     var versionId = await CreateCvAsync("My CV.pdf", bytes);
-    var client = factory.CreateClient();
+    var client = await ProfileClient.AuthenticatedClientAsync(factory, SeedData.OwnerId);
 
     var response = await client.GetAsync($"/cvs/versions/{versionId}/file");
 
@@ -35,7 +38,7 @@ public class CvEndpointTests : IDisposable
   [Fact]
   public async Task GetVersionFile_UnknownId_ReturnsNotFound()
   {
-    var client = factory.CreateClient();
+    var client = await ProfileClient.AuthenticatedClientAsync(factory, SeedData.OwnerId);
 
     var response = await client.GetAsync($"/cvs/versions/{Guid.NewGuid()}/file");
 
@@ -45,7 +48,8 @@ public class CvEndpointTests : IDisposable
   [Fact]
   public async Task GetVersionFile_OtherUsersVersion_ReturnsNotFound()
   {
-    var contextFactory = factory.Services.GetRequiredService<IDbContextFactory<KarajobDbContext>>();
+    using var scope = factory.Services.CreateScope();
+    var contextFactory = scope.ServiceProvider.GetRequiredService<IDbContextFactory<KarajobDbContext>>();
     await using var context = await contextFactory.CreateDbContextAsync();
     var other = new User("Other", "#26a69a", DateTime.UtcNow);
     var document = new CvDocument(other.Id, "Other CV", SeedData.EnglishLanguageId, DateTime.UtcNow);
@@ -53,7 +57,7 @@ public class CvEndpointTests : IDisposable
     context.Users.Add(other);
     context.CvDocuments.Add(document);
     await context.SaveChangesAsync();
-    var client = factory.CreateClient();
+    var client = await ProfileClient.AuthenticatedClientAsync(factory, SeedData.OwnerId);
 
     var response = await client.GetAsync($"/cvs/versions/{version.Id}/file");
 
@@ -65,7 +69,7 @@ public class CvEndpointTests : IDisposable
   {
     var versionId = await CreateCvAsync("Lost.pdf", [1, 2, 3]);
     Directory.Delete(root, recursive: true);
-    var client = factory.CreateClient();
+    var client = await ProfileClient.AuthenticatedClientAsync(factory, SeedData.OwnerId);
 
     var response = await client.GetAsync($"/cvs/versions/{versionId}/file");
 
@@ -98,6 +102,8 @@ public class CvEndpointTests : IDisposable
   private async Task<Guid> CreateCvAsync(string fileName, byte[] bytes)
   {
     using var scope = factory.Services.CreateScope();
+    var currentUser = Assert.IsType<ProfileCurrentUser>(scope.ServiceProvider.GetRequiredService<ICurrentUser>());
+    currentUser.SetUser(new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.NameIdentifier, SeedData.OwnerId.ToString())], "test")));
     var service = scope.ServiceProvider.GetRequiredService<CvService>();
     var languageId = SeedData.EnglishLanguageId;
     var details = await service.CreateAsync(
