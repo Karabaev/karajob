@@ -44,14 +44,10 @@ else if (_loaded)
           {
             <div>
               <MudFileUpload T="IBrowserFile" Accept=".pdf,.docx" Files="_file" FilesChanged="OnFileChanged">
-                <ActivatorContent>
-                  <MudButton Variant="Variant.Outlined" Color="Color.Primary">Выбрать файл</MudButton>
-                </ActivatorContent>
+                <CustomContent>
+                  <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.AttachFile" OnClick="@context.OpenFilePickerAsync">Выбрать файл</MudButton>
+                </CustomContent>
               </MudFileUpload>
-              @if (_file is not null)
-              {
-                <MudText Typo="Typo.body2" Class="mt-1">@_file.Name</MudText>
-              }
               @if (HasError(CvService.FileErrorKey))
               {
                 <MudText Typo="Typo.caption" Color="Color.Error">@ErrorOf(CvService.FileErrorKey)</MudText>
@@ -80,14 +76,10 @@ else if (_loaded)
 
             <div>
               <MudFileUpload @ref="_versionUpload" T="IBrowserFile" Accept=".pdf,.docx" Files="_versionFile" FilesChanged="OnVersionFileChanged">
-                <ActivatorContent>
-                  <MudButton Variant="Variant.Outlined" Color="Color.Primary">Выбрать файл</MudButton>
-                </ActivatorContent>
+                <CustomContent>
+                  <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.AttachFile" OnClick="@context.OpenFilePickerAsync">Выбрать файл</MudButton>
+                </CustomContent>
               </MudFileUpload>
-              @if (_versionFile is not null)
-              {
-                <MudText Typo="Typo.body2" Class="mt-1">@_versionFile.Name</MudText>
-              }
               @if (HasError(CvService.FileErrorKey))
               {
                 <MudText Typo="Typo.caption" Color="Color.Error">@ErrorOf(CvService.FileErrorKey)</MudText>
