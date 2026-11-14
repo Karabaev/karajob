@@ -5,10 +5,12 @@ namespace Karajob.Web.Users;
 
 public class ProfileCurrentUser : ICurrentUser
 {
-  public Guid UserId => throw new NotImplementedException();
+  private Guid? _userId;
+
+  public Guid UserId => _userId ?? throw new InvalidOperationException("No profile selected.");
 
   public void SetUser(ClaimsPrincipal user)
   {
-    throw new NotImplementedException();
+    _userId = ProfileAuthentication.GetUserId(user);
   }
 }
