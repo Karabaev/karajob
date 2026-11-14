@@ -13,7 +13,7 @@
           <MudSelectItem T="DismissReason" Value="reason">@VacancyText.Dismiss(reason)</MudSelectItem>
         }
       </MudSelect>
-      <MudTextField T="string" Class="dismiss-comment" Label="Комментарий (необязательно)" Lines="2" AutoGrow="true"
+      <MudTextField T="string" Class="dismiss-comment" Label="Комментарий (необязательно)" Lines="2" Sizing="InputSizing.Auto"
                     Immediate="true" @bind-Value="_comment" />
     </MudStack>
   </DialogContent>
@@ -37,6 +37,9 @@
   [Parameter, EditorRequired]
   public Guid VacancyId { get; set; }
 
+  [Parameter]
+  public VacancyStage? ExpectedStage { get; set; }
+
   private async Task SubmitAsync()
   {
     if (_saving) return;
@@ -44,7 +47,7 @@
     _saving = true;
     try
     {
-      await VacancyService.DismissAsync(VacancyId, new DismissInput(_reason, _comment));
+      await VacancyService.DismissAsync(VacancyId, new DismissInput(_reason, _comment), ExpectedStage);
       MudDialog.Close(DialogResult.Ok(true));
     }
     catch (ValidationFailedException ex)

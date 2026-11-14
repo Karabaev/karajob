@@ -7,9 +7,9 @@
   <DialogContent>
     <MudStack Spacing="2">
       <MudTextField T="string" Class="quick-add-url" Label="Ссылка на вакансию" Placeholder="https://…" AutoFocus="true"
-                    InputType="InputType.Url" Immediate="true" @bind-Value="_url" OnKeyDown="OnUrlKeyDown"
+                    InputType="InputType.Url" Immediate="true" @bind-Value="_url" @bind-Value:after="ClearUrlError" OnKeyDown="OnUrlKeyDown"
                     Error="_urlError is not null" ErrorText="@_urlError" />
-      <MudTextField T="string" Class="quick-add-note" Label="Заметка (необязательно)" Lines="2" AutoGrow="true"
+      <MudTextField T="string" Class="quick-add-note" Label="Заметка (необязательно)" Lines="2" Sizing="InputSizing.Auto"
                     Immediate="true" @bind-Value="_note" />
     </MudStack>
   </DialogContent>
@@ -29,6 +29,11 @@
 
   [CascadingParameter]
   private IMudDialogInstance MudDialog { get; set; } = null!;
+
+  private void ClearUrlError()
+  {
+    _urlError = null;
+  }
 
   private async Task OnUrlKeyDown(KeyboardEventArgs args)
   {

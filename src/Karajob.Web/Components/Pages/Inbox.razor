@@ -67,13 +67,21 @@ else
   }
 
   // Raised by other components of the same circuit (the header dialog, this page's own dialogs);
-  // InvokeAsync marshals the reload onto the renderer's synchronization context.
+  // InvokeAsync marshals the reload onto the renderer's synchronization context. Nobody awaits this task,
+  // so failures are routed to the circuit explicitly instead of being lost.
   private void OnInboxChanged()
   {
     _ = InvokeAsync(async () =>
     {
-      await LoadAsync();
-      StateHasChanged();
+      try
+      {
+        await LoadAsync();
+        StateHasChanged();
+      }
+      catch (Exception ex)
+      {
+        await DispatchExceptionAsync(ex);
+      }
     });
   }
 
@@ -85,7 +93,11 @@ else
 
   private Task DismissAsync(Guid vacancyId)
   {
-    var parameters = new DialogParameters<DismissVacancyDialog> { { d => d.VacancyId, vacancyId } };
+    var parameters = new DialogParameters<DismissVacancyDialog>
+    {
+      { d => d.VacancyId, vacancyId },
+      { d => d.ExpectedStage, VacancyStage.Inbox },
+    };
     return ShowAndNotifyAsync<DismissVacancyDialog>("Отклонить вакансию", parameters);
   }
 
@@ -95,7 +107,12 @@ else
     var options = new DialogOptions { MaxWidth = MaxWidth.ExtraSmall, FullWidth = true };
     var dialog = await DialogService.ShowAsync<TDialog>(title, parameters, options);
     var result = await dialog.Result;
-    if (result is null || result.Canceled) return;
+    if (result is null || result.Canceled)
+    {
+      // The dialog may have been cancelled after "no longer in Inbox"; reload so the stale row goes away.
+      await LoadAsync();
+      return;
+    }
 
     InboxNotifier.NotifyChanged();
   }

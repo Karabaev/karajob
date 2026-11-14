@@ -32,8 +32,15 @@
   {
     _ = InvokeAsync(async () =>
     {
-      _inboxCount = await VacancyService.CountAsync(VacancyStage.Inbox);
-      StateHasChanged();
+      try
+      {
+        _inboxCount = await VacancyService.CountAsync(VacancyStage.Inbox);
+        StateHasChanged();
+      }
+      catch (Exception ex)
+      {
+        await DispatchExceptionAsync(ex);
+      }
     });
   }
 

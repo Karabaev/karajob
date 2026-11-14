@@ -55,17 +55,17 @@ public class VacancyServiceInboxTests : VacancyServiceFixture
   }
 
   [Fact]
-  public async Task MoveToBoardAsync_FromDismissed_MovesToTargeted()
+  public async Task MoveToBoardAsync_DismissedInAnotherTab_FailsValidationAndKeepsStage()
   {
     var hypothesisId = await CreateHypothesisAsync();
     var id = await AddInboxVacancyAsync();
     await MutateAsync(id, v => v.Dismiss(DismissReason.WrongRole, null, Now.AddHours(1)));
 
-    await Service.MoveToBoardAsync(id, [hypothesisId]);
+    await Assert.ThrowsAsync<ValidationFailedException>(() => Service.MoveToBoardAsync(id, [hypothesisId]));
 
     var stored = await LoadAsync(id);
-    Assert.Equal(VacancyStage.Targeted, stored.Stage);
-    Assert.Null(stored.DismissReason);
+    Assert.Equal(VacancyStage.Dismissed, stored.Stage);
+    Assert.Equal(DismissReason.WrongRole, stored.DismissReason);
   }
 
   [Fact]
@@ -179,6 +179,29 @@ public class VacancyServiceInboxTests : VacancyServiceFixture
     await Service.DismissAsync(created.Id, new DismissInput(DismissReason.WrongStack, null));
 
     Assert.Equal(VacancyStage.Dismissed, (await LoadAsync(created.Id)).Stage);
+  }
+
+  [Fact]
+  public async Task DismissAsync_ExpectedInboxButAlreadyTargeted_FailsValidationAndKeepsStage()
+  {
+    var hypothesisId = await CreateHypothesisAsync();
+    var created = await Service.CreateAsync(Input(hypothesisIds: [hypothesisId]));
+    await MutateAsync(created.Id, v => v.MoveTo(VacancyStage.Targeted, Now.AddHours(1)));
+
+    await Assert.ThrowsAsync<ValidationFailedException>(
+      () => Service.DismissAsync(created.Id, new DismissInput(DismissReason.WrongStack, null), VacancyStage.Inbox));
+
+    Assert.Equal(VacancyStage.Targeted, (await LoadAsync(created.Id)).Stage);
+  }
+
+  [Fact]
+  public async Task DismissAsync_ExpectedStageMatches_MovesToDismissed()
+  {
+    var id = await AddInboxVacancyAsync();
+
+    await Service.DismissAsync(id, new DismissInput(DismissReason.WrongStack, null), VacancyStage.Inbox);
+
+    Assert.Equal(VacancyStage.Dismissed, (await LoadAsync(id)).Stage);
   }
 
   [Fact]

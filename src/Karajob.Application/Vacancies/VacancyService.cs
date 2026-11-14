@@ -61,6 +61,7 @@ public class VacancyService(IKarajobDbContextFactory dbContextFactory, ICurrentU
       });
     }
 
+    DbUpdateException saveError;
     await using (var db = await dbContextFactory.CreateDbContextAsync(cancellationToken))
     {
       if (await FindByUrlAsync(db, url, cancellationToken) is { } existing) return existing;
@@ -75,25 +76,24 @@ public class VacancyService(IKarajobDbContextFactory dbContextFactory, ICurrentU
         await db.SaveChangesAsync(cancellationToken);
         return new QuickAddResult(vacancy.Id, false, vacancy.Stage);
       }
-      catch (DbUpdateException)
+      catch (DbUpdateException ex)
       {
-        // The same URL was added concurrently (another tab or device) and the unique index rejected this insert.
+        // Usually the same URL was added concurrently (another tab or device) and the unique index rejected
+        // this insert; the provider-specific error code is not visible here, so look the URL up again.
+        saveError = ex;
       }
     }
 
     await using var retryDb = await dbContextFactory.CreateDbContextAsync(cancellationToken);
     return await FindByUrlAsync(retryDb, url, cancellationToken)
-      ?? throw new InvalidOperationException($"Saving vacancy {url} failed, and no existing vacancy has this URL.");
+      ?? throw new InvalidOperationException($"Saving vacancy {url} failed, and no existing vacancy has this URL.", saveError);
   }
 
   public async Task MoveToBoardAsync(Guid vacancyId, IReadOnlyList<Guid> hypothesisIds, CancellationToken cancellationToken = default)
   {
     await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
     var vacancy = await FindVacancyAsync(db, vacancyId, cancellationToken);
-    if (vacancy.Stage is not (VacancyStage.Inbox or VacancyStage.Dismissed))
-    {
-      throw new ValidationFailedException(new Dictionary<string, string> { [string.Empty] = "Вакансия уже на доске" });
-    }
+    EnsureStage(vacancy, VacancyStage.Inbox);
 
     var ids = hypothesisIds.Distinct().ToList();
     var error = ids.Count == 0
@@ -104,23 +104,23 @@ public class VacancyService(IKarajobDbContextFactory dbContextFactory, ICurrentU
       throw new ValidationFailedException(new Dictionary<string, string> { [nameof(VacancyInput.HypothesisIds)] = error });
     }
 
-    try
-    {
-      ReplaceMatches(vacancy, ids);
-      vacancy.MoveTo(VacancyStage.Targeted, timeProvider.GetUtcNow().UtcDateTime);
-    }
-    catch (InvalidOperationException ex)
-    {
-      throw new ValidationFailedException(new Dictionary<string, string> { [string.Empty] = ex.Message });
-    }
-
+    ReplaceMatches(vacancy, ids);
+    vacancy.MoveTo(VacancyStage.Targeted, timeProvider.GetUtcNow().UtcDateTime);
     await db.SaveChangesAsync(cancellationToken);
   }
 
-  public async Task DismissAsync(Guid vacancyId, DismissInput input, CancellationToken cancellationToken = default)
+  public async Task DismissAsync(
+    Guid vacancyId,
+    DismissInput input,
+    VacancyStage? expectedStage = null,
+    CancellationToken cancellationToken = default)
   {
     await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
     var vacancy = await FindVacancyAsync(db, vacancyId, cancellationToken);
+    if (expectedStage is { } stage)
+    {
+      EnsureStage(vacancy, stage);
+    }
 
     try
     {
@@ -267,6 +267,17 @@ public class VacancyService(IKarajobDbContextFactory dbContextFactory, ICurrentU
     vacancy.Description = normalized.Description;
     vacancy.Notes = normalized.Notes;
     ReplaceMatches(vacancy, normalized.HypothesisIds);
+  }
+
+  // The UI acts on a list that may be stale (another tab or device moved the vacancy meanwhile).
+  private static void EnsureStage(Vacancy vacancy, VacancyStage expected)
+  {
+    if (vacancy.Stage == expected) return;
+
+    throw new ValidationFailedException(new Dictionary<string, string>
+    {
+      [string.Empty] = expected == VacancyStage.Inbox ? "Вакансия уже не в Inbox" : "Стадия вакансии уже изменилась",
+    });
   }
 
   private static void ReplaceMatches(Vacancy vacancy, List<Guid> hypothesisIds)

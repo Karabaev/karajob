@@ -9,6 +9,7 @@ using Karajob.Infrastructure.Persistence;
 using Karajob.Infrastructure.Users;
 using Karajob.Web.Components;
 using Karajob.Web.Cvs;
+using Karajob.Web.Vacancies;
 using MudBlazor.Services;
 using Microsoft.AspNetCore.DataProtection;
 
@@ -34,7 +35,7 @@ builder.Services.AddScoped<CompanyService>();
 builder.Services.AddScoped<HypothesisService>();
 builder.Services.AddScoped<CatalogService>();
 builder.Services.AddScoped<VacancyService>();
-builder.Services.AddScoped<Karajob.Web.Vacancies.InboxNotifier>();
+builder.Services.AddScoped<InboxNotifier>();
 
 var cvOptions = builder.Configuration.GetRequiredSection(CvOptions.SectionName).Get<CvOptions>()
   ?? throw new InvalidOperationException($"Configuration section '{CvOptions.SectionName}' is empty.");

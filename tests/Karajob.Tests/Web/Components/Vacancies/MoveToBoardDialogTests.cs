@@ -73,6 +73,21 @@ public class MoveToBoardDialogTests : VacancyWebFixture
     Assert.Equal([hypothesisId], found.HypothesisIds);
   }
 
+  [Fact]
+  public async Task Submit_VacancyLeftInboxMeanwhile_ShowsErrorAndStaysOpen()
+  {
+    await CreateHypothesisAsync("Pick me");
+    var vacancy = await Vacancies.CreateAsync(Input("https://example.com/jobs/1"));
+    var (provider, reference) = await ShowAsync(vacancy.Id);
+    provider.WaitForElements(".move-to-board-hypothesis").Single().QuerySelector("input")!.Change(true);
+    await Vacancies.DismissAsync(vacancy.Id, new Karajob.Application.Vacancies.DismissInput(DismissReason.Other, null));
+
+    provider.Find(".move-to-board-submit").Click();
+
+    provider.WaitForAssertion(() => Assert.NotEmpty(provider.FindAll(".mud-alert")));
+    Assert.False(reference.Result!.IsCompleted);
+  }
+
   private static bool IsChecked(IElement item)
   {
     return ((IHtmlInputElement)item.QuerySelector("input")!).IsChecked;
