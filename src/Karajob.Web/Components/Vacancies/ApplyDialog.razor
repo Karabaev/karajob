@@ -1,0 +1,157 @@
+@inject VacancyService VacancyService
+@inject TimeProvider TimeProvider
+
+<MudDialog>
+  <DialogContent>
+    @if (_options is null)
+    {
+      <MudProgressLinear Indeterminate="true" />
+    }
+    else
+    {
+      <MudStack Spacing="2">
+        @if (GeneralError() is { } general)
+        {
+          <MudAlert Severity="Severity.Error">@general</MudAlert>
+        }
+        @if (_options.Hypotheses.Count == 0)
+        {
+          <MudAlert Severity="Severity.Warning">У вакансии нет подходящих гипотез. Привяжите вакансию к гипотезе, чтобы откликнуться.</MudAlert>
+        }
+        @if (_options.CvVersions.Count == 0)
+        {
+          <MudAlert Severity="Severity.Warning">Нет загруженных CV. Загрузите CV, чтобы откликнуться.</MudAlert>
+        }
+        <MudSelect T="Guid" Class="apply-hypothesis" Label="Гипотеза" Value="_hypothesisId" ValueChanged="OnHypothesisChanged"
+                   Error="HasError(nameof(ApplyInput.HypothesisId))" ErrorText="@ErrorOf(nameof(ApplyInput.HypothesisId))">
+          @foreach (var hypothesis in _options.Hypotheses)
+          {
+            <MudSelectItem T="Guid" Value="hypothesis.Id">@hypothesis.Name</MudSelectItem>
+          }
+        </MudSelect>
+        <MudSelect T="Guid?" Class="apply-cv" Label="CV" @bind-Value="_cvVersionId"
+                   Error="HasError(nameof(ApplyInput.CvVersionId))" ErrorText="@ErrorOf(nameof(ApplyInput.CvVersionId))">
+          @foreach (var cv in _options.CvVersions)
+          {
+            <MudSelectItem T="Guid?" Value="@((Guid?)cv.Id)">@($"{cv.CvName} · {cv.FileName} · {VacancyText.Date(cv.CreatedAt)}")</MudSelectItem>
+          }
+        </MudSelect>
+        <MudSelect T="ApplicationChannel" Class="apply-channel" Label="Канал" @bind-Value="_channel"
+                   Error="HasError(nameof(ApplyInput.Channel))" ErrorText="@ErrorOf(nameof(ApplyInput.Channel))">
+          @foreach (var channel in Enum.GetValues<ApplicationChannel>())
+          {
+            <MudSelectItem T="ApplicationChannel" Value="channel">@VacancyText.Channel(channel)</MudSelectItem>
+          }
+        </MudSelect>
+        <MudDatePicker Class="apply-date" Label="Дата отклика" @bind-Date="_date" Editable="true"
+                       Error="HasError(nameof(ApplyInput.AppliedAt))" ErrorText="@ErrorOf(nameof(ApplyInput.AppliedAt))" />
+        <MudTextField T="string" Class="apply-cover-letter" Label="Сопроводительное письмо" Lines="4" Sizing="InputSizing.Auto"
+                      Immediate="true" @bind-Value="_coverLetter"
+                      Error="HasError(nameof(ApplyInput.CoverLetter))" ErrorText="@ErrorOf(nameof(ApplyInput.CoverLetter))" />
+      </MudStack>
+    }
+  </DialogContent>
+  <DialogActions>
+    <MudButton Class="apply-cancel" OnClick="Cancel">Отмена</MudButton>
+    <MudButton Class="apply-submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="@(_saving || !CanSubmit)"
+               OnClick="SubmitAsync">
+      Откликнуться
+    </MudButton>
+  </DialogActions>
+</MudDialog>
+
+@code {
+  private static readonly string[] FieldKeys =
+  [
+    nameof(ApplyInput.HypothesisId),
+    nameof(ApplyInput.CvVersionId),
+    nameof(ApplyInput.Channel),
+    nameof(ApplyInput.AppliedAt),
+    nameof(ApplyInput.CoverLetter),
+  ];
+
+  private ApplyOptions? _options;
+  private IReadOnlyDictionary<string, string> _errors = new Dictionary<string, string>();
+  private Guid _hypothesisId;
+  private Guid? _cvVersionId;
+  private ApplicationChannel _channel = ApplicationChannel.Website;
+  private DateTime? _date;
+  private string? _coverLetter;
+  private bool _saving;
+
+  [CascadingParameter]
+  private IMudDialogInstance MudDialog { get; set; } = null!;
+
+  [Parameter, EditorRequired]
+  public Guid VacancyId { get; set; }
+
+  [Parameter, EditorRequired]
+  public VacancyStage ExpectedStage { get; set; }
+
+  [Parameter]
+  public Guid? PreferredHypothesisId { get; set; }
+
+  private bool CanSubmit => _options is { Hypotheses.Count: > 0, CvVersions.Count: > 0 } && _cvVersionId is not null;
+
+  protected override async Task OnInitializedAsync()
+  {
+    _date = TimeProvider.GetUtcNow().UtcDateTime.Date;
+    _options = await VacancyService.GetApplyOptionsAsync(VacancyId);
+    if (_options.Hypotheses.Count > 0)
+    {
+      var preferred = _options.Hypotheses.FirstOrDefault(h => h.Id == PreferredHypothesisId) ?? _options.Hypotheses[0];
+      OnHypothesisChanged(preferred.Id);
+    }
+  }
+
+  private void OnHypothesisChanged(Guid hypothesisId)
+  {
+    _hypothesisId = hypothesisId;
+    _cvVersionId = _options!.Hypotheses.Single(h => h.Id == hypothesisId).DefaultCvVersionId;
+  }
+
+  private bool HasError(string key)
+  {
+    return _errors.ContainsKey(key);
+  }
+
+  private string? ErrorOf(string key)
+  {
+    return _errors.GetValueOrDefault(key);
+  }
+
+  private string? GeneralError()
+  {
+    var messages = _errors.Where(e => !FieldKeys.Contains(e.Key)).Select(e => e.Value).ToList();
+    return messages.Count == 0 ? null : string.Join(" ", messages);
+  }
+
+  private async Task SubmitAsync()
+  {
+    if (_saving) return;
+
+    var now = TimeProvider.GetUtcNow().UtcDateTime;
+    var appliedAt = AppliedAtConverter.ToAppliedAt(_date ?? now, now);
+
+    _saving = true;
+    try
+    {
+      var input = new ApplyInput(_hypothesisId, _cvVersionId!.Value, _channel, appliedAt, _coverLetter);
+      await VacancyService.ApplyAsync(VacancyId, ExpectedStage, input);
+      MudDialog.Close(DialogResult.Ok(true));
+    }
+    catch (ValidationFailedException ex)
+    {
+      _errors = ex.Errors;
+    }
+    finally
+    {
+      _saving = false;
+    }
+  }
+
+  private void Cancel()
+  {
+    MudDialog.Cancel();
+  }
+}

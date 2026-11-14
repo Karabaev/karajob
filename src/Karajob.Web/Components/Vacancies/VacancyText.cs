@@ -64,6 +64,31 @@ public static class VacancyText
     };
   }
 
+  public static string Outcome(ApplicationOutcome outcome)
+  {
+    return outcome switch
+    {
+      ApplicationOutcome.Offer => "Оффер",
+      ApplicationOutcome.Rejected => "Отказ",
+      ApplicationOutcome.Ghosted => "Без ответа",
+      ApplicationOutcome.Withdrawn => "Отозван",
+      _ => throw new ArgumentOutOfRangeException(nameof(outcome), outcome, null)
+    };
+  }
+
+  public static string Channel(ApplicationChannel channel)
+  {
+    return channel switch
+    {
+      ApplicationChannel.Website => "Сайт",
+      ApplicationChannel.Referral => "Реферал",
+      ApplicationChannel.Recruiter => "Рекрутер",
+      ApplicationChannel.ColdEmail => "Холодное письмо",
+      ApplicationChannel.Other => "Другое",
+      _ => throw new ArgumentOutOfRangeException(nameof(channel), channel, null)
+    };
+  }
+
   public static string Date(DateTime utc)
   {
     return utc.ToString(utc.TimeOfDay == TimeSpan.Zero ? "dd.MM.yyyy" : "dd.MM.yyyy HH:mm");

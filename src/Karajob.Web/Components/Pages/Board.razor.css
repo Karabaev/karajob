@@ -1,0 +1,34 @@
+.board-columns {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  align-items: flex-start;
+  padding-bottom: 8px;
+}
+
+.board-column {
+  flex: 1 0 280px;
+  min-width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.board-column-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.board-outcomes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.board-column ::deep .board-zone {
+  min-height: 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
