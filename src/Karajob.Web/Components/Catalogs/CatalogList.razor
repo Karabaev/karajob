@@ -3,17 +3,12 @@
 @inject IDialogService DialogService
 
 <MudStack Row="true" Wrap="Wrap.Wrap" AlignItems="AlignItems.Start" Spacing="2" Class="mb-4">
-  @* The wrappers track keystrokes: MudTextField without Immediate only raises onchange. *@
-  <div class="catalog-add-name" @oninput="OnNameInput">
-    <MudTextField T="string" Label="Название" @bind-Value="_name"
-                  Error="HasError(nameof(CatalogInput.Name))" ErrorText="@ErrorOf(nameof(CatalogInput.Name))" />
-  </div>
+  <MudTextField T="string" Class="catalog-add-name" Label="Название" Immediate="true" @bind-Value="_name"
+                Error="HasError(nameof(CatalogInput.Name))" ErrorText="@ErrorOf(nameof(CatalogInput.Name))" />
   @if (Kind == CatalogKind.Language)
   {
-    <div class="catalog-add-code" @oninput="OnCodeInput">
-      <MudTextField T="string" Label="Код" Placeholder="ru" @bind-Value="_code"
-                    Error="HasError(nameof(CatalogInput.Code))" ErrorText="@ErrorOf(nameof(CatalogInput.Code))" />
-    </div>
+    <MudTextField T="string" Class="catalog-add-code" Label="Код" Placeholder="ru" Immediate="true" @bind-Value="_code"
+                  Error="HasError(nameof(CatalogInput.Code))" ErrorText="@ErrorOf(nameof(CatalogInput.Code))" />
   }
   <MudButton Class="catalog-add" Variant="Variant.Filled" Color="Color.Primary" OnClick="AddAsync">Добавить</MudButton>
 </MudStack>
@@ -74,15 +69,7 @@
     return _errors.GetValueOrDefault(key);
   }
 
-  private void OnNameInput(ChangeEventArgs e)
-  {
-    _name = e.Value?.ToString();
-  }
 
-  private void OnCodeInput(ChangeEventArgs e)
-  {
-    _code = e.Value?.ToString();
-  }
 
   private async Task AddAsync()
   {

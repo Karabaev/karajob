@@ -80,7 +80,7 @@ public class HypothesisTests
 
     hypothesis.SetLocations([first, second]);
 
-    Assert.Equal([first, second], hypothesis.Locations.Select(l => l.LocationId).Order());
+    Assert.Equal([first, second], hypothesis.Locations.Select(l => l.LocationId));
     Assert.All(hypothesis.Locations, l =>
     {
       Assert.NotEqual(Guid.Empty, l.Id);

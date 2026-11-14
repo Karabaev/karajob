@@ -68,7 +68,6 @@ public class CatalogsPageTests : CatalogWebFixture
     TypeName(cut, "Deutsch");
     var code = cut.WaitForElement(".catalog-add-code input");
     code.Input("de");
-    code.Change("de");
 
     cut.Find(".catalog-add").Click();
 
@@ -105,6 +104,5 @@ public class CatalogsPageTests : CatalogWebFixture
   {
     var input = cut.WaitForElement(".catalog-add-name input");
     input.Input(name);
-    input.Change(name);
   }
 }
