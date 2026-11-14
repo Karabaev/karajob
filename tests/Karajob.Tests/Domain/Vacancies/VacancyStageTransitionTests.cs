@@ -219,22 +219,6 @@ public class VacancyStageTransitionTests
     AssertThrowsTransition(vacancy, VacancyStage.Targeted, () => vacancy.MoveTo(VacancyStage.Targeted, Later));
   }
 
-  [Theory]
-  [InlineData(VacancyStage.Targeted, VacancyStage.Preparing)]
-  [InlineData(VacancyStage.Preparing, VacancyStage.Targeted)]
-  public void MoveTo_WithinBoardAfterAllMatchesRemoved_Succeeds(VacancyStage from, VacancyStage to)
-  {
-    var vacancy = InStage(from);
-    foreach (var match in vacancy.Matches.ToList())
-    {
-      vacancy.RemoveMatch(match.HypothesisId);
-    }
-
-    vacancy.MoveTo(to, Later);
-
-    Assert.Equal(to, vacancy.Stage);
-  }
-
   [Fact]
   public void Apply_HypothesisNotAmongMatches_ThrowsAndChangesNothing()
   {

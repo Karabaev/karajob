@@ -1,6 +1,44 @@
 @page "/inbox"
+@inject VacancyService VacancyService
 
 <PageTitle>Inbox</PageTitle>
 
-<MudText Typo="Typo.h4" HtmlTag="h1" GutterBottom="true">Inbox</MudText>
-<MudText Class="mud-text-secondary">Раздел в разработке.</MudText>
+<MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
+  <MudText Typo="Typo.h4" HtmlTag="h1">Inbox</MudText>
+  <MudButton Class="inbox-add" Href="/vacancies/new" Variant="Variant.Filled" Color="Color.Primary">Добавить вручную</MudButton>
+</MudStack>
+
+@if (_items is null)
+{
+  <MudProgressLinear Indeterminate="true" />
+}
+else if (_items.Count == 0)
+{
+  <MudText Class="inbox-empty mud-text-secondary">В Inbox пока пусто.</MudText>
+}
+else
+{
+  <MudTable Items="_items" Breakpoint="Breakpoint.Sm" Hover="true" Dense="true">
+    <HeaderContent>
+      <MudTh>Компания</MudTh>
+      <MudTh>Роль</MudTh>
+      <MudTh>Ссылка</MudTh>
+      <MudTh>Найдена</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+      <MudTd DataLabel="Компания">@(context.CompanyName ?? "—")</MudTd>
+      <MudTd DataLabel="Роль">@(context.RoleName ?? "—")</MudTd>
+      <MudTd DataLabel="Ссылка"><MudLink Href="@($"/vacancies/{context.Id}")" Style="overflow-wrap: anywhere;">@context.Url</MudLink></MudTd>
+      <MudTd DataLabel="Найдена">@VacancyText.Date(context.DiscoveredAt)</MudTd>
+    </RowTemplate>
+  </MudTable>
+}
+
+@code {
+  private IReadOnlyList<VacancyListItem>? _items;
+
+  protected override async Task OnInitializedAsync()
+  {
+    _items = await VacancyService.ListAsync(VacancyStage.Inbox);
+  }
+}

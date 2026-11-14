@@ -4,6 +4,7 @@ using Karajob.Application.Cvs;
 using Karajob.Application.Files;
 using Karajob.Application.Hypotheses;
 using Karajob.Application.Persistence;
+using Karajob.Application.Vacancies;
 using Karajob.Infrastructure.Users;
 using Karajob.Tests.Infrastructure.Persistence;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -35,6 +36,11 @@ internal class TestDbContextFactory(SqliteTestDatabase database, Guid userId) : 
     CvOptions options)
   {
     return new CvService(new TestDbContextFactory(database, userId), new FixedCurrentUser(userId), fileStorage, timeProvider, options, NullLogger<CvService>.Instance);
+  }
+
+  public static VacancyService CreateVacancyService(SqliteTestDatabase database, Guid userId, TimeProvider timeProvider)
+  {
+    return new VacancyService(new TestDbContextFactory(database, userId), new FixedCurrentUser(userId), timeProvider);
   }
 
   public Task<IKarajobDbContext> CreateDbContextAsync(CancellationToken cancellationToken = default)

@@ -1,0 +1,106 @@
+@inject VacancyService VacancyService
+@inject TimeProvider TimeProvider
+
+<MudDialog>
+  <DialogContent>
+    <MudStack Spacing="2">
+      @if (_errors.TryGetValue("", out var general))
+      {
+        <MudAlert Severity="Severity.Error">@general</MudAlert>
+      }
+      <MudSelect T="ApplicationEventType" Class="event-type" Label="Тип" @bind-Value="_type"
+                 Error="HasError(nameof(VacancyEventInput.Type))" ErrorText="@ErrorOf(nameof(VacancyEventInput.Type))">
+        @foreach (var type in AllowedTypes())
+        {
+          <MudSelectItem T="ApplicationEventType" Value="type">@VacancyText.EventType(type)</MudSelectItem>
+        }
+      </MudSelect>
+      <MudDatePicker Class="event-date" Label="Дата" @bind-Date="_date" Editable="true" MinDate="DiscoveredAt.Date"
+                     Error="HasError(OccurredAtKey)" ErrorText="@ErrorOf(OccurredAtKey)" />
+      <MudTextField T="string" Class="event-note" Label="Заметка" Lines="3" Sizing="InputSizing.Auto" Immediate="true" @bind-Value="_note"
+                    Error="HasError(nameof(VacancyEventInput.Note))" ErrorText="@ErrorOf(nameof(VacancyEventInput.Note))" />
+    </MudStack>
+  </DialogContent>
+  <DialogActions>
+    <MudButton OnClick="Cancel">Отмена</MudButton>
+    <MudButton Class="event-save" Color="Color.Primary" Variant="Variant.Filled" Disabled="_saving" OnClick="SaveAsync">Добавить</MudButton>
+  </DialogActions>
+</MudDialog>
+
+@code {
+  private const string OccurredAtKey = "OccurredAt";
+
+  private IReadOnlyDictionary<string, string> _errors = new Dictionary<string, string>();
+  private ApplicationEventType _type = ApplicationEventType.Note;
+  private DateTime? _date;
+  private string? _note;
+  private bool _saving;
+
+  [CascadingParameter]
+  private IMudDialogInstance MudDialog { get; set; } = null!;
+
+  [Parameter, EditorRequired]
+  public Guid VacancyId { get; set; }
+
+  [Parameter]
+  public bool HasApplication { get; set; }
+
+  [Parameter, EditorRequired]
+  public DateTime DiscoveredAt { get; set; }
+
+  protected override void OnInitialized()
+  {
+    _date = TimeProvider.GetUtcNow().UtcDateTime.Date;
+  }
+
+  private IEnumerable<ApplicationEventType> AllowedTypes()
+  {
+    if (HasApplication)
+    {
+      yield return ApplicationEventType.Screening;
+      yield return ApplicationEventType.TechInterview;
+      yield return ApplicationEventType.TestTask;
+    }
+
+    yield return ApplicationEventType.Note;
+  }
+
+  private bool HasError(string key)
+  {
+    return _errors.ContainsKey(key);
+  }
+
+  private string? ErrorOf(string key)
+  {
+    return _errors.GetValueOrDefault(key);
+  }
+
+  private async Task SaveAsync()
+  {
+    if (_saving) return;
+
+    var now = TimeProvider.GetUtcNow().UtcDateTime;
+    var date = _date?.Date ?? now.Date;
+    var at = date == now.Date ? now : DateTime.SpecifyKind(date, DateTimeKind.Utc);
+
+    _saving = true;
+    try
+    {
+      var item = await VacancyService.AddEventAsync(VacancyId, new VacancyEventInput(_type, at, _note));
+      MudDialog.Close(DialogResult.Ok(item));
+    }
+    catch (ValidationFailedException exception)
+    {
+      _errors = exception.Errors;
+    }
+    finally
+    {
+      _saving = false;
+    }
+  }
+
+  private void Cancel()
+  {
+    MudDialog.Cancel();
+  }
+}
