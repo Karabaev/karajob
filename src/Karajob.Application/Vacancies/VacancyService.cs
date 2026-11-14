@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Karajob.Application.Vacancies;
 
-public class VacancyService(IKarajobDbContextFactory dbContextFactory, ICurrentUser currentUser, TimeProvider timeProvider)
+public partial class VacancyService(IKarajobDbContextFactory dbContextFactory, ICurrentUser currentUser, TimeProvider timeProvider)
 {
   private static readonly TimeSpan SimilarWindow = TimeSpan.FromDays(30);
 

@@ -67,3 +67,22 @@ public record QuickAddInput(string Url, string? Note);
 public record QuickAddResult(Guid VacancyId, bool AlreadyExisted, VacancyStage Stage);
 
 public record DismissInput(DismissReason Reason, string? Comment);
+
+public record BoardCard(
+  Guid Id,
+  string Url,
+  string? CompanyName,
+  string? RoleName,
+  VacancyStage Stage,
+  ApplicationOutcome? Outcome,
+  DateTime DiscoveredAt);
+
+public record BoardView(IReadOnlyList<BoardCard> Cards, IReadOnlyDictionary<ApplicationOutcome, int> ClosedOutcomes);
+
+public record ApplyInput(Guid HypothesisId, Guid CvVersionId, ApplicationChannel Channel, DateTime AppliedAt, string? CoverLetter);
+
+public record ApplyOptions(IReadOnlyList<ApplyHypothesisOption> Hypotheses, IReadOnlyList<CvVersionOption> CvVersions);
+
+public record ApplyHypothesisOption(Guid Id, string Name, Guid? DefaultCvVersionId);
+
+public record CvVersionOption(Guid Id, string CvName, string FileName, DateTime CreatedAt);

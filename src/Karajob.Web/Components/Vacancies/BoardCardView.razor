@@ -1,0 +1,12 @@
+<div class="board-card-view"></div>
+
+@code {
+  [Parameter, EditorRequired]
+  public BoardCard Card { get; set; } = null!;
+
+  [Parameter]
+  public EventCallback<VacancyStage> OnMoveRequested { get; set; }
+
+  [Parameter]
+  public EventCallback OnDismissRequested { get; set; }
+}
