@@ -29,7 +29,14 @@ public class CvDocument : IUserOwned
 
   public void RemoveVersion(Guid versionId)
   {
-    throw new NotImplementedException();
+    var version = versions.FirstOrDefault(v => v.Id == versionId)
+      ?? throw new KeyNotFoundException($"CV version {versionId} was not found.");
+    if (versions.Count == 1)
+    {
+      throw new InvalidOperationException("A CV must keep at least one version.");
+    }
+
+    versions.Remove(version);
   }
 
   public CvDocument(Guid userId, string name, Guid languageId, DateTime createdAt)

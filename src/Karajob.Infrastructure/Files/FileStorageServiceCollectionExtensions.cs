@@ -7,6 +7,8 @@ public static class FileStorageServiceCollectionExtensions
 {
   public static IServiceCollection AddKarajobFileStorage(this IServiceCollection services, FileStorageOptions options)
   {
-    throw new NotImplementedException();
+    services.AddSingleton(options);
+    services.AddSingleton<IFileStorage, LocalFileStorage>();
+    return services;
   }
 }
