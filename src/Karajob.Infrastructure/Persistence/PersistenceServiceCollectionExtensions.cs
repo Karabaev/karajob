@@ -43,7 +43,13 @@ public static class PersistenceServiceCollectionExtensions
   public static IServiceCollection AddKarajobDailyBackup(
     this IServiceCollection services, DatabaseOptions databaseOptions, BackupOptions options)
   {
-    throw new NotImplementedException();
+    ArgumentOutOfRangeException.ThrowIfNegativeOrZero(options.KeepDaily, $"{BackupOptions.SectionName}:{nameof(BackupOptions.KeepDaily)}");
+    // An in-memory database has nothing worth keeping across restarts.
+    if (databaseOptions.Provider != DatabaseOptions.SqliteProvider) return services;
+
+    services.AddSingleton(options);
+    services.AddSingleton<DailyDatabaseBackup>();
+    return services;
   }
 
   private static void AddSqliteContextFactory(IServiceCollection services, string connectionString, bool keepAlive)

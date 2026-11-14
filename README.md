@@ -8,6 +8,7 @@ Self-hosted: один Docker-контейнер (ASP.NET Core + Blazor Server + 
 - Роадмап и чек-листы фаз: [docs/roadmap.md](docs/roadmap.md)
 - Бэклог идей вне текущей фазы: [docs/backlog.md](docs/backlog.md)
 - Архитектурные решения (ADR): [docs/adr/](docs/adr/)
+- Выкат и восстановление: [docs/deploy.md](docs/deploy.md)
 
 ## Запуск в Docker
 
@@ -19,7 +20,9 @@ mkdir -p data && sudo chown 1654:1654 data   # только Linux: контей�
 docker compose up -d --build
 ```
 
-Приложение — на `http://<хост>:8080` (порт и папка данных — в `.env`). Обновление: `git pull && docker compose up -d --build`; миграции применятся при старте, перед ними база копируется в `data/backups/`. Бэкап — копия папки `data/`.
+Приложение — на `http://<хост>:8080` (порт и папка данных — в `.env`). Обновление: `git pull && docker compose up -d --build`; миграции применятся при старте, перед ними база копируется в `data/backups/`. Раз в сутки приложение кладёт снимок базы в `data/backups/daily/`.
+
+Выкат на домашний сервер, бэкап вне сервера (restic), восстановление и откат: [docs/deploy.md](docs/deploy.md).
 
 Проверка, что пересборка образа и пересоздание контейнера не теряют данные (её же гоняет CI):
 

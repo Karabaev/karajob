@@ -60,14 +60,7 @@ public class DatabaseInitializer(
     Directory.CreateDirectory(backupsDirectory);
     var timestamp = timeProvider.GetUtcNow().UtcDateTime.ToString("yyyyMMdd-HHmmss");
     var backupPath = Path.Combine(backupsDirectory, $"{timestamp}-before-{targetMigration}.db");
-
-    using var source = new SqliteConnection(options.ConnectionString);
-    // Unpooled, so the backup file is not kept open after the copy.
-    using var destination = new SqliteConnection(
-      new SqliteConnectionStringBuilder { DataSource = backupPath, Pooling = false }.ToString());
-    source.Open();
-    destination.Open();
-    source.BackupDatabase(destination);
+    SqliteBackup.Copy(options.ConnectionString!, backupPath);
 
     logger.LogInformation("Backed up database to {BackupPath}", backupPath);
     return backupPath;

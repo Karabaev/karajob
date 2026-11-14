@@ -9,6 +9,7 @@ using Karajob.Infrastructure.Persistence;
 using Karajob.Infrastructure.Users;
 using Karajob.Web.Components;
 using Karajob.Web.Cvs;
+using Karajob.Web.Persistence;
 using Karajob.Web.Vacancies;
 using MudBlazor.Services;
 using Microsoft.AspNetCore.DataProtection;
@@ -29,6 +30,13 @@ if (!string.IsNullOrWhiteSpace(keysDirectory))
 var databaseOptions = builder.Configuration.GetRequiredSection(DatabaseOptions.SectionName).Get<DatabaseOptions>()
   ?? throw new InvalidOperationException($"Configuration section '{DatabaseOptions.SectionName}' is empty.");
 builder.Services.AddKarajobPersistence(databaseOptions);
+var backupOptions = builder.Configuration.GetRequiredSection(BackupOptions.SectionName).Get<BackupOptions>()
+  ?? throw new InvalidOperationException($"Configuration section '{BackupOptions.SectionName}' is empty.");
+builder.Services.AddKarajobDailyBackup(databaseOptions, backupOptions);
+if (databaseOptions.Provider == DatabaseOptions.SqliteProvider)
+{
+  builder.Services.AddHostedService<DailyBackupHostedService>();
+}
 // Single seeded user until profile selection lands (Phase 0.5).
 builder.Services.AddSingleton<ICurrentUser>(new FixedCurrentUser(SeedData.OwnerId));
 builder.Services.AddScoped<CompanyService>();
