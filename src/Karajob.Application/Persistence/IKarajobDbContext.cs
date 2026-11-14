@@ -1,4 +1,5 @@
 using Karajob.Domain.Applications;
+using Karajob.Domain.Catalogs;
 using Karajob.Domain.Companies;
 using Karajob.Domain.Cvs;
 using Karajob.Domain.Hypotheses;
@@ -16,7 +17,11 @@ public interface IKarajobDbContext : IAsyncDisposable
   DbSet<CompanyAlias> CompanyAliases { get; }
   DbSet<Project> Projects { get; }
   DbSet<UserCompanyNote> UserCompanyNotes { get; }
+  DbSet<Role> Roles { get; }
+  DbSet<Location> Locations { get; }
+  DbSet<Language> Languages { get; }
   DbSet<Hypothesis> Hypotheses { get; }
+  DbSet<HypothesisLocation> HypothesisLocations { get; }
   DbSet<CvDocument> CvDocuments { get; }
   DbSet<CvVersion> CvVersions { get; }
   DbSet<Vacancy> Vacancies { get; }

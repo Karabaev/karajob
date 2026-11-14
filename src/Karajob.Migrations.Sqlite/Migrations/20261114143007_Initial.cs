@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+
 namespace Karajob.Migrations.Sqlite.Migrations
 {
     /// <inheritdoc />
@@ -25,6 +27,46 @@ namespace Karajob.Migrations.Sqlite.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Companies", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Languages",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    Code = table.Column<string>(type: "TEXT", nullable: false),
+                    Name = table.Column<string>(type: "TEXT", nullable: false),
+                    NormalizedName = table.Column<string>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Languages", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Locations",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    Name = table.Column<string>(type: "TEXT", nullable: false),
+                    NormalizedName = table.Column<string>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Locations", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Roles",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    Name = table.Column<string>(type: "TEXT", nullable: false),
+                    NormalizedName = table.Column<string>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Roles", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -108,12 +150,18 @@ namespace Karajob.Migrations.Sqlite.Migrations
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
                     UserId = table.Column<Guid>(type: "TEXT", nullable: false),
                     Name = table.Column<string>(type: "TEXT", nullable: false),
-                    Language = table.Column<string>(type: "TEXT", nullable: false),
+                    LanguageId = table.Column<Guid>(type: "TEXT", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_CvDocuments", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_CvDocuments_Languages_LanguageId",
+                        column: x => x.LanguageId,
+                        principalTable: "Languages",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_CvDocuments_Users_UserId",
                         column: x => x.UserId,
@@ -156,9 +204,10 @@ namespace Karajob.Migrations.Sqlite.Migrations
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
                     UserId = table.Column<Guid>(type: "TEXT", nullable: false),
                     CompanyId = table.Column<Guid>(type: "TEXT", nullable: true),
-                    Role = table.Column<string>(type: "TEXT", nullable: true),
+                    RoleId = table.Column<Guid>(type: "TEXT", nullable: true),
                     Url = table.Column<string>(type: "TEXT", nullable: false),
-                    Location = table.Column<string>(type: "TEXT", nullable: true),
+                    LocationId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    LanguageId = table.Column<Guid>(type: "TEXT", nullable: true),
                     WorkFormat = table.Column<int>(type: "INTEGER", nullable: true),
                     Description = table.Column<string>(type: "TEXT", nullable: true),
                     Notes = table.Column<string>(type: "TEXT", nullable: true),
@@ -178,6 +227,24 @@ namespace Karajob.Migrations.Sqlite.Migrations
                         name: "FK_Vacancies_Companies_CompanyId",
                         column: x => x.CompanyId,
                         principalTable: "Companies",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Vacancies_Languages_LanguageId",
+                        column: x => x.LanguageId,
+                        principalTable: "Languages",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Vacancies_Locations_LocationId",
+                        column: x => x.LocationId,
+                        principalTable: "Locations",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Vacancies_Roles_RoleId",
+                        column: x => x.RoleId,
+                        principalTable: "Roles",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
@@ -226,11 +293,10 @@ namespace Karajob.Migrations.Sqlite.Migrations
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
                     UserId = table.Column<Guid>(type: "TEXT", nullable: false),
                     Name = table.Column<string>(type: "TEXT", nullable: false),
-                    Role = table.Column<string>(type: "TEXT", nullable: false),
-                    Locations = table.Column<string>(type: "TEXT", nullable: false),
+                    RoleId = table.Column<Guid>(type: "TEXT", nullable: false),
                     Industries = table.Column<string>(type: "TEXT", nullable: false),
                     WorkFormat = table.Column<int>(type: "INTEGER", nullable: false),
-                    Language = table.Column<string>(type: "TEXT", nullable: false),
+                    LanguageId = table.Column<Guid>(type: "TEXT", nullable: false),
                     Positioning = table.Column<string>(type: "TEXT", nullable: true),
                     PrimaryCvDocumentId = table.Column<Guid>(type: "TEXT", nullable: true),
                     Status = table.Column<int>(type: "INTEGER", nullable: false),
@@ -244,6 +310,18 @@ namespace Karajob.Migrations.Sqlite.Migrations
                         name: "FK_Hypotheses_CvDocuments_PrimaryCvDocumentId",
                         column: x => x.PrimaryCvDocumentId,
                         principalTable: "CvDocuments",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Hypotheses_Languages_LanguageId",
+                        column: x => x.LanguageId,
+                        principalTable: "Languages",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Hypotheses_Roles_RoleId",
+                        column: x => x.RoleId,
+                        principalTable: "Roles",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
@@ -282,6 +360,38 @@ namespace Karajob.Migrations.Sqlite.Migrations
                         principalTable: "Vacancies",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "HypothesisLocations",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    UserId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    HypothesisId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    LocationId = table.Column<Guid>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_HypothesisLocations", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_HypothesisLocations_Hypotheses_HypothesisId",
+                        column: x => x.HypothesisId,
+                        principalTable: "Hypotheses",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_HypothesisLocations_Locations_LocationId",
+                        column: x => x.LocationId,
+                        principalTable: "Locations",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_HypothesisLocations_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -363,6 +473,34 @@ namespace Karajob.Migrations.Sqlite.Migrations
                 });
 
             migrationBuilder.InsertData(
+                table: "Languages",
+                columns: new[] { "Id", "Code", "Name", "NormalizedName" },
+                values: new object[,]
+                {
+                    { new Guid("019a7c1e-0000-7000-8000-000000000301"), "ru", "Русский", "русский" },
+                    { new Guid("019a7c1e-0000-7000-8000-000000000302"), "en", "English", "english" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "Locations",
+                columns: new[] { "Id", "Name", "NormalizedName" },
+                values: new object[,]
+                {
+                    { new Guid("019a7c1e-0000-7000-8000-000000000201"), "EU", "eu" },
+                    { new Guid("019a7c1e-0000-7000-8000-000000000202"), "USA", "usa" },
+                    { new Guid("019a7c1e-0000-7000-8000-000000000203"), "Serbia", "serbia" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "Roles",
+                columns: new[] { "Id", "Name", "NormalizedName" },
+                values: new object[,]
+                {
+                    { new Guid("019a7c1e-0000-7000-8000-000000000101"), "Unity Developer", "unity developer" },
+                    { new Guid("019a7c1e-0000-7000-8000-000000000102"), "Unreal Developer", "unreal developer" }
+                });
+
+            migrationBuilder.InsertData(
                 table: "Users",
                 columns: new[] { "Id", "CreatedAt", "Name" },
                 values: new object[] { new Guid("019a7c1e-0000-7000-8000-000000000001"), new DateTime(2026, 11, 13, 0, 0, 0, 0, DateTimeKind.Utc), "Owner" });
@@ -406,6 +544,11 @@ namespace Karajob.Migrations.Sqlite.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_CvDocuments_LanguageId",
+                table: "CvDocuments",
+                column: "LanguageId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_CvDocuments_UserId",
                 table: "CvDocuments",
                 column: "UserId");
@@ -421,13 +564,39 @@ namespace Karajob.Migrations.Sqlite.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Hypotheses_LanguageId",
+                table: "Hypotheses",
+                column: "LanguageId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Hypotheses_PrimaryCvDocumentId",
                 table: "Hypotheses",
                 column: "PrimaryCvDocumentId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Hypotheses_RoleId",
+                table: "Hypotheses",
+                column: "RoleId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Hypotheses_UserId",
                 table: "Hypotheses",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_HypothesisLocations_HypothesisId_LocationId",
+                table: "HypothesisLocations",
+                columns: new[] { "HypothesisId", "LocationId" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_HypothesisLocations_LocationId",
+                table: "HypothesisLocations",
+                column: "LocationId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_HypothesisLocations_UserId",
+                table: "HypothesisLocations",
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
@@ -452,9 +621,33 @@ namespace Karajob.Migrations.Sqlite.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_Languages_Code",
+                table: "Languages",
+                column: "Code",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Languages_NormalizedName",
+                table: "Languages",
+                column: "NormalizedName",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Locations_NormalizedName",
+                table: "Locations",
+                column: "NormalizedName",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Projects_CompanyId",
                 table: "Projects",
                 column: "CompanyId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Roles_NormalizedName",
+                table: "Roles",
+                column: "NormalizedName",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserCompanyNotes_CompanyId",
@@ -471,6 +664,21 @@ namespace Karajob.Migrations.Sqlite.Migrations
                 name: "IX_Vacancies_CompanyId",
                 table: "Vacancies",
                 column: "CompanyId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Vacancies_LanguageId",
+                table: "Vacancies",
+                column: "LanguageId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Vacancies_LocationId",
+                table: "Vacancies",
+                column: "LocationId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Vacancies_RoleId",
+                table: "Vacancies",
+                column: "RoleId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Vacancies_UserId_Url",
@@ -508,6 +716,9 @@ namespace Karajob.Migrations.Sqlite.Migrations
                 name: "CompanyDomains");
 
             migrationBuilder.DropTable(
+                name: "HypothesisLocations");
+
+            migrationBuilder.DropTable(
                 name: "JobApplications");
 
             migrationBuilder.DropTable(
@@ -533,6 +744,15 @@ namespace Karajob.Migrations.Sqlite.Migrations
 
             migrationBuilder.DropTable(
                 name: "Companies");
+
+            migrationBuilder.DropTable(
+                name: "Locations");
+
+            migrationBuilder.DropTable(
+                name: "Roles");
+
+            migrationBuilder.DropTable(
+                name: "Languages");
 
             migrationBuilder.DropTable(
                 name: "Users");

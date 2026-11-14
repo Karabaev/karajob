@@ -99,6 +99,14 @@ public static partial class Normalize
     return WhitespacePattern().Replace(value.Trim(), " ").ToLowerInvariant();
   }
 
+  public static string LanguageCode(string value, [CallerArgumentExpression(nameof(value))] string? paramName = null)
+  {
+    ArgumentException.ThrowIfNullOrWhiteSpace(value, paramName);
+    var code = value.Trim().ToLowerInvariant();
+    if (!LanguageCodePattern().IsMatch(code)) throw new ArgumentException($"'{value}' is not a valid language code.", paramName);
+    return code;
+  }
+
   public static string WebUrl(string value, [CallerArgumentExpression(nameof(value))] string? paramName = null)
   {
     ParseHttpUrl(value, paramName);
@@ -175,6 +183,9 @@ public static partial class Normalize
 
   [GeneratedRegex("^[a-z0-9]+(-[a-z0-9]+)*$")]
   private static partial Regex SlugPattern();
+
+  [GeneratedRegex("^[a-z]{2,3}$")]
+  private static partial Regex LanguageCodePattern();
 
   [GeneratedRegex(@"\s+")]
   private static partial Regex WhitespacePattern();

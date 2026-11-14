@@ -1,0 +1,134 @@
+@inject CatalogService CatalogService
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<MudStack Row="true" Wrap="Wrap.Wrap" AlignItems="AlignItems.Start" Spacing="2" Class="mb-4">
+  <MudTextField T="string" Class="catalog-add-name" Label="Название" Immediate="true" @bind-Value="_name"
+                Error="HasError(nameof(CatalogInput.Name))" ErrorText="@ErrorOf(nameof(CatalogInput.Name))" />
+  @if (Kind == CatalogKind.Language)
+  {
+    <MudTextField T="string" Class="catalog-add-code" Label="Код" Placeholder="ru" Immediate="true" @bind-Value="_code"
+                  Error="HasError(nameof(CatalogInput.Code))" ErrorText="@ErrorOf(nameof(CatalogInput.Code))" />
+  }
+  <MudButton Class="catalog-add" Variant="Variant.Filled" Color="Color.Primary" OnClick="AddAsync">Добавить</MudButton>
+</MudStack>
+
+<MudTable T="CatalogListItem" Items="_items" Breakpoint="Breakpoint.Sm" Dense="true" Hover="true"
+          RowClass="catalog-row" Loading="_loading">
+  <HeaderContent>
+    <MudTh>Название</MudTh>
+    @if (Kind == CatalogKind.Language)
+    {
+      <MudTh>Код</MudTh>
+    }
+    <MudTh></MudTh>
+  </HeaderContent>
+  <RowTemplate>
+    <MudTd DataLabel="Название"><span class="catalog-name">@context.Name</span></MudTd>
+    @if (Kind == CatalogKind.Language)
+    {
+      <MudTd DataLabel="Код">@context.Code</MudTd>
+    }
+    <MudTd>
+      <MudIconButton Class="catalog-rename" Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
+                     OnClick="() => RenameAsync(context)" aria-label="Переименовать" />
+      <MudIconButton Class="catalog-delete" Icon="@Icons.Material.Filled.Delete" Size="Size.Small"
+                     OnClick="() => DeleteAsync(context)" aria-label="Удалить" />
+    </MudTd>
+  </RowTemplate>
+</MudTable>
+
+@code {
+  private IReadOnlyList<CatalogListItem> _items = [];
+  private IReadOnlyDictionary<string, string> _errors = new Dictionary<string, string>();
+  private string? _name;
+  private string? _code;
+  private bool _loading = true;
+
+  [Parameter, EditorRequired]
+  public CatalogKind Kind { get; set; }
+
+  protected override async Task OnInitializedAsync()
+  {
+    await ReloadAsync();
+  }
+
+  private async Task ReloadAsync()
+  {
+    _items = await CatalogService.ListAsync(Kind);
+    _loading = false;
+  }
+
+  private bool HasError(string key)
+  {
+    return _errors.ContainsKey(key);
+  }
+
+  private string? ErrorOf(string key)
+  {
+    return _errors.GetValueOrDefault(key);
+  }
+
+
+
+  private async Task AddAsync()
+  {
+    try
+    {
+      await CatalogService.CreateAsync(Kind, new CatalogInput(_name ?? string.Empty, _code));
+    }
+    catch (ValidationFailedException ex)
+    {
+      _errors = ex.Errors;
+      return;
+    }
+
+    _errors = new Dictionary<string, string>();
+    _name = null;
+    _code = null;
+    await ReloadAsync();
+  }
+
+  private async Task RenameAsync(CatalogListItem item)
+  {
+    var parameters = new DialogParameters<RenameCatalogDialog>
+    {
+      { d => d.Kind, Kind },
+      { d => d.Item, item },
+    };
+    var dialog = await DialogService.ShowAsync<RenameCatalogDialog>("Переименовать", parameters);
+    var result = await dialog.Result;
+    if (result is { Canceled: false })
+    {
+      await ReloadAsync();
+    }
+  }
+
+  private async Task DeleteAsync(CatalogListItem item)
+  {
+    var confirmed = await DialogService.ShowMessageBoxAsync(
+      "Удалить запись?",
+      $"«{item.Name}» будет удалена.",
+      yesText: "Удалить",
+      cancelText: "Отмена");
+    if (confirmed != true)
+    {
+      return;
+    }
+
+    try
+    {
+      await CatalogService.DeleteAsync(Kind, item.Id);
+    }
+    catch (ValidationFailedException ex)
+    {
+      Snackbar.Add(string.Join(" ", ex.Errors.Values), Severity.Error);
+      return;
+    }
+    catch (KeyNotFoundException)
+    {
+    }
+
+    await ReloadAsync();
+  }
+}

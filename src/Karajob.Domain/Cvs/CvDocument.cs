@@ -9,7 +9,7 @@ public class CvDocument : IUserOwned
   public Guid Id { get; private set; }
   public Guid UserId { get; private set; }
   public string Name { get; set => field = Require.NotBlank(value); }
-  public string Language { get; set => field = Require.NotBlank(value); }
+  public Guid LanguageId { get; set => field = Require.NotEmpty(value); }
   public DateTime CreatedAt { get; private set; }
   public IReadOnlyCollection<CvVersion> Versions => versions;
 
@@ -26,12 +26,12 @@ public class CvDocument : IUserOwned
     return version;
   }
 
-  public CvDocument(Guid userId, string name, string language, DateTime createdAt)
+  public CvDocument(Guid userId, string name, Guid languageId, DateTime createdAt)
   {
     Id = Guid.CreateVersion7();
     UserId = Require.NotEmpty(userId);
     Name = name;
-    Language = language;
+    LanguageId = languageId;
     CreatedAt = UtcGuard.Ensure(createdAt);
   }
 }

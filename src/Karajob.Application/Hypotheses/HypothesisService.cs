@@ -12,11 +12,13 @@ public class HypothesisService(IKarajobDbContextFactory dbContextFactory, ICurre
   {
     await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
     var hypotheses = await db.Hypotheses.AsNoTracking().ToListAsync(cancellationToken);
+    var roleNames = await db.Roles.AsNoTracking().ToDictionaryAsync(r => r.Id, r => r.Name, cancellationToken);
+    var languageCodes = await db.Languages.AsNoTracking().ToDictionaryAsync(l => l.Id, l => l.Code, cancellationToken);
 
     return hypotheses
       .OrderBy(h => StatusRank(h.Status))
       .ThenBy(h => h.Name, StringComparer.OrdinalIgnoreCase)
-      .Select(h => new HypothesisListItem(h.Id, h.Name, h.Role, h.WorkFormat, h.Language, h.Status))
+      .Select(h => new HypothesisListItem(h.Id, h.Name, roleNames[h.RoleId], h.WorkFormat, languageCodes[h.LanguageId], h.Status))
       .ToList();
   }
 
@@ -33,7 +35,7 @@ public class HypothesisService(IKarajobDbContextFactory dbContextFactory, ICurre
     var normalized = await ValidateAsync(db, input, cancellationToken);
     var now = timeProvider.GetUtcNow().UtcDateTime;
 
-    var hypothesis = new Hypothesis(currentUser.UserId, normalized.Name, normalized.Role, normalized.Language, now);
+    var hypothesis = new Hypothesis(currentUser.UserId, normalized.Name, normalized.RoleId, normalized.LanguageId, now);
     Apply(hypothesis, normalized, input, now);
 
     db.Hypotheses.Add(hypothesis);
@@ -50,8 +52,8 @@ public class HypothesisService(IKarajobDbContextFactory dbContextFactory, ICurre
     var now = timeProvider.GetUtcNow().UtcDateTime;
 
     hypothesis.Name = normalized.Name;
-    hypothesis.Role = normalized.Role;
-    hypothesis.Language = normalized.Language;
+    hypothesis.RoleId = normalized.RoleId;
+    hypothesis.LanguageId = normalized.LanguageId;
     Apply(hypothesis, normalized, input, now);
 
     await db.SaveChangesAsync(cancellationToken);
@@ -82,16 +84,16 @@ public class HypothesisService(IKarajobDbContextFactory dbContextFactory, ICurre
   {
     await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
     var documents = await db.CvDocuments.AsNoTracking().ToListAsync(cancellationToken);
+    var languageCodes = await db.Languages.AsNoTracking().ToDictionaryAsync(l => l.Id, l => l.Code, cancellationToken);
     return documents
       .OrderBy(d => d.Name, StringComparer.OrdinalIgnoreCase)
-      .Select(d => new CvOption(d.Id, d.Name, d.Language))
+      .Select(d => new CvOption(d.Id, d.Name, languageCodes[d.LanguageId]))
       .ToList();
   }
 
   private static void Apply(Hypothesis hypothesis, NormalizedHypothesis normalized, HypothesisInput input, DateTime now)
   {
-    hypothesis.Locations.Clear();
-    hypothesis.Locations.AddRange(normalized.Locations);
+    hypothesis.SetLocations(input.LocationIds);
     hypothesis.Industries.Clear();
     hypothesis.Industries.AddRange(normalized.Industries);
     hypothesis.WorkFormat = input.WorkFormat;
@@ -110,16 +112,30 @@ public class HypothesisService(IKarajobDbContextFactory dbContextFactory, ICurre
       errors[nameof(HypothesisInput.Name)] = "Укажите название";
     }
 
-    var role = BlankToNull(input.Role);
-    if (role is null)
+    var roleId = input.RoleId.GetValueOrDefault();
+    if (input.RoleId is null)
     {
-      errors[nameof(HypothesisInput.Role)] = "Укажите роль";
+      errors[nameof(HypothesisInput.RoleId)] = "Укажите роль";
+    }
+    else if (!await db.Roles.AnyAsync(r => r.Id == roleId, cancellationToken))
+    {
+      errors[nameof(HypothesisInput.RoleId)] = "Роль не найдена";
     }
 
-    var language = BlankToNull(input.Language)?.ToLowerInvariant();
-    if (language is null)
+    var languageId = input.LanguageId.GetValueOrDefault();
+    if (input.LanguageId is null)
     {
-      errors[nameof(HypothesisInput.Language)] = "Укажите язык";
+      errors[nameof(HypothesisInput.LanguageId)] = "Укажите язык";
+    }
+    else if (!await db.Languages.AnyAsync(l => l.Id == languageId, cancellationToken))
+    {
+      errors[nameof(HypothesisInput.LanguageId)] = "Язык не найден";
+    }
+
+    var locationIds = input.LocationIds.Distinct().ToList();
+    if (locationIds.Count > 0 && await db.Locations.CountAsync(l => locationIds.Contains(l.Id), cancellationToken) != locationIds.Count)
+    {
+      errors[nameof(HypothesisInput.LocationIds)] = "Локация не найдена";
     }
 
     if (input.WorkFormat == WorkFormat.None)
@@ -137,7 +153,7 @@ public class HypothesisService(IKarajobDbContextFactory dbContextFactory, ICurre
       throw new ValidationFailedException(errors);
     }
 
-    return new NormalizedHypothesis(name!, role!, language!, CleanList(input.Locations), CleanList(input.Industries), BlankToNull(input.Positioning));
+    return new NormalizedHypothesis(name!, roleId, languageId, CleanList(input.Industries), BlankToNull(input.Positioning));
   }
 
   private static List<string> CleanList(IEnumerable<string> values)
@@ -167,11 +183,11 @@ public class HypothesisService(IKarajobDbContextFactory dbContextFactory, ICurre
     return new HypothesisDetails(
       h.Id,
       h.Name,
-      h.Role,
-      h.Locations.ToList(),
+      h.RoleId,
+      h.Locations.Select(l => l.LocationId).ToList(),
       h.Industries.ToList(),
       h.WorkFormat,
-      h.Language,
+      h.LanguageId,
       h.Positioning,
       h.PrimaryCvDocumentId,
       h.Status,
@@ -185,9 +201,8 @@ public class HypothesisService(IKarajobDbContextFactory dbContextFactory, ICurre
 
   private record NormalizedHypothesis(
     string Name,
-    string Role,
-    string Language,
-    List<string> Locations,
+    Guid RoleId,
+    Guid LanguageId,
     List<string> Industries,
     string? Positioning);
 }

@@ -5,20 +5,21 @@ namespace Karajob.Tests.Domain.Cvs;
 public class CvDocumentTests
 {
   private static readonly DateTime Now = new(2026, 11, 12, 10, 0, 0, DateTimeKind.Utc);
+  private static readonly Guid LanguageId = Guid.NewGuid();
 
-  private static CvDocument Create() => new(Guid.NewGuid(), "Main CV", "en", Now);
+  private static CvDocument Create() => new(Guid.NewGuid(), "Main CV", LanguageId, Now);
 
   [Fact]
   public void Ctor_Valid_SetsFields()
   {
     var userId = Guid.NewGuid();
 
-    var doc = new CvDocument(userId, "Main CV", "en", Now);
+    var doc = new CvDocument(userId, "Main CV", LanguageId, Now);
 
     Assert.NotEqual(Guid.Empty, doc.Id);
     Assert.Equal(userId, doc.UserId);
     Assert.Equal("Main CV", doc.Name);
-    Assert.Equal("en", doc.Language);
+    Assert.Equal(LanguageId, doc.LanguageId);
     Assert.Equal(Now, doc.CreatedAt);
     Assert.Empty(doc.Versions);
   }
@@ -26,7 +27,21 @@ public class CvDocumentTests
   [Fact]
   public void Ctor_EmptyUserId_Throws()
   {
-    Assert.ThrowsAny<ArgumentException>(() => new CvDocument(Guid.Empty, "Main CV", "en", Now));
+    Assert.ThrowsAny<ArgumentException>(() => new CvDocument(Guid.Empty, "Main CV", LanguageId, Now));
+  }
+
+  [Fact]
+  public void Ctor_EmptyLanguageId_Throws()
+  {
+    Assert.ThrowsAny<ArgumentException>(() => new CvDocument(Guid.NewGuid(), "Main CV", Guid.Empty, Now));
+  }
+
+  [Fact]
+  public void LanguageId_SetEmpty_Throws()
+  {
+    var doc = Create();
+
+    Assert.ThrowsAny<ArgumentException>(() => doc.LanguageId = Guid.Empty);
   }
 
   [Theory]
@@ -34,7 +49,7 @@ public class CvDocumentTests
   [InlineData("   ")]
   public void Ctor_BlankName_Throws(string name)
   {
-    Assert.ThrowsAny<ArgumentException>(() => new CvDocument(Guid.NewGuid(), name, "en", Now));
+    Assert.ThrowsAny<ArgumentException>(() => new CvDocument(Guid.NewGuid(), name, LanguageId, Now));
   }
 
   [Fact]

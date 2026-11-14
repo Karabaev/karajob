@@ -1,3 +1,4 @@
+using Karajob.Domain.Catalogs;
 using Karajob.Domain.Companies;
 using Karajob.Domain.Vacancies;
 using Karajob.Infrastructure.Persistence;
@@ -111,5 +112,58 @@ public class UniqueIndexTests
     context.Entry(duplicate).Property(m => m.VacancyId).CurrentValue = vacancy.Id;
 
     await Assert.ThrowsAsync<DbUpdateException>(() => context.SaveChangesAsync());
+  }
+
+  [Fact]
+  public async Task SaveChanges_DuplicateRoleNormalizedName_ThrowsDbUpdateException()
+  {
+    await using var database = await SqliteTestDatabase.CreateAsync();
+    await using var context = database.CreateContext(SeedData.OwnerId);
+    context.Roles.Add(new Role("UNITY  developer"));
+
+    await Assert.ThrowsAsync<DbUpdateException>(() => context.SaveChangesAsync());
+  }
+
+  [Fact]
+  public async Task SaveChanges_DuplicateLocationNormalizedName_ThrowsDbUpdateException()
+  {
+    await using var database = await SqliteTestDatabase.CreateAsync();
+    await using var context = database.CreateContext(SeedData.OwnerId);
+    context.Locations.Add(new Location(" eu "));
+
+    await Assert.ThrowsAsync<DbUpdateException>(() => context.SaveChangesAsync());
+  }
+
+  [Fact]
+  public async Task SaveChanges_DuplicateLanguageNormalizedName_ThrowsDbUpdateException()
+  {
+    await using var database = await SqliteTestDatabase.CreateAsync();
+    await using var context = database.CreateContext(SeedData.OwnerId);
+    context.Languages.Add(new Language("xx", "ENGLISH"));
+
+    await Assert.ThrowsAsync<DbUpdateException>(() => context.SaveChangesAsync());
+  }
+
+  [Fact]
+  public async Task SaveChanges_DuplicateLanguageCode_ThrowsDbUpdateException()
+  {
+    await using var database = await SqliteTestDatabase.CreateAsync();
+    await using var context = database.CreateContext(SeedData.OwnerId);
+    context.Languages.Add(new Language("RU", "Another name"));
+
+    await Assert.ThrowsAsync<DbUpdateException>(() => context.SaveChangesAsync());
+  }
+
+  [Fact]
+  public async Task SaveChanges_SameNameAcrossCatalogKinds_Succeeds()
+  {
+    await using var database = await SqliteTestDatabase.CreateAsync();
+    await using var context = database.CreateContext(SeedData.OwnerId);
+    context.Roles.Add(new Role("Serbia"));
+    context.Locations.Add(new Location("Unity Developer"));
+
+    await context.SaveChangesAsync();
+
+    Assert.Equal(1, await context.Roles.CountAsync(r => r.NormalizedName == "serbia"));
   }
 }

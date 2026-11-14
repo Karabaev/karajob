@@ -32,7 +32,7 @@ internal static class PersistenceFixtures
 
   public static Hypothesis NewHypothesis(Guid userId, string name = "Hypo")
   {
-    return new Hypothesis(userId, name, "Unity Developer", "en", Moment);
+    return new Hypothesis(userId, name, SeedData.UnityDeveloperRoleId, SeedData.EnglishLanguageId, Moment);
   }
 
   public static async Task<Hypothesis> AddHypothesisAsync(SqliteTestDatabase database, Guid userId, string name = "Hypo")
@@ -46,7 +46,7 @@ internal static class PersistenceFixtures
 
   public static async Task<(CvDocument Document, CvVersion Version)> AddCvAsync(SqliteTestDatabase database, Guid userId)
   {
-    var document = new CvDocument(userId, "Main CV", "en", Moment);
+    var document = new CvDocument(userId, "Main CV", SeedData.EnglishLanguageId, Moment);
     var version = document.AddVersion("cv.pdf", "cv/cv.pdf", "application/pdf", 1234, "first", Moment);
     await using var context = database.CreateContext(userId);
     context.CvDocuments.Add(document);

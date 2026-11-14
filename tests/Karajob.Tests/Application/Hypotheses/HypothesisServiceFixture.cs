@@ -15,16 +15,25 @@ public abstract class HypothesisServiceFixture : IAsyncLifetime
 
   protected static HypothesisInput Input(
     string name = "Unity Developer RU",
-    string role = "Unity Developer",
-    IReadOnlyList<string>? locations = null,
+    Guid? roleId = null,
+    IReadOnlyList<Guid>? locationIds = null,
     IReadOnlyList<string>? industries = null,
     WorkFormat workFormat = WorkFormat.Remote,
-    string language = "ru",
+    Guid? languageId = null,
     string? positioning = null,
     Guid? primaryCvDocumentId = null,
     HypothesisStatus status = HypothesisStatus.Draft)
   {
-    return new HypothesisInput(name, role, locations ?? [], industries ?? [], workFormat, language, positioning, primaryCvDocumentId, status);
+    return new HypothesisInput(
+      name,
+      roleId ?? SeedData.UnityDeveloperRoleId,
+      locationIds ?? [],
+      industries ?? [],
+      workFormat,
+      languageId ?? SeedData.RussianLanguageId,
+      positioning,
+      primaryCvDocumentId,
+      status);
   }
 
   protected HypothesisService ServiceFor(Guid userId)

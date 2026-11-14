@@ -116,7 +116,7 @@ public class RoundTripTests
     await using var database = await SqliteTestDatabase.CreateAsync();
     var (cv, _) = await PersistenceFixtures.AddCvAsync(database, SeedData.OwnerId);
     var hypothesis = PersistenceFixtures.NewHypothesis(SeedData.OwnerId);
-    hypothesis.Locations.AddRange(["Berlin", "Lisbon"]);
+    hypothesis.SetLocations([SeedData.EuLocationId, SeedData.SerbiaLocationId]);
     hypothesis.Industries.AddRange(["Games", "Fintech"]);
     hypothesis.WorkFormat = WorkFormat.Remote | WorkFormat.Relocation;
     hypothesis.Positioning = "Senior";
@@ -133,10 +133,12 @@ public class RoundTripTests
     var loaded = await fresh.Hypotheses.SingleAsync(h => h.Id == hypothesis.Id);
 
     Assert.Equal(hypothesis.Name, loaded.Name);
-    Assert.Equal("Unity Developer", loaded.Role);
-    Assert.Equal("en", loaded.Language);
+    Assert.Equal(SeedData.UnityDeveloperRoleId, loaded.RoleId);
+    Assert.Equal(SeedData.EnglishLanguageId, loaded.LanguageId);
     Assert.Equal("Senior", loaded.Positioning);
-    Assert.Equal(["Berlin", "Lisbon"], loaded.Locations);
+    Assert.Equal(
+      new[] { SeedData.EuLocationId, SeedData.SerbiaLocationId }.Order(),
+      loaded.Locations.Select(l => l.LocationId).Order());
     Assert.Equal(["Games", "Fintech"], loaded.Industries);
     Assert.Equal(WorkFormat.Remote | WorkFormat.Relocation, loaded.WorkFormat);
     Assert.Equal(HypothesisStatus.Active, loaded.Status);
@@ -171,7 +173,7 @@ public class RoundTripTests
     var loadedVersion = Assert.Single(loadedDocument.Versions);
 
     Assert.Equal("Main CV", loadedDocument.Name);
-    Assert.Equal("en", loadedDocument.Language);
+    Assert.Equal(SeedData.EnglishLanguageId, loadedDocument.LanguageId);
     AssertUtc(Moment, loadedDocument.CreatedAt);
     Assert.Equal(version.Id, loadedVersion.Id);
     Assert.Equal(document.Id, loadedVersion.CvDocumentId);
@@ -192,8 +194,9 @@ public class RoundTripTests
     var vacancy = new Vacancy(SeedData.OwnerId, "https://example.com/jobs/full", VacancySource.AiScan, Moment)
     {
       CompanyId = company.Id,
-      Role = "Unity Dev",
-      Location = "Berlin",
+      RoleId = SeedData.UnrealDeveloperRoleId,
+      LocationId = SeedData.UsaLocationId,
+      LanguageId = SeedData.RussianLanguageId,
       WorkFormat = WorkFormat.Hybrid | WorkFormat.OnSite,
       Salary = new SalaryRange(3000, 5000, "eur"),
       Description = "desc",
@@ -210,9 +213,10 @@ public class RoundTripTests
     var loaded = await fresh.Vacancies.SingleAsync(v => v.Id == vacancy.Id);
 
     Assert.Equal(company.Id, loaded.CompanyId);
-    Assert.Equal("Unity Dev", loaded.Role);
+    Assert.Equal(SeedData.UnrealDeveloperRoleId, loaded.RoleId);
     Assert.Equal(vacancy.Url, loaded.Url);
-    Assert.Equal("Berlin", loaded.Location);
+    Assert.Equal(SeedData.UsaLocationId, loaded.LocationId);
+    Assert.Equal(SeedData.RussianLanguageId, loaded.LanguageId);
     Assert.Equal(WorkFormat.Hybrid | WorkFormat.OnSite, loaded.WorkFormat);
     Assert.Equal(3000, loaded.Salary!.Min);
     Assert.Equal(5000, loaded.Salary.Max);
@@ -259,6 +263,9 @@ public class RoundTripTests
     Assert.Null(loaded.PublishedAt);
     Assert.Null(loaded.WorkFormat);
     Assert.Null(loaded.CompanyId);
+    Assert.Null(loaded.RoleId);
+    Assert.Null(loaded.LocationId);
+    Assert.Null(loaded.LanguageId);
   }
 
   [Fact]
