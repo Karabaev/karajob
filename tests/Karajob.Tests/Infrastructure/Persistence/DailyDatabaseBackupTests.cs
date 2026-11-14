@@ -113,6 +113,8 @@ public class DailyDatabaseBackupTests : IAsyncLifetime
     Directory.CreateDirectory(DailyDirectory);
     var notes = Path.Combine(DailyDirectory, "notes.txt");
     File.WriteAllText(notes, "x");
+    var unparsable = Path.Combine(DailyDirectory, "notes.db");
+    File.WriteAllText(unparsable, "x");
     for (var days = 4; days >= 1; days--)
     {
       CreateSnapshotFile(Now.AddDays(-days - 1));
@@ -121,7 +123,7 @@ public class DailyDatabaseBackupTests : IAsyncLifetime
 
     backup.RunIfDue();
 
-    var snapshots = Directory.GetFiles(DailyDirectory, "*.db").Select(Path.GetFileName).Order().ToList();
+    var snapshots = Directory.GetFiles(DailyDirectory, "2*.db").Select(Path.GetFileName).Order().ToList();
     Assert.Equal(
       [
         SnapshotName(Now.AddDays(-3)),
@@ -131,6 +133,56 @@ public class DailyDatabaseBackupTests : IAsyncLifetime
       snapshots);
     Assert.True(File.Exists(preMigration));
     Assert.True(File.Exists(notes));
+    Assert.True(File.Exists(unparsable));
+  }
+
+  [Fact]
+  public async Task RunIfDue_OnlyUnparsableDbFile_CreatesSnapshot()
+  {
+    await using var provider = await BuildMigratedProviderAsync(keepDaily: 7);
+    Directory.CreateDirectory(DailyDirectory);
+    File.WriteAllText(Path.Combine(DailyDirectory, "notes.db"), "x");
+    var backup = provider.GetRequiredService<DailyDatabaseBackup>();
+
+    Assert.NotNull(backup.RunIfDue());
+  }
+
+  [Fact]
+  public async Task RunIfDue_SnapshotFromTheFuture_CreatesSnapshot()
+  {
+    await using var provider = await BuildMigratedProviderAsync(keepDaily: 7);
+    CreateSnapshotFile(Now.AddDays(2));
+    var backup = provider.GetRequiredService<DailyDatabaseBackup>();
+
+    Assert.Equal(Path.Combine(DailyDirectory, SnapshotName(Now)), backup.RunIfDue());
+  }
+
+  [Fact]
+  public async Task RunIfDue_NotDueButTooManySnapshots_DeletesExpired()
+  {
+    await using var provider = await BuildMigratedProviderAsync(keepDaily: 2);
+    CreateSnapshotFile(Now.AddDays(-3));
+    CreateSnapshotFile(Now.AddDays(-2));
+    CreateSnapshotFile(Now.AddHours(-1));
+    var backup = provider.GetRequiredService<DailyDatabaseBackup>();
+
+    Assert.Null(backup.RunIfDue());
+
+    var snapshots = Directory.GetFiles(DailyDirectory).Select(Path.GetFileName).Order().ToList();
+    Assert.Equal([SnapshotName(Now.AddDays(-2)), SnapshotName(Now.AddHours(-1))], snapshots);
+  }
+
+  [Fact]
+  public void SqliteBackupCopy_FailingSource_LeavesNoTempFile()
+  {
+    var source = Path.Combine(directory, "broken.db");
+    File.WriteAllText(source, "this is not a SQLite database, just text long enough to fill a header page");
+    var destination = Path.Combine(directory, "copy.db");
+
+    Assert.ThrowsAny<SqliteException>(() => SqliteBackup.Copy($"Data Source={source};Pooling=False", destination));
+
+    Assert.False(File.Exists(destination));
+    Assert.Empty(Directory.GetFiles(directory, "*.tmp"));
   }
 
   [Fact]

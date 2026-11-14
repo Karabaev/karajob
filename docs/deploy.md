@@ -26,7 +26,7 @@ Check from the phone:
 
 1. Connect to the home WireGuard VPN (or the home Wi-Fi).
 2. Open `http://<server-ip>:<KARAJOB_PORT>/`.
-3. Add a vacancy with **+ Vacancy** (Quick Add) and make sure it shows up in Inbox.
+3. Add a vacancy with Quick Add (the round **+** button on a phone, **+ Вакансия** on a wide screen) and make sure it shows up in Inbox.
 4. Move it to the board, apply and close it once to check the whole flow on a small screen.
 
 ## 3. Update and roll back
@@ -38,19 +38,22 @@ docker tag karajob karajob:prev   # keep the running image for a rollback
 docker compose up -d --build
 ```
 
-Migrations run on start. Before applying any, the app copies the database to `data/backups/<timestamp>-before-<migration>.db`. If a migration fails, the container does not start and the log names that backup.
+Migrations run on start. Before applying any, the app copies the database to `data/backups/<timestamp>-before-<migration>.db`. If a migration fails, the app exits and the log names that backup. Because of `restart: unless-stopped` the container then restarts in a loop, and every attempt writes one more backup: stop it with `docker compose down` first, and restore the **earliest** backup for that migration.
 
 Rollback (no down migrations are supported):
 
 ```bash
+cd /srv/karajob
 docker compose down
 cp data/backups/<timestamp>-before-<migration>.db data/karajob.db
 rm -f data/karajob.db-journal data/karajob.db-wal data/karajob.db-shm
 sudo chown 1654:1654 data/karajob.db
-git checkout <previous commit>
+git checkout <previous commit>    # detaches HEAD
 docker tag karajob:prev karajob
 docker compose up -d              # without --build: runs the previous image
 ```
+
+Before the next update, return to the branch with `git checkout master`, otherwise `git pull` fails on the detached HEAD.
 
 ## 4. What is in `data/`
 
@@ -66,13 +69,13 @@ The daily snapshot is taken by the app itself: right after start if the newest s
 
 ## 5. Off-server copy with restic
 
-Back up the whole data folder except the live database. Example for a repository on another device over SFTP:
+Back up the whole data folder except the live database. Example script `/usr/local/bin/karajob-restic.sh` (owned by root, `chmod 700`) for a repository on another device over SFTP:
 
 ```bash
+#!/usr/bin/env bash
+set -euo pipefail
 export RESTIC_REPOSITORY=sftp:backup@nas.lan:/backups/karajob
 export RESTIC_PASSWORD_FILE=/root/.karajob-restic-password
-
-restic init    # once
 
 restic backup /srv/karajob/data \
   --exclude '/srv/karajob/data/karajob.db' \
@@ -80,7 +83,9 @@ restic backup /srv/karajob/data \
 restic forget --keep-daily 14 --keep-weekly 8 --keep-monthly 12 --prune
 ```
 
-Run it daily from a root cron job or a systemd timer. Any time of day works: the snapshot folder only ever holds complete files. For example:
+Create the repository once, with the same two variables exported: `restic init`.
+
+Run the script daily. Any time of day works: the snapshot folder only ever holds complete files. For example, a system cron file `/etc/cron.d/karajob-restic` (this format has a user field; with `crontab -e` drop `root`):
 
 ```cron
 30 4 * * * root /usr/local/bin/karajob-restic.sh >> /var/log/karajob-restic.log 2>&1
@@ -90,8 +95,8 @@ Check it regularly: `restic snapshots` and, once in a while, `restic check`.
 
 ## 6. Restore
 
-1. Stop the app: `docker compose down`.
-2. If the server or its disk is lost, prepare a new server as in section 1 and restore the folder:
+1. If the server is running, stop the app: `cd /srv/karajob && docker compose down`.
+2. If the server or its disk is lost, prepare a new server as in section 1 (without starting the app), then as root with `RESTIC_REPOSITORY` and `RESTIC_PASSWORD_FILE` exported as in section 5 restore the folder:
 
    ```bash
    restic restore latest --target / --include /srv/karajob/data
@@ -100,6 +105,7 @@ Check it regularly: `restic snapshots` and, once in a while, `restic check`.
 3. Put the chosen snapshot in place of the live database:
 
    ```bash
+   cd /srv/karajob
    cp data/backups/daily/<yyyyMMdd-HHmmss>.db data/karajob.db
    rm -f data/karajob.db-journal data/karajob.db-wal data/karajob.db-shm
    sudo chown -R 1654:1654 data

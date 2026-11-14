@@ -24,23 +24,36 @@ public class DailyDatabaseBackup(
     Directory.CreateDirectory(dailyDirectory);
 
     var now = timeProvider.GetUtcNow().UtcDateTime;
-    var snapshots = ListSnapshots(dailyDirectory);
-    if (snapshots.Count > 0 && now - snapshots[0].TakenAt < Interval)
-    {
-      return null;
-    }
+    var snapshotPath = IsDue(ListSnapshots(dailyDirectory), now) ? TakeSnapshot(dailyDirectory, now) : null;
+    // On every check, not only after a snapshot, so a failed deletion is retried within the hour.
+    DeleteExpired(dailyDirectory);
+    return snapshotPath;
+  }
 
+  private static bool IsDue(List<(string Path, DateTime TakenAt)> snapshots, DateTime now)
+  {
+    if (snapshots.Count == 0) return true;
+
+    var age = now - snapshots[0].TakenAt;
+    // A negative age means the clock was moved back: waiting for it to catch up could skip days.
+    return age >= Interval || age < TimeSpan.Zero;
+  }
+
+  private string TakeSnapshot(string dailyDirectory, DateTime now)
+  {
     var snapshotPath = Path.Combine(dailyDirectory, now.ToString(TimestampFormat, CultureInfo.InvariantCulture) + Extension);
     SqliteBackup.Copy(databaseOptions.ConnectionString!, snapshotPath);
     logger.LogInformation("Saved daily database snapshot to {SnapshotPath}", snapshotPath);
+    return snapshotPath;
+  }
 
+  private void DeleteExpired(string dailyDirectory)
+  {
     foreach (var expired in ListSnapshots(dailyDirectory).Skip(backupOptions.KeepDaily))
     {
       File.Delete(expired.Path);
       logger.LogInformation("Deleted expired daily snapshot {SnapshotPath}", expired.Path);
     }
-
-    return snapshotPath;
   }
 
   private static List<(string Path, DateTime TakenAt)> ListSnapshots(string directory)
