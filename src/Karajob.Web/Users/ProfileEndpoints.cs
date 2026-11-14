@@ -48,6 +48,9 @@ public static class ProfileEndpoints
       return false;
     }
 
+    // Browsers strip tabs and newlines from URLs, so "/\t/evil.example" would become "//evil.example".
+    if (url.Any(char.IsControl)) return false;
+
     return url.Length == 1 || (url[1] != '/' && url[1] != '\\');
   }
 }

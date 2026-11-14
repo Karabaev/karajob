@@ -3,41 +3,13 @@ using Microsoft.AspNetCore.Components.Server.Circuits;
 
 namespace Karajob.Web.Users;
 
-public class CurrentUserCircuitHandler : CircuitHandler, IDisposable
+public class CurrentUserCircuitHandler(AuthenticationStateProvider authenticationStateProvider, ProfileCurrentUser currentUser)
+  : CircuitHandler
 {
-  private readonly AuthenticationStateProvider _authenticationStateProvider;
-  private readonly ProfileCurrentUser _currentUser;
-
+  // A profile switch is a full page reload with a new circuit, so the user is fixed for the circuit's lifetime.
   public override async Task OnCircuitOpenedAsync(Circuit circuit, CancellationToken cancellationToken)
   {
-    _authenticationStateProvider.AuthenticationStateChanged += OnAuthenticationStateChanged;
-    await UpdateUserAsync(_authenticationStateProvider.GetAuthenticationStateAsync());
-  }
-
-  public override Task OnConnectionUpAsync(Circuit circuit, CancellationToken cancellationToken)
-  {
-    return UpdateUserAsync(_authenticationStateProvider.GetAuthenticationStateAsync());
-  }
-
-  public void Dispose()
-  {
-    _authenticationStateProvider.AuthenticationStateChanged -= OnAuthenticationStateChanged;
-  }
-
-  private void OnAuthenticationStateChanged(Task<AuthenticationState> task)
-  {
-    _ = UpdateUserAsync(task);
-  }
-
-  private async Task UpdateUserAsync(Task<AuthenticationState> task)
-  {
-    var state = await task;
-    _currentUser.SetUser(state.User);
-  }
-
-  public CurrentUserCircuitHandler(AuthenticationStateProvider authenticationStateProvider, ProfileCurrentUser currentUser)
-  {
-    _authenticationStateProvider = authenticationStateProvider;
-    _currentUser = currentUser;
+    var state = await authenticationStateProvider.GetAuthenticationStateAsync();
+    currentUser.SetUser(state.User);
   }
 }

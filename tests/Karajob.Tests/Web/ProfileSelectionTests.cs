@@ -56,6 +56,9 @@ public class ProfileSelectionTests(WebApplicationFactory<Program> factory) : ICl
   [InlineData("/inbox", "/inbox")]
   [InlineData("https://evil.example/", "/")]
   [InlineData("//evil.example/x", "/")]
+  [InlineData("/\\evil.example", "/")]
+  [InlineData("/\t/evil.example", "/")]
+  [InlineData("/\n/evil.example", "/")]
   public async Task PostSelect_OwnerWithReturnUrl_RedirectsToSafeLocalUrl(string returnUrl, string expected)
   {
     var client = ProfileClient.CreateClient(factory);
@@ -66,6 +69,40 @@ public class ProfileSelectionTests(WebApplicationFactory<Program> factory) : ICl
     Assert.Equal(HttpStatusCode.Found, response.StatusCode);
     Assert.Equal(expected, ProfileClient.LocationOf(response));
     Assert.True(ProfileClient.SetsProfileCookie(response));
+  }
+
+  [Fact]
+  public async Task PostSelect_WithoutAntiforgeryToken_ReturnsBadRequestWithoutCookie()
+  {
+    var client = ProfileClient.CreateClient(factory);
+    await ProfileClient.FetchAntiforgeryTokenAsync(client);
+
+    var response = await ProfileClient.SelectAsync(client, string.Empty, SeedData.OwnerId.ToString(), "/");
+
+    Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    Assert.False(ProfileClient.SetsProfileCookie(response));
+  }
+
+  [Fact]
+  public async Task GetUnknownPage_WithoutProfileCookie_ReturnsNotFoundPage()
+  {
+    var client = ProfileClient.CreateClient(factory);
+
+    var response = await client.GetAsync("/does-not-exist");
+
+    Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    var html = WebUtility.HtmlDecode(await response.Content.ReadAsStringAsync());
+    Assert.Contains("<title>Не найдено</title>", html);
+  }
+
+  [Fact]
+  public void Host_RegistersCurrentUserCircuitHandler()
+  {
+    using var scope = factory.Services.CreateScope();
+
+    var handlers = scope.ServiceProvider.GetServices<Microsoft.AspNetCore.Components.Server.Circuits.CircuitHandler>();
+
+    Assert.Contains(handlers, h => h is CurrentUserCircuitHandler);
   }
 
   [Fact]

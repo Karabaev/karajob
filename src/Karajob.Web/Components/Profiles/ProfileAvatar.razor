@@ -1,7 +1,7 @@
 <MudAvatar Size="Size" Style="@($"background-color:{Profile.Color}; color:#fff")">@Initial</MudAvatar>
 
 @code {
-  private string Initial => Profile.Name.Length == 0 ? string.Empty : char.ToUpperInvariant(Profile.Name[0]).ToString();
+  private string Initial => char.ToUpperInvariant(Profile.Name[0]).ToString();
 
   [Parameter, EditorRequired]
   public UserDto Profile { get; set; } = null!;
