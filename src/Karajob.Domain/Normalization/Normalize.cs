@@ -109,7 +109,10 @@ public static partial class Normalize
 
   public static string HexColor(string value, [CallerArgumentExpression(nameof(value))] string? paramName = null)
   {
-    throw new NotImplementedException();
+    ArgumentException.ThrowIfNullOrWhiteSpace(value, paramName);
+    var color = value.Trim().ToLowerInvariant();
+    if (!HexColorPattern().IsMatch(color)) throw new ArgumentException($"'{value}' is not a #rrggbb color.", paramName);
+    return color;
   }
 
   public static string WebUrl(string value, [CallerArgumentExpression(nameof(value))] string? paramName = null)
@@ -191,6 +194,9 @@ public static partial class Normalize
 
   [GeneratedRegex("^[a-z]{2,3}$")]
   private static partial Regex LanguageCodePattern();
+
+  [GeneratedRegex("^#[0-9a-f]{6}$")]
+  private static partial Regex HexColorPattern();
 
   [GeneratedRegex(@"\s+")]
   private static partial Regex WhitespacePattern();

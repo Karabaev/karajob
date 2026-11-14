@@ -44,7 +44,9 @@ public class PersistenceScopingTests
     var ownerUrls = await ListVacancyUrlsInScopeAsync(provider, SeedData.OwnerId);
     var otherUrls = await ListVacancyUrlsInScopeAsync(provider, other.Id);
 
-    Assert.Equal(["https://example.com/owner"], ownerUrls);
+    // The in-memory initializer also seeds development vacancies for Owner.
+    Assert.Contains("https://example.com/owner", ownerUrls);
+    Assert.DoesNotContain("https://example.com/other", ownerUrls);
     Assert.Equal(["https://example.com/other"], otherUrls);
   }
 

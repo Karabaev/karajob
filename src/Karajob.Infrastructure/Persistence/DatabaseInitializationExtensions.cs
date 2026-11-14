@@ -4,8 +4,9 @@ namespace Karajob.Infrastructure.Persistence;
 
 public static class DatabaseInitializationExtensions
 {
-  public static Task InitializeKarajobDatabaseAsync(this IServiceProvider services, CancellationToken cancellationToken = default)
+  public static async Task InitializeKarajobDatabaseAsync(this IServiceProvider services, CancellationToken cancellationToken = default)
   {
-    return services.GetRequiredService<DatabaseInitializer>().InitializeAsync(cancellationToken);
+    await using var scope = services.CreateAsyncScope();
+    await scope.ServiceProvider.GetRequiredService<DatabaseInitializer>().InitializeAsync(cancellationToken);
   }
 }
