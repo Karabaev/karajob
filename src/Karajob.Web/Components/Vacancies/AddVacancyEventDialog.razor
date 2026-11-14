@@ -1,0 +1,14 @@
+<MudDialog>
+  <DialogContent />
+</MudDialog>
+
+@code {
+  [CascadingParameter]
+  private IMudDialogInstance MudDialog { get; set; } = null!;
+
+  [Parameter, EditorRequired]
+  public Guid VacancyId { get; set; }
+
+  [Parameter]
+  public bool HasApplication { get; set; }
+}
