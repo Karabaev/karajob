@@ -28,7 +28,12 @@ public class Hypothesis : IUserOwned
 
   public void SetLocations(IEnumerable<Guid> locationIds)
   {
-    throw new NotImplementedException();
+    var wanted = locationIds.Select(id => Require.NotEmpty(id, nameof(locationIds))).ToHashSet();
+    locations.RemoveAll(l => !wanted.Contains(l.LocationId));
+    foreach (var locationId in wanted.Where(id => locations.All(l => l.LocationId != id)))
+    {
+      locations.Add(new HypothesisLocation(UserId, Id, locationId));
+    }
   }
 
   public void ChangeStatus(HypothesisStatus status, DateTime utcNow)
