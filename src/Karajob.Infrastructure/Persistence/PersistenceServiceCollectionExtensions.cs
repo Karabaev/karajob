@@ -33,10 +33,10 @@ public static class PersistenceServiceCollectionExtensions
           $"Supported: {DatabaseOptions.SqliteProvider}, {DatabaseOptions.SqliteInMemoryProvider}.");
     }
 
-    services.AddSingleton<IKarajobDbContextFactory, KarajobDbContextFactory>();
+    services.AddScoped<IKarajobDbContextFactory, KarajobDbContextFactory>();
     services.AddSingleton(options);
     services.TryAddSingleton(TimeProvider.System);
-    services.AddSingleton<DatabaseInitializer>();
+    services.AddScoped<DatabaseInitializer>();
     return services;
   }
 
@@ -52,6 +52,7 @@ public static class PersistenceServiceCollectionExtensions
     return services;
   }
 
+  // Scoped so each context gets the ICurrentUser of its own scope (an HTTP request or a Blazor circuit).
   private static void AddSqliteContextFactory(IServiceCollection services, string connectionString, bool keepAlive)
   {
     services.AddDbContextFactory<KarajobDbContext>((serviceProvider, builder) =>
@@ -62,6 +63,6 @@ public static class PersistenceServiceCollectionExtensions
       }
 
       builder.UseSqlite(connectionString, sqlite => sqlite.MigrationsAssembly(DatabaseOptions.SqliteMigrationsAssembly));
-    });
+    }, ServiceLifetime.Scoped);
   }
 }

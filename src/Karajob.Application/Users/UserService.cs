@@ -1,0 +1,80 @@
+using Karajob.Application.Common;
+using Karajob.Application.Persistence;
+using Karajob.Domain.Normalization;
+using Karajob.Domain.Users;
+using Microsoft.EntityFrameworkCore;
+
+namespace Karajob.Application.Users;
+
+public class UserService(IKarajobDbContextFactory dbContextFactory, TimeProvider timeProvider)
+{
+  public async Task<IReadOnlyList<UserDto>> ListAsync(CancellationToken cancellationToken = default)
+  {
+    await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+    var users = await db.Users.AsNoTracking().ToListAsync(cancellationToken);
+    return users.OrderBy(u => u.CreatedAt).Select(ToDto).ToList();
+  }
+
+  public async Task<UserDto?> GetAsync(Guid id, CancellationToken cancellationToken = default)
+  {
+    await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+    var user = await db.Users.AsNoTracking().SingleOrDefaultAsync(u => u.Id == id, cancellationToken);
+    return user is null ? null : ToDto(user);
+  }
+
+  public async Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default)
+  {
+    await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+    return await db.Users.AnyAsync(u => u.Id == id, cancellationToken);
+  }
+
+  public async Task<UserDto> CreateAsync(UserInput input, CancellationToken cancellationToken = default)
+  {
+    Validate(input);
+    await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+    var user = new User(input.Name, input.Color, timeProvider.GetUtcNow().UtcDateTime);
+    db.Users.Add(user);
+    await db.SaveChangesAsync(cancellationToken);
+    return ToDto(user);
+  }
+
+  public async Task<UserDto> UpdateAsync(Guid id, UserInput input, CancellationToken cancellationToken = default)
+  {
+    Validate(input);
+    await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+    var user = await db.Users.SingleOrDefaultAsync(u => u.Id == id, cancellationToken)
+      ?? throw new KeyNotFoundException($"Profile {id} not found.");
+    user.Name = input.Name;
+    user.Color = input.Color;
+    await db.SaveChangesAsync(cancellationToken);
+    return ToDto(user);
+  }
+
+  private static void Validate(UserInput input)
+  {
+    var errors = new Dictionary<string, string>();
+    if (string.IsNullOrWhiteSpace(input.Name))
+    {
+      errors[nameof(UserInput.Name)] = "Введите имя.";
+    }
+
+    try
+    {
+      Normalize.HexColor(input.Color);
+    }
+    catch (ArgumentException)
+    {
+      errors[nameof(UserInput.Color)] = "Выберите цвет.";
+    }
+
+    if (errors.Count > 0)
+    {
+      throw new ValidationFailedException(errors);
+    }
+  }
+
+  private static UserDto ToDto(User user)
+  {
+    return new UserDto(user.Id, user.Name, user.Color);
+  }
+}

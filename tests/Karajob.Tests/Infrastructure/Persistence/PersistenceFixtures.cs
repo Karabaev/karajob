@@ -14,7 +14,7 @@ internal static class PersistenceFixtures
 
   public static async Task<User> AddUserAsync(SqliteTestDatabase database, string name = "Second")
   {
-    var user = new User(name, Moment);
+    var user = new User(name, "#26a69a", Moment);
     await using var context = database.CreateContext(SeedData.OwnerId);
     context.Users.Add(user);
     await context.SaveChangesAsync();

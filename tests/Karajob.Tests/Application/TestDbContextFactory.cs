@@ -4,6 +4,7 @@ using Karajob.Application.Cvs;
 using Karajob.Application.Files;
 using Karajob.Application.Hypotheses;
 using Karajob.Application.Persistence;
+using Karajob.Application.Users;
 using Karajob.Application.Vacancies;
 using Karajob.Infrastructure.Users;
 using Karajob.Tests.Infrastructure.Persistence;
@@ -41,6 +42,11 @@ internal class TestDbContextFactory(SqliteTestDatabase database, Guid userId) : 
   public static VacancyService CreateVacancyService(SqliteTestDatabase database, Guid userId, TimeProvider timeProvider)
   {
     return new VacancyService(new TestDbContextFactory(database, userId), new FixedCurrentUser(userId), timeProvider);
+  }
+
+  public static UserService CreateUserService(SqliteTestDatabase database, Guid userId, TimeProvider timeProvider)
+  {
+    return new UserService(new TestDbContextFactory(database, userId), timeProvider);
   }
 
   public Task<IKarajobDbContext> CreateDbContextAsync(CancellationToken cancellationToken = default)

@@ -6,10 +6,10 @@ using Karajob.Application.Users;
 using Karajob.Application.Vacancies;
 using Karajob.Infrastructure.Files;
 using Karajob.Infrastructure.Persistence;
-using Karajob.Infrastructure.Users;
 using Karajob.Web.Components;
 using Karajob.Web.Cvs;
 using Karajob.Web.Persistence;
+using Karajob.Web.Users;
 using Karajob.Web.Vacancies;
 using MudBlazor.Services;
 using Microsoft.AspNetCore.DataProtection;
@@ -37,8 +37,8 @@ if (databaseOptions.Provider == DatabaseOptions.SqliteProvider)
 {
   builder.Services.AddHostedService<DailyBackupHostedService>();
 }
-// Single seeded user until profile selection lands (Phase 0.5).
-builder.Services.AddSingleton<ICurrentUser>(new FixedCurrentUser(SeedData.OwnerId));
+builder.Services.AddProfileAuthentication();
+builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<CompanyService>();
 builder.Services.AddScoped<HypothesisService>();
 builder.Services.AddScoped<CatalogService>();
@@ -82,11 +82,15 @@ if (!app.Environment.IsDevelopment())
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
+app.UseMiddleware<CurrentUserMiddleware>();
+app.UseAuthorization();
 app.UseAntiforgery();
 
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
   .AddInteractiveServerRenderMode();
 app.MapCvEndpoints();
+app.MapProfileEndpoints();
 
 await app.RunAsync();

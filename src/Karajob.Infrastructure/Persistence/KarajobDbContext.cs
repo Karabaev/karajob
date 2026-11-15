@@ -21,7 +21,8 @@ public class KarajobDbContext(DbContextOptions<KarajobDbContext> options, ICurre
   private static readonly MethodInfo ApplyUserFilterMethod = typeof(KarajobDbContext)
     .GetMethod(nameof(ApplyUserFilter), BindingFlags.NonPublic | BindingFlags.Instance)!;
 
-  private readonly Guid currentUserId = currentUser.UserId;
+  // Read per query, not in the constructor: migrations and the seed run in a scope with no profile selected.
+  private Guid CurrentUserId => currentUser.UserId;
 
   public DbSet<User> Users => Set<User>();
   public DbSet<Company> Companies => Set<Company>();
@@ -73,6 +74,6 @@ public class KarajobDbContext(DbContextOptions<KarajobDbContext> options, ICurre
   private void ApplyUserFilter<TEntity>(ModelBuilder modelBuilder)
     where TEntity : class, IUserOwned
   {
-    modelBuilder.Entity<TEntity>().HasQueryFilter(UserFilterName, e => e.UserId == currentUserId);
+    modelBuilder.Entity<TEntity>().HasQueryFilter(UserFilterName, e => e.UserId == CurrentUserId);
   }
 }

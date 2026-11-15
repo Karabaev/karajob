@@ -7,9 +7,11 @@ using Karajob.Infrastructure.Persistence;
 using Karajob.Infrastructure.Users;
 using Karajob.Tests.Application;
 using Karajob.Tests.Infrastructure.Persistence;
+using Karajob.Tests.Web.Components.Profiles;
 using Karajob.Web.Components.Layout;
 using Karajob.Web.Vacancies;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.Extensions.DependencyInjection;
 using MudBlazor.Services;
 
@@ -71,6 +73,14 @@ public class MainLayoutTests : IAsyncLifetime
     var cut = RenderLayout();
 
     Assert.Single(cut.FindAll(".add-vacancy-fab"));
+  }
+
+  [Fact]
+  public void Render_HasProfileMenuActivatorForCurrentProfile()
+  {
+    var cut = RenderLayout();
+
+    cut.WaitForAssertion(() => Assert.Single(cut.FindAll("button[aria-label='Профиль: Owner']")));
   }
 
   [Fact]
@@ -184,6 +194,8 @@ public class MainLayoutTests : IAsyncLifetime
     _context.Services.AddSingleton<ICurrentUser>(new FixedCurrentUser(SeedData.OwnerId));
     _context.Services.AddSingleton(TimeProvider.System);
     _context.Services.AddSingleton(_vacancies);
+    _context.Services.AddSingleton(TestDbContextFactory.CreateUserService(_database, SeedData.OwnerId, TimeProvider.System));
+    _context.Services.AddSingleton<AntiforgeryStateProvider>(new FakeAntiforgeryStateProvider());
     _context.Services.AddScoped<InboxNotifier>();
   }
 

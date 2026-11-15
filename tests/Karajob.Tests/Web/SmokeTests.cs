@@ -1,4 +1,5 @@
 using System.Net;
+using Karajob.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace Karajob.Tests.Web;
@@ -14,7 +15,7 @@ public class SmokeTests(WebApplicationFactory<Program> factory) : IClassFixture<
   [InlineData("/cvs", "CV")]
   public async Task GetPage_ReturnsSuccessAndPageTitle(string route, string title)
   {
-    var client = factory.CreateClient();
+    var client = await ProfileClient.AuthenticatedClientAsync(factory, SeedData.OwnerId);
 
     var response = await client.GetAsync(route);
 
@@ -26,7 +27,7 @@ public class SmokeTests(WebApplicationFactory<Program> factory) : IClassFixture<
   [Fact]
   public async Task GetHome_LinksMudBlazorCss()
   {
-    var client = factory.CreateClient();
+    var client = await ProfileClient.AuthenticatedClientAsync(factory, SeedData.OwnerId);
 
     var html = await client.GetStringAsync("/");
 
@@ -36,7 +37,7 @@ public class SmokeTests(WebApplicationFactory<Program> factory) : IClassFixture<
   [Fact]
   public async Task GetHome_DoesNotReferenceBootstrap()
   {
-    var client = factory.CreateClient();
+    var client = await ProfileClient.AuthenticatedClientAsync(factory, SeedData.OwnerId);
 
     var html = await client.GetStringAsync("/");
 

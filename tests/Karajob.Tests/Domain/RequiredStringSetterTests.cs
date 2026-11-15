@@ -11,7 +11,7 @@ public class RequiredStringSetterTests
 
   public static TheoryData<string, Action<string>> BlankSetters => new()
   {
-    { "User.Name", value => new User("Anna", Now).Name = value },
+    { "User.Name", value => new User("Anna", "#26a69a", Now).Name = value },
     { "Company.Name", value => new Company("ubisoft", "Ubisoft").Name = value },
     { "Project.Name", value => new Project(Guid.NewGuid(), "Game", ProjectStatus.Released).Name = value },
     { "CvDocument.Name", value => NewCv().Name = value },

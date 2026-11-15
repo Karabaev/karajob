@@ -27,7 +27,8 @@ export KARAJOB_PORT="${VERIFY_PORT:-18080}"
 # Separate tag, so verifying never replaces the image the real deployment runs.
 export KARAJOB_IMAGE=karajob-verify
 compose=(docker compose -p karajob-verify)
-url="http://localhost:$KARAJOB_PORT/"
+# The profile picker is the one page that answers 200 without a profile cookie.
+url="http://localhost:$KARAJOB_PORT/profiles"
 
 cleanup() {
   "${compose[@]}" down --remove-orphans > /dev/null 2>&1 || true

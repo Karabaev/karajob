@@ -1,5 +1,7 @@
 @using System.Net.Http
 @using System.Net.Http.Json
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.AspNetCore.Components.Forms
 @using Microsoft.AspNetCore.Components.Routing
 @using Microsoft.AspNetCore.Components.Web
@@ -15,11 +17,14 @@
 @using Karajob.Web.Components.Hypotheses
 @using Karajob.Web.Components.Catalogs
 @using Karajob.Web.Components.Cvs
+@using Karajob.Web.Components.Profiles
+@using Karajob.Web.Users
 @using Karajob.Application.Catalogs
 @using Karajob.Application.Common
 @using Karajob.Application.Companies
 @using Karajob.Application.Cvs
 @using Karajob.Application.Hypotheses
+@using Karajob.Application.Users
 @using Karajob.Application.Vacancies
 @using Karajob.Domain.Applications
 @using Karajob.Domain.Companies
@@ -27,3 +32,4 @@
 @using Karajob.Domain.Hypotheses
 @using Karajob.Domain.Normalization
 @using MudBlazor
+@attribute [Authorize]

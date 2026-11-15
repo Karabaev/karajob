@@ -504,6 +504,13 @@ namespace Karajob.Migrations.Sqlite.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("Color")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(7)
+                        .HasColumnType("TEXT")
+                        .HasDefaultValue("#7e57c2");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
 
@@ -519,6 +526,7 @@ namespace Karajob.Migrations.Sqlite.Migrations
                         new
                         {
                             Id = new Guid("019a7c1e-0000-7000-8000-000000000001"),
+                            Color = "#7e57c2",
                             CreatedAt = new DateTime(2026, 11, 13, 0, 0, 0, 0, DateTimeKind.Utc),
                             Name = "Owner"
                         });

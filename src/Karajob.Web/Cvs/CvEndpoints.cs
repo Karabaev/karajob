@@ -6,7 +6,7 @@ public static class CvEndpoints
 {
   public static IEndpointRouteBuilder MapCvEndpoints(this IEndpointRouteBuilder endpoints)
   {
-    endpoints.MapGet("/cvs/versions/{versionId:guid}/file", DownloadVersionAsync);
+    endpoints.MapGet("/cvs/versions/{versionId:guid}/file", DownloadVersionAsync).RequireAuthorization();
     return endpoints;
   }
 
