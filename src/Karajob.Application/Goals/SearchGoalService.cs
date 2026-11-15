@@ -1,12 +1,11 @@
 using Karajob.Application.Common;
 using Karajob.Application.Persistence;
-using Karajob.Application.Users;
 using Karajob.Domain.Goals;
 using Microsoft.EntityFrameworkCore;
 
 namespace Karajob.Application.Goals;
 
-public class SearchGoalService(IKarajobDbContextFactory dbContextFactory, ICurrentUser currentUser)
+public class SearchGoalService(IKarajobDbContextFactory dbContextFactory)
 {
   public async Task<SearchGoalDetails> GetAsync(CancellationToken cancellationToken = default)
   {
@@ -64,7 +63,7 @@ public class SearchGoalService(IKarajobDbContextFactory dbContextFactory, ICurre
 
     if (input.ConversionThresholdPermille is < 0 or > SearchGoal.MaxConversionThresholdPermille)
     {
-      errors[nameof(SearchGoalInput.ConversionThresholdPermille)] = $"Порог конверсии — от 0 до {SearchGoal.MaxConversionThresholdPermille}‰";
+      errors[nameof(SearchGoalInput.ConversionThresholdPermille)] = "Порог конверсии — от 0 до 100%";
     }
 
     if (input.MinSampleSize < SearchGoal.LowestMinSampleSize)

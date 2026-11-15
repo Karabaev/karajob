@@ -170,26 +170,26 @@ public class SettingsPageTests : SettingsWebFixture
 
   private static IRenderedComponent<MudNumericField<T>> Numeric<T>(IRenderedComponent<SettingsPage> cut, string cssClass)
   {
-    return cut.FindComponents<MudNumericField<T>>().Single(c => c.Instance.Class!.Contains(cssClass));
+    return cut.FindComponents<MudNumericField<T>>().Single(c => c.Instance.Class?.Contains(cssClass) == true);
   }
 
   private static IRenderedComponent<MudTextField<string>> Text(IRenderedComponent<SettingsPage> cut, string cssClass)
   {
-    return cut.FindComponents<MudTextField<string>>().Single(c => c.Instance.Class!.Contains(cssClass));
+    return cut.FindComponents<MudTextField<string>>().Single(c => c.Instance.Class?.Contains(cssClass) == true);
   }
 
   private static IRenderedComponent<MudSelect<Guid?>> RoleSelect(IRenderedComponent<SettingsPage> cut)
   {
-    return cut.FindComponents<MudSelect<Guid?>>().Single(c => c.Instance.Class!.Contains("settings-role"));
+    return cut.FindComponents<MudSelect<Guid?>>().Single(c => c.Instance.Class?.Contains("settings-role") == true);
   }
 
   private static IRenderedComponent<MudSelect<Guid>> LocationsSelect(IRenderedComponent<SettingsPage> cut)
   {
-    return cut.FindComponents<MudSelect<Guid>>().Single(c => c.Instance.Class!.Contains("settings-locations"));
+    return cut.FindComponents<MudSelect<Guid>>().Single(c => c.Instance.Class?.Contains("settings-locations") == true);
   }
 
   private static IRenderedComponent<MudDatePicker> DeadlinePicker(IRenderedComponent<SettingsPage> cut)
   {
-    return cut.FindComponents<MudDatePicker>().Single(c => c.Instance.Class!.Contains("settings-deadline"));
+    return cut.FindComponents<MudDatePicker>().Single(c => c.Instance.Class?.Contains("settings-deadline") == true);
   }
 }

@@ -52,7 +52,7 @@ internal class TestDbContextFactory(SqliteTestDatabase database, Guid userId) : 
 
   public static SearchGoalService CreateSearchGoalService(SqliteTestDatabase database, Guid userId)
   {
-    return new SearchGoalService(new TestDbContextFactory(database, userId), new FixedCurrentUser(userId));
+    return new SearchGoalService(new TestDbContextFactory(database, userId));
   }
 
   public Task<IKarajobDbContext> CreateDbContextAsync(CancellationToken cancellationToken = default)
