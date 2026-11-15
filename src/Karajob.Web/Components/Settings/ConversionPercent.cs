@@ -4,11 +4,11 @@ public static class ConversionPercent
 {
   public static decimal FromPermille(int permille)
   {
-    throw new NotImplementedException();
+    return permille / 10m;
   }
 
   public static int ToPermille(decimal percent)
   {
-    throw new NotImplementedException();
+    return (int)Math.Round(percent * 10m, MidpointRounding.AwayFromZero);
   }
 }
