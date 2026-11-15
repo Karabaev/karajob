@@ -18,6 +18,13 @@ else if (_loaded)
   <MudText Typo="Typo.h4" HtmlTag="h1" Class="mb-4">@Title</MudText>
 
   <MudGrid>
+    @* First in the DOM so that it sits above the form on a phone; order-md-last moves it to the right column. *@
+    @if (_details is { Status: not HypothesisStatus.Draft })
+    {
+      <MudItem xs="12" md="5" Class="order-md-last">
+        <HypothesisCriteriaCard HypothesisId="_details.Id" />
+      </MudItem>
+    }
     <MudItem xs="12" md="7">
       <MudPaper Class="pa-4">
         <MudForm>

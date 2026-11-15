@@ -13,7 +13,7 @@ public record HypothesisMetrics(
 
 public record MarketMetric(int VacanciesThisWeek, int ThresholdPerWeek)
 {
-  public MetricVerdict Verdict => throw new NotImplementedException();
+  public MetricVerdict Verdict => VacanciesThisWeek >= ThresholdPerWeek ? MetricVerdict.OnTrack : MetricVerdict.BelowThreshold;
 }
 
 public record ConversionMetric(
@@ -26,10 +26,19 @@ public record ConversionMetric(
   int MaturationDays,
   bool IsInsufficientData)
 {
-  public MetricVerdict Verdict => throw new NotImplementedException();
+  public MetricVerdict Verdict
+  {
+    get
+    {
+      if (IsInsufficientData) return MetricVerdict.InsufficientData;
+
+      // Integer comparison of k/n against the permille threshold: no rounding at the boundary.
+      return Positive * 1000L >= (long)ThresholdPermille * Matured ? MetricVerdict.OnTrack : MetricVerdict.BelowThreshold;
+    }
+  }
 }
 
 public record ProfileActivity(UtcWeek Week, int Applications, int WeeklyTarget)
 {
-  public MetricVerdict Verdict => throw new NotImplementedException();
+  public MetricVerdict Verdict => Applications >= WeeklyTarget ? MetricVerdict.OnTrack : MetricVerdict.BelowThreshold;
 }
