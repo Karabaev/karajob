@@ -1,5 +1,6 @@
 using Karajob.Application.Common;
 using Karajob.Application.Persistence;
+using Karajob.Domain.Goals;
 using Karajob.Domain.Normalization;
 using Karajob.Domain.Users;
 using Microsoft.EntityFrameworkCore;
@@ -34,6 +35,7 @@ public class UserService(IKarajobDbContextFactory dbContextFactory, TimeProvider
     await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
     var user = new User(input.Name, input.Color, timeProvider.GetUtcNow().UtcDateTime);
     db.Users.Add(user);
+    db.SearchGoals.Add(new SearchGoal(user.Id));
     await db.SaveChangesAsync(cancellationToken);
     return ToDto(user);
   }
