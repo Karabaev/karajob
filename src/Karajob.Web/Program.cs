@@ -3,6 +3,7 @@ using Karajob.Application.Companies;
 using Karajob.Application.Cvs;
 using Karajob.Application.Goals;
 using Karajob.Application.Hypotheses;
+using Karajob.Application.Metrics;
 using Karajob.Application.Users;
 using Karajob.Application.Vacancies;
 using Karajob.Infrastructure.Files;
@@ -45,6 +46,7 @@ builder.Services.AddScoped<CompanyService>();
 builder.Services.AddScoped<HypothesisService>();
 builder.Services.AddScoped<CatalogService>();
 builder.Services.AddScoped<VacancyService>();
+builder.Services.AddScoped<HypothesisMetricsService>();
 builder.Services.AddScoped<InboxNotifier>();
 
 var cvOptions = builder.Configuration.GetRequiredSection(CvOptions.SectionName).Get<CvOptions>()
