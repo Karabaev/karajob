@@ -2,6 +2,7 @@ using Karajob.Application.Catalogs;
 using Karajob.Application.Companies;
 using Karajob.Application.Cvs;
 using Karajob.Application.Files;
+using Karajob.Application.Goals;
 using Karajob.Application.Hypotheses;
 using Karajob.Application.Persistence;
 using Karajob.Application.Users;
@@ -47,6 +48,11 @@ internal class TestDbContextFactory(SqliteTestDatabase database, Guid userId) : 
   public static UserService CreateUserService(SqliteTestDatabase database, Guid userId, TimeProvider timeProvider)
   {
     return new UserService(new TestDbContextFactory(database, userId), timeProvider);
+  }
+
+  public static SearchGoalService CreateSearchGoalService(SqliteTestDatabase database, Guid userId)
+  {
+    return new SearchGoalService(new TestDbContextFactory(database, userId));
   }
 
   public Task<IKarajobDbContext> CreateDbContextAsync(CancellationToken cancellationToken = default)

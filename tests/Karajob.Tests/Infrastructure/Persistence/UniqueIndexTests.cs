@@ -1,5 +1,6 @@
 using Karajob.Domain.Catalogs;
 using Karajob.Domain.Companies;
+using Karajob.Domain.Goals;
 using Karajob.Domain.Vacancies;
 using Karajob.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -165,5 +166,15 @@ public class UniqueIndexTests
     await context.SaveChangesAsync();
 
     Assert.Equal(1, await context.Roles.CountAsync(r => r.NormalizedName == "serbia"));
+  }
+
+  [Fact]
+  public async Task SaveChanges_SecondSearchGoalForSameUser_ThrowsDbUpdateException()
+  {
+    await using var database = await SqliteTestDatabase.CreateAsync();
+    await using var context = database.CreateContext(SeedData.OwnerId);
+    context.SearchGoals.Add(new SearchGoal(SeedData.OwnerId));
+
+    await Assert.ThrowsAsync<DbUpdateException>(() => context.SaveChangesAsync());
   }
 }

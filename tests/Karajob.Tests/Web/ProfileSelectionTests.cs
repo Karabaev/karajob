@@ -204,6 +204,7 @@ public class ProfileSelectionTests(WebApplicationFactory<Program> factory) : ICl
     var contextFactory = scope.ServiceProvider.GetRequiredService<IDbContextFactory<KarajobDbContext>>();
     await using var context = await contextFactory.CreateDbContextAsync();
     var user = await context.Users.SingleAsync(u => u.Id == id);
+    context.SearchGoals.Remove(await context.SearchGoals.SingleAsync());
     context.Users.Remove(user);
     await context.SaveChangesAsync();
   }

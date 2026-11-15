@@ -1,10 +1,12 @@
 using Karajob.Application.Catalogs;
 using Karajob.Application.Common;
 using Karajob.Domain.Cvs;
+using Karajob.Domain.Goals;
 using Karajob.Domain.Hypotheses;
 using Karajob.Domain.Vacancies;
 using Karajob.Infrastructure.Persistence;
 using Karajob.Tests.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 
 namespace Karajob.Tests.Application.Catalogs;
 
@@ -165,12 +167,75 @@ public class CatalogServiceDeleteTests : CatalogServiceFixture
     await AssertDeleteBlockedAsync(CatalogKind.Language, SeedData.RussianLanguageId);
   }
 
+  [Fact]
+  public async Task DeleteAsync_RoleUsedBySearchGoal_ThrowsValidationWithEmptyKeyAndKeepsIt()
+  {
+    await SetSearchGoalRoleAsync(SeedData.OwnerId, SeedData.UnrealDeveloperRoleId);
+
+    await AssertDeleteBlockedAsync(CatalogKind.Role, SeedData.UnrealDeveloperRoleId);
+  }
+
+  [Fact]
+  public async Task DeleteAsync_RoleUsedBySearchGoalOfAnotherUser_ThrowsValidationWithEmptyKey()
+  {
+    var other = await PersistenceFixtures.AddUserAsync(Database);
+    await AddSearchGoalAsync(other.Id, roleId: SeedData.UnrealDeveloperRoleId);
+
+    await AssertDeleteBlockedAsync(CatalogKind.Role, SeedData.UnrealDeveloperRoleId);
+  }
+
+  [Fact]
+  public async Task DeleteAsync_LocationUsedBySearchGoal_ThrowsValidationWithEmptyKeyAndKeepsIt()
+  {
+    await SetSearchGoalLocationAsync(SeedData.OwnerId, SeedData.EuLocationId);
+
+    await AssertDeleteBlockedAsync(CatalogKind.Location, SeedData.EuLocationId);
+  }
+
+  [Fact]
+  public async Task DeleteAsync_LocationUsedBySearchGoalOfAnotherUser_ThrowsValidationWithEmptyKey()
+  {
+    var other = await PersistenceFixtures.AddUserAsync(Database);
+    await AddSearchGoalAsync(other.Id, locationId: SeedData.EuLocationId);
+
+    await AssertDeleteBlockedAsync(CatalogKind.Location, SeedData.EuLocationId);
+  }
+
   private async Task AssertDeleteBlockedAsync(CatalogKind kind, Guid id)
   {
     var exception = await Assert.ThrowsAsync<ValidationFailedException>(() => Service.DeleteAsync(kind, id));
 
     Assert.Contains(string.Empty, exception.Errors.Keys);
     Assert.Contains(await Service.ListAsync(kind), i => i.Id == id);
+  }
+
+  private async Task SetSearchGoalRoleAsync(Guid userId, Guid roleId)
+  {
+    await using var context = Database.CreateContext(userId);
+    var goal = await context.SearchGoals.SingleAsync();
+    goal.RoleId = roleId;
+    await context.SaveChangesAsync();
+  }
+
+  private async Task SetSearchGoalLocationAsync(Guid userId, Guid locationId)
+  {
+    await using var context = Database.CreateContext(userId);
+    var goal = await context.SearchGoals.SingleAsync();
+    goal.SetLocations([locationId]);
+    await context.SaveChangesAsync();
+  }
+
+  private async Task AddSearchGoalAsync(Guid userId, Guid? roleId = null, Guid? locationId = null)
+  {
+    var goal = new SearchGoal(userId) { RoleId = roleId };
+    if (locationId is { } id)
+    {
+      goal.SetLocations([id]);
+    }
+
+    await using var context = Database.CreateContext(userId);
+    context.SearchGoals.Add(goal);
+    await context.SaveChangesAsync();
   }
 
   private async Task AddHypothesisWithLocationAsync(Guid userId, Guid locationId)

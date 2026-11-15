@@ -1,6 +1,8 @@
 using Karajob.Application.Common;
 using Karajob.Application.Users;
+using Karajob.Domain.Goals;
 using Karajob.Infrastructure.Persistence;
+using Karajob.Tests.Application;
 using Microsoft.EntityFrameworkCore;
 
 namespace Karajob.Tests.Application.Users;
@@ -52,6 +54,51 @@ public class UserServiceTests : UserServiceFixture
 
     var listed = (await Service.ListAsync()).Single(p => p.Id == dto.Id);
     Assert.Equal(dto, listed);
+  }
+
+  [Fact]
+  public async Task CreateAsync_Valid_CreatesSearchGoalWithDefaultsForNewProfile()
+  {
+    var dto = await Service.CreateAsync(new UserInput("Anna", "#26a69a"));
+
+    await using var context = Database.CreateContext(dto.Id);
+    var goal = await context.SearchGoals.SingleAsync();
+    Assert.Equal(dto.Id, goal.UserId);
+    Assert.Equal(SearchGoalDefaults.WeeklyApplicationTarget, goal.WeeklyApplicationTarget);
+    Assert.Equal(SearchGoalDefaults.MarketThresholdPerWeek, goal.MarketThresholdPerWeek);
+    Assert.Equal(SearchGoalDefaults.ConversionThresholdPermille, goal.ConversionThresholdPermille);
+    Assert.Equal(SearchGoalDefaults.MinSampleSize, goal.MinSampleSize);
+    Assert.Equal(SearchGoalDefaults.MaturationDays, goal.MaturationDays);
+    Assert.Null(goal.RoleId);
+  }
+
+  [Fact]
+  public async Task CreateAsync_Valid_NewProfileGoalIsReadableThroughSearchGoalService()
+  {
+    var dto = await Service.CreateAsync(new UserInput("Anna", "#26a69a"));
+
+    var details = await TestDbContextFactory.CreateSearchGoalService(Database, dto.Id).GetAsync();
+
+    Assert.Equal(10, details.WeeklyApplicationTarget);
+    Assert.Equal(10, details.MarketThresholdPerWeek);
+    Assert.Equal(30, details.ConversionThresholdPermille);
+    Assert.Equal(30, details.MinSampleSize);
+    Assert.Equal(14, details.MaturationDays);
+    Assert.Empty(details.LocationIds);
+  }
+
+  [Fact]
+  public async Task CreateAsync_TwoProfiles_EachGetsExactlyOneSearchGoal()
+  {
+    var first = await Service.CreateAsync(new UserInput("Anna", "#26a69a"));
+    var second = await Service.CreateAsync(new UserInput("Boris", "#ef5350"));
+
+    await using var context = Database.CreateContext(SeedData.OwnerId);
+    var goals = await context.SearchGoals.IgnoreQueryFilters().ToListAsync();
+    Assert.Equal(3, goals.Count);
+    Assert.Single(goals, g => g.UserId == first.Id);
+    Assert.Single(goals, g => g.UserId == second.Id);
+    Assert.Single(goals, g => g.UserId == SeedData.OwnerId);
   }
 
   [Fact]

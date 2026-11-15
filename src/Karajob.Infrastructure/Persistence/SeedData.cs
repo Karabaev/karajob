@@ -6,6 +6,7 @@ public static class SeedData
   public const string OwnerName = "Owner";
   public const string OwnerColor = "#7e57c2";
   public static readonly DateTime OwnerCreatedAt = new(2026, 11, 13, 0, 0, 0, DateTimeKind.Utc);
+  public static readonly Guid OwnerSearchGoalId = new("019a7c1e-0000-7000-8000-000000000401");
 
   public static readonly Guid UnityDeveloperRoleId = new("019a7c1e-0000-7000-8000-000000000101");
   public static readonly Guid UnrealDeveloperRoleId = new("019a7c1e-0000-7000-8000-000000000102");

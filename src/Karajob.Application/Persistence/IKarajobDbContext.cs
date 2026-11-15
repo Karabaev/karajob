@@ -2,6 +2,7 @@ using Karajob.Domain.Applications;
 using Karajob.Domain.Catalogs;
 using Karajob.Domain.Companies;
 using Karajob.Domain.Cvs;
+using Karajob.Domain.Goals;
 using Karajob.Domain.Hypotheses;
 using Karajob.Domain.Users;
 using Karajob.Domain.Vacancies;
@@ -28,6 +29,8 @@ public interface IKarajobDbContext : IAsyncDisposable
   DbSet<VacancyMatch> VacancyMatches { get; }
   DbSet<JobApplication> JobApplications { get; }
   DbSet<ApplicationEvent> ApplicationEvents { get; }
+  DbSet<SearchGoal> SearchGoals { get; }
+  DbSet<SearchGoalLocation> SearchGoalLocations { get; }
 
   Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }
