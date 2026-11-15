@@ -38,7 +38,7 @@
                 <MudSelectItem T="Guid" Value="location.Id">@location.Name</MudSelectItem>
               }
             </MudSelect>
-            <MudTextField T="string" Class="settings-industries" Label="Индустрии" HelperText="по одной на строку"
+            <MudTextField T="string" Class="settings-industries" Label="Индустрии"
                           Lines="3" Sizing="InputSizing.Auto" @bind-Value="_industries"
                           Error="HasError(nameof(SearchGoalInput.Industries))" ErrorText="@ErrorOf(nameof(SearchGoalInput.Industries))" />
             <MudTextField T="string" Class="settings-must-have" Label="Обязательные условия"
@@ -53,7 +53,7 @@
                            Error="HasError(nameof(SearchGoalInput.Deadline))" ErrorText="@ErrorOf(nameof(SearchGoalInput.Deadline))" />
             <MudGrid Spacing="2">
               <MudItem xs="12" sm="8">
-                <MudNumericField T="long?" Class="settings-income" Label="Желаемый доход в месяц (gross)" Min="0"
+                <MudNumericField T="long?" Class="settings-income" Label="Доход в месяц, gross" Min="0"
                                  @bind-Value="_income"
                                  Error="HasError(nameof(SearchGoalInput.DesiredMonthlyIncome))" ErrorText="@ErrorOf(nameof(SearchGoalInput.DesiredMonthlyIncome))" />
               </MudItem>
