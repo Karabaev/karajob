@@ -1,5 +1,6 @@
 using Bunit;
 using Karajob.Application.Hypotheses;
+using Karajob.Domain.Hypotheses;
 using Karajob.Infrastructure.Persistence;
 using Karajob.Web.Components.Hypotheses;
 using MudBlazor;
@@ -111,6 +112,34 @@ public class HypothesisPageTests : HypothesisWebFixture
 
     cut.WaitForAssertion(() => Assert.Contains("Укажите роль", cut.Markup));
     Assert.Empty(await Service.ListAsync());
+  }
+
+  [Fact]
+  public void Render_NewHypothesis_DoesNotShowCriteriaCard()
+  {
+    var cut = Context.Render<HypothesisPage>();
+    cut.WaitForElement(".hypothesis-name input");
+
+    Assert.Empty(cut.FindAll(".hypothesis-criteria"));
+  }
+
+  [Fact]
+  public async Task Render_DraftHypothesis_DoesNotShowCriteriaCard()
+  {
+    var created = await Service.CreateAsync(Input("Gamedev EU"));
+    var cut = Context.Render<HypothesisPage>(p => p.Add(c => c.Id, created.Id));
+    cut.WaitForAssertion(() => Assert.Equal("Gamedev EU", cut.Find(".hypothesis-name input").GetAttribute("value")));
+
+    Assert.Empty(cut.FindAll(".hypothesis-criteria"));
+  }
+
+  [Fact]
+  public async Task Render_ActiveHypothesis_ShowsCriteriaCard()
+  {
+    var created = await Service.CreateAsync(Input("Gamedev EU") with { Status = HypothesisStatus.Active });
+    var cut = Context.Render<HypothesisPage>(p => p.Add(c => c.Id, created.Id));
+
+    cut.WaitForElement(".hypothesis-criteria");
   }
 
   private static async Task SelectRoleAsync(IRenderedComponent<HypothesisPage> cut, Guid roleId)

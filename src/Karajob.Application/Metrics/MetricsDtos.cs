@@ -11,7 +11,10 @@ public record HypothesisMetrics(
   ConversionMetric Conversion,
   int WeeklyApplications);
 
-public record MarketMetric(int VacanciesThisWeek, int ThresholdPerWeek);
+public record MarketMetric(int VacanciesThisWeek, int ThresholdPerWeek)
+{
+  public MetricVerdict Verdict => throw new NotImplementedException();
+}
 
 public record ConversionMetric(
   int Positive,
@@ -21,6 +24,12 @@ public record ConversionMetric(
   int ThresholdPermille,
   int MinSampleSize,
   int MaturationDays,
-  bool IsInsufficientData);
+  bool IsInsufficientData)
+{
+  public MetricVerdict Verdict => throw new NotImplementedException();
+}
 
-public record ProfileActivity(UtcWeek Week, int Applications, int WeeklyTarget);
+public record ProfileActivity(UtcWeek Week, int Applications, int WeeklyTarget)
+{
+  public MetricVerdict Verdict => throw new NotImplementedException();
+}
