@@ -2,6 +2,7 @@ using Karajob.Application.Persistence;
 using Karajob.Domain.Applications;
 using Karajob.Domain.Common;
 using Karajob.Domain.Metrics;
+using Karajob.Domain.Vacancies;
 using Microsoft.EntityFrameworkCore;
 
 namespace Karajob.Application.Metrics;
@@ -32,7 +33,11 @@ public class HypothesisMetricsService(IKarajobDbContextFactory dbContextFactory,
       .SingleOrDefaultAsync(cancellationToken)
       ?? throw new KeyNotFoundException($"Hypothesis {hypothesisId} was not found.");
     var start = periodStart ?? hypothesis.StartedAt ?? hypothesis.CreatedAt;
-    if (start > now) throw new ArgumentException("The period cannot start after the metrics date.", nameof(periodStart));
+    if (start > now)
+    {
+      var source = periodStart is null ? "The hypothesis period (StartedAt or CreatedAt)" : "The period";
+      throw new ArgumentException($"{source} starts after the metrics date.", periodStart is null ? nameof(asOf) : nameof(periodStart));
+    }
 
     var goal = await db.SearchGoals.AsNoTracking().SingleAsync(cancellationToken);
     var week = UtcWeek.Containing(now);
@@ -53,15 +58,24 @@ public class HypothesisMetricsService(IKarajobDbContextFactory dbContextFactory,
     var maturedBefore = now.AddDays(-goal.MaturationDays);
     var matured = applications.Where(a => a.AppliedAt <= maturedBefore).ToList();
     var maturedVacancyIds = matured.Select(a => a.VacancyId).ToList();
-    var positiveEvents = await db.ApplicationEvents.AsNoTracking()
-      .Where(e => maturedVacancyIds.Contains(e.VacancyId) && PositiveEventTypes.Contains(e.Type) && e.OccurredAt <= now)
-      .Select(e => new { e.VacancyId, e.OccurredAt })
+    var events = await db.ApplicationEvents.AsNoTracking()
+      .Where(e => maturedVacancyIds.Contains(e.VacancyId)
+        && (PositiveEventTypes.Contains(e.Type) || e.Type == ApplicationEventType.StageChanged && e.ToStage == VacancyStage.Closed))
+      .Select(e => new { e.VacancyId, e.Type, e.OccurredAt })
       .ToListAsync(cancellationToken);
+    // The outcome is current state; it belongs to the latest close, which must not be after asOf.
+    var lastClosedAt = events
+      .Where(e => e.Type == ApplicationEventType.StageChanged)
+      .GroupBy(e => e.VacancyId)
+      .ToDictionary(g => g.Key, g => g.Max(e => e.OccurredAt));
 
     // Compared by day: the event dialog stores a past day as midnight, while the application keeps its time.
     var positive = matured.Count(a =>
-      a.Outcome == ApplicationOutcome.Offer
-      || positiveEvents.Any(e => e.VacancyId == a.VacancyId && e.OccurredAt.Date >= a.AppliedAt.Date));
+      a.Outcome == ApplicationOutcome.Offer && lastClosedAt.TryGetValue(a.VacancyId, out var closedAt) && closedAt <= now
+      || events.Any(e => e.VacancyId == a.VacancyId
+        && e.Type != ApplicationEventType.StageChanged
+        && e.OccurredAt <= now
+        && e.OccurredAt.Date >= a.AppliedAt.Date));
 
     var conversion = new ConversionMetric(
       positive,

@@ -299,6 +299,61 @@ public class HypothesisMetricsServiceTests : HypothesisMetricsServiceFixture
   }
 
   [Fact]
+  public async Task GetAsync_PositiveEventAfterAsOf_IsNotPositive()
+  {
+    var hypothesisId = await CreateStartedHypothesisAsync();
+    var asOf = Now.AddDays(-5);
+    var vacancyId = await ApplyAsync(hypothesisId, asOf.AddDays(-20));
+    await AddEventAsync(vacancyId, ApplicationEventType.Screening, asOf.AddDays(1));
+
+    var metrics = await Metrics.GetAsync(hypothesisId, null, asOf);
+
+    Assert.Equal(0, metrics.Conversion.Positive);
+    Assert.Equal(1, metrics.Conversion.Matured);
+  }
+
+  [Fact]
+  public async Task GetAsync_ClosedWithOfferAfterAsOf_IsNotPositive()
+  {
+    var hypothesisId = await CreateStartedHypothesisAsync();
+    var asOf = Now.AddDays(-5);
+    await ApplyAsync(hypothesisId, asOf.AddDays(-20), afterApply: v => v.Close(ApplicationOutcome.Offer, asOf.AddDays(1)));
+
+    var metrics = await Metrics.GetAsync(hypothesisId, null, asOf);
+
+    Assert.Equal(0, metrics.Conversion.Positive);
+    Assert.Equal(1, metrics.Conversion.Matured);
+  }
+
+  [Fact]
+  public async Task GetAsync_ClosedWithOfferBeforeAsOf_IsPositive()
+  {
+    var hypothesisId = await CreateStartedHypothesisAsync();
+    var asOf = Now.AddDays(-5);
+    await ApplyAsync(hypothesisId, asOf.AddDays(-20), afterApply: v => v.Close(ApplicationOutcome.Offer, asOf.AddDays(-1)));
+
+    var metrics = await Metrics.GetAsync(hypothesisId, null, asOf);
+
+    Assert.Equal(1, metrics.Conversion.Positive);
+  }
+
+  [Fact]
+  public async Task GetAsync_OfferReopenedToApplied_IsNotPositive()
+  {
+    var hypothesisId = await CreateStartedHypothesisAsync();
+    await ApplyAsync(hypothesisId, MaturedAt, afterApply: v =>
+    {
+      v.Close(ApplicationOutcome.Offer, MaturedAt.AddDays(3));
+      v.MoveTo(VacancyStage.Applied, MaturedAt.AddDays(4));
+    });
+
+    var metrics = await Metrics.GetAsync(hypothesisId);
+
+    Assert.Equal(0, metrics.Conversion.Positive);
+    Assert.Equal(1, metrics.Conversion.Matured);
+  }
+
+  [Fact]
   public async Task GetAsync_MovedToInterviewingWithoutEvent_IsNotPositive()
   {
     var hypothesisId = await CreateStartedHypothesisAsync();
