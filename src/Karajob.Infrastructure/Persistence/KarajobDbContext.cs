@@ -6,6 +6,7 @@ using Karajob.Domain.Catalogs;
 using Karajob.Domain.Common;
 using Karajob.Domain.Companies;
 using Karajob.Domain.Cvs;
+using Karajob.Domain.Goals;
 using Karajob.Domain.Hypotheses;
 using Karajob.Domain.Users;
 using Karajob.Domain.Vacancies;
@@ -41,6 +42,8 @@ public class KarajobDbContext(DbContextOptions<KarajobDbContext> options, ICurre
   public DbSet<VacancyMatch> VacancyMatches => Set<VacancyMatch>();
   public DbSet<JobApplication> JobApplications => Set<JobApplication>();
   public DbSet<ApplicationEvent> ApplicationEvents => Set<ApplicationEvent>();
+  public DbSet<SearchGoal> SearchGoals => Set<SearchGoal>();
+  public DbSet<SearchGoalLocation> SearchGoalLocations => Set<SearchGoalLocation>();
 
   protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
   {

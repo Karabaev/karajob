@@ -1,6 +1,7 @@
 using Karajob.Application.Catalogs;
 using Karajob.Application.Companies;
 using Karajob.Application.Cvs;
+using Karajob.Application.Goals;
 using Karajob.Application.Hypotheses;
 using Karajob.Application.Users;
 using Karajob.Application.Vacancies;
@@ -39,6 +40,7 @@ if (databaseOptions.Provider == DatabaseOptions.SqliteProvider)
 }
 builder.Services.AddProfileAuthentication();
 builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<SearchGoalService>();
 builder.Services.AddScoped<CompanyService>();
 builder.Services.AddScoped<HypothesisService>();
 builder.Services.AddScoped<CatalogService>();
