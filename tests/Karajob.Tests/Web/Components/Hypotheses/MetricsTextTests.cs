@@ -36,6 +36,15 @@ public class MetricsTextTests
     Assert.Equal(expected, MetricsText.Percent(rate));
   }
 
+  [Theory]
+  [InlineData(30, "3 %")]
+  [InlineData(25, "2,5 %")]
+  [InlineData(0, "0 %")]
+  public void ThresholdPercent_FormatsPermilleWithoutTrailingZero(int permille, string expected)
+  {
+    Assert.Equal(expected, MetricsText.ThresholdPercent(permille));
+  }
+
   [Fact]
   public void Percent_UnderInvariantCulture_StillUsesComma()
   {

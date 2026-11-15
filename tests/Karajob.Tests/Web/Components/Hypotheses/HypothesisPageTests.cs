@@ -139,7 +139,7 @@ public class HypothesisPageTests : HypothesisWebFixture
     var created = await Service.CreateAsync(Input("Gamedev EU") with { Status = HypothesisStatus.Active });
     var cut = Context.Render<HypothesisPage>(p => p.Add(c => c.Id, created.Id));
 
-    cut.WaitForElement(".hypothesis-criteria");
+    cut.WaitForElement(".hypothesis-criteria .criteria-market");
   }
 
   private static async Task SelectRoleAsync(IRenderedComponent<HypothesisPage> cut, Guid roleId)

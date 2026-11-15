@@ -3,7 +3,11 @@
 
 <MudPaper Class="pa-4 hypothesis-criteria">
   <MudText Typo="Typo.h6" HtmlTag="h2">Критерии</MudText>
-  @if (_metrics is null || _activity is null)
+  @if (_notFound)
+  {
+    <MudText Typo="Typo.body2" Class="mud-text-secondary criteria-unavailable">Метрики недоступны: гипотеза не найдена.</MudText>
+  }
+  else if (_metrics is null || _activity is null)
   {
     <MudProgressLinear Indeterminate="true" Class="mt-2" />
   }
@@ -20,7 +24,7 @@
           <MudText Typo="Typo.subtitle2">Рынок</MudText>
           <MudChip T="string" Class="criteria-verdict" Size="Size.Small" Color="@MetricsText.VerdictColor(_metrics.Market.Verdict)">@MetricsText.Verdict(_metrics.Market.Verdict)</MudChip>
         </MudStack>
-        <MudText Typo="Typo.h5">@_metrics.Market.VacanciesThisWeek</MudText>
+        <MudText Typo="Typo.h5" Class="criteria-market-count">@_metrics.Market.VacanciesThisWeek</MudText>
         <MudText Typo="Typo.caption" Class="mud-text-secondary">вакансий за неделю · порог: @_metrics.Market.ThresholdPerWeek в неделю</MudText>
       </div>
 
@@ -70,6 +74,7 @@
   private HypothesisMetrics? _metrics;
   private ProfileActivity? _activity;
   private Guid? _loadedId;
+  private bool _notFound;
 
   [Parameter, EditorRequired]
   public Guid HypothesisId { get; set; }
@@ -81,8 +86,17 @@
 
     _metrics = null;
     _activity = null;
+    _notFound = false;
     _loadedId = HypothesisId;
-    _metrics = await MetricsService.GetAsync(HypothesisId);
-    _activity = await MetricsService.GetActivityAsync();
+    try
+    {
+      _metrics = await MetricsService.GetAsync(HypothesisId);
+      _activity = await MetricsService.GetActivityAsync();
+    }
+    catch (KeyNotFoundException)
+    {
+      // Deleted in another tab after the page loaded it: an unhandled exception here would drop the circuit and the unsaved form.
+      _notFound = true;
+    }
   }
 }

@@ -97,7 +97,7 @@ public class HypothesisCriteriaCardTests : HypothesisMetricsServiceFixture, IAsy
     cut.WaitForAssertion(() =>
     {
       var text = cut.Find(".criteria-market").TextContent;
-      Assert.Contains("3", text);
+      Assert.Equal("3", cut.Find(".criteria-market-count").TextContent.Trim());
       Assert.Contains("ниже порога", text);
     });
   }
@@ -114,7 +114,7 @@ public class HypothesisCriteriaCardTests : HypothesisMetricsServiceFixture, IAsy
     cut.WaitForAssertion(() =>
     {
       var text = cut.Find(".criteria-market").TextContent;
-      Assert.Contains("3", text);
+      Assert.Equal("3", cut.Find(".criteria-market-count").TextContent.Trim());
       Assert.Contains("в норме", text);
       Assert.DoesNotContain("ниже порога", text);
     });
@@ -134,7 +134,7 @@ public class HypothesisCriteriaCardTests : HypothesisMetricsServiceFixture, IAsy
     cut.WaitForAssertion(() =>
     {
       var text = cut.Find(".criteria-activity").TextContent;
-      Assert.Contains("2", text);
+      Assert.Contains("по этой гипотезе: 2", text);
       Assert.Contains("5 из 7", text);
       Assert.Contains("ниже порога", text);
     });
@@ -177,6 +177,33 @@ public class HypothesisCriteriaCardTests : HypothesisMetricsServiceFixture, IAsy
         Assert.Contains(chips[0].TextContent.Trim(), new[] { "данных мало", "ниже порога", "в норме" });
       }
     });
+  }
+
+  [Fact]
+  public void Render_UnknownHypothesis_ShowsUnavailableMessageInsteadOfThrowing()
+  {
+    var cut = RenderCard(Guid.NewGuid());
+
+    cut.WaitForAssertion(() =>
+    {
+      Assert.Contains("Метрики недоступны", cut.Find(".criteria-unavailable").TextContent);
+      Assert.Empty(cut.FindAll(".criteria-market"));
+    });
+  }
+
+  [Fact]
+  public async Task Render_HypothesisIdChanged_ShowsMetricsOfNewHypothesis()
+  {
+    await UpdateGoalAsync(marketThresholdPerWeek: 5);
+    var firstId = await CreateStartedHypothesisAsync();
+    var secondId = await CreateStartedHypothesisAsync(name: "Gamedev EU");
+    await CreateVacanciesAsync(firstId, 3);
+    var cut = RenderCard(firstId);
+    cut.WaitForAssertion(() => Assert.Equal("3", cut.Find(".criteria-market-count").TextContent.Trim()));
+
+    cut.Render(p => p.Add(c => c.HypothesisId, secondId));
+
+    cut.WaitForAssertion(() => Assert.Equal("0", cut.Find(".criteria-market-count").TextContent.Trim()));
   }
 
   async Task IAsyncLifetime.InitializeAsync()

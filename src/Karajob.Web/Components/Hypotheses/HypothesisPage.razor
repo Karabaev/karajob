@@ -22,7 +22,8 @@ else if (_loaded)
     @if (_details is { Status: not HypothesisStatus.Draft })
     {
       <MudItem xs="12" md="5" Class="order-md-last">
-        <HypothesisCriteriaCard HypothesisId="_details.Id" />
+        @* @key: another hypothesis gets a fresh card, so a slow load for the previous one cannot overwrite it. *@
+        <HypothesisCriteriaCard @key="_details.Id" HypothesisId="_details.Id" />
       </MudItem>
     }
     <MudItem xs="12" md="7">
