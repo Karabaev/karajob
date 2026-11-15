@@ -73,7 +73,7 @@
                              HelperText="Сколько подходящих вакансий в неделю считается живым рынком"
                              @bind-Value="_marketThreshold"
                              Error="HasError(nameof(SearchGoalInput.MarketThresholdPerWeek))" ErrorText="@ErrorOf(nameof(SearchGoalInput.MarketThresholdPerWeek))" />
-            <MudNumericField T="decimal" Class="settings-conversion-threshold" Label="Порог конверсии, %" Step="0.1m"
+            <MudNumericField T="decimal" Class="settings-conversion-threshold" Label="Порог конверсии, %" Step="0.1m" Min="0m" Max="100m"
                              HelperText="Какая доля откликов с ответом считается хорошей"
                              @bind-Value="_conversionPercent"
                              Error="HasError(nameof(SearchGoalInput.ConversionThresholdPermille))" ErrorText="@ErrorOf(nameof(SearchGoalInput.ConversionThresholdPermille))" />
@@ -184,7 +184,7 @@
       _weeklyTarget,
       _deadline is { } deadline ? DateOnly.FromDateTime(deadline) : null,
       _income,
-      _income is null ? null : _currency,
+      _currency,
       _marketThreshold,
       ConversionPercent.ToPermille(_conversionPercent),
       _minSample,

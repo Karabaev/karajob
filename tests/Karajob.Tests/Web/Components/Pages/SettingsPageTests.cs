@@ -142,6 +142,36 @@ public class SettingsPageTests : SettingsWebFixture
     Assert.Null((await Service.GetAsync()).DesiredMonthlyIncome);
   }
 
+  [Fact]
+  public async Task Save_CurrencyWithoutIncome_DoesNotSaveAndMarksIncomeInvalid()
+  {
+    var cut = Context.Render<SettingsPage>();
+    cut.WaitForElement(".settings-currency");
+    await SetNumericAsync<int>(cut, "settings-weekly-target", 15);
+    await SetTextAsync(cut, "settings-currency", "EUR");
+
+    cut.Find(".settings-save").Click();
+
+    cut.WaitForAssertion(() => Assert.True(Numeric<long?>(cut, "settings-income").Instance.Error));
+    Assert.Equal("EUR", Text(cut, "settings-currency").Instance.Value);
+    var stored = await Service.GetAsync();
+    Assert.Equal(10, stored.WeeklyApplicationTarget);
+    Assert.Null(stored.IncomeCurrency);
+  }
+
+  [Fact]
+  public async Task Save_HugeConversionPercent_ShowsValidationErrorInsteadOfCrashing()
+  {
+    var cut = Context.Render<SettingsPage>();
+    cut.WaitForElement(".settings-conversion-threshold");
+    await SetNumericAsync<decimal>(cut, "settings-conversion-threshold", 300_000_000m);
+
+    cut.Find(".settings-save").Click();
+
+    cut.WaitForAssertion(() => Assert.True(Numeric<decimal>(cut, "settings-conversion-threshold").Instance.Error));
+    Assert.Equal(30, (await Service.GetAsync()).ConversionThresholdPermille);
+  }
+
   private async Task<SearchGoalDetails> WaitForGoalAsync(Func<SearchGoalDetails, bool> predicate)
   {
     var deadline = DateTime.UtcNow.AddSeconds(5);

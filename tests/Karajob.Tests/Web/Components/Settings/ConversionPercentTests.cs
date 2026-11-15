@@ -42,6 +42,13 @@ public class ConversionPercentTests
     Assert.Equal(-36, ConversionPercent.ToPermille(-3.55m));
   }
 
+  [Fact]
+  public void ToPermille_HugePercent_ClampsInsteadOfOverflowing()
+  {
+    Assert.Equal(int.MaxValue, ConversionPercent.ToPermille(300_000_000m));
+    Assert.Equal(int.MinValue, ConversionPercent.ToPermille(-300_000_000m));
+  }
+
   [Theory]
   [InlineData(0)]
   [InlineData(1)]

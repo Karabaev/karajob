@@ -17,15 +17,16 @@ public class SearchGoalConfiguration : IEntityTypeConfiguration<SearchGoal>
     // SetLocations diffs against the loaded collection.
     builder.Navigation(g => g.Locations).AutoInclude();
 
+    // Literals, not SearchGoalDefaults: changing a default for new profiles must not emit UpdateData over the Owner's edited goal.
     builder.HasData(new
     {
       Id = SeedData.OwnerSearchGoalId,
       UserId = SeedData.OwnerId,
-      SearchGoalDefaults.WeeklyApplicationTarget,
-      SearchGoalDefaults.MarketThresholdPerWeek,
-      SearchGoalDefaults.ConversionThresholdPermille,
-      SearchGoalDefaults.MinSampleSize,
-      SearchGoalDefaults.MaturationDays,
+      WeeklyApplicationTarget = 10,
+      MarketThresholdPerWeek = 10,
+      ConversionThresholdPermille = 30,
+      MinSampleSize = 30,
+      MaturationDays = 14,
     });
   }
 }
