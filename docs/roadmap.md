@@ -105,7 +105,7 @@ Order: block A → block B; blocks C, D, E are independent after #41.
 
 ### F. Localization
 
-- [ ] #62 English UI: resx localization (en by default, ru kept), reference data seeds and documentation in English.
+- [x] #62 English UI: resx localization (en by default, ru kept), reference data seeds and documentation in English.
 
 
 ### Not in Phase 0.5
