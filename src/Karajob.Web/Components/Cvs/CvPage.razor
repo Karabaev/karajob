@@ -11,8 +11,8 @@
 
 @if (_notFound)
 {
-  <MudText Typo="Typo.h4" HtmlTag="h1" GutterBottom="true">CV не найдено</MudText>
-  <MudButton Href="/cvs">К списку CV</MudButton>
+  <MudText Typo="Typo.h4" HtmlTag="h1" GutterBottom="true">@L["Cv.NotFound"]</MudText>
+  <MudButton Href="/cvs">@L["Cv.BackToList"]</MudButton>
 }
 else if (_loaded)
 {
@@ -26,17 +26,17 @@ else if (_loaded)
           {
             <MudAlert Severity="Severity.Error">@general</MudAlert>
           }
-          <MudTextField T="string" Class="cv-name" Label="Название" Immediate="true" @bind-Value="_name"
+          <MudTextField T="string" Class="cv-name" Label="@L["Cv.Name"]" Immediate="true" @bind-Value="_name"
                         Error="HasError(nameof(CvInput.Name))" ErrorText="@ErrorOf(nameof(CvInput.Name))" />
-          <MudSelect T="Guid?" Class="cv-language" Label="Язык" @bind-Value="_languageId" ToStringFunc="LanguageName"
-                     HelperText="@(_languages.Count == 0 ? "Добавьте в разделе Справочники" : null)"
+          <MudSelect T="Guid?" Class="cv-language" Label="@L["Cv.Language"]" @bind-Value="_languageId" ToStringFunc="LanguageName"
+                     HelperText="@(_languages.Count == 0 ? L["Cv.EmptyHint"].Value : null)"
                      Error="HasError(nameof(CvInput.LanguageId))" ErrorText="@ErrorOf(nameof(CvInput.LanguageId))">
             @foreach (var language in _languages)
             {
               <MudSelectItem T="Guid?" Value="@((Guid?)language.Id)">@language.Name</MudSelectItem>
             }
           </MudSelect>
-          <MudTextField T="string" Class="cv-tags" Label="Теги" HelperText="по одному на строку"
+          <MudTextField T="string" Class="cv-tags" Label="@L["Cv.Tags"]" HelperText="@L["Cv.OnePerLine"]"
                         Lines="3" Sizing="InputSizing.Auto" @bind-Value="_tags"
                         Error="HasError(nameof(CvInput.Tags))" ErrorText="@ErrorOf(nameof(CvInput.Tags))" />
 
@@ -45,7 +45,7 @@ else if (_loaded)
             <div>
               <MudFileUpload T="IBrowserFile" Accept=".pdf,.docx" Files="_file" FilesChanged="OnFileChanged">
                 <CustomContent>
-                  <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.AttachFile" OnClick="@context.OpenFilePickerAsync">Выбрать файл</MudButton>
+                  <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.AttachFile" OnClick="@context.OpenFilePickerAsync">@L["Cv.ChooseFile"]</MudButton>
                 </CustomContent>
               </MudFileUpload>
               @if (HasError(CvService.FileErrorKey))
@@ -53,14 +53,14 @@ else if (_loaded)
                 <MudText Typo="Typo.caption" Color="Color.Error">@ErrorOf(CvService.FileErrorKey)</MudText>
               }
             </div>
-            <MudTextField T="string" Class="cv-comment" Label="Комментарий к версии" @bind-Value="_comment" />
+            <MudTextField T="string" Class="cv-comment" Label="@L["Cv.VersionComment"]" @bind-Value="_comment" />
           }
 
           <MudStack Row="true" Justify="Justify.SpaceBetween">
-            <MudButton Class="cv-save" Variant="Variant.Filled" Color="Color.Primary" Disabled="_saving" OnClick="SaveAsync">Сохранить</MudButton>
+            <MudButton Class="cv-save" Variant="Variant.Filled" Color="Color.Primary" Disabled="_saving" OnClick="SaveAsync">@L["Cv.Save"]</MudButton>
             @if (_details is not null)
             {
-              <MudButton Class="cv-delete" Color="Color.Error" OnClick="DeleteAsync">Удалить CV</MudButton>
+              <MudButton Class="cv-delete" Color="Color.Error" OnClick="DeleteAsync">@L["Cv.Delete"]</MudButton>
             }
           </MudStack>
         </MudStack>
@@ -72,12 +72,12 @@ else if (_loaded)
       <MudItem xs="12" md="7">
         <MudPaper Class="pa-4">
           <MudStack Spacing="2">
-            <MudText Typo="Typo.h6" HtmlTag="h2">Версии</MudText>
+            <MudText Typo="Typo.h6" HtmlTag="h2">@L["Cv.Versions"]</MudText>
 
             <div>
               <MudFileUpload @ref="_versionUpload" T="IBrowserFile" Accept=".pdf,.docx" Files="_versionFile" FilesChanged="OnVersionFileChanged">
                 <CustomContent>
-                  <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.AttachFile" OnClick="@context.OpenFilePickerAsync">Выбрать файл</MudButton>
+                  <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.AttachFile" OnClick="@context.OpenFilePickerAsync">@L["Cv.ChooseFile"]</MudButton>
                 </CustomContent>
               </MudFileUpload>
               @if (HasError(CvService.FileErrorKey))
@@ -85,27 +85,27 @@ else if (_loaded)
                 <MudText Typo="Typo.caption" Color="Color.Error">@ErrorOf(CvService.FileErrorKey)</MudText>
               }
             </div>
-            <MudTextField T="string" Class="cv-version-comment" Label="Комментарий к версии" @bind-Value="_versionComment" />
+            <MudTextField T="string" Class="cv-version-comment" Label="@L["Cv.VersionComment"]" @bind-Value="_versionComment" />
             <MudButton Class="cv-upload-version" Variant="Variant.Filled" Color="Color.Primary"
-                       Disabled="_saving" OnClick="UploadVersionAsync">Загрузить версию</MudButton>
+                       Disabled="_saving" OnClick="UploadVersionAsync">@L["Cv.UploadVersion"]</MudButton>
 
             <MudTable Items="_details.Versions" Breakpoint="Breakpoint.Sm" Dense="true" Elevation="0">
               <HeaderContent>
-                <MudTh>Файл</MudTh>
-                <MudTh>Загружен</MudTh>
-                <MudTh>Размер</MudTh>
-                <MudTh>Комментарий</MudTh>
+                <MudTh>@L["Cv.File"]</MudTh>
+                <MudTh>@L["Cv.Uploaded"]</MudTh>
+                <MudTh>@L["Cv.Size"]</MudTh>
+                <MudTh>@L["Cv.Comment"]</MudTh>
                 <MudTh></MudTh>
               </HeaderContent>
               <RowTemplate>
-                <MudTd DataLabel="Файл">@context.FileName</MudTd>
-                <MudTd DataLabel="Загружен">@context.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</MudTd>
-                <MudTd DataLabel="Размер">@FormatSize(context.SizeBytes)</MudTd>
-                <MudTd DataLabel="Комментарий">@context.Comment</MudTd>
+                <MudTd DataLabel="@L["Cv.File"]">@context.FileName</MudTd>
+                <MudTd DataLabel="@L["Cv.Uploaded"]">@context.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</MudTd>
+                <MudTd DataLabel="@L["Cv.Size"]">@FormatSize(context.SizeBytes)</MudTd>
+                <MudTd DataLabel="@L["Cv.Comment"]">@context.Comment</MudTd>
                 <MudTd>
-                  <a class="mud-link mud-link-underline-hover" href="/cvs/versions/@context.Id/file" download="@context.FileName">Скачать</a>
+                  <a class="mud-link mud-link-underline-hover" href="/cvs/versions/@context.Id/file" download="@context.FileName">@L["Cv.Download"]</a>
                   <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
-                                 aria-label="Удалить версию" OnClick="() => DeleteVersionAsync(context)" />
+                                 aria-label="@L["Cv.DeleteVersionLabel"]" OnClick="() => DeleteVersionAsync(context)" />
                 </MudTd>
               </RowTemplate>
             </MudTable>
@@ -135,7 +135,7 @@ else if (_loaded)
   [Parameter]
   public Guid? Id { get; set; }
 
-  private string Title => _details?.Name ?? (Id is null ? "Новое CV" : "CV не найдено");
+  private string Title => _details?.Name ?? (Id is null ? L["Cv.New"] : L["Cv.NotFound"]);
 
   // The same component instance is reused when the route changes, so load here, not in OnInitialized.
   // After our own create navigates to the saved id the page already holds that CV.
@@ -212,11 +212,11 @@ else if (_loaded)
       .ToList();
   }
 
-  private static string FormatSize(long bytes)
+  private string FormatSize(long bytes)
   {
     return bytes >= 1024 * 1024
-      ? $"{bytes / (1024.0 * 1024):0.#} МБ"
-      : $"{Math.Max(1, (bytes + 1023) / 1024)} КБ";
+      ? L["Cv.SizeMb", (bytes / (1024.0 * 1024)).ToString("0.#")]
+      : L["Cv.SizeKb", Math.Max(1, (bytes + 1023) / 1024)];
   }
 
   private CvUpload? ToUpload(IBrowserFile? file, string? comment)
@@ -245,7 +245,7 @@ else if (_loaded)
         var created = await CvService.CreateAsync(BuildInput(), ToUpload(_file, _comment));
         _errors = new Dictionary<string, string>();
         _details = created;
-        Snackbar.Add("Сохранено", Severity.Success);
+        Snackbar.Add(L["Cv.Saved"], Severity.Success);
         Navigation.NavigateTo($"/cvs/{created.Id}");
       }
       else
@@ -253,7 +253,7 @@ else if (_loaded)
         _details = await CvService.UpdateAsync(_details.Id, BuildInput());
         _errors = new Dictionary<string, string>();
         FillFields();
-        Snackbar.Add("Сохранено", Severity.Success);
+        Snackbar.Add(L["Cv.Saved"], Severity.Success);
       }
     }
     catch (ValidationFailedException exception)
@@ -263,7 +263,7 @@ else if (_loaded)
     catch (IOException)
     {
       // The browser stream broke or turned out larger than the reported size.
-      _errors = new Dictionary<string, string> { [CvService.FileErrorKey] = "Не удалось прочитать файл — выберите его заново" };
+      _errors = new Dictionary<string, string> { [CvService.FileErrorKey] = L["Cv.ReadFailed"] };
     }
     catch (KeyNotFoundException)
     {
@@ -289,7 +289,7 @@ else if (_loaded)
         await _versionUpload.ClearAsync();
       }
 
-      Snackbar.Add("Версия загружена", Severity.Success);
+      Snackbar.Add(L["Cv.VersionUploaded"], Severity.Success);
     }
     catch (ValidationFailedException exception)
     {
@@ -298,7 +298,7 @@ else if (_loaded)
     catch (IOException)
     {
       // The browser stream broke or turned out larger than the reported size.
-      _errors = new Dictionary<string, string> { [CvService.FileErrorKey] = "Не удалось прочитать файл — выберите его заново" };
+      _errors = new Dictionary<string, string> { [CvService.FileErrorKey] = L["Cv.ReadFailed"] };
     }
     catch (KeyNotFoundException)
     {
@@ -313,10 +313,10 @@ else if (_loaded)
   private async Task DeleteVersionAsync(CvVersionItem version)
   {
     var confirmed = await DialogService.ShowMessageBoxAsync(
-      "Удалить версию?",
-      $"Файл «{version.FileName}» будет удалён.",
-      yesText: "Удалить",
-      cancelText: "Отмена");
+      L["Cv.DeleteVersionTitle"],
+      L["Cv.DeleteVersionMessage", version.FileName],
+      yesText: L["Cv.DeleteConfirm"],
+      cancelText: L["Cv.Cancel"]);
     if (confirmed != true)
     {
       return;
@@ -341,10 +341,10 @@ else if (_loaded)
   private async Task DeleteAsync()
   {
     var confirmed = await DialogService.ShowMessageBoxAsync(
-      "Удалить CV?",
-      $"CV «{_details!.Name}» и все его версии будут удалены.",
-      yesText: "Удалить",
-      cancelText: "Отмена");
+      L["Cv.DeleteTitle"],
+      L["Cv.DeleteMessage", _details!.Name],
+      yesText: L["Cv.DeleteConfirm"],
+      cancelText: L["Cv.Cancel"]);
     if (confirmed != true)
     {
       return;

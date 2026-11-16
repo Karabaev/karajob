@@ -4,4 +4,35 @@
   <resheader name="version"><value>2.0</value></resheader>
   <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Cv.NotFound" xml:space="preserve"><value>CV не найдено</value></data>
+  <data name="Cv.BackToList" xml:space="preserve"><value>К списку CV</value></data>
+  <data name="Cv.New" xml:space="preserve"><value>Новое CV</value></data>
+  <data name="Cv.Name" xml:space="preserve"><value>Название</value></data>
+  <data name="Cv.Language" xml:space="preserve"><value>Язык</value></data>
+  <data name="Cv.EmptyHint" xml:space="preserve"><value>Добавьте в разделе Справочники</value></data>
+  <data name="Cv.Tags" xml:space="preserve"><value>Теги</value></data>
+  <data name="Cv.OnePerLine" xml:space="preserve"><value>по одному на строку</value></data>
+  <data name="Cv.ChooseFile" xml:space="preserve"><value>Выбрать файл</value></data>
+  <data name="Cv.VersionComment" xml:space="preserve"><value>Комментарий к версии</value></data>
+  <data name="Cv.Save" xml:space="preserve"><value>Сохранить</value></data>
+  <data name="Cv.Delete" xml:space="preserve"><value>Удалить CV</value></data>
+  <data name="Cv.Versions" xml:space="preserve"><value>Версии</value></data>
+  <data name="Cv.UploadVersion" xml:space="preserve"><value>Загрузить версию</value></data>
+  <data name="Cv.File" xml:space="preserve"><value>Файл</value></data>
+  <data name="Cv.Uploaded" xml:space="preserve"><value>Загружен</value></data>
+  <data name="Cv.Size" xml:space="preserve"><value>Размер</value></data>
+  <data name="Cv.Comment" xml:space="preserve"><value>Комментарий</value></data>
+  <data name="Cv.Download" xml:space="preserve"><value>Скачать</value></data>
+  <data name="Cv.DeleteVersionLabel" xml:space="preserve"><value>Удалить версию</value></data>
+  <data name="Cv.SizeMb" xml:space="preserve"><value>{0} МБ</value></data>
+  <data name="Cv.SizeKb" xml:space="preserve"><value>{0} КБ</value></data>
+  <data name="Cv.Saved" xml:space="preserve"><value>Сохранено</value></data>
+  <data name="Cv.VersionUploaded" xml:space="preserve"><value>Версия загружена</value></data>
+  <data name="Cv.ReadFailed" xml:space="preserve"><value>Не удалось прочитать файл — выберите его заново</value></data>
+  <data name="Cv.DeleteVersionTitle" xml:space="preserve"><value>Удалить версию?</value></data>
+  <data name="Cv.DeleteVersionMessage" xml:space="preserve"><value>Файл «{0}» будет удалён.</value></data>
+  <data name="Cv.DeleteTitle" xml:space="preserve"><value>Удалить CV?</value></data>
+  <data name="Cv.DeleteMessage" xml:space="preserve"><value>CV «{0}» и все его версии будут удалены.</value></data>
+  <data name="Cv.DeleteConfirm" xml:space="preserve"><value>Удалить</value></data>
+  <data name="Cv.Cancel" xml:space="preserve"><value>Отмена</value></data>
 </root>

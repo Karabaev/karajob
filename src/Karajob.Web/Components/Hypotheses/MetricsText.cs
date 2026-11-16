@@ -2,6 +2,7 @@ using System.Globalization;
 using Karajob.Application.Metrics;
 using Karajob.Domain.Metrics;
 using Karajob.Web.Components.Settings;
+using Karajob.Web.Resources;
 using MudBlazor;
 
 namespace Karajob.Web.Components.Hypotheses;
@@ -15,9 +16,9 @@ public static class MetricsText
   {
     return verdict switch
     {
-      MetricVerdict.InsufficientData => "данных мало",
-      MetricVerdict.BelowThreshold => "ниже порога",
-      MetricVerdict.OnTrack => "в норме",
+      MetricVerdict.InsufficientData => Localized.Get<HypothesisStrings>("Verdict.InsufficientData"),
+      MetricVerdict.BelowThreshold => Localized.Get<HypothesisStrings>("Verdict.BelowThreshold"),
+      MetricVerdict.OnTrack => Localized.Get<HypothesisStrings>("Verdict.OnTrack"),
       _ => throw new ArgumentOutOfRangeException(nameof(verdict), verdict, null)
     };
   }

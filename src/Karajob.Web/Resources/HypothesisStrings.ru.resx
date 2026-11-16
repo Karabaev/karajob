@@ -4,4 +4,54 @@
   <resheader name="version"><value>2.0</value></resheader>
   <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Hypothesis.Criteria" xml:space="preserve"><value>Критерии</value></data>
+  <data name="Hypothesis.MetricsUnavailable" xml:space="preserve"><value>Метрики недоступны: гипотеза не найдена.</value></data>
+  <data name="Hypothesis.WeekPeriod" xml:space="preserve"><value>Неделя {0} (UTC) · период с {1}</value></data>
+  <data name="Hypothesis.Market" xml:space="preserve"><value>Рынок</value></data>
+  <data name="Hypothesis.MarketCaption" xml:space="preserve"><value>вакансий за неделю · порог: {0} в неделю</value></data>
+  <data name="Hypothesis.Conversion" xml:space="preserve"><value>Конверсия</value></data>
+  <data name="Hypothesis.OfCount" xml:space="preserve"><value>{0} из {1}</value></data>
+  <data name="Hypothesis.ConfidenceInterval" xml:space="preserve"><value>95% ДИ {0}</value></data>
+  <data name="Hypothesis.ConversionCaption" xml:space="preserve"><value>порог {0} · учитываются отклики старше {1} дн.</value></data>
+  <data name="Hypothesis.MinSample" xml:space="preserve"><value>для вывода нужно не меньше {0} созревших откликов</value></data>
+  <data name="Hypothesis.Activity" xml:space="preserve"><value>Активность</value></data>
+  <data name="Hypothesis.ActivityCaption" xml:space="preserve"><value>откликов по профилю за неделю · по этой гипотезе: {0}</value></data>
+  <data name="Hypothesis.NotFound" xml:space="preserve"><value>Гипотеза не найдена</value></data>
+  <data name="Hypothesis.BackToList" xml:space="preserve"><value>К списку гипотез</value></data>
+  <data name="Hypothesis.New" xml:space="preserve"><value>Новая гипотеза</value></data>
+  <data name="Hypothesis.Name" xml:space="preserve"><value>Название</value></data>
+  <data name="Hypothesis.Role" xml:space="preserve"><value>Роль</value></data>
+  <data name="Hypothesis.Language" xml:space="preserve"><value>Язык</value></data>
+  <data name="Hypothesis.WorkFormat" xml:space="preserve"><value>Формат работы</value></data>
+  <data name="Hypothesis.Locations" xml:space="preserve"><value>Локации</value></data>
+  <data name="Hypothesis.Platforms" xml:space="preserve"><value>Платформы</value></data>
+  <data name="Hypothesis.Engines" xml:space="preserve"><value>Движки</value></data>
+  <data name="Hypothesis.Industries" xml:space="preserve"><value>Индустрии</value></data>
+  <data name="Hypothesis.OnePerLine" xml:space="preserve"><value>по одной на строку</value></data>
+  <data name="Hypothesis.Positioning" xml:space="preserve"><value>Позиционирование</value></data>
+  <data name="Hypothesis.PrimaryCv" xml:space="preserve"><value>Основной CV</value></data>
+  <data name="Hypothesis.CvHint" xml:space="preserve"><value>CV появятся после загрузки в разделе CV</value></data>
+  <data name="Hypothesis.NotSelected" xml:space="preserve"><value>— не выбран —</value></data>
+  <data name="Hypothesis.Status" xml:space="preserve"><value>Статус</value></data>
+  <data name="Hypothesis.Started" xml:space="preserve"><value>Запущена {0}</value></data>
+  <data name="Hypothesis.Save" xml:space="preserve"><value>Сохранить</value></data>
+  <data name="Hypothesis.Delete" xml:space="preserve"><value>Удалить гипотезу</value></data>
+  <data name="Hypothesis.EmptyHint" xml:space="preserve"><value>Добавьте в разделе Справочники</value></data>
+  <data name="Hypothesis.Saved" xml:space="preserve"><value>Сохранено</value></data>
+  <data name="Hypothesis.DeleteTitle" xml:space="preserve"><value>Удалить гипотезу?</value></data>
+  <data name="Hypothesis.DeleteMessage" xml:space="preserve"><value>Гипотеза «{0}» будет удалена.</value></data>
+  <data name="Hypothesis.DeleteConfirm" xml:space="preserve"><value>Удалить</value></data>
+  <data name="Hypothesis.Cancel" xml:space="preserve"><value>Отмена</value></data>
+  <data name="Status.Draft" xml:space="preserve"><value>Черновик</value></data>
+  <data name="Status.Active" xml:space="preserve"><value>Активна</value></data>
+  <data name="Status.Expanded" xml:space="preserve"><value>Расширена</value></data>
+  <data name="Status.Paused" xml:space="preserve"><value>На паузе</value></data>
+  <data name="Status.Disabled" xml:space="preserve"><value>Отключена</value></data>
+  <data name="WorkFormat.Remote" xml:space="preserve"><value>Удалёнка</value></data>
+  <data name="WorkFormat.Hybrid" xml:space="preserve"><value>Гибрид</value></data>
+  <data name="WorkFormat.OnSite" xml:space="preserve"><value>Офис</value></data>
+  <data name="WorkFormat.Relocation" xml:space="preserve"><value>Релокация</value></data>
+  <data name="Verdict.InsufficientData" xml:space="preserve"><value>данных мало</value></data>
+  <data name="Verdict.BelowThreshold" xml:space="preserve"><value>ниже порога</value></data>
+  <data name="Verdict.OnTrack" xml:space="preserve"><value>в норме</value></data>
 </root>
