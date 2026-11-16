@@ -21,6 +21,7 @@
   <data name="Error.StageChanged" xml:space="preserve"><value>Стадия вакансии уже изменилась</value></data>
   <data name="Error.HypothesisNotFound" xml:space="preserve"><value>Гипотеза не найдена</value></data>
   <data name="Error.HypothesisDisabled" xml:space="preserve"><value>Гипотеза отключена</value></data>
+  <data name="Error.HypothesisRoleMismatch" xml:space="preserve"><value>Роль гипотезы не совпадает с ролью вакансии</value></data>
   <data name="Error.UrlExists" xml:space="preserve"><value>Вакансия с этой ссылкой уже есть</value></data>
   <data name="Error.CompanyNotFound" xml:space="preserve"><value>Компания не найдена</value></data>
   <data name="Error.RoleNotFound" xml:space="preserve"><value>Роль не найдена</value></data>
