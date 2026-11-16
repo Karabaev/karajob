@@ -12,6 +12,7 @@
   <data name="Layout.Companies" xml:space="preserve"><value>Companies</value></data>
   <data name="Layout.Hypotheses" xml:space="preserve"><value>Hypotheses</value></data>
   <data name="Layout.Catalogs" xml:space="preserve"><value>Catalogs</value></data>
+  <data name="Layout.MasterProfile" xml:space="preserve"><value>Master profile</value></data>
   <data name="Layout.Settings" xml:space="preserve"><value>Settings</value></data>
   <data name="Layout.Profile" xml:space="preserve"><value>Profile: {0}</value></data>
   <data name="Layout.AllProfiles" xml:space="preserve"><value>All profiles</value></data>

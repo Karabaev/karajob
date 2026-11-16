@@ -12,6 +12,7 @@
   <data name="Layout.Companies" xml:space="preserve"><value>Компании</value></data>
   <data name="Layout.Hypotheses" xml:space="preserve"><value>Гипотезы</value></data>
   <data name="Layout.Catalogs" xml:space="preserve"><value>Справочники</value></data>
+  <data name="Layout.MasterProfile" xml:space="preserve"><value>Мастер-профиль</value></data>
   <data name="Layout.Settings" xml:space="preserve"><value>Настройки</value></data>
   <data name="Layout.Profile" xml:space="preserve"><value>Профиль: {0}</value></data>
   <data name="Layout.AllProfiles" xml:space="preserve"><value>Все профили</value></data>
