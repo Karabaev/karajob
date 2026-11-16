@@ -361,7 +361,7 @@ public class CompanyService(IKarajobDbContextFactory dbContextFactory, ICurrentU
     }
   }
 
-  private string? Try(Func<string> normalize, Dictionary<string, string> errors, string key, string message)
+  private static string? Try(Func<string> normalize, Dictionary<string, string> errors, string key, string message)
   {
     try
     {

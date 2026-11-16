@@ -18,6 +18,7 @@ public class LocalizationConfigTests
     var html = WebUtility.HtmlDecode(await client.GetStringAsync("/companies"));
 
     Assert.Contains("<title>Компании</title>", html);
+    Assert.Contains("<html lang=\"ru\">", html);
   }
 
   [Fact]
@@ -29,6 +30,7 @@ public class LocalizationConfigTests
     var html = WebUtility.HtmlDecode(await client.GetStringAsync("/companies"));
 
     Assert.Contains("<title>Companies</title>", html);
+    Assert.Contains("<html lang=\"en\">", html);
   }
 
   [Fact]
@@ -41,6 +43,7 @@ public class LocalizationConfigTests
     var html = WebUtility.HtmlDecode(await client.GetStringAsync("/companies"));
 
     Assert.Contains("<title>Companies</title>", html);
+    Assert.Contains("<html lang=\"en\">", html);
   }
 
   [Fact]

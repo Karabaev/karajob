@@ -8,6 +8,12 @@ public static class Localized
 {
   public static string Get<TResource>(string key)
   {
-    return new ResourceManager(typeof(TResource)).GetString(key, CultureInfo.CurrentUICulture) ?? key;
+    return Holder<TResource>.Manager.GetString(key, CultureInfo.CurrentUICulture)
+      ?? throw new KeyNotFoundException($"Resource key '{key}' is missing in {typeof(TResource).Name}.");
+  }
+
+  private static class Holder<TResource>
+  {
+    public static readonly ResourceManager Manager = new(typeof(TResource));
   }
 }
