@@ -30,7 +30,7 @@
             </MudSelect>
             <MudSelect T="Guid" Class="settings-locations" Label="Страны" MultiSelection="true"
                        SelectedValues="_locationIds" SelectedValuesChanged="OnLocationsChanged"
-                       ToStringFunc="LocationName" MultiSelectionTextFunc="LocationsText"
+                       ToStringFunc="LocationName" MultiSelectionTextFunc="JoinNames"
                        HelperText="@EmptyHint(_locations)"
                        Error="HasError(nameof(SearchGoalInput.LocationIds))" ErrorText="@ErrorOf(nameof(SearchGoalInput.LocationIds))">
               @foreach (var location in _locations)
@@ -40,7 +40,7 @@
             </MudSelect>
             <MudSelect T="Guid" Class="settings-platforms" Label="Платформы" MultiSelection="true"
                        SelectedValues="_platformIds" SelectedValuesChanged="OnPlatformsChanged"
-                       ToStringFunc="PlatformName" MultiSelectionTextFunc="LocationsText"
+                       ToStringFunc="PlatformName" MultiSelectionTextFunc="JoinNames"
                        HelperText="@EmptyHint(_platforms)"
                        Error="HasError(nameof(SearchGoalInput.PlatformIds))" ErrorText="@ErrorOf(nameof(SearchGoalInput.PlatformIds))">
               @foreach (var platform in _platforms)
@@ -178,7 +178,7 @@
     return _platforms.FirstOrDefault(p => p.Id == id)?.Name ?? "";
   }
 
-  private string LocationsText(IReadOnlyList<string?> names)
+  private static string JoinNames(IReadOnlyList<string?> names)
   {
     return string.Join(", ", names);
   }

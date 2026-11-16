@@ -76,7 +76,7 @@ else if (_loaded)
 
             <MudSelect T="Guid" Class="hypothesis-locations" Label="Локации" MultiSelection="true"
                        SelectedValues="_locationIds" SelectedValuesChanged="OnLocationsChanged"
-                       ToStringFunc="LocationName" MultiSelectionTextFunc="LocationsText"
+                       ToStringFunc="LocationName" MultiSelectionTextFunc="JoinNames"
                        HelperText="@EmptyHint(_locationOptions)"
                        Error="HasError(nameof(HypothesisInput.LocationIds))" ErrorText="@ErrorOf(nameof(HypothesisInput.LocationIds))">
               @foreach (var location in _locationOptions)
@@ -87,7 +87,7 @@ else if (_loaded)
 
             <MudSelect T="Guid" Class="hypothesis-platforms" Label="Платформы" MultiSelection="true"
                        SelectedValues="_platformIds" SelectedValuesChanged="OnPlatformsChanged"
-                       ToStringFunc="PlatformName" MultiSelectionTextFunc="PlatformsText"
+                       ToStringFunc="PlatformName" MultiSelectionTextFunc="JoinNames"
                        HelperText="@EmptyHint(_platformOptions)"
                        Error="HasError(nameof(HypothesisInput.PlatformIds))" ErrorText="@ErrorOf(nameof(HypothesisInput.PlatformIds))">
               @foreach (var platform in _platformOptions)
@@ -264,7 +264,7 @@ else if (_loaded)
     return _locationOptions.FirstOrDefault(l => l.Id == id)?.Name ?? "";
   }
 
-  private string LocationsText(IReadOnlyList<string?> names)
+  private static string JoinNames(IReadOnlyList<string?> names)
   {
     return string.Join(", ", names);
   }
@@ -272,11 +272,6 @@ else if (_loaded)
   private string PlatformName(Guid id)
   {
     return _platformOptions.FirstOrDefault(p => p.Id == id)?.Name ?? "";
-  }
-
-  private string PlatformsText(IReadOnlyList<string?> names)
-  {
-    return string.Join(", ", names);
   }
 
   private static string? EmptyHint(IReadOnlyList<CatalogListItem> items)
