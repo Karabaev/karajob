@@ -169,7 +169,7 @@ public class MainLayoutTests : IAsyncLifetime
 
   private static VacancyInput NewVacancy(string url)
   {
-    return new VacancyInput(url, null, null, null, [], null, null,null, null, null, [], null, null);
+    return new VacancyInput(url, null, null, null, [], [], null, null, null, null, null, [], null, null);
   }
 
   private static bool IsDrawerOpen(IRenderedComponent<MainLayout> cut)

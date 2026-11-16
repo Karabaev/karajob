@@ -23,4 +23,15 @@ public static class SeedData
   public static readonly Guid MobilePlatformId = new("019a7c1e-0000-7000-8000-000000000503");
   public static readonly Guid VrPlatformId = new("019a7c1e-0000-7000-8000-000000000504");
   public static readonly Guid WebPlatformId = new("019a7c1e-0000-7000-8000-000000000505");
+
+  public static readonly Guid RubCurrencyId = new("019a7c1e-0000-7000-8000-000000000601");
+  public static readonly Guid UsdCurrencyId = new("019a7c1e-0000-7000-8000-000000000602");
+  public static readonly Guid EurCurrencyId = new("019a7c1e-0000-7000-8000-000000000603");
+
+  public static readonly Guid UnityEngineId = new("019a7c1e-0000-7000-8000-000000000701");
+  public static readonly Guid UnrealEngineId = new("019a7c1e-0000-7000-8000-000000000702");
+  public static readonly Guid GodotEngineId = new("019a7c1e-0000-7000-8000-000000000703");
+  public static readonly Guid DefoldEngineId = new("019a7c1e-0000-7000-8000-000000000704");
+  public static readonly Guid CocosEngineId = new("019a7c1e-0000-7000-8000-000000000705");
+  public static readonly Guid ProprietaryEngineId = new("019a7c1e-0000-7000-8000-000000000706");
 }

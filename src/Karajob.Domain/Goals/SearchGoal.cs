@@ -1,4 +1,5 @@
 using Karajob.Domain.Common;
+using Karajob.Domain.Normalization;
 
 namespace Karajob.Domain.Goals;
 
@@ -10,12 +11,14 @@ public class SearchGoal : IUserOwned
 
   private readonly List<SearchGoalLocation> locations = [];
   private readonly List<SearchGoalPlatform> platforms = [];
+  private readonly List<SearchGoalEngine> engines = [];
 
   public Guid Id { get; private set; }
   public Guid UserId { get; private set; }
   public Guid? RoleId { get; set => field = value is { } id ? Require.NotEmpty(id) : null; }
   public IReadOnlyCollection<SearchGoalLocation> Locations => locations;
   public IReadOnlyCollection<SearchGoalPlatform> Platforms => platforms;
+  public IReadOnlyCollection<SearchGoalEngine> Engines => engines;
   public string? Industries { get; set => field = BlankToNull(value); }
   public string? MustHave { get; set => field = BlankToNull(value); }
 
@@ -95,6 +98,11 @@ public class SearchGoal : IUserOwned
     }
   }
 
+  public void SetEngines(IEnumerable<Guid> engineIds)
+  {
+    throw new NotImplementedException();
+  }
+
   public void SetDesiredIncome(long? amount, string? currency)
   {
     if (amount is null && currency is null)
@@ -106,10 +114,9 @@ public class SearchGoal : IUserOwned
 
     if (amount is null || currency is null) throw new ArgumentException("Amount and currency must be given together.");
     ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(amount.Value, 0L, nameof(amount));
-    if (currency is not { Length: 3 } || !currency.All(char.IsAsciiLetter)) throw new ArgumentException("Currency must be a 3-letter code.", nameof(currency));
 
     DesiredMonthlyIncome = amount;
-    IncomeCurrency = currency.ToUpperInvariant();
+    IncomeCurrency = Normalize.CurrencyCode(currency);
   }
 
   private static string? BlankToNull(string? value)

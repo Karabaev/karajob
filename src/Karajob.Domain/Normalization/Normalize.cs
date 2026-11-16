@@ -107,6 +107,14 @@ public static partial class Normalize
     return code;
   }
 
+  public static string CurrencyCode(string value, [CallerArgumentExpression(nameof(value))] string? paramName = null)
+  {
+    ArgumentException.ThrowIfNullOrWhiteSpace(value, paramName);
+    var code = value.Trim().ToUpperInvariant();
+    if (!CurrencyCodePattern().IsMatch(code)) throw new ArgumentException($"'{value}' is not a valid currency code.", paramName);
+    return code;
+  }
+
   public static string HexColor(string value, [CallerArgumentExpression(nameof(value))] string? paramName = null)
   {
     ArgumentException.ThrowIfNullOrWhiteSpace(value, paramName);
@@ -194,6 +202,9 @@ public static partial class Normalize
 
   [GeneratedRegex("^[a-z]{2,3}$")]
   private static partial Regex LanguageCodePattern();
+
+  [GeneratedRegex("^[A-Z]{3}$")]
+  private static partial Regex CurrencyCodePattern();
 
   [GeneratedRegex("^#[0-9a-f]{6}$")]
   private static partial Regex HexColorPattern();

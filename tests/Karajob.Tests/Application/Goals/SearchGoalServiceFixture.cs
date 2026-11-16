@@ -26,12 +26,14 @@ public abstract class SearchGoalServiceFixture : IAsyncLifetime
     int conversionThresholdPermille = 30,
     int minSampleSize = 30,
     int maturationDays = 14,
-    IReadOnlyList<Guid>? platformIds = null)
+    IReadOnlyList<Guid>? platformIds = null,
+    IReadOnlyList<Guid>? engineIds = null)
   {
     return new SearchGoalInput(
       roleId,
       locationIds ?? [],
       platformIds ?? [],
+      engineIds ?? [],
       industries,
       mustHave,
       weeklyApplicationTarget,

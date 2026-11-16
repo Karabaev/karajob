@@ -85,7 +85,7 @@ public class SearchGoalServiceTests : SearchGoalServiceFixture
     var loaded = await Service.GetAsync();
     Assert.Equal(loaded.RoleId, returned.RoleId);
     Assert.Equal(loaded.LocationIds.Order(), returned.LocationIds.Order());
-    Assert.Equal(loaded with { LocationIds = [], PlatformIds = [] }, returned with { LocationIds = [], PlatformIds = [] });
+    Assert.Equal(loaded with { LocationIds = [], PlatformIds = [], EngineIds = [] }, returned with { LocationIds = [], PlatformIds = [], EngineIds = [] });
   }
 
   [Fact]

@@ -6,6 +6,7 @@ public class Hypothesis : IUserOwned
 {
   private readonly List<HypothesisLocation> locations = [];
   private readonly List<HypothesisPlatform> platforms = [];
+  private readonly List<HypothesisEngine> engines = [];
   private DateTime? startedAt;
 
   public Guid Id { get; private set; }
@@ -14,6 +15,7 @@ public class Hypothesis : IUserOwned
   public Guid RoleId { get; set => field = Require.NotEmpty(value); }
   public IReadOnlyCollection<HypothesisLocation> Locations => locations;
   public IReadOnlyCollection<HypothesisPlatform> Platforms => platforms;
+  public IReadOnlyCollection<HypothesisEngine> Engines => engines;
   public List<string> Industries { get; private set; } = [];
   public WorkFormat WorkFormat { get; set; }
   public Guid LanguageId { get; set => field = Require.NotEmpty(value); }
@@ -46,6 +48,11 @@ public class Hypothesis : IUserOwned
     {
       platforms.Add(new HypothesisPlatform(UserId, Id, platformId));
     }
+  }
+
+  public void SetEngines(IEnumerable<Guid> engineIds)
+  {
+    throw new NotImplementedException();
   }
 
   public void ChangeStatus(HypothesisStatus status, DateTime utcNow)

@@ -69,7 +69,7 @@ public class RoundTripTests
     var project = new Project(company.Id, "Space Game", ProjectStatus.InDevelopment)
     {
       Genre = "Strategy",
-      Engine = "Unity",
+      EngineId = SeedData.UnityEngineId,
       Url = "https://game.example.com",
     };
     await using (var context = database.CreateContext(SeedData.OwnerId))
@@ -84,7 +84,7 @@ public class RoundTripTests
     Assert.Equal(company.Id, loaded.CompanyId);
     Assert.Equal("Space Game", loaded.Name);
     Assert.Equal("Strategy", loaded.Genre);
-    Assert.Equal("Unity", loaded.Engine);
+    Assert.Equal(SeedData.UnityEngineId, loaded.EngineId);
     Assert.Equal(ProjectStatus.InDevelopment, loaded.Status);
     Assert.Equal(project.Url, loaded.Url);
   }

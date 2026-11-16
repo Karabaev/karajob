@@ -23,13 +23,15 @@ public abstract class HypothesisServiceFixture : IAsyncLifetime
     string? positioning = null,
     Guid? primaryCvDocumentId = null,
     HypothesisStatus status = HypothesisStatus.Draft,
-    IReadOnlyList<Guid>? platformIds = null)
+    IReadOnlyList<Guid>? platformIds = null,
+    IReadOnlyList<Guid>? engineIds = null)
   {
     return new HypothesisInput(
       name,
       roleId ?? SeedData.UnityDeveloperRoleId,
       locationIds ?? [],
       platformIds ?? [],
+      engineIds ?? [],
       industries ?? [],
       workFormat,
       languageId ?? SeedData.RussianLanguageId,

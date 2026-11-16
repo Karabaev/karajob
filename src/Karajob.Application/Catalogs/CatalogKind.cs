@@ -6,4 +6,6 @@ public enum CatalogKind
   Location = 1,
   Language = 2,
   Platform = 3,
+  Currency = 4,
+  Engine = 5,
 }

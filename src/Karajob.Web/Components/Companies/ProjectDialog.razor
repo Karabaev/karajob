@@ -10,7 +10,6 @@
       <MudTextField T="string" Label="Название" @bind-Value="_name" Required="true"
                     Error="HasError(nameof(ProjectInput.Name))" ErrorText="@ErrorOf(nameof(ProjectInput.Name))" />
       <MudTextField T="string" Label="Жанр" @bind-Value="_genre" />
-      <MudTextField T="string" Label="Движок" @bind-Value="_engine" />
       <MudSelect T="ProjectStatus" Label="Статус" @bind-Value="_status">
         @foreach (var status in Enum.GetValues<ProjectStatus>())
         {
@@ -31,7 +30,7 @@
   private IReadOnlyDictionary<string, string> _errors = new Dictionary<string, string>();
   private string? _name;
   private string? _genre;
-  private string? _engine;
+  private Guid? _engineId;
   private string? _url;
   private ProjectStatus _status = ProjectStatus.Announced;
 
@@ -64,7 +63,7 @@
 
     _name = Item.Name;
     _genre = Item.Genre;
-    _engine = Item.Engine;
+    _engineId = Item.EngineId;
     _url = Item.Url;
     _status = Item.Status;
   }
@@ -81,7 +80,7 @@
 
   private async Task SaveAsync()
   {
-    var input = new ProjectInput(_name ?? "", _genre, _engine, _status, _url);
+    var input = new ProjectInput(_name ?? "", _genre, _engineId, _status, _url);
     try
     {
       if (Item is null)

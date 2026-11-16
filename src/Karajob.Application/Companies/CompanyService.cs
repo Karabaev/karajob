@@ -121,7 +121,7 @@ public class CompanyService(IKarajobDbContextFactory dbContextFactory, ICurrentU
     var project = new Project(companyId, normalized.Name, input.Status)
     {
       Genre = normalized.Genre,
-      Engine = normalized.Engine,
+      EngineId = input.EngineId,
       Url = normalized.Url,
     };
     db.Projects.Add(project);
@@ -137,7 +137,7 @@ public class CompanyService(IKarajobDbContextFactory dbContextFactory, ICurrentU
 
     project.Name = normalized.Name;
     project.Genre = normalized.Genre;
-    project.Engine = normalized.Engine;
+    project.EngineId = input.EngineId;
     project.Status = input.Status;
     project.Url = normalized.Url;
     await db.SaveChangesAsync(cancellationToken);
@@ -324,7 +324,7 @@ public class CompanyService(IKarajobDbContextFactory dbContextFactory, ICurrentU
       throw new ValidationFailedException(errors);
     }
 
-    return new NormalizedProject(name!, BlankToNull(input.Genre), BlankToNull(input.Engine), url);
+    return new NormalizedProject(name!, BlankToNull(input.Genre), url);
   }
 
   private static void SyncValues(Company company, NormalizedCompany normalized)
@@ -389,7 +389,7 @@ public class CompanyService(IKarajobDbContextFactory dbContextFactory, ICurrentU
 
   private static ProjectItem ToItem(Project project)
   {
-    return new ProjectItem(project.Id, project.Name, project.Genre, project.Engine, project.Status, project.Url);
+    return new ProjectItem(project.Id, project.Name, project.Genre, project.EngineId, null, project.Status, project.Url);
   }
 
   private static ValidationFailedException WholeEntityError(string message)
@@ -404,5 +404,5 @@ public class CompanyService(IKarajobDbContextFactory dbContextFactory, ICurrentU
 
   private record NormalizedCompany(string Slug, string Name, string? Website, string? Description, List<string> Domains, List<string> Aliases);
 
-  private record NormalizedProject(string Name, string? Genre, string? Engine, string? Url);
+  private record NormalizedProject(string Name, string? Genre, string? Url);
 }

@@ -9,6 +9,7 @@ public class Vacancy : IUserOwned
 {
   private readonly List<VacancyMatch> matches = [];
   private readonly List<VacancyPlatform> platforms = [];
+  private readonly List<VacancyEngine> engines = [];
   private readonly List<ApplicationEvent> events = [];
   private DateTime? publishedAt;
 
@@ -19,6 +20,7 @@ public class Vacancy : IUserOwned
   public string Url { get; private set; }
   public Guid? LocationId { get; set; }
   public IReadOnlyCollection<VacancyPlatform> Platforms => platforms;
+  public IReadOnlyCollection<VacancyEngine> Engines => engines;
   public Guid? LanguageId { get; set; }
   public WorkFormat? WorkFormat { get; set; }
   public SalaryRange? Salary { get; set; }
@@ -51,6 +53,11 @@ public class Vacancy : IUserOwned
     {
       platforms.Add(new VacancyPlatform(UserId, Id, platformId));
     }
+  }
+
+  public void SetEngines(IEnumerable<Guid> engineIds)
+  {
+    throw new NotImplementedException();
   }
 
   public VacancyMatch SetMatch(Guid hypothesisId, int? score, string? rationale, MatchAuthor matchedBy)

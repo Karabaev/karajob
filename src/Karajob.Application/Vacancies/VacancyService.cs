@@ -458,6 +458,7 @@ public partial class VacancyService(IKarajobDbContextFactory dbContextFactory, I
       vacancy.RoleId,
       vacancy.LocationId,
       vacancy.Platforms.Select(p => p.PlatformId).ToList(),
+      vacancy.Engines.Select(e => e.EngineId).ToList(),
       vacancy.LanguageId,
       vacancy.WorkFormat,
       vacancy.Salary?.Min,

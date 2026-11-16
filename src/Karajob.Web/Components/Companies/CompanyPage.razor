@@ -218,7 +218,7 @@ else if (_loaded)
 
   private static string ProjectSubtitle(ProjectItem project)
   {
-    var parts = new[] { project.Genre, project.Engine, ProjectDialog.StatusText(project.Status) };
+    var parts = new[] { project.Genre, project.EngineName, ProjectDialog.StatusText(project.Status) };
     return string.Join(" · ", parts.Where(part => !string.IsNullOrWhiteSpace(part)));
   }
 

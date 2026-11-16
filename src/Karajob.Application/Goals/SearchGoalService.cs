@@ -120,6 +120,7 @@ public class SearchGoalService(IKarajobDbContextFactory dbContextFactory)
       goal.RoleId,
       goal.Locations.Select(l => l.LocationId).ToList(),
       goal.Platforms.Select(p => p.PlatformId).ToList(),
+      goal.Engines.Select(e => e.EngineId).ToList(),
       goal.Industries,
       goal.MustHave,
       goal.WeeklyApplicationTarget,

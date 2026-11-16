@@ -16,13 +16,13 @@ public class CompanyServiceProjectTests : CompanyServiceFixture
     var project = await Service.AddProjectAsync(company.Id, NewProject(
       name: "Dragon Quest",
       genre: "RPG",
-      engine: "Unity",
+      engineId: SeedData.UnityEngineId,
       status: ProjectStatus.Released,
       url: "https://Example.com/Game"));
 
     Assert.Equal("Dragon Quest", project.Name);
     Assert.Equal("RPG", project.Genre);
-    Assert.Equal("Unity", project.Engine);
+    Assert.Equal(SeedData.UnityEngineId, project.EngineId);
     Assert.Equal(ProjectStatus.Released, project.Status);
     Assert.Equal("https://example.com/game", project.Url);
     await using var context = Database.CreateContext(SeedData.OwnerId);
@@ -36,10 +36,10 @@ public class CompanyServiceProjectTests : CompanyServiceFixture
   {
     var company = await Service.CreateAsync(Input());
 
-    var project = await Service.AddProjectAsync(company.Id, NewProject(genre: " ", engine: "", url: "  "));
+    var project = await Service.AddProjectAsync(company.Id, NewProject(genre: " ", url: "  "));
 
     Assert.Null(project.Genre);
-    Assert.Null(project.Engine);
+    Assert.Null(project.EngineId);
     Assert.Null(project.Url);
   }
 
@@ -91,14 +91,14 @@ public class CompanyServiceProjectTests : CompanyServiceFixture
     var updated = await Service.UpdateProjectAsync(project.Id, NewProject(
       name: "Renamed",
       genre: "Action",
-      engine: null,
+      engineId: null,
       status: ProjectStatus.Announced,
       url: "HTTPS://Example.com/New"));
 
     Assert.Equal(project.Id, updated.Id);
     Assert.Equal("Renamed", updated.Name);
     Assert.Equal("Action", updated.Genre);
-    Assert.Null(updated.Engine);
+    Assert.Null(updated.EngineId);
     Assert.Equal(ProjectStatus.Announced, updated.Status);
     Assert.Equal("https://example.com/new", updated.Url);
     await using var context = Database.CreateContext(SeedData.OwnerId);
