@@ -20,6 +20,14 @@ public class MasterProfileVersion : IUserOwned
     DateTime createdAt,
     Guid? restoredFromVersionId)
   {
-    throw new NotImplementedException();
+    // Not Require.NotBlank: trimming would rewrite the user's Markdown.
+    ArgumentException.ThrowIfNullOrWhiteSpace(markdown);
+    Id = Guid.CreateVersion7();
+    UserId = Require.NotEmpty(userId);
+    MasterProfileId = Require.NotEmpty(masterProfileId);
+    Markdown = markdown;
+    Comment = string.IsNullOrWhiteSpace(comment) ? null : comment.Trim();
+    CreatedAt = UtcGuard.Ensure(createdAt);
+    RestoredFromVersionId = restoredFromVersionId;
   }
 }
