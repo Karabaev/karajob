@@ -172,6 +172,11 @@ public partial class VacancyService
     await db.SaveChangesAsync(cancellationToken);
   }
 
+  public Task ReopenAsync(Guid vacancyId, VacancyStage expectedStage, VacancyStage target, CancellationToken cancellationToken = default)
+  {
+    throw new NotImplementedException();
+  }
+
   private static ValidationFailedException Failure(string message)
   {
     return new ValidationFailedException(new Dictionary<string, string> { [string.Empty] = message });

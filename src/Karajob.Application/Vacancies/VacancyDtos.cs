@@ -56,7 +56,8 @@ public record VacancyDetails(
   Guid? ApplicationHypothesisId,
   string? CoverLetter,
   IReadOnlyList<TimelineItem> Timeline,
-  IReadOnlyList<SimilarVacancy> Similar)
+  IReadOnlyList<SimilarVacancy> Similar,
+  VacancyStage? ClosedFromStage)
 {
   public bool HasApplication => ApplicationHypothesisId is not null;
 }

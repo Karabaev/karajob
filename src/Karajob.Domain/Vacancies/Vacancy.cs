@@ -37,6 +37,8 @@ public class Vacancy : IUserOwned
   public IReadOnlyCollection<ApplicationEvent> Events => events;
   public JobApplication? Application { get; private set; }
 
+  public VacancyStage? ClosedFromStage => throw new NotImplementedException();
+
   public DateTime? PublishedAt
   {
     get => publishedAt;
@@ -202,6 +204,11 @@ public class Vacancy : IUserOwned
     EnsureCanMove(VacancyStage.Closed);
     Application!.SetOutcome(outcome);
     return ChangeStage(VacancyStage.Closed, at, null);
+  }
+
+  public ApplicationEvent Reopen(VacancyStage target, DateTime at)
+  {
+    throw new NotImplementedException();
   }
 
   private void EnsureCanMove(VacancyStage target)

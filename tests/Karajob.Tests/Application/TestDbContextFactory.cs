@@ -1,3 +1,4 @@
+using Karajob.Application.Applications;
 using Karajob.Application.Catalogs;
 using Karajob.Application.Companies;
 using Karajob.Application.Cvs;
@@ -56,6 +57,11 @@ internal class TestDbContextFactory(SqliteTestDatabase database, Guid userId) : 
     IPageTitleReader? titleReader = null)
   {
     return new VacancyService(new TestDbContextFactory(database, userId), new FixedCurrentUser(userId), timeProvider, titleReader ?? new StubPageTitleReader(), TestLocalizer.For<VacancyMessages>());
+  }
+
+  public static ApplicationService CreateApplicationService(SqliteTestDatabase database, Guid userId)
+  {
+    return new ApplicationService(new TestDbContextFactory(database, userId));
   }
 
   public static UserService CreateUserService(SqliteTestDatabase database, Guid userId, TimeProvider timeProvider)

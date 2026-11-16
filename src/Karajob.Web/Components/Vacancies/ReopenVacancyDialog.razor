@@ -1,0 +1,15 @@
+<MudDialog>
+  <DialogContent>
+  </DialogContent>
+</MudDialog>
+
+@code {
+  [CascadingParameter]
+  private IMudDialogInstance MudDialog { get; set; } = null!;
+
+  [Parameter, EditorRequired]
+  public Guid VacancyId { get; set; }
+
+  [Parameter, EditorRequired]
+  public VacancyStage DefaultTarget { get; set; }
+}

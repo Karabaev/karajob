@@ -515,6 +515,56 @@ public class VacancyPageTests : VacancyWebFixture
     return await CreateOnBoardAsync(stage, hypothesisId, "https://example.com/jobs/letter", outcome, letter);
   }
 
+  [Fact]
+  public async Task Render_ClosedVacancy_ShowsReopenButton()
+  {
+    var hypothesisId = await CreateHypothesisAsync();
+    var id = await CreateOnBoardAsync(VacancyStage.Closed, hypothesisId, "https://example.com/jobs/1");
+
+    var cut = Context.Render<VacancyPage>(p => p.Add(c => c.Id, id));
+
+    cut.WaitForAssertion(() => Assert.Single(cut.FindAll(".vacancy-reopen")));
+  }
+
+  [Theory]
+  [InlineData(VacancyStage.Inbox)]
+  [InlineData(VacancyStage.Targeted)]
+  [InlineData(VacancyStage.Applied)]
+  [InlineData(VacancyStage.Interviewing)]
+  public async Task Render_VacancyNotClosed_HasNoReopenButton(VacancyStage stage)
+  {
+    var hypothesisId = await CreateHypothesisAsync();
+    var id = stage == VacancyStage.Inbox
+      ? (await Vacancies.CreateAsync(Input("https://example.com/jobs/1"))).Id
+      : await CreateOnBoardAsync(stage, hypothesisId, "https://example.com/jobs/1");
+
+    var cut = Context.Render<VacancyPage>(p => p.Add(c => c.Id, id));
+
+    cut.WaitForElement(".vacancy-stage");
+    Assert.Empty(cut.FindAll(".vacancy-reopen"));
+  }
+
+  [Fact]
+  public async Task Reopen_ViaDialog_ReloadsPageWithNewStage()
+  {
+    var hypothesisId = await CreateHypothesisAsync();
+    var id = await CreateOnBoardAsync(VacancyStage.Closed, hypothesisId, "https://example.com/jobs/1");
+    Context.Render<MudPopoverProvider>();
+    var provider = Context.Render<MudDialogProvider>();
+    var cut = Context.Render<VacancyPage>(p => p.Add(c => c.Id, id));
+    var closedLabel = cut.WaitForElement(".vacancy-stage").TextContent;
+    cut.WaitForElement(".vacancy-reopen").Click();
+
+    provider.WaitForElement(".reopen-submit").Click();
+
+    cut.WaitForAssertion(() =>
+    {
+      Assert.NotEqual(closedLabel, cut.Find(".vacancy-stage").TextContent);
+      Assert.Empty(cut.FindAll(".vacancy-reopen"));
+    });
+    Assert.NotEqual(VacancyStage.Closed, (await Vacancies.FindAsync(id))!.Stage);
+  }
+
   private static CompanyListItem ToItem(CompanyDetails company)
   {
     return new CompanyListItem(company.Id, company.Slug, company.Name, company.IconUrl, company.Domains, company.IsBlacklisted);
