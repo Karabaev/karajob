@@ -109,13 +109,13 @@ public class CvService(
 
     if (await db.JobApplications.AnyAsync(a => a.CvVersionId == cvVersionId, cancellationToken))
     {
-      throw Blocked("Версия используется в откликах — её нельзя удалить");
+      throw Blocked(localizer["Error.VersionInUse"]);
     }
 
     var document = await db.CvDocuments.Include(d => d.Versions).FirstAsync(d => d.Id == version.CvDocumentId, cancellationToken);
     if (document.Versions.Count == 1)
     {
-      throw Blocked("Это единственная версия — удалите CV целиком");
+      throw Blocked(localizer["Error.LastVersion"]);
     }
 
     document.RemoveVersion(cvVersionId);
@@ -132,12 +132,12 @@ public class CvService(
     var versionIds = document.Versions.Select(v => v.Id).ToList();
     if (await db.JobApplications.AnyAsync(a => versionIds.Contains(a.CvVersionId), cancellationToken))
     {
-      throw Blocked("CV используется в откликах — его нельзя удалить");
+      throw Blocked(localizer["Error.CvInUse"]);
     }
 
     if (await db.Hypotheses.AnyAsync(h => h.PrimaryCvDocumentId == cvDocumentId, cancellationToken))
     {
-      throw Blocked("CV выбрано основным в гипотезе — сначала смените его там");
+      throw Blocked(localizer["Error.CvPrimaryInHypothesis"]);
     }
 
     var paths = document.Versions.Select(v => v.StoragePath).ToList();
@@ -200,17 +200,17 @@ public class CvService(
 
     if (BlankToNull(input.Name) is null)
     {
-      errors[nameof(CvInput.Name)] = "Укажите название";
+      errors[nameof(CvInput.Name)] = localizer["Error.NameRequired"];
     }
 
     var languageId = input.LanguageId.GetValueOrDefault();
     if (input.LanguageId is null)
     {
-      errors[nameof(CvInput.LanguageId)] = "Укажите язык";
+      errors[nameof(CvInput.LanguageId)] = localizer["Error.LanguageRequired"];
     }
     else if (!await db.Languages.AnyAsync(l => l.Id == languageId, cancellationToken))
     {
-      errors[nameof(CvInput.LanguageId)] = "Язык не найден";
+      errors[nameof(CvInput.LanguageId)] = localizer["Error.LanguageNotFound"];
     }
 
     return errors;
@@ -220,7 +220,7 @@ public class CvService(
   {
     if (upload is null)
     {
-      errors[FileErrorKey] = "Выберите файл";
+      errors[FileErrorKey] = localizer["Error.FileRequired"];
       return null;
     }
 
@@ -235,15 +235,15 @@ public class CvService(
 
     if (contentType is null)
     {
-      errors[FileErrorKey] = "Только PDF или DOCX";
+      errors[FileErrorKey] = localizer["Error.FileTypeInvalid"];
     }
     else if (upload.SizeBytes <= 0)
     {
-      errors[FileErrorKey] = "Файл пустой";
+      errors[FileErrorKey] = localizer["Error.FileEmpty"];
     }
     else if (upload.SizeBytes > options.MaxFileSizeBytes)
     {
-      errors[FileErrorKey] = $"Файл больше {options.MaxFileSizeMb} МБ";
+      errors[FileErrorKey] = localizer["Error.FileTooLarge", options.MaxFileSizeMb];
     }
 
     return contentType is null ? null : new ValidatedFile(fileName, extension, contentType);

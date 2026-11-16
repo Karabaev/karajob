@@ -4,4 +4,16 @@
   <resheader name="version"><value>2.0</value></resheader>
   <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Error.HasProjects" xml:space="preserve"><value>Нельзя удалить компанию, у которой есть проекты</value></data>
+  <data name="Error.HasVacancies" xml:space="preserve"><value>Нельзя удалить компанию, на которую ссылаются вакансии</value></data>
+  <data name="Error.SlugInvalid" xml:space="preserve"><value>Некорректный slug: допустимы латинские буквы, цифры и дефис</value></data>
+  <data name="Error.NameRequired" xml:space="preserve"><value>Укажите название</value></data>
+  <data name="Error.WebsiteInvalid" xml:space="preserve"><value>Некорректный адрес сайта</value></data>
+  <data name="Error.DomainInvalid" xml:space="preserve"><value>Некорректный домен: {0}</value></data>
+  <data name="Error.SlugReserved" xml:space="preserve"><value>Slug «{0}» зарезервирован</value></data>
+  <data name="Error.SlugTaken" xml:space="preserve"><value>Slug «{0}» уже занят компанией «{1}»</value></data>
+  <data name="Error.DomainTaken" xml:space="preserve"><value>Домен «{0}» уже привязан к компании «{1}»</value></data>
+  <data name="Error.AliasTaken" xml:space="preserve"><value>Алиас «{0}» уже используется компанией «{1}»</value></data>
+  <data name="Error.UrlInvalid" xml:space="preserve"><value>Некорректный адрес</value></data>
+  <data name="Error.EngineNotFound" xml:space="preserve"><value>Движок не найден</value></data>
 </root>

@@ -41,56 +41,56 @@ public class SearchGoalService(IKarajobDbContextFactory dbContextFactory, IStrin
     return ToDetails(goal);
   }
 
-  private static async Task<string?> ValidateAsync(IKarajobDbContext db, SearchGoalInput input, CancellationToken cancellationToken)
+  private async Task<string?> ValidateAsync(IKarajobDbContext db, SearchGoalInput input, CancellationToken cancellationToken)
   {
     var errors = new Dictionary<string, string>();
 
     if (input.RoleId is { } roleId && !await db.Roles.AnyAsync(r => r.Id == roleId, cancellationToken))
     {
-      errors[nameof(SearchGoalInput.RoleId)] = "Роль не найдена";
+      errors[nameof(SearchGoalInput.RoleId)] = localizer["Error.RoleNotFound"];
     }
 
     var locationIds = input.LocationIds.Distinct().ToList();
     if (locationIds.Count > 0 && await db.Locations.CountAsync(l => locationIds.Contains(l.Id), cancellationToken) != locationIds.Count)
     {
-      errors[nameof(SearchGoalInput.LocationIds)] = "Локация не найдена";
+      errors[nameof(SearchGoalInput.LocationIds)] = localizer["Error.LocationNotFound"];
     }
 
     var platformIds = input.PlatformIds.Distinct().ToList();
     if (platformIds.Count > 0 && await db.Platforms.CountAsync(p => platformIds.Contains(p.Id), cancellationToken) != platformIds.Count)
     {
-      errors[nameof(SearchGoalInput.PlatformIds)] = "Платформа не найдена";
+      errors[nameof(SearchGoalInput.PlatformIds)] = localizer["Error.PlatformNotFound"];
     }
 
     var engineIds = input.EngineIds.Distinct().ToList();
     if (engineIds.Count > 0 && await db.Engines.CountAsync(e => engineIds.Contains(e.Id), cancellationToken) != engineIds.Count)
     {
-      errors[nameof(SearchGoalInput.EngineIds)] = "Движок не найден";
+      errors[nameof(SearchGoalInput.EngineIds)] = localizer["Error.EngineNotFound"];
     }
 
     if (input.WeeklyApplicationTarget < 0)
     {
-      errors[nameof(SearchGoalInput.WeeklyApplicationTarget)] = "Цель по откликам не может быть отрицательной";
+      errors[nameof(SearchGoalInput.WeeklyApplicationTarget)] = localizer["Error.WeeklyTargetNegative"];
     }
 
     if (input.MarketThresholdPerWeek < 0)
     {
-      errors[nameof(SearchGoalInput.MarketThresholdPerWeek)] = "Порог рынка не может быть отрицательным";
+      errors[nameof(SearchGoalInput.MarketThresholdPerWeek)] = localizer["Error.MarketThresholdNegative"];
     }
 
     if (input.ConversionThresholdPermille is < 0 or > SearchGoal.MaxConversionThresholdPermille)
     {
-      errors[nameof(SearchGoalInput.ConversionThresholdPermille)] = "Порог конверсии — от 0 до 100%";
+      errors[nameof(SearchGoalInput.ConversionThresholdPermille)] = localizer["Error.ConversionThresholdRange"];
     }
 
     if (input.MinSampleSize < SearchGoal.LowestMinSampleSize)
     {
-      errors[nameof(SearchGoalInput.MinSampleSize)] = $"Минимальная выборка — не меньше {SearchGoal.LowestMinSampleSize}";
+      errors[nameof(SearchGoalInput.MinSampleSize)] = localizer["Error.MinSampleSize", SearchGoal.LowestMinSampleSize];
     }
 
     if (input.MaturationDays is < 0 or > SearchGoal.MaxMaturationDays)
     {
-      errors[nameof(SearchGoalInput.MaturationDays)] = $"Срок созревания — от 0 до {SearchGoal.MaxMaturationDays} дней";
+      errors[nameof(SearchGoalInput.MaturationDays)] = localizer["Error.MaturationDays", SearchGoal.MaxMaturationDays];
     }
 
     var currency = string.IsNullOrWhiteSpace(input.IncomeCurrency) ? null : input.IncomeCurrency;
@@ -98,17 +98,17 @@ public class SearchGoalService(IKarajobDbContextFactory dbContextFactory, IStrin
     {
       if (income <= 0)
       {
-        errors[nameof(SearchGoalInput.DesiredMonthlyIncome)] = "Доход должен быть больше нуля";
+        errors[nameof(SearchGoalInput.DesiredMonthlyIncome)] = localizer["Error.IncomeNotPositive"];
       }
 
       if (currency is null)
       {
-        errors[nameof(SearchGoalInput.IncomeCurrency)] = "Укажите валюту";
+        errors[nameof(SearchGoalInput.IncomeCurrency)] = localizer["Error.CurrencyRequired"];
       }
     }
     else if (currency is not null)
     {
-      errors[nameof(SearchGoalInput.DesiredMonthlyIncome)] = "Укажите желаемый доход";
+      errors[nameof(SearchGoalInput.DesiredMonthlyIncome)] = localizer["Error.IncomeRequired"];
     }
 
     string? code = null;
@@ -120,13 +120,13 @@ public class SearchGoalService(IKarajobDbContextFactory dbContextFactory, IStrin
       }
       catch (ArgumentException)
       {
-        errors[nameof(SearchGoalInput.IncomeCurrency)] = "Валюта — 3 латинские буквы";
+        errors[nameof(SearchGoalInput.IncomeCurrency)] = localizer["Error.CurrencyCodeInvalid"];
       }
     }
 
     if (code is not null && !await db.Currencies.AnyAsync(c => c.Code == code, cancellationToken))
     {
-      errors[nameof(SearchGoalInput.IncomeCurrency)] = "Валюта не найдена";
+      errors[nameof(SearchGoalInput.IncomeCurrency)] = localizer["Error.CurrencyNotFound"];
     }
 
     if (errors.Count > 0)

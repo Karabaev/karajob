@@ -63,7 +63,7 @@ public partial class VacancyService(
     {
       throw new ValidationFailedException(new Dictionary<string, string>
       {
-        [nameof(QuickAddInput.Url)] = "Некорректная ссылка на вакансию",
+        [nameof(QuickAddInput.Url)] = localizer["Error.UrlInvalid"],
       });
     }
 
@@ -103,7 +103,7 @@ public partial class VacancyService(
 
     var ids = hypothesisIds.Distinct().ToList();
     var error = ids.Count == 0
-      ? "Выберите хотя бы одну гипотезу"
+      ? localizer["Error.HypothesisRequired"]
       : await FindHypothesesErrorAsync(db, ids, vacancy, cancellationToken);
     if (error is not null)
     {
@@ -136,7 +136,7 @@ public partial class VacancyService(
     {
       throw new ValidationFailedException(new Dictionary<string, string>
       {
-        [string.Empty] = "Вакансию на этой стадии нельзя отклонить",
+        [string.Empty] = localizer["Error.CannotDismissAtStage"],
       });
     }
 
@@ -220,7 +220,7 @@ public partial class VacancyService(
     {
       throw new ValidationFailedException(new Dictionary<string, string>
       {
-        ["OccurredAt"] = "Дата события раньше даты, когда вакансия найдена",
+        ["OccurredAt"] = localizer["Error.EventBeforeDiscovered"],
       });
     }
     catch (Exception ex) when (ex is ArgumentException or InvalidOperationException)
@@ -245,7 +245,7 @@ public partial class VacancyService(
     {
       throw new ValidationFailedException(new Dictionary<string, string>
       {
-        [string.Empty] = "Переходы между стадиями удалять нельзя",
+        [string.Empty] = localizer["Error.TransitionDeleteForbidden"],
       });
     }
 
@@ -278,13 +278,13 @@ public partial class VacancyService(
   }
 
   // The UI acts on a list that may be stale (another tab or device moved the vacancy meanwhile).
-  private static void EnsureStage(Vacancy vacancy, VacancyStage expected)
+  private void EnsureStage(Vacancy vacancy, VacancyStage expected)
   {
     if (vacancy.Stage == expected) return;
 
     throw new ValidationFailedException(new Dictionary<string, string>
     {
-      [string.Empty] = expected == VacancyStage.Inbox ? "Вакансия уже не в Inbox" : "Стадия вакансии уже изменилась",
+      [string.Empty] = expected == VacancyStage.Inbox ? localizer["Error.NotInInbox"] : localizer["Error.StageChanged"],
     });
   }
 
@@ -309,7 +309,7 @@ public partial class VacancyService(
       .FirstOrDefaultAsync(cancellationToken);
   }
 
-  private static async Task<string?> FindHypothesesErrorAsync(
+  private async Task<string?> FindHypothesesErrorAsync(
     IKarajobDbContext db,
     List<Guid> hypothesisIds,
     Vacancy? existing,
@@ -321,12 +321,12 @@ public partial class VacancyService(
       .ToListAsync(cancellationToken);
     if (knownHypotheses.Count != hypothesisIds.Count)
     {
-      return "Гипотеза не найдена";
+      return localizer["Error.HypothesisNotFound"];
     }
 
     var addsDisabled = knownHypotheses.Any(h => h.Status == HypothesisStatus.Disabled
       && (existing is null || existing.Matches.All(m => m.HypothesisId != h.Id)));
-    return addsDisabled ? "Гипотеза отключена" : null;
+    return addsDisabled ? localizer["Error.HypothesisDisabled"].Value : null;
   }
 
   private async Task<NormalizedVacancy> ValidateAsync(
@@ -345,44 +345,44 @@ public partial class VacancyService(
     }
     catch (ArgumentException)
     {
-      errors[nameof(VacancyInput.Url)] = "Некорректная ссылка на вакансию";
+      errors[nameof(VacancyInput.Url)] = localizer["Error.UrlInvalid"];
     }
 
     if (url is not null && await db.Vacancies.AnyAsync(v => v.Id != excludedVacancyId && v.Url == url, cancellationToken))
     {
-      errors[nameof(VacancyInput.Url)] = "Вакансия с этой ссылкой уже есть";
+      errors[nameof(VacancyInput.Url)] = localizer["Error.UrlExists"];
     }
 
     if (input.CompanyId is { } companyId && !await db.Companies.AnyAsync(c => c.Id == companyId, cancellationToken))
     {
-      errors[nameof(VacancyInput.CompanyId)] = "Компания не найдена";
+      errors[nameof(VacancyInput.CompanyId)] = localizer["Error.CompanyNotFound"];
     }
 
     if (input.RoleId is { } roleId && !await db.Roles.AnyAsync(r => r.Id == roleId, cancellationToken))
     {
-      errors[nameof(VacancyInput.RoleId)] = "Роль не найдена";
+      errors[nameof(VacancyInput.RoleId)] = localizer["Error.RoleNotFound"];
     }
 
     if (input.LocationId is { } locationId && !await db.Locations.AnyAsync(l => l.Id == locationId, cancellationToken))
     {
-      errors[nameof(VacancyInput.LocationId)] = "Локация не найдена";
+      errors[nameof(VacancyInput.LocationId)] = localizer["Error.LocationNotFound"];
     }
 
     if (input.LanguageId is { } languageId && !await db.Languages.AnyAsync(l => l.Id == languageId, cancellationToken))
     {
-      errors[nameof(VacancyInput.LanguageId)] = "Язык не найден";
+      errors[nameof(VacancyInput.LanguageId)] = localizer["Error.LanguageNotFound"];
     }
 
     var platformIds = input.PlatformIds.Distinct().ToList();
     if (platformIds.Count > 0 && await db.Platforms.CountAsync(p => platformIds.Contains(p.Id), cancellationToken) != platformIds.Count)
     {
-      errors[nameof(VacancyInput.PlatformIds)] = "Платформа не найдена";
+      errors[nameof(VacancyInput.PlatformIds)] = localizer["Error.PlatformNotFound"];
     }
 
     var engineIds = input.EngineIds.Distinct().ToList();
     if (engineIds.Count > 0 && await db.Engines.CountAsync(e => engineIds.Contains(e.Id), cancellationToken) != engineIds.Count)
     {
-      errors[nameof(VacancyInput.EngineIds)] = "Движок не найден";
+      errors[nameof(VacancyInput.EngineIds)] = localizer["Error.EngineNotFound"];
     }
 
     SalaryRange? salary = null;
@@ -394,12 +394,12 @@ public partial class VacancyService(
       }
       catch (ArgumentException)
       {
-        errors["Salary"] = "Некорректная вилка: значения неотрицательные, минимум не больше максимума, валюта из 3 букв";
+        errors["Salary"] = localizer["Error.SalaryInvalid"];
       }
 
       if (salary is { } range && !await db.Currencies.AnyAsync(c => c.Code == range.Currency, cancellationToken))
       {
-        errors["Salary"] = "Валюта не найдена";
+        errors["Salary"] = localizer["Error.CurrencyNotFound"];
       }
     }
 
@@ -435,18 +435,18 @@ public partial class VacancyService(
       BlankToNull(input.Notes));
   }
 
-  private static string? FindMatchRemovalError(Vacancy vacancy, List<Guid> hypothesisIds)
+  private string? FindMatchRemovalError(Vacancy vacancy, List<Guid> hypothesisIds)
   {
     var removed = vacancy.Matches.Select(m => m.HypothesisId).Where(id => !hypothesisIds.Contains(id)).ToList();
     if (vacancy.Application is { } application && removed.Contains(application.HypothesisId))
     {
-      return "Нельзя снять гипотезу, по которой сделан отклик";
+      return localizer["Error.CannotUnmatchApplied"];
     }
 
     var onBoard = vacancy.Stage is not (VacancyStage.Inbox or VacancyStage.Dismissed);
     if (onBoard && removed.Count > 0 && hypothesisIds.Count == 0)
     {
-      return "Вакансии на доске нужна хотя бы одна гипотеза";
+      return localizer["Error.BoardNeedsHypothesis"];
     }
 
     return null;
