@@ -3,6 +3,7 @@ using Karajob.Application.Users;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components.Server.Circuits;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Karajob.Web.Users;
@@ -25,6 +26,8 @@ public static class ProfileAuthentication
         options.LoginPath = ProfileEndpoints.ProfilesPath;
         options.ReturnUrlParameter = ProfileEndpoints.ReturnUrlField;
         options.Events.OnValidatePrincipal = ValidatePrincipalAsync;
+        options.Events.OnRedirectToLogin = RedirectToProfiles;
+        options.Events.OnRedirectToAccessDenied = RedirectToProfiles;
       });
     services.AddAuthorization();
     services.AddCascadingAuthenticationState();
@@ -50,6 +53,19 @@ public static class ProfileAuthentication
     }
 
     return Guid.TryParse(user.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : null;
+  }
+
+  // The default handler builds an absolute Location from Request.Host, which is wrong behind a proxy that rewrites Host.
+  private static Task RedirectToProfiles(RedirectContext<CookieAuthenticationOptions> context)
+  {
+    var request = context.Request;
+    var returnUrl = $"{request.PathBase}{request.Path}{request.QueryString}";
+    context.Response.StatusCode = StatusCodes.Status302Found;
+    context.Response.Headers.Location = QueryHelpers.AddQueryString(
+      $"{request.PathBase}{ProfileEndpoints.ProfilesPath}",
+      ProfileEndpoints.ReturnUrlField,
+      returnUrl);
+    return Task.CompletedTask;
   }
 
   private static async Task ValidatePrincipalAsync(CookieValidatePrincipalContext context)
