@@ -1,5 +1,6 @@
 using Karajob.Application.Common;
 using Karajob.Application.Vacancies;
+using Karajob.Domain.Vacancies;
 using Karajob.Infrastructure.Persistence;
 
 namespace Karajob.Tests.Application.Vacancies;
@@ -113,6 +114,18 @@ public class VacancyServiceHypothesisRoleTests : VacancyServiceFixture
     var updated = await Service.UpdateAsync(created.Id, Input(roleId: OtherRole, hypothesisIds: []));
 
     Assert.Empty(updated.HypothesisIds);
+  }
+
+  [Fact]
+  public async Task UpdateAsync_AppliedHypothesisOfAnotherRole_StaysSelectedAndSucceeds()
+  {
+    var hypothesisId = await CreateHypothesisAsync("Unity", roleId: VacancyRole);
+    var id = await CreateOnBoardAsync(VacancyStage.Applied, hypothesisId);
+    await MutateAsync(id, v => v.RoleId = OtherRole);
+
+    var updated = await Service.UpdateAsync(id, Input(roleId: OtherRole, hypothesisIds: [hypothesisId], notes: "kept"));
+
+    Assert.Equal([hypothesisId], updated.HypothesisIds);
   }
 
   [Fact]

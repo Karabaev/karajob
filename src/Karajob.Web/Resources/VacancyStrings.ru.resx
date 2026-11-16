@@ -93,6 +93,7 @@
   <data name="Page.Currency" xml:space="preserve"><value>Валюта</value></data>
   <data name="Page.Hypotheses" xml:space="preserve"><value>Подходящие гипотезы</value></data>
   <data name="Page.NoHypotheses" xml:space="preserve"><value>Сначала создайте гипотезу</value></data>
+  <data name="Page.NoHypothesesForRole" xml:space="preserve"><value>Нет гипотез для этой роли</value></data>
   <data name="Page.Description" xml:space="preserve"><value>Описание</value></data>
   <data name="Page.Notes" xml:space="preserve"><value>Заметки</value></data>
   <data name="Page.Saved" xml:space="preserve"><value>Сохранено</value></data>

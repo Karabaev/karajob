@@ -325,7 +325,9 @@ public partial class VacancyService(
       return localizer["Error.HypothesisNotFound"];
     }
 
-    if (roleId is not null && knownHypotheses.Any(h => h.RoleId != roleId))
+    // The applied hypothesis can't be unselected, so exempting it keeps a vacancy with an application editable.
+    var appliedId = existing?.Application?.HypothesisId;
+    if (roleId is not null && knownHypotheses.Any(h => h.RoleId != roleId && h.Id != appliedId))
     {
       return localizer["Error.HypothesisRoleMismatch"];
     }
