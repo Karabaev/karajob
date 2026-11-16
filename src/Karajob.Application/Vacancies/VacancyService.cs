@@ -16,6 +16,7 @@ public partial class VacancyService(
   IKarajobDbContextFactory dbContextFactory,
   ICurrentUser currentUser,
   TimeProvider timeProvider,
+  IPageTitleReader titleReader,
   IStringLocalizer<VacancyMessages> localizer)
 {
   private static readonly TimeSpan SimilarWindow = TimeSpan.FromDays(30);
@@ -38,6 +39,7 @@ public partial class VacancyService(
       .Select(v => new VacancyListItem(
         v.Id,
         v.Url,
+        v.Title,
         v.CompanyId is { } companyId ? companyNames[companyId] : null,
         v.RoleId is { } roleId ? roleNames[roleId] : null,
         v.Stage,
@@ -54,26 +56,19 @@ public partial class VacancyService(
 
   public async Task<QuickAddResult> QuickAddAsync(QuickAddInput input, CancellationToken cancellationToken = default)
   {
-    string url;
-    try
+    var url = NormalizeUrlOrFail(input.Url);
+    await using (var lookupDb = await dbContextFactory.CreateDbContextAsync(cancellationToken))
     {
-      url = Normalize.VacancyUrl(input.Url);
-    }
-    catch (ArgumentException)
-    {
-      throw new ValidationFailedException(new Dictionary<string, string>
-      {
-        [nameof(QuickAddInput.Url)] = localizer["Error.UrlInvalid"],
-      });
+      if (await FindByUrlAsync(lookupDb, url, cancellationToken) is { } existing) return existing;
     }
 
+    var title = await ReadTitleAsync(url, cancellationToken);
     DbUpdateException saveError;
     await using (var db = await dbContextFactory.CreateDbContextAsync(cancellationToken))
     {
-      if (await FindByUrlAsync(db, url, cancellationToken) is { } existing) return existing;
-
       var vacancy = new Vacancy(currentUser.UserId, url, VacancySource.Manual, timeProvider.GetUtcNow().UtcDateTime)
       {
+        Title = title,
         Notes = BlankToNull(input.Note),
       };
       db.Vacancies.Add(vacancy);
@@ -93,6 +88,11 @@ public partial class VacancyService(
     await using var retryDb = await dbContextFactory.CreateDbContextAsync(cancellationToken);
     return await FindByUrlAsync(retryDb, url, cancellationToken)
       ?? throw new InvalidOperationException($"Saving vacancy {url} failed, and no existing vacancy has this URL.", saveError);
+  }
+
+  public async Task<string?> FetchTitleAsync(string url, CancellationToken cancellationToken = default)
+  {
+    return await ReadTitleAsync(NormalizeUrlOrFail(url), cancellationToken);
   }
 
   public async Task MoveToBoardAsync(Guid vacancyId, IReadOnlyList<Guid> hypothesisIds, CancellationToken cancellationToken = default)
@@ -156,15 +156,39 @@ public partial class VacancyService(
 
   public async Task<VacancyDetails> CreateAsync(VacancyInput input, CancellationToken cancellationToken = default)
   {
-    await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-    var normalized = await ValidateAsync(db, input, Guid.Empty, null, cancellationToken);
-    var now = timeProvider.GetUtcNow().UtcDateTime;
+    NormalizedVacancy normalized;
+    await using (var validationDb = await dbContextFactory.CreateDbContextAsync(cancellationToken))
+    {
+      normalized = await ValidateAsync(validationDb, input, Guid.Empty, null, cancellationToken);
+    }
 
+    // Read the page outside any DbContext: the request may take seconds and contexts are short-lived.
+    if (normalized.Title is null)
+    {
+      normalized = normalized with { Title = await ReadTitleAsync(normalized.Url, cancellationToken) };
+    }
+
+    await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+    var now = timeProvider.GetUtcNow().UtcDateTime;
     var vacancy = new Vacancy(currentUser.UserId, normalized.Url, VacancySource.Manual, now);
     Apply(vacancy, normalized);
 
     db.Vacancies.Add(vacancy);
-    await db.SaveChangesAsync(cancellationToken);
+    try
+    {
+      await db.SaveChangesAsync(cancellationToken);
+    }
+    catch (DbUpdateException)
+    {
+      if (!await UrlTakenAsync(normalized.Url, cancellationToken)) throw;
+
+      // The same URL was added concurrently while the page title was being read.
+      throw new ValidationFailedException(new Dictionary<string, string>
+      {
+        [nameof(VacancyInput.Url)] = localizer["Error.UrlExists"],
+      });
+    }
+
     return await BuildDetailsAsync(db, vacancy, cancellationToken);
   }
 
@@ -264,6 +288,7 @@ public partial class VacancyService(
 
   private static void Apply(Vacancy vacancy, NormalizedVacancy normalized)
   {
+    vacancy.Title = normalized.Title;
     vacancy.CompanyId = normalized.CompanyId;
     vacancy.RoleId = normalized.RoleId;
     vacancy.LocationId = normalized.LocationId;
@@ -430,6 +455,7 @@ public partial class VacancyService(
 
     return new NormalizedVacancy(
       url!,
+      CleanTitle(input.Title),
       input.CompanyId,
       input.RoleId,
       input.LocationId,
@@ -480,6 +506,7 @@ public partial class VacancyService(
     return new VacancyDetails(
       vacancy.Id,
       vacancy.Url,
+      vacancy.Title,
       vacancy.CompanyId,
       companyName,
       vacancy.RoleId,
@@ -530,6 +557,41 @@ public partial class VacancyService(
     return new TimelineItem(e.Id, e.Type, e.OccurredAt, e.FromStage, e.ToStage, e.Note);
   }
 
+  private string NormalizeUrlOrFail(string url)
+  {
+    try
+    {
+      return Normalize.VacancyUrl(url);
+    }
+    catch (ArgumentException)
+    {
+      throw new ValidationFailedException(new Dictionary<string, string>
+      {
+        [nameof(QuickAddInput.Url)] = localizer["Error.UrlInvalid"],
+      });
+    }
+  }
+
+  private async Task<bool> UrlTakenAsync(string url, CancellationToken cancellationToken)
+  {
+    await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+    return await db.Vacancies.AnyAsync(v => v.Url == url, cancellationToken);
+  }
+
+  private async Task<string?> ReadTitleAsync(string url, CancellationToken cancellationToken)
+  {
+    return CleanTitle(await titleReader.ReadTitleAsync(url, cancellationToken));
+  }
+
+  private static string? CleanTitle(string? title)
+  {
+    var trimmed = BlankToNull(title);
+    if (trimmed is not { Length: > Vacancy.TitleMaxLength }) return trimmed;
+
+    var length = char.IsHighSurrogate(trimmed[Vacancy.TitleMaxLength - 1]) ? Vacancy.TitleMaxLength - 1 : Vacancy.TitleMaxLength;
+    return trimmed[..length].TrimEnd();
+  }
+
   private static string? BlankToNull(string? value)
   {
     return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
@@ -537,6 +599,7 @@ public partial class VacancyService(
 
   private record NormalizedVacancy(
     string Url,
+    string? Title,
     Guid? CompanyId,
     Guid? RoleId,
     Guid? LocationId,

@@ -983,6 +983,10 @@ namespace Karajob.Migrations.Sqlite.Migrations
                     b.Property<int>("Stage")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("Title")
+                        .HasMaxLength(300)
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Url")
                         .IsRequired()
                         .HasColumnType("TEXT");

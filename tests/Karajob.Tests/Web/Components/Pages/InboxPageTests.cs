@@ -121,6 +121,35 @@ public class InboxPageTests : VacancyWebFixture
     Assert.Equal(VacancyStage.Targeted, (await Vacancies.FindAsync(created.Id))!.Stage);
   }
 
+  [Fact]
+  public async Task Render_VacancyWithTitle_ShowsTitleAsLinkText()
+  {
+    var created = await Vacancies.CreateAsync(Input("https://example.com/jobs/1", title: "Senior Unity Dev"));
+
+    var cut = Context.Render<InboxPage>();
+
+    cut.WaitForAssertion(() =>
+    {
+      var link = cut.FindAll("a").Single(a => LinksTo(a, created.Id));
+      Assert.Contains("Senior Unity Dev", link.TextContent);
+      Assert.DoesNotContain("https://example.com/jobs/1", link.TextContent);
+    });
+  }
+
+  [Fact]
+  public async Task Render_VacancyWithoutTitle_ShowsUrlAsLinkText()
+  {
+    var created = await Vacancies.CreateAsync(Input("https://example.com/jobs/1"));
+
+    var cut = Context.Render<InboxPage>();
+
+    cut.WaitForAssertion(() =>
+    {
+      var link = cut.FindAll("a").Single(a => LinksTo(a, created.Id));
+      Assert.Contains("https://example.com/jobs/1", link.TextContent);
+    });
+  }
+
   private (IRenderedComponent<InboxPage> Page, IRenderedComponent<MudDialogProvider> Dialogs) RenderWithDialogs()
   {
     Context.Render<MudPopoverProvider>();

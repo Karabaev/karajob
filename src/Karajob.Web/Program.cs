@@ -9,6 +9,7 @@ using Karajob.Application.Users;
 using Karajob.Application.Vacancies;
 using Karajob.Infrastructure.Files;
 using Karajob.Infrastructure.Persistence;
+using Karajob.Infrastructure.Vacancies;
 using Karajob.Web.Components;
 using Karajob.Web.Cvs;
 using Karajob.Web.Persistence;
@@ -60,6 +61,12 @@ builder.Services.AddScoped<CompanyService>();
 builder.Services.AddScoped<HypothesisService>();
 builder.Services.AddScoped<CatalogService>();
 builder.Services.AddScoped<VacancyService>();
+builder.Services.AddHttpClient<IPageTitleReader, HttpPageTitleReader>(client =>
+{
+  client.Timeout = TimeSpan.FromSeconds(5);
+  client.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (compatible; Karajob/1.0)");
+  client.DefaultRequestHeaders.Accept.ParseAdd("text/html");
+});
 builder.Services.AddScoped<HypothesisMetricsService>();
 builder.Services.AddScoped<InboxNotifier>();
 

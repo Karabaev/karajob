@@ -75,6 +75,9 @@
   <data name="Page.New" xml:space="preserve"><value>Новая вакансия</value></data>
   <data name="Page.Similar" xml:space="preserve"><value>Похожие вакансии (та же компания и роль за последние 30 дней):</value></data>
   <data name="Page.Url" xml:space="preserve"><value>Ссылка</value></data>
+  <data name="Page.VacancyTitle" xml:space="preserve"><value>Название</value></data>
+  <data name="Page.FetchTitle" xml:space="preserve"><value>Взять название по ссылке</value></data>
+  <data name="Page.TitleNotFound" xml:space="preserve"><value>Не удалось прочитать название по ссылке</value></data>
   <data name="Page.Company" xml:space="preserve"><value>Компания</value></data>
   <data name="Page.Role" xml:space="preserve"><value>Роль</value></data>
   <data name="Page.Location" xml:space="preserve"><value>Локация</value></data>

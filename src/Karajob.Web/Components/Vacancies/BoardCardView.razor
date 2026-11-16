@@ -2,7 +2,11 @@
   <MudPaper Elevation="1" Class="pa-2">
     <MudStack Spacing="1">
       <MudLink Href="@($"/vacancies/{Card.Id}")" Style="overflow-wrap: anywhere;">
-        @if (Card.CompanyName is not null || Card.RoleName is not null)
+        @if (Card.Title is not null)
+        {
+          <strong>@Card.Title</strong>
+        }
+        else if (Card.CompanyName is not null || Card.RoleName is not null)
         {
           <strong>@(Card.CompanyName ?? "—")</strong>
           <span> · @(Card.RoleName ?? "—")</span>
@@ -12,6 +16,10 @@
           @Card.Url
         }
       </MudLink>
+      @if (Card.Title is not null && (Card.CompanyName is not null || Card.RoleName is not null))
+      {
+        <MudText Typo="Typo.body2">@(Card.CompanyName ?? "—") · @(Card.RoleName ?? "—")</MudText>
+      }
       <MudText Typo="Typo.caption" Class="mud-text-secondary">@VacancyText.Date(Card.DiscoveredAt)</MudText>
       @if (Card.Outcome is { } outcome)
       {

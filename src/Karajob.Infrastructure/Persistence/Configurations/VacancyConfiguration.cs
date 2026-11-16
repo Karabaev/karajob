@@ -12,6 +12,7 @@ public class VacancyConfiguration : IEntityTypeConfiguration<Vacancy>
   public void Configure(EntityTypeBuilder<Vacancy> builder)
   {
     builder.HasIndex(v => new { v.UserId, v.Url }).IsUnique();
+    builder.Property(v => v.Title).HasMaxLength(Vacancy.TitleMaxLength);
     builder.HasOne<Company>().WithMany().HasForeignKey(v => v.CompanyId).OnDelete(DeleteBehavior.Restrict);
     builder.HasOne<Role>().WithMany().HasForeignKey(v => v.RoleId).OnDelete(DeleteBehavior.Restrict);
     builder.HasOne<Location>().WithMany().HasForeignKey(v => v.LocationId).OnDelete(DeleteBehavior.Restrict);
