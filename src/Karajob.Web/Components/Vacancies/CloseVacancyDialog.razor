@@ -7,7 +7,7 @@
       {
         <MudAlert Severity="Severity.Error">@_error</MudAlert>
       }
-      <MudSelect T="ApplicationOutcome" Class="close-outcome" Label="Исход" @bind-Value="_outcome">
+      <MudSelect T="ApplicationOutcome" Class="close-outcome" Label="@L["Close.Outcome"]" @bind-Value="_outcome">
         @foreach (var outcome in Enum.GetValues<ApplicationOutcome>())
         {
           <MudSelectItem T="ApplicationOutcome" Value="outcome">@VacancyText.Outcome(outcome)</MudSelectItem>
@@ -16,9 +16,9 @@
     </MudStack>
   </DialogContent>
   <DialogActions>
-    <MudButton Class="close-cancel" OnClick="Cancel">Отмена</MudButton>
+    <MudButton Class="close-cancel" OnClick="Cancel">@L["Common.Cancel"]</MudButton>
     <MudButton Class="close-submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="_saving" OnClick="SubmitAsync">
-      Закрыть
+      @L["Close.Submit"]
     </MudButton>
   </DialogActions>
 </MudDialog>

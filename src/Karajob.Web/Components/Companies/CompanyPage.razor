@@ -9,8 +9,8 @@
 
 @if (_notFound)
 {
-  <MudText Typo="Typo.h4" HtmlTag="h1" GutterBottom="true">Компания не найдена</MudText>
-  <MudButton Href="/companies">К списку компаний</MudButton>
+  <MudText Typo="Typo.h4" HtmlTag="h1" GutterBottom="true">@L["Page.NotFound"]</MudText>
+  <MudButton Href="/companies">@L["Page.ToList"]</MudButton>
 }
 else if (_loaded)
 {
@@ -31,27 +31,27 @@ else if (_loaded)
             {
               <MudAlert Severity="Severity.Error">@general</MudAlert>
             }
-            <MudTextField T="string" Class="company-name" Label="Название" Required="true"
+            <MudTextField T="string" Class="company-name" Label="@L["Page.Name"]" Required="true"
                           Immediate="true" Value="_name" ValueChanged="OnNameChanged"
                           Error="HasError(nameof(CompanyInput.Name))" ErrorText="@ErrorOf(nameof(CompanyInput.Name))" />
             <MudTextField T="string" Class="company-slug" Label="Slug" Required="true"
                           Immediate="true" Value="_slug" ValueChanged="OnSlugChanged" spellcheck="false"
                           Error="HasError(nameof(CompanyInput.Slug))" ErrorText="@ErrorOf(nameof(CompanyInput.Slug))" />
-            <MudTextField T="string" Label="Сайт" @bind-Value="_website" spellcheck="false"
+            <MudTextField T="string" Label="@L["Page.Website"]" @bind-Value="_website" spellcheck="false"
                           Error="HasError(nameof(CompanyInput.Website))" ErrorText="@ErrorOf(nameof(CompanyInput.Website))" />
-            <MudTextField T="string" Label="Домены" HelperText="по одному на строку" Lines="3" Sizing="InputSizing.Auto"
+            <MudTextField T="string" Label="@L["Page.Domains"]" HelperText="@L["Page.OnePerLine"]" Lines="3" Sizing="InputSizing.Auto"
                           @bind-Value="_domains" spellcheck="false"
                           Error="HasError(nameof(CompanyInput.Domains))" ErrorText="@ErrorOf(nameof(CompanyInput.Domains))" />
-            <MudTextField T="string" Label="Алиасы" HelperText="по одному на строку" Lines="3" Sizing="InputSizing.Auto"
+            <MudTextField T="string" Label="@L["Page.Aliases"]" HelperText="@L["Page.OnePerLine"]" Lines="3" Sizing="InputSizing.Auto"
                           @bind-Value="_aliases" spellcheck="false"
                           Error="HasError(nameof(CompanyInput.Aliases))" ErrorText="@ErrorOf(nameof(CompanyInput.Aliases))" />
-            <MudTextField T="string" Label="Описание" Lines="3" Sizing="InputSizing.Auto" @bind-Value="_description"
+            <MudTextField T="string" Label="@L["Page.Description"]" Lines="3" Sizing="InputSizing.Auto" @bind-Value="_description"
                           Error="HasError(nameof(CompanyInput.Description))" ErrorText="@ErrorOf(nameof(CompanyInput.Description))" />
             <MudStack Row="true" Justify="Justify.SpaceBetween">
-              <MudButton Class="company-save" Variant="Variant.Filled" Color="Color.Primary" Disabled="_saving" OnClick="SaveAsync">Сохранить</MudButton>
+              <MudButton Class="company-save" Variant="Variant.Filled" Color="Color.Primary" Disabled="_saving" OnClick="SaveAsync">@L["Common.Save"]</MudButton>
               @if (_details is not null)
               {
-                <MudButton Color="Color.Error" OnClick="DeleteAsync">Удалить компанию</MudButton>
+                <MudButton Color="Color.Error" OnClick="DeleteAsync">@L["Page.DeleteCompany"]</MudButton>
               }
             </MudStack>
           </MudStack>
@@ -64,22 +64,22 @@ else if (_loaded)
       <MudItem xs="12" md="5">
         <MudStack Spacing="3">
           <MudPaper Class="pa-4">
-            <MudText Typo="Typo.h6" GutterBottom="true">Моя заметка</MudText>
+            <MudText Typo="Typo.h6" GutterBottom="true">@L["Page.MyNote"]</MudText>
             <MudStack Spacing="2">
-              <MudTextField T="string" Class="company-note" Label="Заметка" Lines="3" Sizing="InputSizing.Auto" @bind-Value="_note" />
-              <MudSwitch T="bool" Label="Чёрный список" Color="Color.Error" @bind-Value="_blacklisted" />
-              <MudButton Class="note-save" Variant="Variant.Outlined" OnClick="SaveNoteAsync">Сохранить заметку</MudButton>
+              <MudTextField T="string" Class="company-note" Label="@L["Page.Note"]" Lines="3" Sizing="InputSizing.Auto" @bind-Value="_note" />
+              <MudSwitch T="bool" Label="@L["Page.Blacklist"]" Color="Color.Error" @bind-Value="_blacklisted" />
+              <MudButton Class="note-save" Variant="Variant.Outlined" OnClick="SaveNoteAsync">@L["Page.SaveNote"]</MudButton>
             </MudStack>
           </MudPaper>
 
           <MudPaper Class="pa-4">
             <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-2">
-              <MudText Typo="Typo.h6">Проекты</MudText>
-              <MudButton Variant="Variant.Outlined" OnClick="() => OpenProjectDialogAsync(null)">+ Проект</MudButton>
+              <MudText Typo="Typo.h6">@L["Page.Projects"]</MudText>
+              <MudButton Variant="Variant.Outlined" OnClick="() => OpenProjectDialogAsync(null)">@L["Page.AddProject"]</MudButton>
             </MudStack>
             @if (_details.Projects.Count == 0)
             {
-              <MudText Class="mud-text-secondary">Проектов пока нет.</MudText>
+              <MudText Class="mud-text-secondary">@L["Page.NoProjects"]</MudText>
             }
             else
             {
@@ -101,9 +101,9 @@ else if (_loaded)
                         <MudText Typo="Typo.caption" HtmlTag="div" Class="mud-text-secondary">@ProjectSubtitle(current)</MudText>
                       </div>
                       <div>
-                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" aria-label="Изменить проект"
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" aria-label="@L["Page.EditProject"]"
                                        OnClick="() => OpenProjectDialogAsync(current)" />
-                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" aria-label="Удалить проект"
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" aria-label="@L["Page.DeleteProject"]"
                                        OnClick="() => DeleteProjectAsync(current)" />
                       </div>
                     </MudStack>
@@ -137,7 +137,7 @@ else if (_loaded)
   [Parameter]
   public string? Slug { get; set; }
 
-  private string Title => _details?.Name ?? (Slug is null ? "Новая компания" : "Компания не найдена");
+  private string Title => _details?.Name ?? (Slug is null ? L["Page.New"].Value : L["Page.NotFound"].Value);
 
   // The same component instance is reused when the route changes, so load here, not in OnInitialized.
   // After our own save navigates to the saved slug the page already holds that company:
@@ -242,7 +242,7 @@ else if (_loaded)
       _errors = new Dictionary<string, string>();
       _details = saved;
       FillCompanyFields();
-      Snackbar.Add("Сохранено", Severity.Success);
+      Snackbar.Add(L["Page.Saved"], Severity.Success);
       if (Slug != saved.Slug)
       {
         Navigation.NavigateTo($"/companies/{saved.Slug}");
@@ -261,10 +261,10 @@ else if (_loaded)
   private async Task DeleteAsync()
   {
     var confirmed = await DialogService.ShowMessageBoxAsync(
-      "Удалить компанию?",
-      $"Компания «{_details!.Name}» будет удалена.",
-      yesText: "Удалить",
-      cancelText: "Отмена");
+      L["Page.DeleteCompanyTitle"],
+      L["Page.DeleteCompanyText", _details!.Name].Value,
+      yesText: L["Common.Delete"],
+      cancelText: L["Common.Cancel"]);
     if (confirmed != true)
     {
       return;
@@ -284,7 +284,7 @@ else if (_loaded)
   private async Task SaveNoteAsync()
   {
     await CompanyService.SaveNoteAsync(_details!.Id, _note, _blacklisted);
-    Snackbar.Add("Заметка сохранена", Severity.Success);
+    Snackbar.Add(L["Page.NoteSaved"], Severity.Success);
   }
 
   private async Task OpenProjectDialogAsync(ProjectItem? project)
@@ -296,7 +296,7 @@ else if (_loaded)
     };
 
     var reference = await DialogService.ShowAsync<ProjectDialog>(
-      project is null ? "Новый проект" : "Проект",
+      project is null ? L["Page.NewProject"].Value : L["Page.ProjectTitle"].Value,
       parameters,
       new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true });
     var result = await reference.Result;
@@ -309,10 +309,10 @@ else if (_loaded)
   private async Task DeleteProjectAsync(ProjectItem project)
   {
     var confirmed = await DialogService.ShowMessageBoxAsync(
-      "Удалить проект?",
-      $"Проект «{project.Name}» будет удалён.",
-      yesText: "Удалить",
-      cancelText: "Отмена");
+      L["Page.DeleteProjectTitle"],
+      L["Page.DeleteProjectText", project.Name].Value,
+      yesText: L["Common.Delete"],
+      cancelText: L["Common.Cancel"]);
     if (confirmed != true)
     {
       return;

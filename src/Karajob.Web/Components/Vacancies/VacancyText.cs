@@ -1,5 +1,6 @@
 using Karajob.Domain.Applications;
 using Karajob.Domain.Vacancies;
+using Karajob.Web.Resources;
 using MudBlazor;
 
 namespace Karajob.Web.Components.Vacancies;
@@ -10,13 +11,13 @@ public static class VacancyText
   {
     return stage switch
     {
-      VacancyStage.Inbox => "Inbox",
-      VacancyStage.Targeted => "Целевая",
-      VacancyStage.Preparing => "Подготовка",
-      VacancyStage.Applied => "Отклик",
-      VacancyStage.Interviewing => "Собеседования",
-      VacancyStage.Closed => "Закрыта",
-      VacancyStage.Dismissed => "Отклонена",
+      VacancyStage.Inbox => Localized.Get<VacancyStrings>("Stage.Inbox"),
+      VacancyStage.Targeted => Localized.Get<VacancyStrings>("Stage.Targeted"),
+      VacancyStage.Preparing => Localized.Get<VacancyStrings>("Stage.Preparing"),
+      VacancyStage.Applied => Localized.Get<VacancyStrings>("Stage.Applied"),
+      VacancyStage.Interviewing => Localized.Get<VacancyStrings>("Stage.Interviewing"),
+      VacancyStage.Closed => Localized.Get<VacancyStrings>("Stage.Closed"),
+      VacancyStage.Dismissed => Localized.Get<VacancyStrings>("Stage.Dismissed"),
       _ => throw new ArgumentOutOfRangeException(nameof(stage), stage, null)
     };
   }
@@ -40,13 +41,13 @@ public static class VacancyText
   {
     return type switch
     {
-      ApplicationEventType.StageChanged => "Смена стадии",
-      ApplicationEventType.Screening => "Скрининг",
-      ApplicationEventType.TechInterview => "Техническое собеседование",
-      ApplicationEventType.TestTask => "Тестовое задание",
-      ApplicationEventType.Rejected => "Отказ",
-      ApplicationEventType.Offer => "Оффер",
-      ApplicationEventType.Note => "Заметка",
+      ApplicationEventType.StageChanged => Localized.Get<VacancyStrings>("EventType.StageChanged"),
+      ApplicationEventType.Screening => Localized.Get<VacancyStrings>("EventType.Screening"),
+      ApplicationEventType.TechInterview => Localized.Get<VacancyStrings>("EventType.TechInterview"),
+      ApplicationEventType.TestTask => Localized.Get<VacancyStrings>("EventType.TestTask"),
+      ApplicationEventType.Rejected => Localized.Get<VacancyStrings>("EventType.Rejected"),
+      ApplicationEventType.Offer => Localized.Get<VacancyStrings>("EventType.Offer"),
+      ApplicationEventType.Note => Localized.Get<VacancyStrings>("EventType.Note"),
       _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
     };
   }
@@ -55,11 +56,11 @@ public static class VacancyText
   {
     return reason switch
     {
-      DismissReason.WrongRole => "Не та роль",
-      DismissReason.WrongLocation => "Не та локация",
-      DismissReason.WrongStack => "Не тот стек",
-      DismissReason.WrongSalary => "Не та зарплата",
-      DismissReason.Other => "Другое",
+      DismissReason.WrongRole => Localized.Get<VacancyStrings>("Dismiss.WrongRole"),
+      DismissReason.WrongLocation => Localized.Get<VacancyStrings>("Dismiss.WrongLocation"),
+      DismissReason.WrongStack => Localized.Get<VacancyStrings>("Dismiss.WrongStack"),
+      DismissReason.WrongSalary => Localized.Get<VacancyStrings>("Dismiss.WrongSalary"),
+      DismissReason.Other => Localized.Get<VacancyStrings>("Dismiss.Other"),
       _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, null)
     };
   }
@@ -68,10 +69,10 @@ public static class VacancyText
   {
     return outcome switch
     {
-      ApplicationOutcome.Offer => "Оффер",
-      ApplicationOutcome.Rejected => "Отказ",
-      ApplicationOutcome.Ghosted => "Без ответа",
-      ApplicationOutcome.Withdrawn => "Отозван",
+      ApplicationOutcome.Offer => Localized.Get<VacancyStrings>("Outcome.Offer"),
+      ApplicationOutcome.Rejected => Localized.Get<VacancyStrings>("Outcome.Rejected"),
+      ApplicationOutcome.Ghosted => Localized.Get<VacancyStrings>("Outcome.Ghosted"),
+      ApplicationOutcome.Withdrawn => Localized.Get<VacancyStrings>("Outcome.Withdrawn"),
       _ => throw new ArgumentOutOfRangeException(nameof(outcome), outcome, null)
     };
   }
@@ -80,11 +81,11 @@ public static class VacancyText
   {
     return channel switch
     {
-      ApplicationChannel.Website => "Сайт",
-      ApplicationChannel.Referral => "Реферал",
-      ApplicationChannel.Recruiter => "Рекрутер",
-      ApplicationChannel.ColdEmail => "Холодное письмо",
-      ApplicationChannel.Other => "Другое",
+      ApplicationChannel.Website => Localized.Get<VacancyStrings>("Channel.Website"),
+      ApplicationChannel.Referral => Localized.Get<VacancyStrings>("Channel.Referral"),
+      ApplicationChannel.Recruiter => Localized.Get<VacancyStrings>("Channel.Recruiter"),
+      ApplicationChannel.ColdEmail => Localized.Get<VacancyStrings>("Channel.ColdEmail"),
+      ApplicationChannel.Other => Localized.Get<VacancyStrings>("Channel.Other"),
       _ => throw new ArgumentOutOfRangeException(nameof(channel), channel, null)
     };
   }

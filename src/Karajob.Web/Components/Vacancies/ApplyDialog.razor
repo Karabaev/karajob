@@ -16,13 +16,13 @@
         }
         @if (_options.Hypotheses.Count == 0)
         {
-          <MudAlert Severity="Severity.Warning">У вакансии нет подходящих гипотез. Привяжите вакансию к гипотезе, чтобы откликнуться.</MudAlert>
+          <MudAlert Severity="Severity.Warning">@L["Apply.NoHypotheses"]</MudAlert>
         }
         @if (_options.CvVersions.Count == 0)
         {
-          <MudAlert Severity="Severity.Warning">Нет загруженных CV. Загрузите CV, чтобы откликнуться.</MudAlert>
+          <MudAlert Severity="Severity.Warning">@L["Apply.NoCv"]</MudAlert>
         }
-        <MudSelect T="Guid" Class="apply-hypothesis" Label="Гипотеза" Value="_hypothesisId" ValueChanged="OnHypothesisChanged"
+        <MudSelect T="Guid" Class="apply-hypothesis" Label="@L["Apply.Hypothesis"]" Value="_hypothesisId" ValueChanged="OnHypothesisChanged"
                    Error="HasError(nameof(ApplyInput.HypothesisId))" ErrorText="@ErrorOf(nameof(ApplyInput.HypothesisId))">
           @foreach (var hypothesis in _options.Hypotheses)
           {
@@ -36,26 +36,26 @@
             <MudSelectItem T="Guid?" Value="@((Guid?)cv.Id)">@($"{cv.CvName} · {cv.FileName} · {VacancyText.Date(cv.CreatedAt)}")</MudSelectItem>
           }
         </MudSelect>
-        <MudSelect T="ApplicationChannel" Class="apply-channel" Label="Канал" @bind-Value="_channel"
+        <MudSelect T="ApplicationChannel" Class="apply-channel" Label="@L["Apply.Channel"]" @bind-Value="_channel"
                    Error="HasError(nameof(ApplyInput.Channel))" ErrorText="@ErrorOf(nameof(ApplyInput.Channel))">
           @foreach (var channel in Enum.GetValues<ApplicationChannel>())
           {
             <MudSelectItem T="ApplicationChannel" Value="channel">@VacancyText.Channel(channel)</MudSelectItem>
           }
         </MudSelect>
-        <MudDatePicker Class="apply-date" Label="Дата отклика" @bind-Date="_date" Editable="true"
+        <MudDatePicker Class="apply-date" Label="@L["Apply.Date"]" @bind-Date="_date" Editable="true"
                        Error="HasError(nameof(ApplyInput.AppliedAt))" ErrorText="@ErrorOf(nameof(ApplyInput.AppliedAt))" />
-        <MudTextField T="string" Class="apply-cover-letter" Label="Сопроводительное письмо" Lines="4" Sizing="InputSizing.Auto"
+        <MudTextField T="string" Class="apply-cover-letter" Label="@L["Apply.CoverLetter"]" Lines="4" Sizing="InputSizing.Auto"
                       Immediate="true" @bind-Value="_coverLetter"
                       Error="HasError(nameof(ApplyInput.CoverLetter))" ErrorText="@ErrorOf(nameof(ApplyInput.CoverLetter))" />
       </MudStack>
     }
   </DialogContent>
   <DialogActions>
-    <MudButton Class="apply-cancel" OnClick="Cancel">Отмена</MudButton>
+    <MudButton Class="apply-cancel" OnClick="Cancel">@L["Common.Cancel"]</MudButton>
     <MudButton Class="apply-submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="@(_saving || !CanSubmit)"
                OnClick="SubmitAsync">
-      Откликнуться
+      @L["Apply.Submit"]
     </MudButton>
   </DialogActions>
 </MudDialog>

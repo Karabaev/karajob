@@ -27,8 +27,8 @@
           }
           @if (CanDismiss)
           {
-            <MudMenu Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small" Dense="true" AriaLabel="Действия">
-              <MudMenuItem Class="board-dismiss" OnClick="() => OnDismissRequested.InvokeAsync()">Отклонить</MudMenuItem>
+            <MudMenu Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small" Dense="true" AriaLabel="@L["BoardCard.Actions"]">
+              <MudMenuItem Class="board-dismiss" OnClick="() => OnDismissRequested.InvokeAsync()">@L["Common.Dismiss"]</MudMenuItem>
             </MudMenu>
           }
         </MudStack>

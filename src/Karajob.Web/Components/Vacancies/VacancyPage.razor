@@ -13,8 +13,8 @@
 
 @if (_notFound)
 {
-  <MudText Typo="Typo.h4" HtmlTag="h1" GutterBottom="true">Вакансия не найдена</MudText>
-  <MudButton Href="/inbox">В Inbox</MudButton>
+  <MudText Typo="Typo.h4" HtmlTag="h1" GutterBottom="true">@L["Page.NotFound"]</MudText>
+  <MudButton Href="/inbox">@L["Page.ToInbox"]</MudButton>
 }
 else if (_loaded)
 {
@@ -40,7 +40,7 @@ else if (_loaded)
             @if (_similar.Count > 0)
             {
               <MudAlert Class="vacancy-similar" Severity="Severity.Warning">
-                <div>Похожие вакансии (та же компания и роль за последние 30 дней):</div>
+                <div>@L["Page.Similar"]</div>
                 @foreach (var similar in _similar)
                 {
                   <div>
@@ -51,36 +51,36 @@ else if (_loaded)
               </MudAlert>
             }
 
-            <MudTextField T="string" Class="vacancy-url" Label="Ссылка" Required="true" Immediate="true" spellcheck="false"
+            <MudTextField T="string" Class="vacancy-url" Label="@L["Page.Url"]" Required="true" Immediate="true" spellcheck="false"
                           @bind-Value="_url"
                           Error="HasError(nameof(VacancyInput.Url))" ErrorText="@ErrorOf(nameof(VacancyInput.Url))" />
 
-            <MudAutocomplete T="CompanyListItem" @key="_companyKey" Class="vacancy-company" Label="Компания"
+            <MudAutocomplete T="CompanyListItem" @key="_companyKey" Class="vacancy-company" Label="@L["Page.Company"]"
                              Value="_company" ValueChanged="OnCompanyChangedAsync"
                              SearchFunc="SearchCompaniesAsync" ToStringFunc="CompanyText"
                              Clearable="true" ResetValueOnEmptyText="true" DebounceInterval="200"
                              Error="HasError(nameof(VacancyInput.CompanyId))" ErrorText="@ErrorOf(nameof(VacancyInput.CompanyId))" />
 
-            <MudSelect T="Guid?" Class="vacancy-role" Label="Роль"
+            <MudSelect T="Guid?" Class="vacancy-role" Label="@L["Page.Role"]"
                        Value="_roleId" ValueChanged="OnRoleChangedAsync" ToStringFunc="RoleName"
                        HelperText="@EmptyHint(_roles)"
                        Error="HasError(nameof(VacancyInput.RoleId))" ErrorText="@ErrorOf(nameof(VacancyInput.RoleId))">
-              <MudSelectItem T="Guid?" Value="@((Guid?)null)">— не выбрана —</MudSelectItem>
+              <MudSelectItem T="Guid?" Value="@((Guid?)null)">@L["Page.NotSelected"]</MudSelectItem>
               @foreach (var role in _roles)
               {
                 <MudSelectItem T="Guid?" Value="@((Guid?)role.Id)">@role.Name</MudSelectItem>
               }
             </MudSelect>
-            <MudSelect T="Guid?" Class="vacancy-location" Label="Локация" @bind-Value="_locationId" ToStringFunc="LocationName"
+            <MudSelect T="Guid?" Class="vacancy-location" Label="@L["Page.Location"]" @bind-Value="_locationId" ToStringFunc="LocationName"
                        HelperText="@EmptyHint(_locations)"
                        Error="HasError(nameof(VacancyInput.LocationId))" ErrorText="@ErrorOf(nameof(VacancyInput.LocationId))">
-              <MudSelectItem T="Guid?" Value="@((Guid?)null)">— не выбрана —</MudSelectItem>
+              <MudSelectItem T="Guid?" Value="@((Guid?)null)">@L["Page.NotSelected"]</MudSelectItem>
               @foreach (var location in _locations)
               {
                 <MudSelectItem T="Guid?" Value="@((Guid?)location.Id)">@location.Name</MudSelectItem>
               }
             </MudSelect>
-            <MudSelect T="Guid" Class="vacancy-platforms" Label="Платформы" MultiSelection="true"
+            <MudSelect T="Guid" Class="vacancy-platforms" Label="@L["Page.Platforms"]" MultiSelection="true"
                        SelectedValues="_platformIds" SelectedValuesChanged="OnPlatformsChanged"
                        ToStringFunc="PlatformName" MultiSelectionTextFunc="JoinNames"
                        HelperText="@EmptyHint(_platforms)"
@@ -90,7 +90,7 @@ else if (_loaded)
                 <MudSelectItem T="Guid" Value="platform.Id">@platform.Name</MudSelectItem>
               }
             </MudSelect>
-            <MudSelect T="Guid" Class="vacancy-engines" Label="Движки" MultiSelection="true"
+            <MudSelect T="Guid" Class="vacancy-engines" Label="@L["Page.Engines"]" MultiSelection="true"
                        SelectedValues="_engineIds" SelectedValuesChanged="OnEnginesChanged"
                        ToStringFunc="EngineName" MultiSelectionTextFunc="JoinNames"
                        HelperText="@EmptyHint(_engines)"
@@ -100,10 +100,10 @@ else if (_loaded)
                 <MudSelectItem T="Guid" Value="engine.Id">@engine.Name</MudSelectItem>
               }
             </MudSelect>
-            <MudSelect T="Guid?" Class="vacancy-language" Label="Язык" @bind-Value="_languageId" ToStringFunc="LanguageName"
+            <MudSelect T="Guid?" Class="vacancy-language" Label="@L["Page.Language"]" @bind-Value="_languageId" ToStringFunc="LanguageName"
                        HelperText="@EmptyHint(_languages)"
                        Error="HasError(nameof(VacancyInput.LanguageId))" ErrorText="@ErrorOf(nameof(VacancyInput.LanguageId))">
-              <MudSelectItem T="Guid?" Value="@((Guid?)null)">— не выбран —</MudSelectItem>
+              <MudSelectItem T="Guid?" Value="@((Guid?)null)">@L["Page.NotSelectedLanguage"]</MudSelectItem>
               @foreach (var language in _languages)
               {
                 <MudSelectItem T="Guid?" Value="@((Guid?)language.Id)">@language.Name</MudSelectItem>
@@ -111,15 +111,15 @@ else if (_loaded)
             </MudSelect>
 
             <div>
-              <MudText Typo="Typo.subtitle2">Формат работы</MudText>
+              <MudText Typo="Typo.subtitle2">@L["Page.WorkFormat"]</MudText>
               <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="2">
-                <MudCheckBox T="bool" Class="vacancy-format-remote" Label="Удалёнка"
+                <MudCheckBox T="bool" Class="vacancy-format-remote" Label="@L["Page.Remote"]"
                              Value="HasFormat(WorkFormat.Remote)" ValueChanged="value => SetFormat(WorkFormat.Remote, value)" />
-                <MudCheckBox T="bool" Class="vacancy-format-hybrid" Label="Гибрид"
+                <MudCheckBox T="bool" Class="vacancy-format-hybrid" Label="@L["Page.Hybrid"]"
                              Value="HasFormat(WorkFormat.Hybrid)" ValueChanged="value => SetFormat(WorkFormat.Hybrid, value)" />
-                <MudCheckBox T="bool" Class="vacancy-format-onsite" Label="Офис"
+                <MudCheckBox T="bool" Class="vacancy-format-onsite" Label="@L["Page.OnSite"]"
                              Value="HasFormat(WorkFormat.OnSite)" ValueChanged="value => SetFormat(WorkFormat.OnSite, value)" />
-                <MudCheckBox T="bool" Class="vacancy-format-relocation" Label="Релокация"
+                <MudCheckBox T="bool" Class="vacancy-format-relocation" Label="@L["Page.Relocation"]"
                              Value="HasFormat(WorkFormat.Relocation)" ValueChanged="value => SetFormat(WorkFormat.Relocation, value)" />
               </MudStack>
             </div>
@@ -127,15 +127,15 @@ else if (_loaded)
             <div>
               <MudGrid Spacing="2">
                 <MudItem xs="6" sm="4">
-                  <MudNumericField T="long?" Class="vacancy-salary-min" Label="ЗП от" HideSpinButtons="true"
+                  <MudNumericField T="long?" Class="vacancy-salary-min" Label="@L["Page.SalaryMin"]" HideSpinButtons="true"
                                    @bind-Value="_salaryMin" Error="HasError(SalaryKey)" />
                 </MudItem>
                 <MudItem xs="6" sm="4">
-                  <MudNumericField T="long?" Class="vacancy-salary-max" Label="ЗП до" HideSpinButtons="true"
+                  <MudNumericField T="long?" Class="vacancy-salary-max" Label="@L["Page.SalaryMax"]" HideSpinButtons="true"
                                    @bind-Value="_salaryMax" Error="HasError(SalaryKey)" />
                 </MudItem>
                 <MudItem xs="12" sm="4">
-                  <MudSelect T="string" Class="vacancy-salary-currency" Label="Валюта" ToStringFunc="CurrencyCode" RelativeWidth="DropdownWidth.Adaptive" @bind-Value="_salaryCurrency"
+                  <MudSelect T="string" Class="vacancy-salary-currency" Label="@L["Page.Currency"]" ToStringFunc="CurrencyCode" RelativeWidth="DropdownWidth.Adaptive" @bind-Value="_salaryCurrency"
                              Error="HasError(SalaryKey)">
                     @foreach (var currency in _currencies)
                     {
@@ -150,10 +150,10 @@ else if (_loaded)
               }
             </div>
 
-            <MudSelect T="Guid" Class="vacancy-hypotheses" Label="Подходящие гипотезы" MultiSelection="true"
+            <MudSelect T="Guid" Class="vacancy-hypotheses" Label="@L["Page.Hypotheses"]" MultiSelection="true"
                        SelectedValues="_hypothesisIds" SelectedValuesChanged="OnHypothesesChanged"
                        ToStringFunc="HypothesisName" MultiSelectionTextFunc="JoinNames"
-                       HelperText="@(_hypotheses.Count == 0 ? "Сначала создайте гипотезу" : null)"
+                       HelperText="@(_hypotheses.Count == 0 ? L["Page.NoHypotheses"].Value : null)"
                        Error="HasError(nameof(VacancyInput.HypothesisIds))" ErrorText="@ErrorOf(nameof(VacancyInput.HypothesisIds))">
               @foreach (var hypothesis in _hypotheses)
               {
@@ -161,12 +161,12 @@ else if (_loaded)
               }
             </MudSelect>
 
-            <MudTextField T="string" Class="vacancy-description" Label="Описание" Lines="4" Sizing="InputSizing.Auto"
+            <MudTextField T="string" Class="vacancy-description" Label="@L["Page.Description"]" Lines="4" Sizing="InputSizing.Auto"
                           @bind-Value="_description" />
-            <MudTextField T="string" Class="vacancy-notes" Label="Заметки" Lines="3" Sizing="InputSizing.Auto"
+            <MudTextField T="string" Class="vacancy-notes" Label="@L["Page.Notes"]" Lines="3" Sizing="InputSizing.Auto"
                           @bind-Value="_notes" />
 
-            <MudButton Class="vacancy-save" Variant="Variant.Filled" Color="Color.Primary" Disabled="_saving" OnClick="SaveAsync">Сохранить</MudButton>
+            <MudButton Class="vacancy-save" Variant="Variant.Filled" Color="Color.Primary" Disabled="_saving" OnClick="SaveAsync">@L["Common.Save"]</MudButton>
           </MudStack>
         </MudForm>
       </MudPaper>
@@ -220,7 +220,7 @@ else if (_loaded)
   [Parameter]
   public Guid? Id { get; set; }
 
-  private string Title => _details is not null ? "Вакансия" : Id is null ? "Новая вакансия" : "Вакансия не найдена";
+  private string Title => _details is not null ? L["Page.Title"].Value : Id is null ? L["Page.New"].Value : L["Page.NotFound"].Value;
 
   // The same component instance is reused when the route changes, so load here, not in OnInitialized.
   // After our own create the page already holds the saved vacancy, so the navigation to its id must not reload.
@@ -295,9 +295,9 @@ else if (_loaded)
   }
 
   // The autocomplete has no "create new" slot when nothing matches, so the offer is a sentinel list entry with an empty id.
-  private static CompanyListItem CreateEntry(string name)
+  private CompanyListItem CreateEntry(string name)
   {
-    return new CompanyListItem(Guid.Empty, "", $"+ Создать «{name}»", null, [], false);
+    return new CompanyListItem(Guid.Empty, "", L["Page.CreateCompany", name].Value, null, [], false);
   }
 
   private static string CompanyText(CompanyListItem? company)
@@ -329,7 +329,7 @@ else if (_loaded)
   private async Task<CompanyListItem?> CreateCompanyAsync()
   {
     var parameters = new DialogParameters<CreateCompanyDialog> { { d => d.InitialName, _companyQuery?.Trim() } };
-    var reference = await DialogService.ShowAsync<CreateCompanyDialog>("Новая компания", parameters);
+    var reference = await DialogService.ShowAsync<CreateCompanyDialog>(L["Page.NewCompany"], parameters);
     var result = await reference.Result;
     if (result is not { Canceled: false, Data: CompanyDetails details })
     {
@@ -417,9 +417,9 @@ else if (_loaded)
     return string.Join(", ", names);
   }
 
-  private static string? EmptyHint(IReadOnlyList<CatalogListItem> items)
+  private string? EmptyHint(IReadOnlyList<CatalogListItem> items)
   {
-    return items.Count == 0 ? "Добавьте в разделе Справочники" : null;
+    return items.Count == 0 ? L["Page.EmptyHint"].Value : null;
   }
 
   private bool HasFormat(WorkFormat flag)
@@ -481,7 +481,7 @@ else if (_loaded)
       _details = saved;
       _currentId = saved.Id;
       FillFields();
-      Snackbar.Add("Сохранено", Severity.Success);
+      Snackbar.Add(L["Page.Saved"], Severity.Success);
       if (Id != saved.Id)
       {
         Navigation.NavigateTo($"/vacancies/{saved.Id}");
@@ -509,7 +509,7 @@ else if (_loaded)
       { d => d.HasApplication, _details.ApplicationHypothesisId is not null },
       { d => d.DiscoveredAt, _details.DiscoveredAt },
     };
-    var reference = await DialogService.ShowAsync<AddVacancyEventDialog>("Новое событие", parameters);
+    var reference = await DialogService.ShowAsync<AddVacancyEventDialog>(L["Page.NewEvent"], parameters);
     var result = await reference.Result;
     if (result is { Canceled: false })
     {
@@ -520,10 +520,10 @@ else if (_loaded)
   private async Task DeleteEventAsync(TimelineItem item)
   {
     var confirmed = await DialogService.ShowMessageBoxAsync(
-      "Удалить событие?",
-      $"Событие «{VacancyText.EventType(item.Type)}» будет удалено.",
-      yesText: "Удалить",
-      cancelText: "Отмена");
+      L["Page.DeleteEventTitle"],
+      L["Page.DeleteEventText", VacancyText.EventType(item.Type)].Value,
+      yesText: L["Common.Delete"],
+      cancelText: L["Common.Cancel"]);
     if (confirmed != true)
     {
       return;

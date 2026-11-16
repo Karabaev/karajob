@@ -7,20 +7,20 @@
       {
         <MudAlert Severity="Severity.Error">@_error</MudAlert>
       }
-      <MudSelect T="DismissReason" Class="dismiss-reason" Label="Причина" @bind-Value="_reason">
+      <MudSelect T="DismissReason" Class="dismiss-reason" Label="@L["DismissDialog.Reason"]" @bind-Value="_reason">
         @foreach (var reason in Enum.GetValues<DismissReason>())
         {
           <MudSelectItem T="DismissReason" Value="reason">@VacancyText.Dismiss(reason)</MudSelectItem>
         }
       </MudSelect>
-      <MudTextField T="string" Class="dismiss-comment" Label="Комментарий (необязательно)" Lines="2" Sizing="InputSizing.Auto"
+      <MudTextField T="string" Class="dismiss-comment" Label="@L["DismissDialog.Comment"]" Lines="2" Sizing="InputSizing.Auto"
                     Immediate="true" @bind-Value="_comment" />
     </MudStack>
   </DialogContent>
   <DialogActions>
-    <MudButton OnClick="Cancel">Отмена</MudButton>
+    <MudButton OnClick="Cancel">@L["Common.Cancel"]</MudButton>
     <MudButton Class="dismiss-submit" Variant="Variant.Filled" Color="Color.Error" Disabled="_saving" OnClick="SubmitAsync">
-      Отклонить
+      @L["Common.Dismiss"]
     </MudButton>
   </DialogActions>
 </MudDialog>
