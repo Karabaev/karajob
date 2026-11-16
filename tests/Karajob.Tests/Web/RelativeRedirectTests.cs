@@ -3,6 +3,8 @@ using System.Security.Claims;
 using Karajob.Application.Users;
 using Karajob.Infrastructure.Persistence;
 using Karajob.Web.Users;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -80,6 +82,35 @@ public class RelativeRedirectTests(WebApplicationFactory<Program> factory) : ICl
 
     Assert.Equal(HttpStatusCode.Found, response.StatusCode);
     AssertRelative(RawLocationOf(response));
+  }
+
+  [Fact]
+  public async Task Get_ProtectedPathUnderPathBase_KeepsPathBaseInLocationAndReturnUrl()
+  {
+    var client = factory
+      .WithWebHostBuilder(builder => builder.ConfigureServices(services => services.AddTransient<IStartupFilter, PathBaseStartupFilter>()))
+      .CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+    var response = await SendAsync(client, HttpMethod.Get, "/inbox", ForeignHost);
+
+    Assert.Equal(HttpStatusCode.Found, response.StatusCode);
+    Assert.Equal("/kj/profiles?returnUrl=" + Uri.EscapeDataString("/kj/inbox"), RawLocationOf(response));
+  }
+
+  private class PathBaseStartupFilter : IStartupFilter
+  {
+    public Action<IApplicationBuilder> Configure(Action<IApplicationBuilder> next)
+    {
+      return app =>
+      {
+        app.Use((context, nextMiddleware) =>
+        {
+          context.Request.PathBase = "/kj";
+          return nextMiddleware(context);
+        });
+        next(app);
+      };
+    }
   }
 
   private static void AssertRelative(string location)
