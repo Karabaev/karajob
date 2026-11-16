@@ -125,7 +125,7 @@ public class SettingsPageTests : SettingsWebFixture
     {
       var select = PlatformsSelect(cut).Instance;
       Assert.True(select.MultiSelection);
-      Assert.Equal("Платформы", select.Label);
+      Assert.Equal("Platforms", select.Label);
       Assert.Empty(select.SelectedValues!);
     });
   }
@@ -179,7 +179,7 @@ public class SettingsPageTests : SettingsWebFixture
     {
       var select = CurrencySelect(cut);
       Assert.False(select.Instance.MultiSelection);
-      Assert.Equal("Валюта", select.Instance.Label);
+      Assert.Equal("Currency", select.Instance.Label);
       Assert.Null(select.Instance.Value);
       var items = select.FindComponents<MudSelectItem<string>>().Select(i => i.Instance.Value).ToList();
       Assert.Equal(["EUR", "RUB", "USD"], items.Order(StringComparer.Ordinal));
@@ -221,7 +221,7 @@ public class SettingsPageTests : SettingsWebFixture
     {
       var select = EnginesSelect(cut).Instance;
       Assert.True(select.MultiSelection);
-      Assert.Equal("Движки", select.Label);
+      Assert.Equal("Engines", select.Label);
       Assert.Empty(select.SelectedValues!);
     });
   }

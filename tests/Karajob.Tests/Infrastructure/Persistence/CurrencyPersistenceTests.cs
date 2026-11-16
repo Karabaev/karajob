@@ -16,9 +16,9 @@ public class CurrencyPersistenceTests
 
     Assert.Equal(["EUR", "RUB", "USD"], currencies.Select(c => c.Code).Order(StringComparer.Ordinal));
     Assert.Equal(SeedData.RubCurrencyId, currencies.Single(c => c.Code == "RUB").Id);
-    Assert.Equal("Российский рубль", currencies.Single(c => c.Code == "RUB").Name);
-    Assert.Equal("Доллар США", currencies.Single(c => c.Code == "USD").Name);
-    Assert.Equal("Евро", currencies.Single(c => c.Code == "EUR").Name);
+    Assert.Equal("Russian ruble", currencies.Single(c => c.Code == "RUB").Name);
+    Assert.Equal("US dollar", currencies.Single(c => c.Code == "USD").Name);
+    Assert.Equal("Euro", currencies.Single(c => c.Code == "EUR").Name);
   }
 
   [Fact]

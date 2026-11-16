@@ -19,9 +19,9 @@ public class CatalogServiceCurrencyTests : CatalogServiceFixture
 
     Assert.Equal(
       [
-        new CatalogListItem(SeedData.UsdCurrencyId, "Доллар США", "USD"),
-        new CatalogListItem(SeedData.EurCurrencyId, "Евро", "EUR"),
-        new CatalogListItem(SeedData.RubCurrencyId, "Российский рубль", "RUB"),
+        new CatalogListItem(SeedData.EurCurrencyId, "Euro", "EUR"),
+        new CatalogListItem(SeedData.RubCurrencyId, "Russian ruble", "RUB"),
+        new CatalogListItem(SeedData.UsdCurrencyId, "US dollar", "USD"),
       ],
       items);
   }
@@ -49,7 +49,7 @@ public class CatalogServiceCurrencyTests : CatalogServiceFixture
     var exception = await Assert.ThrowsAsync<ValidationFailedException>(
       () => Service.CreateAsync(CatalogKind.Currency, new CatalogInput("Фунт стерлингов", code)));
 
-    Assert.Equal("Код — 3 латинские буквы", exception.Errors[nameof(CatalogInput.Code)]);
+    Assert.Equal("Code must be 3 Latin letters", exception.Errors[nameof(CatalogInput.Code)]);
     Assert.DoesNotContain(nameof(CatalogInput.Name), exception.Errors.Keys);
     Assert.Equal(3, (await Service.ListAsync(CatalogKind.Currency)).Count);
   }
@@ -62,19 +62,19 @@ public class CatalogServiceCurrencyTests : CatalogServiceFixture
     var exception = await Assert.ThrowsAsync<ValidationFailedException>(
       () => Service.CreateAsync(CatalogKind.Currency, new CatalogInput("Другой доллар", code)));
 
-    Assert.Equal("Такой код уже есть", exception.Errors[nameof(CatalogInput.Code)]);
+    Assert.Equal("This code already exists", exception.Errors[nameof(CatalogInput.Code)]);
     Assert.DoesNotContain(nameof(CatalogInput.Name), exception.Errors.Keys);
   }
 
   [Theory]
-  [InlineData("Евро")]
-  [InlineData("  ЕВРО ")]
+  [InlineData("Euro")]
+  [InlineData("  EURO ")]
   public async Task CreateAsync_CurrencyWithDuplicateName_ThrowsValidationWithNameKeyAndMessage(string name)
   {
     var exception = await Assert.ThrowsAsync<ValidationFailedException>(
       () => Service.CreateAsync(CatalogKind.Currency, new CatalogInput(name, "GBP")));
 
-    Assert.Equal("Такая запись уже есть", exception.Errors[nameof(CatalogInput.Name)]);
+    Assert.Equal("This entry already exists", exception.Errors[nameof(CatalogInput.Name)]);
     Assert.DoesNotContain(nameof(CatalogInput.Code), exception.Errors.Keys);
   }
 
@@ -102,7 +102,7 @@ public class CatalogServiceCurrencyTests : CatalogServiceFixture
   public async Task RenameAsync_CurrencyToAnotherCurrencysName_ThrowsValidationWithNameKey()
   {
     var exception = await Assert.ThrowsAsync<ValidationFailedException>(
-      () => Service.RenameAsync(CatalogKind.Currency, SeedData.RubCurrencyId, "евро"));
+      () => Service.RenameAsync(CatalogKind.Currency, SeedData.RubCurrencyId, "euro"));
 
     Assert.Contains(nameof(CatalogInput.Name), exception.Errors.Keys);
   }

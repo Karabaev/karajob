@@ -111,7 +111,7 @@ public class HypothesisPageTests : HypothesisWebFixture
     {
       var select = PlatformsSelect(cut).Instance;
       Assert.True(select.MultiSelection);
-      Assert.Equal("Платформы", select.Label);
+      Assert.Equal("Platforms", select.Label);
     });
   }
 
@@ -178,7 +178,7 @@ public class HypothesisPageTests : HypothesisWebFixture
     {
       var select = EnginesSelect(cut).Instance;
       Assert.True(select.MultiSelection);
-      Assert.Equal("Движки", select.Label);
+      Assert.Equal("Engines", select.Label);
     });
   }
 
@@ -244,7 +244,7 @@ public class HypothesisPageTests : HypothesisWebFixture
 
     ClickSave(cut);
 
-    cut.WaitForAssertion(() => Assert.Contains("Укажите роль", cut.Markup));
+    cut.WaitForAssertion(() => Assert.Contains("Role is required", cut.Markup));
     Assert.Empty(await Service.ListAsync());
   }
 

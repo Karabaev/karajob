@@ -14,7 +14,7 @@ public class SearchGoalServiceCurrencyTests : SearchGoalServiceFixture
     var exception = await Assert.ThrowsAsync<ValidationFailedException>(
       () => Service.UpdateAsync(Input(desiredMonthlyIncome: 5000, incomeCurrency: currency)));
 
-    Assert.Equal("Валюта не найдена", exception.Errors[nameof(SearchGoalInput.IncomeCurrency)]);
+    Assert.Equal("Currency not found", exception.Errors[nameof(SearchGoalInput.IncomeCurrency)]);
     Assert.Null((await Service.GetAsync()).IncomeCurrency);
   }
 

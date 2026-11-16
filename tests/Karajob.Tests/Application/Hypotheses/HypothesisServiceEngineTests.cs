@@ -40,7 +40,7 @@ public class HypothesisServiceEngineTests : HypothesisServiceFixture
     var exception = await Assert.ThrowsAsync<ValidationFailedException>(
       () => Service.CreateAsync(Input(engineIds: [SeedData.UnityEngineId, Guid.NewGuid()])));
 
-    Assert.Equal("Движок не найден", exception.Errors[nameof(HypothesisInput.EngineIds)]);
+    Assert.Equal("Engine not found", exception.Errors[nameof(HypothesisInput.EngineIds)]);
     Assert.Empty(await Service.ListAsync());
   }
 
@@ -75,7 +75,7 @@ public class HypothesisServiceEngineTests : HypothesisServiceFixture
     var exception = await Assert.ThrowsAsync<ValidationFailedException>(
       () => Service.UpdateAsync(created.Id, Input(engineIds: [Guid.NewGuid()])));
 
-    Assert.Equal("Движок не найден", exception.Errors[nameof(HypothesisInput.EngineIds)]);
+    Assert.Equal("Engine not found", exception.Errors[nameof(HypothesisInput.EngineIds)]);
     Assert.Equal([SeedData.UnityEngineId], (await Service.FindAsync(created.Id))!.EngineIds);
   }
 }

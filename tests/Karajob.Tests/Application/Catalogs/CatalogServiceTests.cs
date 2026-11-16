@@ -46,7 +46,7 @@ public class CatalogServiceTests : CatalogServiceFixture
     Assert.Equal(
       [
         new CatalogListItem(SeedData.EnglishLanguageId, "English", "en"),
-        new CatalogListItem(SeedData.RussianLanguageId, "Русский", "ru"),
+        new CatalogListItem(SeedData.RussianLanguageId, "Russian", "ru"),
       ],
       items);
   }

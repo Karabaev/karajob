@@ -19,7 +19,7 @@ public class CatalogServiceEngineTests : CatalogServiceFixture
   {
     var items = await Service.ListAsync(CatalogKind.Engine);
 
-    Assert.Equal(["Cocos", "Defold", "Godot", "Unity", "Unreal Engine", "Собственный"], items.Select(i => i.Name));
+    Assert.Equal(["Cocos", "Defold", "Godot", "Proprietary", "Unity", "Unreal Engine"], items.Select(i => i.Name));
     Assert.Equal(SeedData.UnityEngineId, items.Single(i => i.Name == "Unity").Id);
     Assert.All(items, i => Assert.Null(i.Code));
   }

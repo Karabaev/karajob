@@ -50,7 +50,7 @@ public class CvsPageTests : CvWebFixture
   {
     var cut = Context.Render<CvsPage>();
 
-    cut.WaitForAssertion(() => Assert.Contains("CV пока нет", cut.Markup));
+    cut.WaitForAssertion(() => Assert.Contains("No CVs yet", cut.Markup));
   }
 
   [Fact]
@@ -61,6 +61,6 @@ public class CvsPageTests : CvWebFixture
     var cut = Context.Render<CvsPage>();
 
     cut.WaitForAssertion(() => Assert.Contains("Unity CV", cut.Markup));
-    Assert.DoesNotContain("CV пока нет", cut.Markup);
+    Assert.DoesNotContain("No CVs yet", cut.Markup);
   }
 }

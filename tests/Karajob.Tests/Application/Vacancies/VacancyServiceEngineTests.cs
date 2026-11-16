@@ -40,7 +40,7 @@ public class VacancyServiceEngineTests : VacancyServiceFixture
     var exception = await Assert.ThrowsAsync<ValidationFailedException>(
       () => Service.CreateAsync(Input(engineIds: [SeedData.UnityEngineId, Guid.NewGuid()])));
 
-    Assert.Equal("Движок не найден", exception.Errors[nameof(VacancyInput.EngineIds)]);
+    Assert.Equal("Engine not found", exception.Errors[nameof(VacancyInput.EngineIds)]);
   }
 
   [Fact]

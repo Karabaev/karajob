@@ -18,7 +18,7 @@ public class ProjectDialogTests : CompanyWebFixture
     provider.WaitForAssertion(() =>
     {
       var select = EngineSelect(provider);
-      Assert.Equal("Движок", select.Instance.Label);
+      Assert.Equal("Engine", select.Instance.Label);
       Assert.Null(select.Instance.Value);
       var ids = select.FindComponents<MudSelectItem<Guid?>>().Select(i => i.Instance.Value).ToList();
       Assert.Contains(SeedData.UnityEngineId, ids);
@@ -46,7 +46,7 @@ public class ProjectDialogTests : CompanyWebFixture
     await provider.InvokeAsync(() => NameField(provider).Instance.ValueChanged.InvokeAsync("Dragon Quest"));
     await provider.InvokeAsync(() => EngineSelect(provider).Instance.ValueChanged.InvokeAsync(SeedData.GodotEngineId));
 
-    provider.FindAll("button").First(b => b.TextContent.Contains("Сохранить")).Click();
+    provider.FindAll("button").First(b => b.TextContent.Contains("Save")).Click();
 
     var details = await WaitForProjectsAsync(1);
     var project = Assert.Single(details.Projects);
@@ -62,7 +62,7 @@ public class ProjectDialogTests : CompanyWebFixture
     provider.WaitForAssertion(() => Assert.NotEmpty(provider.FindComponents<MudTextField<string>>()));
     await provider.InvokeAsync(() => NameField(provider).Instance.ValueChanged.InvokeAsync("Dragon Quest"));
 
-    provider.FindAll("button").First(b => b.TextContent.Contains("Сохранить")).Click();
+    provider.FindAll("button").First(b => b.TextContent.Contains("Save")).Click();
 
     var details = await WaitForProjectsAsync(1);
     Assert.Null(Assert.Single(details.Projects).EngineId);
@@ -77,7 +77,7 @@ public class ProjectDialogTests : CompanyWebFixture
     var provider = Context.Render<MudDialogProvider>();
     var cut = Context.Render<CompanyPage>(p => p.Add(c => c.Slug, "pixel-forge"));
 
-    cut.WaitForElement("button[aria-label='Изменить проект']").Click();
+    cut.WaitForElement("button[aria-label='Edit project']").Click();
 
     provider.WaitForAssertion(() => Assert.Equal(SeedData.UnrealEngineId, EngineSelect(provider).Instance.Value));
   }
@@ -90,11 +90,11 @@ public class ProjectDialogTests : CompanyWebFixture
     Context.Render<MudPopoverProvider>();
     var provider = Context.Render<MudDialogProvider>();
     var cut = Context.Render<CompanyPage>(p => p.Add(c => c.Slug, "pixel-forge"));
-    cut.WaitForElement("button[aria-label='Изменить проект']").Click();
+    cut.WaitForElement("button[aria-label='Edit project']").Click();
     provider.WaitForAssertion(() => Assert.Equal(SeedData.UnrealEngineId, EngineSelect(provider).Instance.Value));
     await provider.InvokeAsync(() => EngineSelect(provider).Instance.ValueChanged.InvokeAsync(SeedData.DefoldEngineId));
 
-    provider.FindAll("button").First(b => b.TextContent.Contains("Сохранить")).Click();
+    provider.FindAll("button").First(b => b.TextContent.Contains("Save")).Click();
 
     var deadline = DateTime.UtcNow.AddSeconds(5);
     var details = await Service.FindBySlugAsync("pixel-forge");
@@ -116,7 +116,7 @@ public class ProjectDialogTests : CompanyWebFixture
     var cut = Context.Render<CompanyPage>(p => p.Add(c => c.Slug, "pixel-forge"));
     cut.WaitForAssertion(() => Assert.Equal("Pixel Forge", cut.Find(".company-name input").GetAttribute("value")));
 
-    cut.FindAll("button").First(b => b.TextContent.Contains("+ Проект")).Click();
+    cut.FindAll("button").First(b => b.TextContent.Contains("+ Project")).Click();
 
     return (cut, provider);
   }
@@ -141,6 +141,6 @@ public class ProjectDialogTests : CompanyWebFixture
 
   private static IRenderedComponent<MudTextField<string>> NameField(IRenderedComponent<MudDialogProvider> provider)
   {
-    return provider.FindComponents<MudTextField<string>>().First(c => c.Instance.Label == "Название");
+    return provider.FindComponents<MudTextField<string>>().First(c => c.Instance.Label == "Name");
   }
 }

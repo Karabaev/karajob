@@ -23,9 +23,9 @@ public class HypothesisCriteriaCardTests : HypothesisMetricsServiceFixture, IAsy
     cut.WaitForAssertion(() =>
     {
       var text = cut.Find(".criteria-conversion").TextContent;
-      Assert.Contains("данных мало", text);
-      Assert.Contains("0 из 0", text);
-      Assert.DoesNotContain("ниже порога", text);
+      Assert.Contains("insufficient data", text);
+      Assert.Contains("0 of 0", text);
+      Assert.DoesNotContain("below threshold", text);
     });
   }
 
@@ -42,9 +42,9 @@ public class HypothesisCriteriaCardTests : HypothesisMetricsServiceFixture, IAsy
     {
       var text = cut.Find(".criteria-conversion").TextContent;
       Assert.Contains("25,0 %", text);
-      Assert.Contains("1 из 4", text);
-      Assert.Contains("95% ДИ", text);
-      Assert.Contains("в норме", text);
+      Assert.Contains("1 of 4", text);
+      Assert.Contains("95% CI", text);
+      Assert.Contains("on track", text);
     });
   }
 
@@ -61,8 +61,8 @@ public class HypothesisCriteriaCardTests : HypothesisMetricsServiceFixture, IAsy
     {
       var text = cut.Find(".criteria-conversion").TextContent;
       Assert.Contains("0,0 %", text);
-      Assert.Contains("0 из 5", text);
-      Assert.Contains("ниже порога", text);
+      Assert.Contains("0 of 5", text);
+      Assert.Contains("below threshold", text);
     });
   }
 
@@ -79,9 +79,9 @@ public class HypothesisCriteriaCardTests : HypothesisMetricsServiceFixture, IAsy
     {
       var text = cut.Find(".criteria-conversion").TextContent;
       Assert.Contains("25,0 %", text);
-      Assert.Contains("1 из 4", text);
-      Assert.Contains("данных мало", text);
-      Assert.DoesNotContain("в норме", text);
+      Assert.Contains("1 of 4", text);
+      Assert.Contains("insufficient data", text);
+      Assert.DoesNotContain("on track", text);
     });
   }
 
@@ -98,7 +98,7 @@ public class HypothesisCriteriaCardTests : HypothesisMetricsServiceFixture, IAsy
     {
       var text = cut.Find(".criteria-market").TextContent;
       Assert.Equal("3", cut.Find(".criteria-market-count").TextContent.Trim());
-      Assert.Contains("ниже порога", text);
+      Assert.Contains("below threshold", text);
     });
   }
 
@@ -115,8 +115,8 @@ public class HypothesisCriteriaCardTests : HypothesisMetricsServiceFixture, IAsy
     {
       var text = cut.Find(".criteria-market").TextContent;
       Assert.Equal("3", cut.Find(".criteria-market-count").TextContent.Trim());
-      Assert.Contains("в норме", text);
-      Assert.DoesNotContain("ниже порога", text);
+      Assert.Contains("on track", text);
+      Assert.DoesNotContain("below threshold", text);
     });
   }
 
@@ -134,9 +134,9 @@ public class HypothesisCriteriaCardTests : HypothesisMetricsServiceFixture, IAsy
     cut.WaitForAssertion(() =>
     {
       var text = cut.Find(".criteria-activity").TextContent;
-      Assert.Contains("по этой гипотезе: 2", text);
-      Assert.Contains("5 из 7", text);
-      Assert.Contains("ниже порога", text);
+      Assert.Contains("for this hypothesis: 2", text);
+      Assert.Contains("5 of 7", text);
+      Assert.Contains("below threshold", text);
     });
   }
 
@@ -154,9 +154,9 @@ public class HypothesisCriteriaCardTests : HypothesisMetricsServiceFixture, IAsy
     cut.WaitForAssertion(() =>
     {
       var text = cut.Find(".criteria-activity").TextContent;
-      Assert.Contains("4 из 4", text);
-      Assert.Contains("в норме", text);
-      Assert.DoesNotContain("ниже порога", text);
+      Assert.Contains("4 of 4", text);
+      Assert.Contains("on track", text);
+      Assert.DoesNotContain("below threshold", text);
     });
   }
 
@@ -174,7 +174,7 @@ public class HypothesisCriteriaCardTests : HypothesisMetricsServiceFixture, IAsy
       {
         var chips = cut.FindAll($"{row} .criteria-verdict");
         Assert.Single(chips);
-        Assert.Contains(chips[0].TextContent.Trim(), new[] { "данных мало", "ниже порога", "в норме" });
+        Assert.Contains(chips[0].TextContent.Trim(), new[] { "insufficient data", "below threshold", "on track" });
       }
     });
   }
@@ -186,7 +186,7 @@ public class HypothesisCriteriaCardTests : HypothesisMetricsServiceFixture, IAsy
 
     cut.WaitForAssertion(() =>
     {
-      Assert.Contains("Метрики недоступны", cut.Find(".criteria-unavailable").TextContent);
+      Assert.Contains("Metrics unavailable", cut.Find(".criteria-unavailable").TextContent);
       Assert.Empty(cut.FindAll(".criteria-market"));
     });
   }

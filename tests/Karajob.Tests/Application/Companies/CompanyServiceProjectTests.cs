@@ -148,7 +148,7 @@ public class CompanyServiceProjectTests : CompanyServiceFixture
     var exception = await Assert.ThrowsAsync<ValidationFailedException>(
       () => Service.AddProjectAsync(company.Id, NewProject(engineId: Guid.NewGuid())));
 
-    Assert.Equal("Движок не найден", exception.Errors[nameof(ProjectInput.EngineId)]);
+    Assert.Equal("Engine not found", exception.Errors[nameof(ProjectInput.EngineId)]);
     await using var context = Database.CreateContext(SeedData.OwnerId);
     Assert.Empty(await context.Projects.ToListAsync());
   }
@@ -213,7 +213,7 @@ public class CompanyServiceProjectTests : CompanyServiceFixture
     var exception = await Assert.ThrowsAsync<ValidationFailedException>(
       () => Service.UpdateProjectAsync(project.Id, NewProject(engineId: Guid.NewGuid())));
 
-    Assert.Equal("Движок не найден", exception.Errors[nameof(ProjectInput.EngineId)]);
+    Assert.Equal("Engine not found", exception.Errors[nameof(ProjectInput.EngineId)]);
     await using var context = Database.CreateContext(SeedData.OwnerId);
     Assert.Equal(SeedData.UnityEngineId, (await context.Projects.SingleAsync()).EngineId);
   }

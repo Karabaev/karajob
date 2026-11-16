@@ -68,7 +68,7 @@ public class SearchGoalServicePlatformTests : SearchGoalServiceFixture
     var exception = await Assert.ThrowsAsync<ValidationFailedException>(
       () => Service.UpdateAsync(Input(platformIds: [SeedData.PcPlatformId, Guid.NewGuid()])));
 
-    Assert.Equal("Платформа не найдена", exception.Errors[nameof(SearchGoalInput.PlatformIds)]);
+    Assert.Equal("Platform not found", exception.Errors[nameof(SearchGoalInput.PlatformIds)]);
     Assert.Empty((await Service.GetAsync()).PlatformIds);
   }
 

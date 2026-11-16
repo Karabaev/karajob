@@ -68,7 +68,7 @@ public class SearchGoalServiceEngineTests : SearchGoalServiceFixture
     var exception = await Assert.ThrowsAsync<ValidationFailedException>(
       () => Service.UpdateAsync(Input(engineIds: [SeedData.UnityEngineId, Guid.NewGuid()])));
 
-    Assert.Equal("Движок не найден", exception.Errors[nameof(SearchGoalInput.EngineIds)]);
+    Assert.Equal("Engine not found", exception.Errors[nameof(SearchGoalInput.EngineIds)]);
     Assert.Empty((await Service.GetAsync()).EngineIds);
   }
 

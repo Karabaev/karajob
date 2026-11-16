@@ -12,7 +12,7 @@ namespace Karajob.Tests.Web.Components.Layout;
 
 public class ProfileMenuTests : ProfileWebFixture
 {
-  private const string ActivatorSelector = "button[aria-label='Профиль: Owner']";
+  private const string ActivatorSelector = "button[aria-label='Profile: Owner']";
   private const string SelectFormSelector = "form[action='/profiles/select']";
 
   [Fact]
@@ -88,7 +88,7 @@ public class ProfileMenuTests : ProfileWebFixture
 
     await popover.WaitForAssertionAsync(() =>
     {
-      var link = popover.FindAll("a").Single(a => a.TextContent.Trim() == "Все профили");
+      var link = popover.FindAll("a").Single(a => a.TextContent.Trim() == "All profiles");
       Assert.Equal("/profiles", link.GetAttribute("href"));
     });
   }

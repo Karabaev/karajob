@@ -40,7 +40,7 @@ public class HypothesisServicePlatformTests : HypothesisServiceFixture
     var exception = await Assert.ThrowsAsync<ValidationFailedException>(
       () => Service.CreateAsync(Input(platformIds: [SeedData.PcPlatformId, Guid.NewGuid()])));
 
-    Assert.Equal("Платформа не найдена", exception.Errors[nameof(HypothesisInput.PlatformIds)]);
+    Assert.Equal("Platform not found", exception.Errors[nameof(HypothesisInput.PlatformIds)]);
     Assert.Empty(await Service.ListAsync());
   }
 
@@ -75,7 +75,7 @@ public class HypothesisServicePlatformTests : HypothesisServiceFixture
     var exception = await Assert.ThrowsAsync<ValidationFailedException>(
       () => Service.UpdateAsync(created.Id, Input(platformIds: [Guid.NewGuid()])));
 
-    Assert.Equal("Платформа не найдена", exception.Errors[nameof(HypothesisInput.PlatformIds)]);
+    Assert.Equal("Platform not found", exception.Errors[nameof(HypothesisInput.PlatformIds)]);
     Assert.Equal([SeedData.PcPlatformId], (await Service.FindAsync(created.Id))!.PlatformIds);
   }
 }

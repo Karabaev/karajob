@@ -39,7 +39,7 @@ public class CompaniesPageTests : CompanyWebFixture
   {
     var cut = Context.Render<CompaniesPage>();
 
-    var link = cut.FindAll("a").First(a => a.TextContent.Contains("+ Компания"));
+    var link = cut.FindAll("a").First(a => a.TextContent.Contains("+ Company"));
     Assert.EndsWith("/companies/new", link.GetAttribute("href")!.TrimEnd('/'));
   }
 
