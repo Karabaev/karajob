@@ -12,6 +12,7 @@
   <data name="Error.AppliedAtBeforeStage" xml:space="preserve"><value>The application date is earlier than the last stage change</value></data>
   <data name="Error.CannotApplyAtStage" xml:space="preserve"><value>You cannot apply to a vacancy at this stage</value></data>
   <data name="Error.CannotCloseAtStage" xml:space="preserve"><value>A vacancy at this stage cannot be closed</value></data>
+  <data name="Error.CannotReopen" xml:space="preserve"><value>This vacancy cannot be reopened to that stage.</value></data>
   <data name="Error.UrlInvalid" xml:space="preserve"><value>Invalid vacancy link</value></data>
   <data name="Error.HypothesisRequired" xml:space="preserve"><value>Choose at least one hypothesis</value></data>
   <data name="Error.CannotDismissAtStage" xml:space="preserve"><value>A vacancy at this stage cannot be dismissed</value></data>

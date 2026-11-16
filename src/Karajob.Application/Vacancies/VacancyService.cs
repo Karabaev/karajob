@@ -529,7 +529,7 @@ public partial class VacancyService(
       vacancy.Application?.CoverLetter,
       vacancy.Events.OrderByDescending(e => e.OccurredAt).Select(ToItem).ToList(),
       similar,
-      null);
+      vacancy.ClosedFromStage);
   }
 
   private static async Task<IReadOnlyList<SimilarVacancy>> FindSimilarAsync(
