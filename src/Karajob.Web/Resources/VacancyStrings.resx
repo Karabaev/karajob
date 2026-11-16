@@ -103,4 +103,9 @@
   <data name="Page.NewEvent" xml:space="preserve"><value>New event</value></data>
   <data name="Page.DeleteEventTitle" xml:space="preserve"><value>Delete event?</value></data>
   <data name="Page.DeleteEventText" xml:space="preserve"><value>The event "{0}" will be deleted.</value></data>
+  <data name="CoverLetter.Title" xml:space="preserve"><value>Cover letter</value></data>
+  <data name="CoverLetter.Empty" xml:space="preserve"><value>No cover letter</value></data>
+  <data name="CoverLetter.Copy" xml:space="preserve"><value>Copy</value></data>
+  <data name="CoverLetter.Copied" xml:space="preserve"><value>Copied</value></data>
+  <data name="CoverLetter.CopyFailed" xml:space="preserve"><value>Could not copy, select the text manually</value></data>
 </root>

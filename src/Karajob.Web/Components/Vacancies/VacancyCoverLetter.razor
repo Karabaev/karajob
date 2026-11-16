@@ -1,0 +1,44 @@
+@inject IJSRuntime JS
+@inject ISnackbar Snackbar
+
+<MudPaper Class="vacancy-cover-letter pa-4 mb-4">
+  <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-2">
+    <MudText Typo="Typo.h6" HtmlTag="h2">@L["CoverLetter.Title"]</MudText>
+    @if (HasText)
+    {
+      <MudTooltip Text="@L["CoverLetter.Copy"]">
+        <MudIconButton Class="cover-letter-copy" Icon="@Icons.Material.Filled.ContentCopy" Size="Size.Small"
+                       aria-label="@L["CoverLetter.Copy"]" OnClick="CopyAsync" />
+      </MudTooltip>
+    }
+  </MudStack>
+  @if (HasText)
+  {
+    <MudText Class="cover-letter-text" Typo="Typo.body2" Style="white-space: pre-wrap; overflow-wrap: anywhere; user-select: text;">@Text</MudText>
+  }
+  else
+  {
+    <MudText Class="cover-letter-empty mud-text-secondary" Typo="Typo.body2">@L["CoverLetter.Empty"]</MudText>
+  }
+</MudPaper>
+
+@code {
+  [Parameter, EditorRequired]
+  public string? Text { get; set; }
+
+  private bool HasText => !string.IsNullOrWhiteSpace(Text);
+
+  private async Task CopyAsync()
+  {
+    try
+    {
+      await JS.InvokeVoidAsync("navigator.clipboard.writeText", Text);
+      Snackbar.Add(L["CoverLetter.Copied"], Severity.Success);
+    }
+    // navigator.clipboard exists only in a secure context (HTTPS or localhost); over plain HTTP the call fails.
+    catch (JSException)
+    {
+      Snackbar.Add(L["CoverLetter.CopyFailed"], Severity.Warning);
+    }
+  }
+}

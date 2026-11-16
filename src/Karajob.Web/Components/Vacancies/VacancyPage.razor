@@ -175,6 +175,10 @@ else if (_loaded)
     @if (_details is not null)
     {
       <MudItem xs="12" md="5">
+        @if (_details.HasApplication)
+        {
+          <VacancyCoverLetter Text="@_details.CoverLetter" />
+        }
         <VacancyTimeline Items="_details.Timeline" DiscoveredAt="_details.DiscoveredAt"
                          OnAdd="AddEventAsync" OnDelete="DeleteEventAsync" />
       </MudItem>
