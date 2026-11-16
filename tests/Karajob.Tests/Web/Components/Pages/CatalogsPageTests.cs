@@ -123,6 +123,88 @@ public class CatalogsPageTests : CatalogWebFixture
   }
 
   [Fact]
+  public void Render_Currencies_ShowsSeededNamesCodesAndCodeInput()
+  {
+    var cut = Context.Render<CatalogList>(p => p.Add(c => c.Kind, CatalogKind.Currency));
+
+    cut.WaitForAssertion(() =>
+    {
+      var names = cut.FindAll(".catalog-row .catalog-name").Select(e => e.TextContent.Trim()).ToList();
+      Assert.Equal(["Доллар США", "Евро", "Российский рубль"], names.Order(StringComparer.OrdinalIgnoreCase));
+      var rows = cut.FindAll(".catalog-row").Select(r => r.TextContent).ToList();
+      Assert.Contains(rows, r => r.Contains("Доллар США") && r.Contains("USD"));
+      Assert.Contains(rows, r => r.Contains("Евро") && r.Contains("EUR"));
+      Assert.Contains(rows, r => r.Contains("Российский рубль") && r.Contains("RUB"));
+      Assert.Contains(cut.FindAll("th"), h => h.TextContent.Trim() == "Код");
+    });
+    Assert.NotEmpty(cut.FindAll(".catalog-add-code input"));
+  }
+
+  [Fact]
+  public async Task Add_NewCurrencyWithCode_ShowsRowAndPersistsUpperCaseCode()
+  {
+    var cut = Context.Render<CatalogList>(p => p.Add(c => c.Kind, CatalogKind.Currency));
+    TypeName(cut, "Фунт стерлингов");
+    cut.WaitForElement(".catalog-add-code input").Input("gbp");
+
+    cut.Find(".catalog-add").Click();
+
+    cut.WaitForAssertion(() => Assert.Contains("Фунт стерлингов", cut.Markup));
+    Assert.Contains(await Service.ListAsync(CatalogKind.Currency), i => i.Name == "Фунт стерлингов" && i.Code == "GBP");
+  }
+
+  [Fact]
+  public async Task Add_NewCurrencyWithoutCode_ShowsCodeErrorAndPersistsNothing()
+  {
+    var cut = Context.Render<CatalogList>(p => p.Add(c => c.Kind, CatalogKind.Currency));
+    TypeName(cut, "Фунт стерлингов");
+
+    cut.Find(".catalog-add").Click();
+
+    cut.WaitForAssertion(() => Assert.Contains("Код — 3 латинские буквы", cut.Markup));
+    Assert.Equal(3, (await Service.ListAsync(CatalogKind.Currency)).Count);
+  }
+
+  [Fact]
+  public void Render_Engines_ShowsSeededEngineNamesWithoutCodeInput()
+  {
+    var cut = Context.Render<CatalogList>(p => p.Add(c => c.Kind, CatalogKind.Engine));
+
+    cut.WaitForAssertion(() =>
+    {
+      var names = cut.FindAll(".catalog-row .catalog-name").Select(e => e.TextContent.Trim()).ToList();
+      Assert.Equal(["Cocos", "Defold", "Godot", "Unity", "Unreal Engine", "Собственный"], names.Order(StringComparer.OrdinalIgnoreCase));
+    });
+    Assert.Empty(cut.FindAll(".catalog-add-code input"));
+  }
+
+  [Fact]
+  public async Task Add_NewEngineName_ShowsRowAndPersists()
+  {
+    var cut = Context.Render<CatalogList>(p => p.Add(c => c.Kind, CatalogKind.Engine));
+    TypeName(cut, "Phaser");
+
+    cut.Find(".catalog-add").Click();
+
+    cut.WaitForAssertion(() => Assert.Contains(
+      cut.FindAll(".catalog-row .catalog-name"),
+      e => e.TextContent.Trim() == "Phaser"));
+    Assert.Contains(await Service.ListAsync(CatalogKind.Engine), i => i.Name == "Phaser");
+  }
+
+  [Fact]
+  public void Render_CatalogsPage_ShowsCurrenciesAndEnginesTabs()
+  {
+    var cut = Context.Render<CatalogsPage>();
+
+    cut.WaitForAssertion(() =>
+    {
+      Assert.Contains("Валюты", cut.Markup);
+      Assert.Contains("Движки", cut.Markup);
+    });
+  }
+
+  [Fact]
   public void Render_CatalogsPage_ShowsTabHeaders()
   {
     var cut = Context.Render<CatalogsPage>();

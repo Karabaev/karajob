@@ -237,4 +237,79 @@ public class VacancyTests
 
     Assert.ThrowsAny<ArgumentException>(() => vacancy.SetPlatforms([Guid.NewGuid(), Guid.Empty]));
   }
+
+  [Fact]
+  public void SetEngines_NewIds_AddsOneEntryPerIdOwnedByVacancy()
+  {
+    var vacancy = Create();
+    var first = Guid.NewGuid();
+    var second = Guid.NewGuid();
+
+    vacancy.SetEngines([first, second]);
+
+    Assert.Equal([first, second], vacancy.Engines.Select(p => p.EngineId));
+    Assert.All(vacancy.Engines, p =>
+    {
+      Assert.NotEqual(Guid.Empty, p.Id);
+      Assert.Equal(vacancy.UserId, p.UserId);
+      Assert.Equal(vacancy.Id, p.VacancyId);
+    });
+  }
+
+  [Fact]
+  public void SetEngines_DuplicateIds_KeepsEachOnce()
+  {
+    var vacancy = Create();
+    var id = Guid.NewGuid();
+
+    vacancy.SetEngines([id, id, id]);
+
+    Assert.Equal(id, Assert.Single(vacancy.Engines).EngineId);
+  }
+
+  [Fact]
+  public void SetEngines_IdsMissingFromNewSet_AreRemoved()
+  {
+    var vacancy = Create();
+    var kept = Guid.NewGuid();
+    vacancy.SetEngines([kept, Guid.NewGuid()]);
+
+    vacancy.SetEngines([kept]);
+
+    Assert.Equal(kept, Assert.Single(vacancy.Engines).EngineId);
+  }
+
+  [Fact]
+  public void SetEngines_IdsThatStay_KeepSameEntryInstance()
+  {
+    var vacancy = Create();
+    var kept = Guid.NewGuid();
+    vacancy.SetEngines([kept]);
+    var original = Assert.Single(vacancy.Engines);
+
+    vacancy.SetEngines([kept, Guid.NewGuid()]);
+
+    var stayed = Assert.Single(vacancy.Engines, p => p.EngineId == kept);
+    Assert.Same(original, stayed);
+    Assert.Equal(2, vacancy.Engines.Count);
+  }
+
+  [Fact]
+  public void SetEngines_Empty_ClearsEngines()
+  {
+    var vacancy = Create();
+    vacancy.SetEngines([Guid.NewGuid(), Guid.NewGuid()]);
+
+    vacancy.SetEngines([]);
+
+    Assert.Empty(vacancy.Engines);
+  }
+
+  [Fact]
+  public void SetEngines_EmptyGuid_Throws()
+  {
+    var vacancy = Create();
+
+    Assert.ThrowsAny<ArgumentException>(() => vacancy.SetEngines([Guid.NewGuid(), Guid.Empty]));
+  }
 }

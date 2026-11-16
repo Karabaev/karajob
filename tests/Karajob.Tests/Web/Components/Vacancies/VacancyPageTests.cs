@@ -1,4 +1,5 @@
 using Bunit;
+using Karajob.Application.Catalogs;
 using Karajob.Application.Companies;
 using Karajob.Application.Vacancies;
 using Karajob.Domain.Applications;
@@ -167,6 +168,135 @@ public class VacancyPageTests : VacancyWebFixture
   }
 
   [Fact]
+  public void Render_NewVacancy_ShowsSalaryCurrencySelectWithCatalogCodesDefaultingToRub()
+  {
+    var cut = Context.Render<VacancyPage>();
+
+    cut.WaitForAssertion(() =>
+    {
+      var select = SalaryCurrencySelect(cut);
+      Assert.False(select.Instance.MultiSelection);
+      Assert.Equal("RUB", select.Instance.Value);
+      var codes = select.FindComponents<MudSelectItem<string>>().Select(i => i.Instance.Value).ToList();
+      Assert.Equal(["EUR", "RUB", "USD"], codes.Order(StringComparer.Ordinal));
+    });
+  }
+
+  [Fact]
+  public async Task Render_CurrencyAddedToCatalog_IsListedInSalaryCurrencySelect()
+  {
+    await Catalogs.CreateAsync(CatalogKind.Currency, new CatalogInput("Фунт стерлингов", "GBP"));
+
+    var cut = Context.Render<VacancyPage>();
+
+    cut.WaitForAssertion(() => Assert.Contains(
+      SalaryCurrencySelect(cut).FindComponents<MudSelectItem<string>>(),
+      i => i.Instance.Value == "GBP"));
+  }
+
+  [Fact]
+  public async Task Render_ExistingVacancyWithSalary_ShowsStoredCurrency()
+  {
+    var created = await Vacancies.CreateAsync(
+      Input("https://example.com/jobs/1") with { SalaryMin = 3000, SalaryMax = 5000, SalaryCurrency = "EUR" });
+
+    var cut = Context.Render<VacancyPage>(p => p.Add(c => c.Id, created.Id));
+
+    cut.WaitForAssertion(() => Assert.Equal("EUR", SalaryCurrencySelect(cut).Instance.Value));
+  }
+
+  [Fact]
+  public async Task Save_SalaryWithDefaultCurrencyOnNewPage_PersistsRub()
+  {
+    var cut = Context.Render<VacancyPage>();
+    cut.WaitForElement(".vacancy-url input").Input("https://example.com/jobs/salary-default");
+    await cut.InvokeAsync(() => SalaryMinField(cut).Instance.ValueChanged.InvokeAsync(3000L));
+
+    cut.Find(".vacancy-save").Click();
+
+    var created = await WaitForSingleInboxVacancyAsync();
+    var found = await Vacancies.FindAsync(created.Id);
+    Assert.Equal(3000, found!.SalaryMin);
+    Assert.Equal("RUB", found.SalaryCurrency);
+  }
+
+  [Fact]
+  public async Task Save_SalaryWithChosenCurrencyOnNewPage_PersistsChosenCode()
+  {
+    var cut = Context.Render<VacancyPage>();
+    cut.WaitForElement(".vacancy-url input").Input("https://example.com/jobs/salary-usd");
+    await cut.InvokeAsync(() => SalaryMinField(cut).Instance.ValueChanged.InvokeAsync(3000L));
+    await cut.InvokeAsync(() => SalaryCurrencySelect(cut).Instance.ValueChanged.InvokeAsync("USD"));
+
+    cut.Find(".vacancy-save").Click();
+
+    var created = await WaitForSingleInboxVacancyAsync();
+    var found = await Vacancies.FindAsync(created.Id);
+    Assert.Equal("USD", found!.SalaryCurrency);
+  }
+
+  [Fact]
+  public void Render_NewVacancy_ShowsEnginesMultiSelectWithLabel()
+  {
+    var cut = Context.Render<VacancyPage>();
+
+    cut.WaitForAssertion(() =>
+    {
+      var select = EnginesSelect(cut).Instance;
+      Assert.True(select.MultiSelection);
+      Assert.Equal("Движки", select.Label);
+    });
+  }
+
+  [Fact]
+  public async Task Render_ExistingVacancy_ShowsStoredEngines()
+  {
+    var created = await Vacancies.CreateAsync(
+      Input("https://example.com/jobs/1") with { EngineIds = [SeedData.UnityEngineId, SeedData.GodotEngineId] });
+
+    var cut = Context.Render<VacancyPage>(p => p.Add(c => c.Id, created.Id));
+
+    cut.WaitForAssertion(() => Assert.Equal(
+      new[] { SeedData.UnityEngineId, SeedData.GodotEngineId }.Order(),
+      EnginesSelect(cut).Instance.SelectedValues!.Order()));
+  }
+
+  [Fact]
+  public async Task Save_EnginesSelectedOnNewPage_PersistsEngines()
+  {
+    var cut = Context.Render<VacancyPage>();
+    cut.WaitForElement(".vacancy-url input").Input("https://example.com/jobs/engines");
+    await cut.InvokeAsync(() => EnginesSelect(cut).Instance.SelectedValuesChanged.InvokeAsync([SeedData.UnrealEngineId, SeedData.DefoldEngineId]));
+
+    cut.Find(".vacancy-save").Click();
+
+    var created = await WaitForSingleInboxVacancyAsync();
+    var found = await Vacancies.FindAsync(created.Id);
+    Assert.Equal(new[] { SeedData.UnrealEngineId, SeedData.DefoldEngineId }.Order(), found!.EngineIds.Order());
+  }
+
+  [Fact]
+  public async Task Save_EnginesChangedOnExistingVacancy_ReplacesEngines()
+  {
+    var created = await Vacancies.CreateAsync(Input("https://example.com/jobs/1") with { EngineIds = [SeedData.UnityEngineId] });
+    var cut = Context.Render<VacancyPage>(p => p.Add(c => c.Id, created.Id));
+    cut.WaitForAssertion(() => Assert.Equal([SeedData.UnityEngineId], EnginesSelect(cut).Instance.SelectedValues!));
+    await cut.InvokeAsync(() => EnginesSelect(cut).Instance.SelectedValuesChanged.InvokeAsync([SeedData.CocosEngineId]));
+
+    cut.Find(".vacancy-save").Click();
+
+    var deadline = DateTime.UtcNow.AddSeconds(5);
+    var found = await Vacancies.FindAsync(created.Id);
+    while (DateTime.UtcNow < deadline && !found!.EngineIds.Contains(SeedData.CocosEngineId))
+    {
+      await Task.Delay(50);
+      found = await Vacancies.FindAsync(created.Id);
+    }
+
+    Assert.Equal([SeedData.CocosEngineId], found!.EngineIds);
+  }
+
+  [Fact]
   public async Task Select_CompanyAndRoleMatchingExistingVacancyOnNewPage_ShowsSimilarWarning()
   {
     var company = await Companies.CreateAsync(new CompanyInput("pixel-forge", "Pixel Forge", null, null, [], []));
@@ -241,6 +371,21 @@ public class VacancyPageTests : VacancyWebFixture
   private static IRenderedComponent<MudSelect<Guid>> PlatformsSelect(IRenderedComponent<VacancyPage> cut)
   {
     return cut.FindComponents<MudSelect<Guid>>().Single(c => c.Instance.Class?.Contains("vacancy-platforms") == true);
+  }
+
+  private static IRenderedComponent<MudSelect<Guid>> EnginesSelect(IRenderedComponent<VacancyPage> cut)
+  {
+    return cut.FindComponents<MudSelect<Guid>>().Single(c => c.Instance.Class?.Contains("vacancy-engines") == true);
+  }
+
+  private static IRenderedComponent<MudSelect<string>> SalaryCurrencySelect(IRenderedComponent<VacancyPage> cut)
+  {
+    return cut.FindComponents<MudSelect<string>>().Single(c => c.Instance.Class?.Contains("vacancy-salary-currency") == true);
+  }
+
+  private static IRenderedComponent<MudNumericField<long?>> SalaryMinField(IRenderedComponent<VacancyPage> cut)
+  {
+    return cut.FindComponents<MudNumericField<long?>>().Single(c => c.Instance.Class?.Contains("vacancy-salary-min") == true);
   }
 
   private static async Task SelectRoleAsync(IRenderedComponent<VacancyPage> cut, Guid roleId)

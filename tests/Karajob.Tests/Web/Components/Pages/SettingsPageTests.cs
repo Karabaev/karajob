@@ -1,4 +1,5 @@
 using Bunit;
+using Karajob.Application.Catalogs;
 using Karajob.Application.Goals;
 using Karajob.Infrastructure.Persistence;
 using Karajob.Tests.Web.Components.Settings;
@@ -56,7 +57,7 @@ public class SettingsPageTests : SettingsWebFixture
       Assert.Equal(17, Numeric<int>(cut, "settings-weekly-target").Instance.Value);
       Assert.Equal(new DateTime(2027, 3, 1), DeadlinePicker(cut).Instance.Date);
       Assert.Equal(6000L, Numeric<long?>(cut, "settings-income").Instance.Value);
-      Assert.Equal("EUR", Text(cut, "settings-currency").Instance.Value);
+      Assert.Equal("EUR", CurrencySelect(cut).Instance.Value);
       Assert.Equal(22, Numeric<int>(cut, "settings-market-threshold").Instance.Value);
       Assert.Equal(4.5m, Numeric<decimal>(cut, "settings-conversion-threshold").Instance.Value);
       Assert.Equal(60, Numeric<int>(cut, "settings-min-sample").Instance.Value);
@@ -93,7 +94,7 @@ public class SettingsPageTests : SettingsWebFixture
     await SetNumericAsync<int>(cut, "settings-weekly-target", 12);
     await cut.InvokeAsync(() => DeadlinePicker(cut).Instance.DateChanged.InvokeAsync(new DateTime(2027, 2, 1)));
     await SetNumericAsync<long?>(cut, "settings-income", 5000);
-    await SetTextAsync(cut, "settings-currency", "usd");
+    await SelectCurrencyAsync(cut, "USD");
     await SetNumericAsync<int>(cut, "settings-market-threshold", 25);
     await SetNumericAsync<decimal>(cut, "settings-conversion-threshold", 5m);
     await SetNumericAsync<int>(cut, "settings-min-sample", 40);
@@ -170,6 +171,102 @@ public class SettingsPageTests : SettingsWebFixture
   }
 
   [Fact]
+  public void Render_DefaultGoal_ShowsCurrencySelectWithCatalogCodesAndNoSelection()
+  {
+    var cut = Context.Render<SettingsPage>();
+
+    cut.WaitForAssertion(() =>
+    {
+      var select = CurrencySelect(cut);
+      Assert.False(select.Instance.MultiSelection);
+      Assert.Equal("Валюта", select.Instance.Label);
+      Assert.Null(select.Instance.Value);
+      var items = select.FindComponents<MudSelectItem<string>>().Select(i => i.Instance.Value).ToList();
+      Assert.Equal(["EUR", "RUB", "USD"], items.Order(StringComparer.Ordinal));
+    });
+  }
+
+  [Fact]
+  public async Task Render_CurrencyAddedToCatalog_IsListedInCurrencySelect()
+  {
+    await Catalogs.CreateAsync(CatalogKind.Currency, new CatalogInput("Фунт стерлингов", "GBP"));
+
+    var cut = Context.Render<SettingsPage>();
+
+    cut.WaitForAssertion(() => Assert.Contains(
+      CurrencySelect(cut).FindComponents<MudSelectItem<string>>(),
+      i => i.Instance.Value == "GBP"));
+  }
+
+  [Fact]
+  public async Task Save_CurrencyChosenFromSelect_PersistsCode()
+  {
+    var cut = Context.Render<SettingsPage>();
+    cut.WaitForElement(".settings-income");
+    await SetNumericAsync<long?>(cut, "settings-income", 4000);
+    await SelectCurrencyAsync(cut, "EUR");
+
+    cut.Find(".settings-save").Click();
+
+    var saved = await WaitForGoalAsync(g => g.DesiredMonthlyIncome == 4000);
+    Assert.Equal("EUR", saved.IncomeCurrency);
+  }
+
+  [Fact]
+  public void Render_DefaultGoal_ShowsEnginesMultiSelectWithLabelAndNoSelection()
+  {
+    var cut = Context.Render<SettingsPage>();
+
+    cut.WaitForAssertion(() =>
+    {
+      var select = EnginesSelect(cut).Instance;
+      Assert.True(select.MultiSelection);
+      Assert.Equal("Движки", select.Label);
+      Assert.Empty(select.SelectedValues!);
+    });
+  }
+
+  [Fact]
+  public async Task Render_StoredGoalWithEngines_ShowsStoredEngines()
+  {
+    var goal = await Service.GetAsync();
+    await Service.UpdateAsync(new SearchGoalInput(
+      goal.RoleId,
+      goal.LocationIds,
+      goal.PlatformIds,
+      [SeedData.GodotEngineId, SeedData.UnityEngineId],
+      goal.Industries,
+      goal.MustHave,
+      goal.WeeklyApplicationTarget,
+      goal.Deadline,
+      goal.DesiredMonthlyIncome,
+      goal.IncomeCurrency,
+      goal.MarketThresholdPerWeek,
+      goal.ConversionThresholdPermille,
+      goal.MinSampleSize,
+      goal.MaturationDays));
+
+    var cut = Context.Render<SettingsPage>();
+
+    cut.WaitForAssertion(() => Assert.Equal(
+      new[] { SeedData.GodotEngineId, SeedData.UnityEngineId }.Order(),
+      EnginesSelect(cut).Instance.SelectedValues!.Order()));
+  }
+
+  [Fact]
+  public async Task Save_EnginesSelected_PersistsEngines()
+  {
+    var cut = Context.Render<SettingsPage>();
+    cut.WaitForElement(".settings-role");
+    await cut.InvokeAsync(() => EnginesSelect(cut).Instance.SelectedValuesChanged.InvokeAsync([SeedData.DefoldEngineId, SeedData.UnrealEngineId]));
+
+    cut.Find(".settings-save").Click();
+
+    var saved = await WaitForGoalAsync(g => g.EngineIds.Count == 2);
+    Assert.Equal(new[] { SeedData.DefoldEngineId, SeedData.UnrealEngineId }.Order(), saved.EngineIds.Order());
+  }
+
+  [Fact]
   public async Task Save_MinSampleZero_DoesNotSaveAndMarksFieldInvalid()
   {
     var cut = Context.Render<SettingsPage>();
@@ -194,7 +291,7 @@ public class SettingsPageTests : SettingsWebFixture
 
     cut.Find(".settings-save").Click();
 
-    cut.WaitForAssertion(() => Assert.True(Text(cut, "settings-currency").Instance.Error));
+    cut.WaitForAssertion(() => Assert.True(CurrencySelect(cut).Instance.Error));
     Assert.Null((await Service.GetAsync()).DesiredMonthlyIncome);
   }
 
@@ -204,12 +301,12 @@ public class SettingsPageTests : SettingsWebFixture
     var cut = Context.Render<SettingsPage>();
     cut.WaitForElement(".settings-currency");
     await SetNumericAsync<int>(cut, "settings-weekly-target", 15);
-    await SetTextAsync(cut, "settings-currency", "EUR");
+    await SelectCurrencyAsync(cut, "EUR");
 
     cut.Find(".settings-save").Click();
 
     cut.WaitForAssertion(() => Assert.True(Numeric<long?>(cut, "settings-income").Instance.Error));
-    Assert.Equal("EUR", Text(cut, "settings-currency").Instance.Value);
+    Assert.Equal("EUR", CurrencySelect(cut).Instance.Value);
     var stored = await Service.GetAsync();
     Assert.Equal(10, stored.WeeklyApplicationTarget);
     Assert.Null(stored.IncomeCurrency);
@@ -262,6 +359,21 @@ public class SettingsPageTests : SettingsWebFixture
   private static IRenderedComponent<MudTextField<string>> Text(IRenderedComponent<SettingsPage> cut, string cssClass)
   {
     return cut.FindComponents<MudTextField<string>>().Single(c => c.Instance.Class?.Contains(cssClass) == true);
+  }
+
+  private static async Task SelectCurrencyAsync(IRenderedComponent<SettingsPage> cut, string code)
+  {
+    await cut.InvokeAsync(() => CurrencySelect(cut).Instance.ValueChanged.InvokeAsync(code));
+  }
+
+  private static IRenderedComponent<MudSelect<string>> CurrencySelect(IRenderedComponent<SettingsPage> cut)
+  {
+    return cut.FindComponents<MudSelect<string>>().Single(c => c.Instance.Class?.Contains("settings-currency") == true);
+  }
+
+  private static IRenderedComponent<MudSelect<Guid>> EnginesSelect(IRenderedComponent<SettingsPage> cut)
+  {
+    return cut.FindComponents<MudSelect<Guid>>().Single(c => c.Instance.Class?.Contains("settings-engines") == true);
   }
 
   private static IRenderedComponent<MudSelect<Guid?>> RoleSelect(IRenderedComponent<SettingsPage> cut)
