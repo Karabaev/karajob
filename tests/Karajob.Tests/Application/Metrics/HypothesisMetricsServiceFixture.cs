@@ -112,6 +112,7 @@ public abstract class HypothesisMetricsServiceFixture : VacancyServiceFixture
       null,
       [],
       [],
+      [],
       null,
       null,
       weeklyApplicationTarget,

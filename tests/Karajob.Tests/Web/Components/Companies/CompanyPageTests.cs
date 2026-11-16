@@ -1,6 +1,7 @@
 using Bunit;
 using Karajob.Application.Companies;
 using Karajob.Domain.Companies;
+using Karajob.Infrastructure.Persistence;
 using Karajob.Web.Components.Companies;
 
 namespace Karajob.Tests.Web.Components.Companies;
@@ -66,6 +67,31 @@ public class CompanyPageTests : CompanyWebFixture
       Assert.Contains("Dragon Quest", cut.Markup);
       Assert.Contains("Star Raiders", cut.Markup);
     });
+  }
+
+  [Fact]
+  public async Task Render_ProjectWithEngine_ShowsEngineNameInSubtitle()
+  {
+    var company = await Service.CreateAsync(Input("pixel-forge", "Pixel Forge"));
+    await Service.AddProjectAsync(company.Id, new ProjectInput("Dragon Quest", "RPG", SeedData.UnityEngineId, ProjectStatus.InDevelopment, null));
+
+    var cut = Context.Render<CompanyPage>(p => p.Add(c => c.Slug, "pixel-forge"));
+
+    cut.WaitForAssertion(() =>
+    {
+      Assert.Contains("RPG · Unity · В разработке", cut.Markup);
+    });
+  }
+
+  [Fact]
+  public async Task Render_ProjectWithoutEngine_ShowsSubtitleWithoutEngine()
+  {
+    var company = await Service.CreateAsync(Input("pixel-forge", "Pixel Forge"));
+    await Service.AddProjectAsync(company.Id, new ProjectInput("Dragon Quest", "RPG", null, ProjectStatus.InDevelopment, null));
+
+    var cut = Context.Render<CompanyPage>(p => p.Add(c => c.Slug, "pixel-forge"));
+
+    cut.WaitForAssertion(() => Assert.Contains("RPG · В разработке", cut.Markup));
   }
 
   [Fact]

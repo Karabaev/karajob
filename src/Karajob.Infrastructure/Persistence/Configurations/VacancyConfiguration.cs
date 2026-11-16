@@ -21,11 +21,13 @@ public class VacancyConfiguration : IEntityTypeConfiguration<Vacancy>
       // Get-only properties are not mapped by convention; mapping them lets EF bind the constructor.
       salary.Property(s => s.Min);
       salary.Property(s => s.Max);
+      // No FK to Currency.Code: complex types cannot take part in relationships, so VacancyService checks the code instead.
       salary.Property(s => s.Currency);
     });
 
     builder.HasMany(v => v.Matches).WithOne().HasForeignKey(m => m.VacancyId).OnDelete(DeleteBehavior.Cascade);
     builder.HasMany(v => v.Platforms).WithOne().HasForeignKey(p => p.VacancyId).OnDelete(DeleteBehavior.Cascade);
+    builder.HasMany(v => v.Engines).WithOne().HasForeignKey(e => e.VacancyId).OnDelete(DeleteBehavior.Cascade);
     builder.HasMany(v => v.Events).WithOne().HasForeignKey(e => e.VacancyId).OnDelete(DeleteBehavior.Cascade);
     builder.HasOne(v => v.Application)
       .WithOne()
@@ -37,5 +39,6 @@ public class VacancyConfiguration : IEntityTypeConfiguration<Vacancy>
     builder.Navigation(v => v.Application).AutoInclude();
     // SetPlatforms diffs against the loaded collection.
     builder.Navigation(v => v.Platforms).AutoInclude();
+    builder.Navigation(v => v.Engines).AutoInclude();
   }
 }

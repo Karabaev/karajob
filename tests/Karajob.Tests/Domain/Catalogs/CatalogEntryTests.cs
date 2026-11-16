@@ -9,6 +9,8 @@ public class CatalogEntryTests
     name => new Role(name),
     name => new Location(name),
     name => new Language("ru", name),
+    name => new Currency("USD", name),
+    name => new Engine(name),
   };
 
   [Fact]
@@ -110,5 +112,45 @@ public class CatalogEntryTests
 
     Assert.Equal("ru", language.Code);
     Assert.Equal("russian", language.NormalizedName);
+  }
+
+  [Fact]
+  public void Ctor_Currency_NormalizesCodeToUpperCase()
+  {
+    var currency = new Currency(" usd ", "Доллар США");
+
+    Assert.Equal("USD", currency.Code);
+    Assert.Equal("доллар сша", currency.NormalizedName);
+  }
+
+  [Theory]
+  [InlineData("")]
+  [InlineData("US")]
+  [InlineData("USDT")]
+  [InlineData("U5D")]
+  public void Ctor_Currency_InvalidCode_Throws(string code)
+  {
+    Assert.ThrowsAny<ArgumentException>(() => new Currency(code, "Доллар США"));
+  }
+
+  [Fact]
+  public void Rename_Currency_KeepsCode()
+  {
+    var currency = new Currency("USD", "Доллар США");
+
+    currency.Rename("US Dollar");
+
+    Assert.Equal("USD", currency.Code);
+    Assert.Equal("us dollar", currency.NormalizedName);
+  }
+
+  [Fact]
+  public void Ctor_Engine_SetsIdNameAndNormalizedName()
+  {
+    var engine = new Engine("  Unreal   Engine ");
+
+    Assert.NotEqual(Guid.Empty, engine.Id);
+    Assert.Equal("Unreal   Engine", engine.Name);
+    Assert.Equal("unreal engine", engine.NormalizedName);
   }
 }

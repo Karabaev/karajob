@@ -25,9 +25,9 @@ public class CatalogService(IKarajobDbContextFactory dbContextFactory)
     await ValidateNameAsync(db, kind, input.Name, Guid.Empty, errors, cancellationToken);
 
     string? code = null;
-    if (kind == CatalogKind.Language)
+    if (kind is CatalogKind.Language or CatalogKind.Currency)
     {
-      code = await ValidateCodeAsync(db, input.Code, errors, cancellationToken);
+      code = await ValidateCodeAsync(db, kind, input.Code, errors, cancellationToken);
     }
 
     if (errors.Count > 0)
@@ -57,6 +57,16 @@ public class CatalogService(IKarajobDbContextFactory dbContextFactory)
         var platform = new Platform(input.Name);
         db.Platforms.Add(platform);
         entry = platform;
+        break;
+      case CatalogKind.Currency:
+        var currency = new Currency(code!, input.Name);
+        db.Currencies.Add(currency);
+        entry = currency;
+        break;
+      case CatalogKind.Engine:
+        var engine = new Engine(input.Name);
+        db.Engines.Add(engine);
+        entry = engine;
         break;
       default:
         throw new ArgumentOutOfRangeException(nameof(kind), kind, null);
@@ -88,11 +98,11 @@ public class CatalogService(IKarajobDbContextFactory dbContextFactory)
     await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
     var entry = await FindAsync(db, kind, id, cancellationToken);
 
-    if (await IsReferencedAsync(db, kind, id, cancellationToken))
+    if (await IsReferencedAsync(db, kind, entry, cancellationToken))
     {
       throw new ValidationFailedException(new Dictionary<string, string>
       {
-        [string.Empty] = "Запись используется в гипотезах, вакансиях или CV — удалить нельзя",
+        [string.Empty] = "Запись уже используется — удалить нельзя",
       });
     }
 
@@ -110,6 +120,12 @@ public class CatalogService(IKarajobDbContextFactory dbContextFactory)
       case Platform platform:
         db.Platforms.Remove(platform);
         break;
+      case Currency currency:
+        db.Currencies.Remove(currency);
+        break;
+      case Engine engine:
+        db.Engines.Remove(engine);
+        break;
       default:
         throw new ArgumentOutOfRangeException(nameof(kind), kind, null);
     }
@@ -125,6 +141,8 @@ public class CatalogService(IKarajobDbContextFactory dbContextFactory)
       CatalogKind.Location => db.Locations,
       CatalogKind.Language => db.Languages,
       CatalogKind.Platform => db.Platforms,
+      CatalogKind.Currency => db.Currencies,
+      CatalogKind.Engine => db.Engines,
       _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null),
     };
   }
@@ -158,22 +176,27 @@ public class CatalogService(IKarajobDbContextFactory dbContextFactory)
 
   private static async Task<string?> ValidateCodeAsync(
     IKarajobDbContext db,
+    CatalogKind kind,
     string? code,
     Dictionary<string, string> errors,
     CancellationToken cancellationToken)
   {
+    var isCurrency = kind == CatalogKind.Currency;
     string normalized;
     try
     {
-      normalized = Normalize.LanguageCode(code!);
+      normalized = isCurrency ? Normalize.CurrencyCode(code!) : Normalize.LanguageCode(code!);
     }
     catch (ArgumentException)
     {
-      errors[nameof(CatalogInput.Code)] = "Код — 2–3 латинские буквы";
+      errors[nameof(CatalogInput.Code)] = isCurrency ? "Код — 3 латинские буквы" : "Код — 2–3 латинские буквы";
       return null;
     }
 
-    if (await db.Languages.AnyAsync(l => l.Code == normalized, cancellationToken))
+    var exists = isCurrency
+      ? await db.Currencies.AnyAsync(c => c.Code == normalized, cancellationToken)
+      : await db.Languages.AnyAsync(l => l.Code == normalized, cancellationToken);
+    if (exists)
     {
       errors[nameof(CatalogInput.Code)] = "Такой код уже есть";
     }
@@ -181,8 +204,9 @@ public class CatalogService(IKarajobDbContextFactory dbContextFactory)
     return normalized;
   }
 
-  private static async Task<bool> IsReferencedAsync(IKarajobDbContext db, CatalogKind kind, Guid id, CancellationToken cancellationToken)
+  private static async Task<bool> IsReferencedAsync(IKarajobDbContext db, CatalogKind kind, CatalogEntry entry, CancellationToken cancellationToken)
   {
+    var id = entry.Id;
     switch (kind)
     {
       case CatalogKind.Role:
@@ -201,6 +225,15 @@ public class CatalogService(IKarajobDbContextFactory dbContextFactory)
         return await db.HypothesisPlatforms.IgnoreQueryFilters().AnyAsync(p => p.PlatformId == id, cancellationToken)
           || await db.SearchGoalPlatforms.IgnoreQueryFilters().AnyAsync(p => p.PlatformId == id, cancellationToken)
           || await db.VacancyPlatforms.IgnoreQueryFilters().AnyAsync(p => p.PlatformId == id, cancellationToken);
+      case CatalogKind.Currency:
+        var code = ((Currency)entry).Code;
+        return await db.SearchGoals.IgnoreQueryFilters().AnyAsync(g => g.IncomeCurrency == code, cancellationToken)
+          || await db.Vacancies.IgnoreQueryFilters().AnyAsync(v => v.Salary != null && v.Salary.Currency == code, cancellationToken);
+      case CatalogKind.Engine:
+        return await db.Projects.IgnoreQueryFilters().AnyAsync(p => p.EngineId == id, cancellationToken)
+          || await db.HypothesisEngines.IgnoreQueryFilters().AnyAsync(e => e.EngineId == id, cancellationToken)
+          || await db.SearchGoalEngines.IgnoreQueryFilters().AnyAsync(e => e.EngineId == id, cancellationToken)
+          || await db.VacancyEngines.IgnoreQueryFilters().AnyAsync(e => e.EngineId == id, cancellationToken);
       default:
         throw new ArgumentOutOfRangeException(nameof(kind), kind, null);
     }
@@ -208,6 +241,6 @@ public class CatalogService(IKarajobDbContextFactory dbContextFactory)
 
   private static CatalogListItem ToItem(CatalogEntry entry)
   {
-    return new CatalogListItem(entry.Id, entry.Name, (entry as Language)?.Code);
+    return new CatalogListItem(entry.Id, entry.Name, entry switch { Language language => language.Code, Currency currency => currency.Code, _ => null });
   }
 }

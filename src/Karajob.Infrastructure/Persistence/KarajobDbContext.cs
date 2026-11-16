@@ -35,19 +35,24 @@ public class KarajobDbContext(DbContextOptions<KarajobDbContext> options, ICurre
   public DbSet<Location> Locations => Set<Location>();
   public DbSet<Language> Languages => Set<Language>();
   public DbSet<Platform> Platforms => Set<Platform>();
+  public DbSet<Currency> Currencies => Set<Currency>();
+  public DbSet<Engine> Engines => Set<Engine>();
   public DbSet<Hypothesis> Hypotheses => Set<Hypothesis>();
   public DbSet<HypothesisLocation> HypothesisLocations => Set<HypothesisLocation>();
   public DbSet<HypothesisPlatform> HypothesisPlatforms => Set<HypothesisPlatform>();
+  public DbSet<HypothesisEngine> HypothesisEngines => Set<HypothesisEngine>();
   public DbSet<CvDocument> CvDocuments => Set<CvDocument>();
   public DbSet<CvVersion> CvVersions => Set<CvVersion>();
   public DbSet<Vacancy> Vacancies => Set<Vacancy>();
   public DbSet<VacancyMatch> VacancyMatches => Set<VacancyMatch>();
   public DbSet<VacancyPlatform> VacancyPlatforms => Set<VacancyPlatform>();
+  public DbSet<VacancyEngine> VacancyEngines => Set<VacancyEngine>();
   public DbSet<JobApplication> JobApplications => Set<JobApplication>();
   public DbSet<ApplicationEvent> ApplicationEvents => Set<ApplicationEvent>();
   public DbSet<SearchGoal> SearchGoals => Set<SearchGoal>();
   public DbSet<SearchGoalLocation> SearchGoalLocations => Set<SearchGoalLocation>();
   public DbSet<SearchGoalPlatform> SearchGoalPlatforms => Set<SearchGoalPlatform>();
+  public DbSet<SearchGoalEngine> SearchGoalEngines => Set<SearchGoalEngine>();
 
   protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
   {

@@ -262,6 +262,7 @@ public partial class VacancyService(IKarajobDbContextFactory dbContextFactory, I
     vacancy.RoleId = normalized.RoleId;
     vacancy.LocationId = normalized.LocationId;
     vacancy.SetPlatforms(normalized.PlatformIds);
+    vacancy.SetEngines(normalized.EngineIds);
     vacancy.LanguageId = normalized.LanguageId;
     vacancy.WorkFormat = normalized.WorkFormat;
     vacancy.Salary = normalized.Salary;
@@ -372,6 +373,12 @@ public partial class VacancyService(IKarajobDbContextFactory dbContextFactory, I
       errors[nameof(VacancyInput.PlatformIds)] = "Платформа не найдена";
     }
 
+    var engineIds = input.EngineIds.Distinct().ToList();
+    if (engineIds.Count > 0 && await db.Engines.CountAsync(e => engineIds.Contains(e.Id), cancellationToken) != engineIds.Count)
+    {
+      errors[nameof(VacancyInput.EngineIds)] = "Движок не найден";
+    }
+
     SalaryRange? salary = null;
     if (input.SalaryMin is not null || input.SalaryMax is not null)
     {
@@ -382,6 +389,11 @@ public partial class VacancyService(IKarajobDbContextFactory dbContextFactory, I
       catch (ArgumentException)
       {
         errors["Salary"] = "Некорректная вилка: значения неотрицательные, минимум не больше максимума, валюта из 3 букв";
+      }
+
+      if (salary is { } range && !await db.Currencies.AnyAsync(c => c.Code == range.Currency, cancellationToken))
+      {
+        errors["Salary"] = "Валюта не найдена";
       }
     }
 
@@ -408,6 +420,7 @@ public partial class VacancyService(IKarajobDbContextFactory dbContextFactory, I
       input.RoleId,
       input.LocationId,
       platformIds,
+      engineIds,
       input.LanguageId,
       input.WorkFormat is null or WorkFormat.None ? null : input.WorkFormat,
       salary,
@@ -458,6 +471,7 @@ public partial class VacancyService(IKarajobDbContextFactory dbContextFactory, I
       vacancy.RoleId,
       vacancy.LocationId,
       vacancy.Platforms.Select(p => p.PlatformId).ToList(),
+      vacancy.Engines.Select(e => e.EngineId).ToList(),
       vacancy.LanguageId,
       vacancy.WorkFormat,
       vacancy.Salary?.Min,
@@ -512,6 +526,7 @@ public partial class VacancyService(IKarajobDbContextFactory dbContextFactory, I
     Guid? RoleId,
     Guid? LocationId,
     List<Guid> PlatformIds,
+    List<Guid> EngineIds,
     Guid? LanguageId,
     WorkFormat? WorkFormat,
     SalaryRange? Salary,

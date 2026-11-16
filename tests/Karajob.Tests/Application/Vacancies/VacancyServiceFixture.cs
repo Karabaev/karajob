@@ -40,7 +40,8 @@ public abstract class VacancyServiceFixture : IAsyncLifetime
     IReadOnlyList<Guid>? hypothesisIds = null,
     string? description = null,
     string? notes = null,
-    IReadOnlyList<Guid>? platformIds = null)
+    IReadOnlyList<Guid>? platformIds = null,
+    IReadOnlyList<Guid>? engineIds = null)
   {
     return new VacancyInput(
       url,
@@ -48,6 +49,7 @@ public abstract class VacancyServiceFixture : IAsyncLifetime
       roleId,
       locationId,
       platformIds ?? [],
+      engineIds ?? [],
       languageId,
       workFormat,
       salaryMin,
@@ -80,6 +82,7 @@ public abstract class VacancyServiceFixture : IAsyncLifetime
     var hypothesis = await service.CreateAsync(new HypothesisInput(
       name,
       SeedData.UnityDeveloperRoleId,
+      [],
       [],
       [],
       [],

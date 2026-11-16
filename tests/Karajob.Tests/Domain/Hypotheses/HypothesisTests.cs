@@ -322,4 +322,79 @@ public class HypothesisTests
 
     Assert.ThrowsAny<ArgumentException>(() => hypothesis.SetPlatforms([Guid.NewGuid(), Guid.Empty]));
   }
+
+  [Fact]
+  public void SetEngines_NewIds_AddsOneEntryPerIdOwnedByHypothesis()
+  {
+    var hypothesis = Create();
+    var first = Guid.NewGuid();
+    var second = Guid.NewGuid();
+
+    hypothesis.SetEngines([first, second]);
+
+    Assert.Equal([first, second], hypothesis.Engines.Select(p => p.EngineId));
+    Assert.All(hypothesis.Engines, p =>
+    {
+      Assert.NotEqual(Guid.Empty, p.Id);
+      Assert.Equal(hypothesis.UserId, p.UserId);
+      Assert.Equal(hypothesis.Id, p.HypothesisId);
+    });
+  }
+
+  [Fact]
+  public void SetEngines_DuplicateIds_KeepsEachOnce()
+  {
+    var hypothesis = Create();
+    var id = Guid.NewGuid();
+
+    hypothesis.SetEngines([id, id, id]);
+
+    Assert.Equal(id, Assert.Single(hypothesis.Engines).EngineId);
+  }
+
+  [Fact]
+  public void SetEngines_IdsMissingFromNewSet_AreRemoved()
+  {
+    var hypothesis = Create();
+    var kept = Guid.NewGuid();
+    hypothesis.SetEngines([kept, Guid.NewGuid()]);
+
+    hypothesis.SetEngines([kept]);
+
+    Assert.Equal(kept, Assert.Single(hypothesis.Engines).EngineId);
+  }
+
+  [Fact]
+  public void SetEngines_IdsThatStay_KeepSameEntryInstance()
+  {
+    var hypothesis = Create();
+    var kept = Guid.NewGuid();
+    hypothesis.SetEngines([kept]);
+    var original = Assert.Single(hypothesis.Engines);
+
+    hypothesis.SetEngines([kept, Guid.NewGuid()]);
+
+    var stayed = Assert.Single(hypothesis.Engines, p => p.EngineId == kept);
+    Assert.Same(original, stayed);
+    Assert.Equal(2, hypothesis.Engines.Count);
+  }
+
+  [Fact]
+  public void SetEngines_Empty_ClearsEngines()
+  {
+    var hypothesis = Create();
+    hypothesis.SetEngines([Guid.NewGuid(), Guid.NewGuid()]);
+
+    hypothesis.SetEngines([]);
+
+    Assert.Empty(hypothesis.Engines);
+  }
+
+  [Fact]
+  public void SetEngines_EmptyGuid_Throws()
+  {
+    var hypothesis = Create();
+
+    Assert.ThrowsAny<ArgumentException>(() => hypothesis.SetEngines([Guid.NewGuid(), Guid.Empty]));
+  }
 }

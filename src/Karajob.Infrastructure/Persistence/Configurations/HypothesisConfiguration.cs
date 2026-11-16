@@ -20,5 +20,8 @@ public class HypothesisConfiguration : IEntityTypeConfiguration<Hypothesis>
 
     builder.HasMany(h => h.Platforms).WithOne().HasForeignKey(p => p.HypothesisId).OnDelete(DeleteBehavior.Cascade);
     builder.Navigation(h => h.Platforms).AutoInclude();
+
+    builder.HasMany(h => h.Engines).WithOne().HasForeignKey(e => e.HypothesisId).OnDelete(DeleteBehavior.Cascade);
+    builder.Navigation(h => h.Engines).AutoInclude();
   }
 }

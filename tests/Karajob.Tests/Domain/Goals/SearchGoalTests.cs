@@ -485,4 +485,79 @@ public class SearchGoalTests
 
     Assert.ThrowsAny<ArgumentException>(() => goal.SetPlatforms([Guid.NewGuid(), Guid.Empty]));
   }
+
+  [Fact]
+  public void SetEngines_NewIds_AddsOneEntryPerIdOwnedByGoal()
+  {
+    var goal = Create();
+    var first = Guid.NewGuid();
+    var second = Guid.NewGuid();
+
+    goal.SetEngines([first, second]);
+
+    Assert.Equal([first, second], goal.Engines.Select(p => p.EngineId));
+    Assert.All(goal.Engines, p =>
+    {
+      Assert.NotEqual(Guid.Empty, p.Id);
+      Assert.Equal(goal.UserId, p.UserId);
+      Assert.Equal(goal.Id, p.SearchGoalId);
+    });
+  }
+
+  [Fact]
+  public void SetEngines_DuplicateIds_KeepsEachOnce()
+  {
+    var goal = Create();
+    var id = Guid.NewGuid();
+
+    goal.SetEngines([id, id, id]);
+
+    Assert.Equal(id, Assert.Single(goal.Engines).EngineId);
+  }
+
+  [Fact]
+  public void SetEngines_IdsMissingFromNewSet_AreRemoved()
+  {
+    var goal = Create();
+    var kept = Guid.NewGuid();
+    goal.SetEngines([kept, Guid.NewGuid()]);
+
+    goal.SetEngines([kept]);
+
+    Assert.Equal(kept, Assert.Single(goal.Engines).EngineId);
+  }
+
+  [Fact]
+  public void SetEngines_IdsThatStay_KeepSameEntryInstance()
+  {
+    var goal = Create();
+    var kept = Guid.NewGuid();
+    goal.SetEngines([kept]);
+    var original = Assert.Single(goal.Engines);
+
+    goal.SetEngines([kept, Guid.NewGuid()]);
+
+    var stayed = Assert.Single(goal.Engines, p => p.EngineId == kept);
+    Assert.Same(original, stayed);
+    Assert.Equal(2, goal.Engines.Count);
+  }
+
+  [Fact]
+  public void SetEngines_Empty_ClearsEngines()
+  {
+    var goal = Create();
+    goal.SetEngines([Guid.NewGuid(), Guid.NewGuid()]);
+
+    goal.SetEngines([]);
+
+    Assert.Empty(goal.Engines);
+  }
+
+  [Fact]
+  public void SetEngines_EmptyGuid_Throws()
+  {
+    var goal = Create();
+
+    Assert.ThrowsAny<ArgumentException>(() => goal.SetEngines([Guid.NewGuid(), Guid.Empty]));
+  }
 }

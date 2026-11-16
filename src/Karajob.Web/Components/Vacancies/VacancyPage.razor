@@ -90,6 +90,16 @@ else if (_loaded)
                 <MudSelectItem T="Guid" Value="platform.Id">@platform.Name</MudSelectItem>
               }
             </MudSelect>
+            <MudSelect T="Guid" Class="vacancy-engines" Label="Движки" MultiSelection="true"
+                       SelectedValues="_engineIds" SelectedValuesChanged="OnEnginesChanged"
+                       ToStringFunc="EngineName" MultiSelectionTextFunc="JoinNames"
+                       HelperText="@EmptyHint(_engines)"
+                       Error="HasError(nameof(VacancyInput.EngineIds))" ErrorText="@ErrorOf(nameof(VacancyInput.EngineIds))">
+              @foreach (var engine in _engines)
+              {
+                <MudSelectItem T="Guid" Value="engine.Id">@engine.Name</MudSelectItem>
+              }
+            </MudSelect>
             <MudSelect T="Guid?" Class="vacancy-language" Label="Язык" @bind-Value="_languageId" ToStringFunc="LanguageName"
                        HelperText="@EmptyHint(_languages)"
                        Error="HasError(nameof(VacancyInput.LanguageId))" ErrorText="@ErrorOf(nameof(VacancyInput.LanguageId))">
@@ -125,8 +135,13 @@ else if (_loaded)
                                    @bind-Value="_salaryMax" Error="HasError(SalaryKey)" />
                 </MudItem>
                 <MudItem xs="12" sm="4">
-                  <MudTextField T="string" Class="vacancy-salary-currency" Label="Валюта" @bind-Value="_salaryCurrency"
-                                Error="HasError(SalaryKey)" />
+                  <MudSelect T="string" Class="vacancy-salary-currency" Label="Валюта" ToStringFunc="CurrencyCode" RelativeWidth="DropdownWidth.Adaptive" @bind-Value="_salaryCurrency"
+                             Error="HasError(SalaryKey)">
+                    @foreach (var currency in _currencies)
+                    {
+                      <MudSelectItem T="string" Value="currency.Code!">@currency.Code — @currency.Name</MudSelectItem>
+                    }
+                  </MudSelect>
                 </MudItem>
               </MudGrid>
               @if (HasError(SalaryKey))
@@ -176,6 +191,8 @@ else if (_loaded)
   private IReadOnlyList<CatalogListItem> _locations = [];
   private IReadOnlyList<CatalogListItem> _languages = [];
   private IReadOnlyList<CatalogListItem> _platforms = [];
+  private IReadOnlyList<CatalogListItem> _engines = [];
+  private IReadOnlyList<CatalogListItem> _currencies = [];
   private IReadOnlyList<HypothesisListItem> _hypotheses = [];
   private IReadOnlyList<SimilarVacancy> _similar = [];
   private VacancyDetails? _details;
@@ -191,10 +208,11 @@ else if (_loaded)
   private Guid? _locationId;
   private Guid? _languageId;
   private IReadOnlyCollection<Guid> _platformIds = [];
+  private IReadOnlyCollection<Guid> _engineIds = [];
   private WorkFormat _format = WorkFormat.None;
   private long? _salaryMin;
   private long? _salaryMax;
-  private string? _salaryCurrency = DefaultCurrency;
+  private string? _salaryCurrency;
   private IReadOnlyCollection<Guid> _hypothesisIds = [];
   private string? _description;
   private string? _notes;
@@ -224,6 +242,8 @@ else if (_loaded)
     _locations = await CatalogService.ListAsync(CatalogKind.Location);
     _languages = await CatalogService.ListAsync(CatalogKind.Language);
     _platforms = await CatalogService.ListAsync(CatalogKind.Platform);
+    _engines = await CatalogService.ListAsync(CatalogKind.Engine);
+    _currencies = await CatalogService.ListAsync(CatalogKind.Currency);
 
     if (Id is not null)
     {
@@ -250,10 +270,11 @@ else if (_loaded)
     _locationId = _details?.LocationId;
     _languageId = _details?.LanguageId;
     _platformIds = _details?.PlatformIds.ToList() ?? [];
+    _engineIds = _details?.EngineIds.ToList() ?? [];
     _format = _details?.WorkFormat ?? WorkFormat.None;
     _salaryMin = _details?.SalaryMin;
     _salaryMax = _details?.SalaryMax;
-    _salaryCurrency = _details?.SalaryCurrency ?? DefaultCurrency;
+    _salaryCurrency = _details?.SalaryCurrency ?? (_currencies.Any(c => c.Code == DefaultCurrency) ? DefaultCurrency : null);
     _hypothesisIds = _details?.HypothesisIds.ToList() ?? [];
     _description = _details?.Description;
     _notes = _details?.Notes;
@@ -366,6 +387,21 @@ else if (_loaded)
     return _platforms.FirstOrDefault(p => p.Id == id)?.Name ?? "";
   }
 
+  private void OnEnginesChanged(IReadOnlyCollection<Guid>? engineIds)
+  {
+    _engineIds = engineIds?.ToList() ?? [];
+  }
+
+  private static string CurrencyCode(string? code)
+  {
+    return code ?? "";
+  }
+
+  private string EngineName(Guid id)
+  {
+    return _engines.FirstOrDefault(e => e.Id == id)?.Name ?? "";
+  }
+
   private string LanguageName(Guid? id)
   {
     return _languages.FirstOrDefault(l => l.Id == id)?.Name ?? "";
@@ -417,6 +453,7 @@ else if (_loaded)
       _roleId,
       _locationId,
       _platformIds.ToList(),
+      _engineIds.ToList(),
       _languageId,
       _format == WorkFormat.None ? null : _format,
       _salaryMin,

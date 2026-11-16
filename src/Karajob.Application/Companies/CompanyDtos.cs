@@ -31,6 +31,6 @@ public record CompanyDetails(
   string? Note,
   bool IsBlacklisted);
 
-public record ProjectInput(string Name, string? Genre, string? Engine, ProjectStatus Status, string? Url);
+public record ProjectInput(string Name, string? Genre, Guid? EngineId, ProjectStatus Status, string? Url);
 
-public record ProjectItem(Guid Id, string Name, string? Genre, string? Engine, ProjectStatus Status, string? Url);
+public record ProjectItem(Guid Id, string Name, string? Genre, Guid? EngineId, string? EngineName, ProjectStatus Status, string? Url);

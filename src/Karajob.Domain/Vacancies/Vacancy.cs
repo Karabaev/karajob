@@ -9,6 +9,7 @@ public class Vacancy : IUserOwned
 {
   private readonly List<VacancyMatch> matches = [];
   private readonly List<VacancyPlatform> platforms = [];
+  private readonly List<VacancyEngine> engines = [];
   private readonly List<ApplicationEvent> events = [];
   private DateTime? publishedAt;
 
@@ -19,6 +20,7 @@ public class Vacancy : IUserOwned
   public string Url { get; private set; }
   public Guid? LocationId { get; set; }
   public IReadOnlyCollection<VacancyPlatform> Platforms => platforms;
+  public IReadOnlyCollection<VacancyEngine> Engines => engines;
   public Guid? LanguageId { get; set; }
   public WorkFormat? WorkFormat { get; set; }
   public SalaryRange? Salary { get; set; }
@@ -50,6 +52,16 @@ public class Vacancy : IUserOwned
     foreach (var platformId in wanted.Where(id => platforms.All(p => p.PlatformId != id)))
     {
       platforms.Add(new VacancyPlatform(UserId, Id, platformId));
+    }
+  }
+
+  public void SetEngines(IEnumerable<Guid> engineIds)
+  {
+    var wanted = engineIds.Select(id => Require.NotEmpty(id, nameof(engineIds))).Distinct().ToList();
+    engines.RemoveAll(e => !wanted.Contains(e.EngineId));
+    foreach (var engineId in wanted.Where(id => engines.All(e => e.EngineId != id)))
+    {
+      engines.Add(new VacancyEngine(UserId, Id, engineId));
     }
   }
 

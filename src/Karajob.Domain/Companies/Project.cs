@@ -9,7 +9,7 @@ public class Project
   public Guid CompanyId { get; private set; }
   public string Name { get; set => field = Require.NotBlank(value); }
   public string? Genre { get; set; }
-  public string? Engine { get; set; }
+  public Guid? EngineId { get; set => field = value is { } id ? Require.NotEmpty(id) : null; }
   public ProjectStatus Status { get; set; }
   public string? Url { get; set => field = value is null ? null : Normalize.WebUrl(value); }
 

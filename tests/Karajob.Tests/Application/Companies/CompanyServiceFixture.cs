@@ -24,11 +24,11 @@ public abstract class CompanyServiceFixture : IAsyncLifetime
   protected static ProjectInput NewProject(
     string name = "Dragon Quest",
     string? genre = null,
-    string? engine = null,
+    Guid? engineId = null,
     ProjectStatus status = ProjectStatus.InDevelopment,
     string? url = null)
   {
-    return new ProjectInput(name, genre, engine, status, url);
+    return new ProjectInput(name, genre, engineId, status, url);
   }
 
   protected CompanyService ServiceFor(Guid userId)

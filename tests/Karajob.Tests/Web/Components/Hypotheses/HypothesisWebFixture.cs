@@ -28,6 +28,7 @@ public abstract class HypothesisWebFixture : IAsyncLifetime
       [],
       [],
       [],
+      [],
       WorkFormat.Remote,
       SeedData.RussianLanguageId,
       null,

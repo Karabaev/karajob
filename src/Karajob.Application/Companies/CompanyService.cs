@@ -116,32 +116,32 @@ public class CompanyService(IKarajobDbContextFactory dbContextFactory, ICurrentU
   {
     await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
     await FindCompanyAsync(db, companyId, cancellationToken);
-    var normalized = ValidateProject(input);
+    var normalized = await ValidateProjectAsync(db, input, cancellationToken);
 
     var project = new Project(companyId, normalized.Name, input.Status)
     {
       Genre = normalized.Genre,
-      Engine = normalized.Engine,
+      EngineId = input.EngineId,
       Url = normalized.Url,
     };
     db.Projects.Add(project);
     await db.SaveChangesAsync(cancellationToken);
-    return ToItem(project);
+    return ToItem(project, await FindEngineNameAsync(db, project.EngineId, cancellationToken));
   }
 
   public async Task<ProjectItem> UpdateProjectAsync(Guid projectId, ProjectInput input, CancellationToken cancellationToken = default)
   {
     await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
     var project = await FindProjectAsync(db, projectId, cancellationToken);
-    var normalized = ValidateProject(input);
+    var normalized = await ValidateProjectAsync(db, input, cancellationToken);
 
     project.Name = normalized.Name;
     project.Genre = normalized.Genre;
-    project.Engine = normalized.Engine;
+    project.EngineId = input.EngineId;
     project.Status = input.Status;
     project.Url = normalized.Url;
     await db.SaveChangesAsync(cancellationToken);
-    return ToItem(project);
+    return ToItem(project, await FindEngineNameAsync(db, project.EngineId, cancellationToken));
   }
 
   public async Task DeleteProjectAsync(Guid projectId, CancellationToken cancellationToken = default)
@@ -184,6 +184,10 @@ public class CompanyService(IKarajobDbContextFactory dbContextFactory, ICurrentU
   private async Task<CompanyDetails> BuildDetailsAsync(IKarajobDbContext db, Company company, CancellationToken cancellationToken)
   {
     var projects = await db.Projects.AsNoTracking().Where(p => p.CompanyId == company.Id).ToListAsync(cancellationToken);
+    var engineIds = projects.Where(p => p.EngineId is not null).Select(p => p.EngineId!.Value).Distinct().ToList();
+    var engineNames = await db.Engines.AsNoTracking()
+      .Where(e => engineIds.Contains(e.Id))
+      .ToDictionaryAsync(e => e.Id, e => e.Name, cancellationToken);
     var note = await db.UserCompanyNotes.AsNoTracking().FirstOrDefaultAsync(n => n.CompanyId == company.Id, cancellationToken);
 
     return new CompanyDetails(
@@ -195,7 +199,7 @@ public class CompanyService(IKarajobDbContextFactory dbContextFactory, ICurrentU
       IconUrl(company),
       SortedDomains(company),
       company.Aliases.Select(a => a.Value).Order(StringComparer.Ordinal).ToList(),
-      projects.OrderBy(p => p.Name, StringComparer.OrdinalIgnoreCase).Select(ToItem).ToList(),
+      projects.OrderBy(p => p.Name, StringComparer.OrdinalIgnoreCase).Select(p => ToItem(p, p.EngineId is { } id ? engineNames[id] : null)).ToList(),
       note?.Note,
       note?.IsBlacklisted ?? false);
   }
@@ -303,7 +307,7 @@ public class CompanyService(IKarajobDbContextFactory dbContextFactory, ICurrentU
     return new NormalizedCompany(slug!, name!, website, BlankToNull(input.Description), domains, aliases);
   }
 
-  private static NormalizedProject ValidateProject(ProjectInput input)
+  private static async Task<NormalizedProject> ValidateProjectAsync(IKarajobDbContext db, ProjectInput input, CancellationToken cancellationToken)
   {
     var errors = new Dictionary<string, string>();
 
@@ -319,12 +323,17 @@ public class CompanyService(IKarajobDbContextFactory dbContextFactory, ICurrentU
       url = Try(() => Normalize.WebUrl(url), errors, nameof(ProjectInput.Url), "Некорректный адрес");
     }
 
+    if (input.EngineId is { } engineId && !await db.Engines.AnyAsync(e => e.Id == engineId, cancellationToken))
+    {
+      errors[nameof(ProjectInput.EngineId)] = "Движок не найден";
+    }
+
     if (errors.Count > 0)
     {
       throw new ValidationFailedException(errors);
     }
 
-    return new NormalizedProject(name!, BlankToNull(input.Genre), BlankToNull(input.Engine), url);
+    return new NormalizedProject(name!, BlankToNull(input.Genre), url);
   }
 
   private static void SyncValues(Company company, NormalizedCompany normalized)
@@ -387,9 +396,19 @@ public class CompanyService(IKarajobDbContextFactory dbContextFactory, ICurrentU
     return host is null ? null : $"https://{host}/favicon.ico";
   }
 
-  private static ProjectItem ToItem(Project project)
+  private static async Task<string?> FindEngineNameAsync(IKarajobDbContext db, Guid? engineId, CancellationToken cancellationToken)
   {
-    return new ProjectItem(project.Id, project.Name, project.Genre, project.Engine, project.Status, project.Url);
+    if (engineId is null)
+    {
+      return null;
+    }
+
+    return await db.Engines.AsNoTracking().Where(e => e.Id == engineId).Select(e => e.Name).SingleAsync(cancellationToken);
+  }
+
+  private static ProjectItem ToItem(Project project, string? engineName)
+  {
+    return new ProjectItem(project.Id, project.Name, project.Genre, project.EngineId, engineName, project.Status, project.Url);
   }
 
   private static ValidationFailedException WholeEntityError(string message)
@@ -404,5 +423,5 @@ public class CompanyService(IKarajobDbContextFactory dbContextFactory, ICurrentU
 
   private record NormalizedCompany(string Slug, string Name, string? Website, string? Description, List<string> Domains, List<string> Aliases);
 
-  private record NormalizedProject(string Name, string? Genre, string? Engine, string? Url);
+  private record NormalizedProject(string Name, string? Genre, string? Url);
 }

@@ -1,4 +1,5 @@
 @inject CompanyService CompanyService
+@inject CatalogService CatalogService
 
 <MudDialog>
   <DialogContent>
@@ -10,7 +11,12 @@
       <MudTextField T="string" Label="Название" @bind-Value="_name" Required="true"
                     Error="HasError(nameof(ProjectInput.Name))" ErrorText="@ErrorOf(nameof(ProjectInput.Name))" />
       <MudTextField T="string" Label="Жанр" @bind-Value="_genre" />
-      <MudTextField T="string" Label="Движок" @bind-Value="_engine" />
+      <MudSelect T="Guid?" Class="project-engine" Label="Движок" Clearable="true" @bind-Value="_engineId" ToStringFunc="EngineName">
+        @foreach (var engine in _engines)
+        {
+          <MudSelectItem T="Guid?" Value="@((Guid?)engine.Id)">@engine.Name</MudSelectItem>
+        }
+      </MudSelect>
       <MudSelect T="ProjectStatus" Label="Статус" @bind-Value="_status">
         @foreach (var status in Enum.GetValues<ProjectStatus>())
         {
@@ -31,7 +37,8 @@
   private IReadOnlyDictionary<string, string> _errors = new Dictionary<string, string>();
   private string? _name;
   private string? _genre;
-  private string? _engine;
+  private IReadOnlyList<CatalogListItem> _engines = [];
+  private Guid? _engineId;
   private string? _url;
   private ProjectStatus _status = ProjectStatus.Announced;
 
@@ -55,8 +62,10 @@
     };
   }
 
-  protected override void OnInitialized()
+  protected override async Task OnInitializedAsync()
   {
+    _engines = await CatalogService.ListAsync(CatalogKind.Engine);
+
     if (Item is null)
     {
       return;
@@ -64,9 +73,14 @@
 
     _name = Item.Name;
     _genre = Item.Genre;
-    _engine = Item.Engine;
+    _engineId = Item.EngineId;
     _url = Item.Url;
     _status = Item.Status;
+  }
+
+  private string EngineName(Guid? id)
+  {
+    return _engines.FirstOrDefault(e => e.Id == id)?.Name ?? "";
   }
 
   private bool HasError(string key)
@@ -81,7 +95,7 @@
 
   private async Task SaveAsync()
   {
-    var input = new ProjectInput(_name ?? "", _genre, _engine, _status, _url);
+    var input = new ProjectInput(_name ?? "", _genre, _engineId, _status, _url);
     try
     {
       if (Item is null)

@@ -170,6 +170,73 @@ public class HypothesisPageTests : HypothesisWebFixture
   }
 
   [Fact]
+  public void Render_NewHypothesis_ShowsEnginesMultiSelectWithLabel()
+  {
+    var cut = Context.Render<HypothesisPage>();
+
+    cut.WaitForAssertion(() =>
+    {
+      var select = EnginesSelect(cut).Instance;
+      Assert.True(select.MultiSelection);
+      Assert.Equal("Движки", select.Label);
+    });
+  }
+
+  [Fact]
+  public async Task Render_ExistingHypothesis_ShowsStoredEngines()
+  {
+    var created = await Service.CreateAsync(Input("Gamedev EU") with { EngineIds = [SeedData.UnityEngineId, SeedData.UnrealEngineId] });
+
+    var cut = Context.Render<HypothesisPage>(p => p.Add(c => c.Id, created.Id));
+
+    cut.WaitForAssertion(() => Assert.Equal(
+      new[] { SeedData.UnityEngineId, SeedData.UnrealEngineId }.Order(),
+      EnginesSelect(cut).Instance.SelectedValues!.Order()));
+  }
+
+  [Fact]
+  public async Task Save_EnginesSelectedOnNewPage_PersistsEngines()
+  {
+    var cut = Context.Render<HypothesisPage>();
+    await SelectRoleAsync(cut, SeedData.UnrealDeveloperRoleId);
+    await cut.InvokeAsync(() => EnginesSelect(cut).Instance.SelectedValuesChanged.InvokeAsync([SeedData.UnityEngineId, SeedData.DefoldEngineId]));
+
+    ClickSave(cut);
+
+    var deadline = DateTime.UtcNow.AddSeconds(5);
+    IReadOnlyList<HypothesisListItem> items = [];
+    while (DateTime.UtcNow < deadline && items.Count == 0)
+    {
+      items = await Service.ListAsync();
+      await Task.Delay(50);
+    }
+
+    var saved = await Service.FindAsync(Assert.Single(items).Id);
+    Assert.Equal(new[] { SeedData.UnityEngineId, SeedData.DefoldEngineId }.Order(), saved!.EngineIds.Order());
+  }
+
+  [Fact]
+  public async Task Save_EnginesChangedOnExistingHypothesis_ReplacesEngines()
+  {
+    var created = await Service.CreateAsync(Input("Gamedev EU") with { EngineIds = [SeedData.UnityEngineId] });
+    var cut = Context.Render<HypothesisPage>(p => p.Add(c => c.Id, created.Id));
+    cut.WaitForAssertion(() => Assert.Equal([SeedData.UnityEngineId], EnginesSelect(cut).Instance.SelectedValues!));
+    await cut.InvokeAsync(() => EnginesSelect(cut).Instance.SelectedValuesChanged.InvokeAsync([SeedData.GodotEngineId]));
+
+    ClickSave(cut);
+
+    var deadline = DateTime.UtcNow.AddSeconds(5);
+    var found = await Service.FindAsync(created.Id);
+    while (DateTime.UtcNow < deadline && !found!.EngineIds.Contains(SeedData.GodotEngineId))
+    {
+      await Task.Delay(50);
+      found = await Service.FindAsync(created.Id);
+    }
+
+    Assert.Equal([SeedData.GodotEngineId], found!.EngineIds);
+  }
+
+  [Fact]
   public async Task Save_NoRoleSelected_ShowsRoleErrorAndPersistsNothing()
   {
     var cut = Context.Render<HypothesisPage>();
@@ -242,6 +309,11 @@ public class HypothesisPageTests : HypothesisWebFixture
   private static IRenderedComponent<MudSelect<Guid>> PlatformsSelect(IRenderedComponent<HypothesisPage> cut)
   {
     return cut.FindComponents<MudSelect<Guid>>().Single(c => c.Instance.Class!.Contains("hypothesis-platforms"));
+  }
+
+  private static IRenderedComponent<MudSelect<Guid>> EnginesSelect(IRenderedComponent<HypothesisPage> cut)
+  {
+    return cut.FindComponents<MudSelect<Guid>>().Single(c => c.Instance.Class!.Contains("hypothesis-engines"));
   }
 
   private static IRenderedComponent<MudSelect<Guid>> LocationsSelect(IRenderedComponent<HypothesisPage> cut)

@@ -1,4 +1,5 @@
 using Bunit;
+using Karajob.Application.Catalogs;
 using Karajob.Application.Companies;
 using Karajob.Application.Persistence;
 using Karajob.Application.Users;
@@ -16,6 +17,7 @@ public abstract class CompanyWebFixture : IAsyncLifetime
   protected BunitContext Context { get; } = new();
   protected SqliteTestDatabase Database { get; private set; } = null!;
   protected CompanyService Service { get; private set; } = null!;
+  protected CatalogService Catalogs { get; private set; } = null!;
 
   protected static CompanyInput Input(string slug, string name)
   {
@@ -26,9 +28,11 @@ public abstract class CompanyWebFixture : IAsyncLifetime
   {
     Database = await SqliteTestDatabase.CreateAsync();
     Service = TestDbContextFactory.CreateCompanyService(Database, SeedData.OwnerId);
+    Catalogs = TestDbContextFactory.CreateCatalogService(Database, SeedData.OwnerId);
     Context.Services.AddSingleton<IKarajobDbContextFactory>(new TestDbContextFactory(Database, SeedData.OwnerId));
     Context.Services.AddSingleton<ICurrentUser>(new FixedCurrentUser(SeedData.OwnerId));
     Context.Services.AddSingleton(Service);
+    Context.Services.AddSingleton(Catalogs);
   }
 
   // MudBlazor services are IAsyncDisposable only, and xUnit v2 disposes test classes synchronously.

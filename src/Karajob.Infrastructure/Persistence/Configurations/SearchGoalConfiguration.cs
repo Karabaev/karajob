@@ -12,6 +12,7 @@ public class SearchGoalConfiguration : IEntityTypeConfiguration<SearchGoal>
     builder.HasIndex(g => g.UserId).IsUnique();
     builder.HasOne<Role>().WithMany().HasForeignKey(g => g.RoleId).OnDelete(DeleteBehavior.Restrict);
     builder.Property(g => g.IncomeCurrency).HasMaxLength(3);
+    builder.HasOne<Currency>().WithMany().HasForeignKey(g => g.IncomeCurrency).HasPrincipalKey(c => c.Code).OnDelete(DeleteBehavior.Restrict);
 
     builder.HasMany(g => g.Locations).WithOne().HasForeignKey(l => l.SearchGoalId).OnDelete(DeleteBehavior.Cascade);
     // SetLocations diffs against the loaded collection.
@@ -19,6 +20,9 @@ public class SearchGoalConfiguration : IEntityTypeConfiguration<SearchGoal>
 
     builder.HasMany(g => g.Platforms).WithOne().HasForeignKey(p => p.SearchGoalId).OnDelete(DeleteBehavior.Cascade);
     builder.Navigation(g => g.Platforms).AutoInclude();
+
+    builder.HasMany(g => g.Engines).WithOne().HasForeignKey(e => e.SearchGoalId).OnDelete(DeleteBehavior.Cascade);
+    builder.Navigation(g => g.Engines).AutoInclude();
 
     // Literals, not SearchGoalDefaults: changing a default for new profiles must not emit UpdateData over the Owner's edited goal.
     builder.HasData(new

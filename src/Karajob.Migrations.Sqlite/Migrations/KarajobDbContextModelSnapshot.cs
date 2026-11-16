@@ -96,6 +96,114 @@ namespace Karajob.Migrations.Sqlite.Migrations
                     b.ToTable("JobApplications");
                 });
 
+            modelBuilder.Entity("Karajob.Domain.Catalogs.Currency", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("NormalizedName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedName")
+                        .IsUnique();
+
+                    b.ToTable("Currencies");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("019a7c1e-0000-7000-8000-000000000601"),
+                            Code = "RUB",
+                            Name = "Российский рубль",
+                            NormalizedName = "российский рубль"
+                        },
+                        new
+                        {
+                            Id = new Guid("019a7c1e-0000-7000-8000-000000000602"),
+                            Code = "USD",
+                            Name = "Доллар США",
+                            NormalizedName = "доллар сша"
+                        },
+                        new
+                        {
+                            Id = new Guid("019a7c1e-0000-7000-8000-000000000603"),
+                            Code = "EUR",
+                            Name = "Евро",
+                            NormalizedName = "евро"
+                        });
+                });
+
+            modelBuilder.Entity("Karajob.Domain.Catalogs.Engine", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("NormalizedName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedName")
+                        .IsUnique();
+
+                    b.ToTable("Engines");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("019a7c1e-0000-7000-8000-000000000701"),
+                            Name = "Unity",
+                            NormalizedName = "unity"
+                        },
+                        new
+                        {
+                            Id = new Guid("019a7c1e-0000-7000-8000-000000000702"),
+                            Name = "Unreal Engine",
+                            NormalizedName = "unreal engine"
+                        },
+                        new
+                        {
+                            Id = new Guid("019a7c1e-0000-7000-8000-000000000703"),
+                            Name = "Godot",
+                            NormalizedName = "godot"
+                        },
+                        new
+                        {
+                            Id = new Guid("019a7c1e-0000-7000-8000-000000000704"),
+                            Name = "Defold",
+                            NormalizedName = "defold"
+                        },
+                        new
+                        {
+                            Id = new Guid("019a7c1e-0000-7000-8000-000000000705"),
+                            Name = "Cocos",
+                            NormalizedName = "cocos"
+                        },
+                        new
+                        {
+                            Id = new Guid("019a7c1e-0000-7000-8000-000000000706"),
+                            Name = "Собственный",
+                            NormalizedName = "собственный"
+                        });
+                });
+
             modelBuilder.Entity("Karajob.Domain.Catalogs.Language", b =>
                 {
                     b.Property<Guid>("Id")
@@ -351,7 +459,7 @@ namespace Karajob.Migrations.Sqlite.Migrations
                     b.Property<Guid>("CompanyId")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Engine")
+                    b.Property<Guid?>("EngineId")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Genre")
@@ -370,6 +478,8 @@ namespace Karajob.Migrations.Sqlite.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CompanyId");
+
+                    b.HasIndex("EngineId");
 
                     b.ToTable("Projects");
                 });
@@ -517,6 +627,8 @@ namespace Karajob.Migrations.Sqlite.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("IncomeCurrency");
+
                     b.HasIndex("RoleId");
 
                     b.HasIndex("UserId")
@@ -535,6 +647,32 @@ namespace Karajob.Migrations.Sqlite.Migrations
                             UserId = new Guid("019a7c1e-0000-7000-8000-000000000001"),
                             WeeklyApplicationTarget = 10
                         });
+                });
+
+            modelBuilder.Entity("Karajob.Domain.Goals.SearchGoalEngine", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("EngineId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("SearchGoalId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EngineId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("SearchGoalId", "EngineId")
+                        .IsUnique();
+
+                    b.ToTable("SearchGoalEngines");
                 });
 
             modelBuilder.Entity("Karajob.Domain.Goals.SearchGoalLocation", b =>
@@ -640,6 +778,32 @@ namespace Karajob.Migrations.Sqlite.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Hypotheses");
+                });
+
+            modelBuilder.Entity("Karajob.Domain.Hypotheses.HypothesisEngine", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("EngineId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("HypothesisId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EngineId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("HypothesisId", "EngineId")
+                        .IsUnique();
+
+                    b.ToTable("HypothesisEngines");
                 });
 
             modelBuilder.Entity("Karajob.Domain.Hypotheses.HypothesisLocation", b =>
@@ -804,6 +968,32 @@ namespace Karajob.Migrations.Sqlite.Migrations
                     b.ToTable("Vacancies");
                 });
 
+            modelBuilder.Entity("Karajob.Domain.Vacancies.VacancyEngine", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("EngineId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("VacancyId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EngineId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("VacancyId", "EngineId")
+                        .IsUnique();
+
+                    b.ToTable("VacancyEngines");
+                });
+
             modelBuilder.Entity("Karajob.Domain.Vacancies.VacancyMatch", b =>
                 {
                     b.Property<Guid>("Id")
@@ -932,6 +1122,11 @@ namespace Karajob.Migrations.Sqlite.Migrations
                         .HasForeignKey("CompanyId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("Karajob.Domain.Catalogs.Engine", null)
+                        .WithMany()
+                        .HasForeignKey("EngineId")
+                        .OnDelete(DeleteBehavior.Restrict);
                 });
 
             modelBuilder.Entity("Karajob.Domain.Companies.UserCompanyNote", b =>
@@ -981,10 +1176,37 @@ namespace Karajob.Migrations.Sqlite.Migrations
 
             modelBuilder.Entity("Karajob.Domain.Goals.SearchGoal", b =>
                 {
+                    b.HasOne("Karajob.Domain.Catalogs.Currency", null)
+                        .WithMany()
+                        .HasForeignKey("IncomeCurrency")
+                        .HasPrincipalKey("Code")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Karajob.Domain.Catalogs.Role", null)
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Karajob.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Karajob.Domain.Goals.SearchGoalEngine", b =>
+                {
+                    b.HasOne("Karajob.Domain.Catalogs.Engine", null)
+                        .WithMany()
+                        .HasForeignKey("EngineId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Karajob.Domain.Goals.SearchGoal", null)
+                        .WithMany("Engines")
+                        .HasForeignKey("SearchGoalId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("Karajob.Domain.Users.User", null)
                         .WithMany()
@@ -1052,6 +1274,27 @@ namespace Karajob.Migrations.Sqlite.Migrations
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Karajob.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Karajob.Domain.Hypotheses.HypothesisEngine", b =>
+                {
+                    b.HasOne("Karajob.Domain.Catalogs.Engine", null)
+                        .WithMany()
+                        .HasForeignKey("EngineId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Karajob.Domain.Hypotheses.Hypothesis", null)
+                        .WithMany("Engines")
+                        .HasForeignKey("HypothesisId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Karajob.Domain.Users.User", null)
@@ -1132,6 +1375,27 @@ namespace Karajob.Migrations.Sqlite.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Karajob.Domain.Vacancies.VacancyEngine", b =>
+                {
+                    b.HasOne("Karajob.Domain.Catalogs.Engine", null)
+                        .WithMany()
+                        .HasForeignKey("EngineId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Karajob.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Karajob.Domain.Vacancies.Vacancy", null)
+                        .WithMany("Engines")
+                        .HasForeignKey("VacancyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Karajob.Domain.Vacancies.VacancyMatch", b =>
                 {
                     b.HasOne("Karajob.Domain.Hypotheses.Hypothesis", null)
@@ -1188,6 +1452,8 @@ namespace Karajob.Migrations.Sqlite.Migrations
 
             modelBuilder.Entity("Karajob.Domain.Goals.SearchGoal", b =>
                 {
+                    b.Navigation("Engines");
+
                     b.Navigation("Locations");
 
                     b.Navigation("Platforms");
@@ -1195,6 +1461,8 @@ namespace Karajob.Migrations.Sqlite.Migrations
 
             modelBuilder.Entity("Karajob.Domain.Hypotheses.Hypothesis", b =>
                 {
+                    b.Navigation("Engines");
+
                     b.Navigation("Locations");
 
                     b.Navigation("Platforms");
@@ -1203,6 +1471,8 @@ namespace Karajob.Migrations.Sqlite.Migrations
             modelBuilder.Entity("Karajob.Domain.Vacancies.Vacancy", b =>
                 {
                     b.Navigation("Application");
+
+                    b.Navigation("Engines");
 
                     b.Navigation("Events");
 
