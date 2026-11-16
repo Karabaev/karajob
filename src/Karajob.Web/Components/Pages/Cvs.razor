@@ -1,5 +1,6 @@
 @page "/cvs"
 @inject CvService CvService
+@inject UserDates Dates
 
 <PageTitle>CV</PageTitle>
 
@@ -36,7 +37,7 @@ else
         }
       </MudTd>
       <MudTd DataLabel="@L["Pages.Versions"]">@context.VersionCount</MudTd>
-      <MudTd DataLabel="@L["Pages.Updated"]">@context.LatestVersionAt.ToLocalTime().ToString("dd.MM.yyyy")</MudTd>
+      <MudTd DataLabel="@L["Pages.Updated"]">@Dates.FormatDate(context.LatestVersionAt)</MudTd>
     </RowTemplate>
   </MudTable>
 }

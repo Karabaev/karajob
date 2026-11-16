@@ -1,3 +1,4 @@
+using Karajob.Web.Components.Common;
 using Bunit;
 using Karajob.Application.Catalogs;
 using Karajob.Application.Companies;
@@ -31,6 +32,8 @@ public abstract class CompanyWebFixture : IAsyncLifetime
     Catalogs = TestDbContextFactory.CreateCatalogService(Database, SeedData.OwnerId);
     Context.Services.AddSingleton<IKarajobDbContextFactory>(new TestDbContextFactory(Database, SeedData.OwnerId));
     Context.Services.AddSingleton<ICurrentUser>(new FixedCurrentUser(SeedData.OwnerId));
+    Context.Services.AddSingleton(TimeProvider.System);
+    Context.Services.AddScoped<UserDates>();
     Context.Services.AddSingleton(Service);
     Context.Services.AddSingleton(Catalogs);
   }

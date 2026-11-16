@@ -87,7 +87,7 @@ Order: block A → block B; blocks C, D, E, G are independent after #41.
 - [x] #43 Metrics calculation in Application: market, "k of n" conversion over matured applications + the Wilson interval, activity against the goal, a "not enough data" status.
 - [x] #44 Hypothesis dashboard: criteria, "k of n" and the interval next to the percentage.
 - [ ] #45 Check-ins (motivation, confidence) and decisions (Continue / Expand / Disable) with a metrics snapshot; Expand starts a new period; a hint based on the decision tree.
-- [ ] #38 The user's time zone for displaying and entering dates (needed for week boundaries).
+- [x] #38 The user's time zone for displaying and entering dates (needed for week boundaries).
 - [ ] #46 Weekly Review screen: all active hypotheses, a check-in, decisions, stale applications → Ghosted, actual against the weekly goal.
 
 ### C. Master profile

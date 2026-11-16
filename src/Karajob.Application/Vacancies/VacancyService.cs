@@ -238,7 +238,7 @@ public partial class VacancyService(
     ApplicationEvent added;
     try
     {
-      added = vacancy.AddEvent(input.Type, input.OccurredAt, BlankToNull(input.Note));
+      added = vacancy.AddEvent(input.Type, input.OccurredAt, BlankToNull(input.Note), currentUser.TimeZone);
     }
     catch (ArgumentException ex) when (ex.ParamName == "at")
     {

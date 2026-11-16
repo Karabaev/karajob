@@ -1,5 +1,8 @@
 using Bunit;
 using Karajob.Application.MasterProfiles;
+using Karajob.Application.Users;
+using Karajob.Infrastructure.Users;
+using Karajob.Web.Components.Common;
 using Karajob.Infrastructure.Persistence;
 using Karajob.Tests.Application;
 using Karajob.Tests.Infrastructure.Persistence;
@@ -19,6 +22,9 @@ public abstract class MasterProfileWebFixture : IAsyncLifetime
     Database = await SqliteTestDatabase.CreateAsync();
     Service = TestDbContextFactory.CreateMasterProfileService(Database, SeedData.OwnerId, TimeProvider.System);
     Context.Services.AddSingleton(Service);
+    Context.Services.AddSingleton<ICurrentUser>(new FixedCurrentUser(SeedData.OwnerId));
+    Context.Services.AddSingleton(TimeProvider.System);
+    Context.Services.AddScoped<UserDates>();
   }
 
   // MudBlazor services are IAsyncDisposable only, and xUnit v2 disposes test classes synchronously.

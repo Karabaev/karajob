@@ -12,6 +12,7 @@ using Karajob.Infrastructure.Files;
 using Karajob.Infrastructure.Persistence;
 using Karajob.Infrastructure.Vacancies;
 using Karajob.Web.Components;
+using Karajob.Web.Components.Common;
 using Karajob.Web.Cvs;
 using Karajob.Web.Persistence;
 using Karajob.Web.Users;
@@ -70,6 +71,7 @@ builder.Services.AddHttpClient<IPageTitleReader, HttpPageTitleReader>(client =>
   client.DefaultRequestHeaders.Accept.ParseAdd("text/html");
 });
 builder.Services.AddScoped<HypothesisMetricsService>();
+builder.Services.AddScoped<UserDates>();
 builder.Services.AddScoped<InboxNotifier>();
 
 var cvOptions = builder.Configuration.GetRequiredSection(CvOptions.SectionName).Get<CvOptions>()

@@ -3,6 +3,7 @@
 @inject VacancyService VacancyService
 @inject InboxNotifier InboxNotifier
 @inject IDialogService DialogService
+@inject UserDates Dates
 
 <PageTitle>Inbox</PageTitle>
 
@@ -39,7 +40,7 @@ else
       </MudTd>
       <MudTd DataLabel="@L["Pages.Company"]">@(context.CompanyName ?? "—")</MudTd>
       <MudTd DataLabel="@L["Pages.Role"]">@(context.RoleName ?? "—")</MudTd>
-      <MudTd DataLabel="@L["Pages.Discovered"]">@VacancyText.Date(context.DiscoveredAt)</MudTd>
+      <MudTd DataLabel="@L["Pages.Discovered"]">@Dates.Format(context.DiscoveredAt)</MudTd>
       <MudTd>
         <MudStack Row="true" Spacing="1" Justify="Justify.FlexEnd">
           <MudButton Class="inbox-to-board" Size="Size.Small" Variant="Variant.Filled" Color="Color.Primary"

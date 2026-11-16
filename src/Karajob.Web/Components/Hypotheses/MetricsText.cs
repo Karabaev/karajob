@@ -49,9 +49,9 @@ public static class MetricsText
     return $"{ConversionPercent.FromPermille(permille).ToString("0.#", Numbers)} %";
   }
 
-  public static string Week(UtcWeek week)
+  public static string Week(CalendarWeek week)
   {
-    return $"{week.Start:dd.MM}–{week.End.AddDays(-1):dd.MM}";
+    return $"{week.FirstDay:dd.MM}–{week.FirstDay.AddDays(6):dd.MM}";
   }
 
   private static string PercentNumber(double rate)

@@ -5,6 +5,7 @@
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
+@inject UserDates Dates
 
 <PageTitle>@Title</PageTitle>
 
@@ -128,7 +129,7 @@ else if (_loaded)
             </MudSelect>
             @if (_details?.StartedAt is { } startedAt)
             {
-              <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["Hypothesis.Started", startedAt.ToString("dd.MM.yyyy")]</MudText>
+              <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["Hypothesis.Started", Dates.FormatDate(startedAt)]</MudText>
             }
 
             <MudStack Row="true" Justify="Justify.SpaceBetween">

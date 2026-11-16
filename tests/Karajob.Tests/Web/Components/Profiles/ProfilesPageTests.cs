@@ -125,6 +125,29 @@ public class ProfilesPageTests : ProfileWebFixture
     Assert.Equal("Boss", (await Users.GetAsync(SeedData.OwnerId))!.Name);
   }
 
+  [Fact]
+  public async Task EditViaDialog_ActiveProfile_UpdatesCurrentTimeZone()
+  {
+    await Users.UpdateAsync(SeedData.OwnerId, new UserInput("Owner", SeedData.OwnerColor, "Asia/Tokyo"));
+    var (cut, dialogs) = RenderPageWithDialogs();
+    cut.WaitForElement("button[aria-label='Edit profile Owner']").Click();
+    dialogs.WaitForElement(".profile-save").Click();
+
+    cut.WaitForAssertion(() => Assert.Equal(TimeSpan.FromHours(9), CurrentUser.TimeZone.BaseUtcOffset));
+  }
+
+  [Fact]
+  public async Task EditViaDialog_OtherProfile_KeepsCurrentTimeZone()
+  {
+    await Users.CreateAsync(new UserInput("Anna", "#26a69a", "Asia/Tokyo"));
+    var (cut, dialogs) = RenderPageWithDialogs();
+    cut.WaitForElement("button[aria-label='Edit profile Anna']").Click();
+    dialogs.WaitForElement(".profile-save").Click();
+
+    cut.WaitForAssertion(() => Assert.Empty(dialogs.FindAll(".profile-save")));
+    Assert.Equal(TimeZoneInfo.Utc, CurrentUser.TimeZone);
+  }
+
   private static string? ReturnUrlOf(IElement form)
   {
     return form.QuerySelector("input[name='returnUrl']")?.GetAttribute("value");

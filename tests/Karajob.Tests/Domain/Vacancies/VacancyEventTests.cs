@@ -37,7 +37,7 @@ public class VacancyEventTests
     var vacancy = Applied();
     var at = Now.AddDays(1);
 
-    var added = vacancy.AddEvent(type, at, "text");
+    var added = vacancy.AddEvent(type, at, "text", TimeZoneInfo.Utc);
 
     Assert.Contains(added, vacancy.Events);
     Assert.Equal(type, added.Type);
@@ -54,7 +54,7 @@ public class VacancyEventTests
   {
     var vacancy = Inbox();
 
-    var ex = Assert.Throws<ArgumentException>(() => vacancy.AddEvent(ApplicationEventType.Note, Now.Date.AddTicks(-1), null));
+    var ex = Assert.Throws<ArgumentException>(() => vacancy.AddEvent(ApplicationEventType.Note, Now.Date.AddTicks(-1), null, TimeZoneInfo.Utc));
 
     Assert.Equal("at", ex.ParamName);
   }
@@ -64,7 +64,7 @@ public class VacancyEventTests
   {
     var vacancy = Inbox();
 
-    var added = vacancy.AddEvent(ApplicationEventType.Note, Now.Date, null);
+    var added = vacancy.AddEvent(ApplicationEventType.Note, Now.Date, null, TimeZoneInfo.Utc);
 
     Assert.Equal(Now.Date, added.OccurredAt);
   }
@@ -74,7 +74,7 @@ public class VacancyEventTests
   {
     var vacancy = Applied();
 
-    vacancy.AddEvent(ApplicationEventType.Screening, Now.AddDays(1), null);
+    vacancy.AddEvent(ApplicationEventType.Screening, Now.AddDays(1), null, TimeZoneInfo.Utc);
 
     Assert.Equal(VacancyStage.Applied, vacancy.Stage);
   }
@@ -87,7 +87,7 @@ public class VacancyEventTests
   {
     var vacancy = Applied();
 
-    Assert.Throws<ArgumentException>(() => vacancy.AddEvent(type, Now, null));
+    Assert.Throws<ArgumentException>(() => vacancy.AddEvent(type, Now, null, TimeZoneInfo.Utc));
   }
 
   [Theory]
@@ -96,7 +96,7 @@ public class VacancyEventTests
   [InlineData(ApplicationEventType.TestTask)]
   public void AddEvent_InterviewTypeInInbox_Throws(ApplicationEventType type)
   {
-    Assert.Throws<InvalidOperationException>(() => Inbox().AddEvent(type, Now, null));
+    Assert.Throws<InvalidOperationException>(() => Inbox().AddEvent(type, Now, null, TimeZoneInfo.Utc));
   }
 
   [Theory]
@@ -105,7 +105,7 @@ public class VacancyEventTests
   [InlineData(ApplicationEventType.TestTask)]
   public void AddEvent_InterviewTypeInTargeted_Throws(ApplicationEventType type)
   {
-    Assert.Throws<InvalidOperationException>(() => Targeted().AddEvent(type, Now, null));
+    Assert.Throws<InvalidOperationException>(() => Targeted().AddEvent(type, Now, null, TimeZoneInfo.Utc));
   }
 
   [Fact]
@@ -113,7 +113,7 @@ public class VacancyEventTests
   {
     var vacancy = Inbox();
 
-    var added = vacancy.AddEvent(ApplicationEventType.Note, Now, "remember");
+    var added = vacancy.AddEvent(ApplicationEventType.Note, Now, "remember", TimeZoneInfo.Utc);
 
     Assert.Contains(added, vacancy.Events);
   }
@@ -126,14 +126,14 @@ public class VacancyEventTests
     var vacancy = Inbox();
 
     Assert.ThrowsAny<ArgumentException>(() =>
-      vacancy.AddEvent(ApplicationEventType.Note, new DateTime(2026, 11, 12, 10, 0, 0, kind), null));
+      vacancy.AddEvent(ApplicationEventType.Note, new DateTime(2026, 11, 12, 10, 0, 0, kind), null, TimeZoneInfo.Utc));
   }
 
   [Fact]
   public void RemoveEvent_ManualEvent_RemovesIt()
   {
     var vacancy = Inbox();
-    var added = vacancy.AddEvent(ApplicationEventType.Note, Now, null);
+    var added = vacancy.AddEvent(ApplicationEventType.Note, Now, null, TimeZoneInfo.Utc);
 
     vacancy.RemoveEvent(added.Id);
 
@@ -155,5 +155,27 @@ public class VacancyEventTests
   public void RemoveEvent_UnknownId_Throws()
   {
     Assert.Throws<KeyNotFoundException>(() => Inbox().RemoveEvent(Guid.NewGuid()));
+  }
+
+  [Fact]
+  public void AddEvent_MoscowLocalMidnightOfDiscoveryDay_IsAllowed()
+  {
+    var moscow = TimeZoneInfo.FindSystemTimeZoneById("Europe/Moscow");
+    var at = new DateTime(2026, 11, 11, 21, 0, 0, DateTimeKind.Utc);
+
+    var added = Inbox().AddEvent(ApplicationEventType.Note, at, null, moscow);
+
+    Assert.Equal(at, added.OccurredAt);
+  }
+
+  [Fact]
+  public void AddEvent_LosAngelesBeforeLocalDiscoveryDay_ThrowsForAt()
+  {
+    var losAngeles = TimeZoneInfo.FindSystemTimeZoneById("America/Los_Angeles");
+
+    var ex = Assert.Throws<ArgumentException>(() =>
+      Inbox().AddEvent(ApplicationEventType.Note, new DateTime(2026, 11, 12, 7, 59, 59, DateTimeKind.Utc), null, losAngeles));
+
+    Assert.Equal("at", ex.ParamName);
   }
 }

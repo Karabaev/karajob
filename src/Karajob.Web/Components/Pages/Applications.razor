@@ -1,6 +1,7 @@
 @page "/applications"
 @inject ApplicationService ApplicationService
 @inject IDialogService DialogService
+@inject UserDates Dates
 
 <PageTitle>@L["Pages.Applications"]</PageTitle>
 
@@ -60,8 +61,8 @@ else
       <MudTd DataLabel="@L["Pages.ColHypothesis"]">@context.HypothesisName</MudTd>
       <MudTd DataLabel="@L["Pages.ColCv"]">@context.CvName / @context.CvFileName</MudTd>
       <MudTd DataLabel="@L["Pages.ColChannel"]">@VacancyText.Channel(context.Channel)</MudTd>
-      <MudTd DataLabel="@L["Pages.ColApplied"]">@VacancyText.Date(context.AppliedAt)</MudTd>
-      <MudTd DataLabel="@L["Pages.ColClosed"]">@(context.ClosedAt is { } closedAt ? VacancyText.Date(closedAt) : "")</MudTd>
+      <MudTd DataLabel="@L["Pages.ColApplied"]">@Dates.Format(context.AppliedAt)</MudTd>
+      <MudTd DataLabel="@L["Pages.ColClosed"]">@(context.ClosedAt is { } closedAt ? Dates.Format(closedAt) : "")</MudTd>
       <MudTd>
         @if (!string.IsNullOrWhiteSpace(context.CoverLetter))
         {

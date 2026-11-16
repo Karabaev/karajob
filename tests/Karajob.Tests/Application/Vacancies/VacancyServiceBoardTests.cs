@@ -618,4 +618,39 @@ public class VacancyServiceBoardTests : VacancyServiceFixture
     await using var context = Database.CreateContext(SeedData.OwnerId);
     Assert.Equal(0, await context.JobApplications.CountAsync());
   }
+
+  [Fact]
+  public async Task ApplyAsync_MoscowLocalMidnightOfLastTransitionDay_UsesLastTransitionTime()
+  {
+    var moscow = TimeZoneInfo.FindSystemTimeZoneById("Europe/Moscow");
+    var service = ServiceFor(SeedData.OwnerId, moscow);
+    var hypothesisId = await CreateHypothesisAsync();
+    var (_, cvVersionId) = await CreateCvAsync();
+    var id = await CreateOnBoardAsync(VacancyStage.Preparing, hypothesisId);
+    var last = LastStageChange(await LoadAsync(id));
+    Clock.UtcNow = last.AddDays(2);
+    var localMidnight = TimeZoneInfo.ConvertTimeToUtc(TimeZoneInfo.ConvertTimeFromUtc(last, moscow).Date, moscow);
+
+    await service.ApplyAsync(id, VacancyStage.Preparing, Valid(hypothesisId, cvVersionId, appliedAt: localMidnight));
+
+    Assert.Equal(last, (await LoadAsync(id)).Application!.AppliedAt);
+  }
+
+  [Fact]
+  public async Task ApplyAsync_MoscowDayBeforeLastTransitionDay_FailsOnAppliedAt()
+  {
+    var moscow = TimeZoneInfo.FindSystemTimeZoneById("Europe/Moscow");
+    var service = ServiceFor(SeedData.OwnerId, moscow);
+    var hypothesisId = await CreateHypothesisAsync();
+    var (_, cvVersionId) = await CreateCvAsync();
+    var id = await CreateOnBoardAsync(VacancyStage.Preparing, hypothesisId);
+    var last = LastStageChange(await LoadAsync(id));
+    Clock.UtcNow = last.AddDays(2);
+    var localMidnight = TimeZoneInfo.ConvertTimeToUtc(TimeZoneInfo.ConvertTimeFromUtc(last, moscow).Date, moscow);
+
+    var exception = await Assert.ThrowsAsync<ValidationFailedException>(
+      () => service.ApplyAsync(id, VacancyStage.Preparing, Valid(hypothesisId, cvVersionId, appliedAt: localMidnight.AddSeconds(-1))));
+
+    Assert.Contains("AppliedAt", exception.Errors.Keys);
+  }
 }

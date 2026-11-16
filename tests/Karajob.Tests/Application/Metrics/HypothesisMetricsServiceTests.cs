@@ -62,7 +62,7 @@ public class HypothesisMetricsServiceTests : HypothesisMetricsServiceFixture
     var metrics = await Metrics.GetAsync(hypothesisId);
 
     Assert.Equal(Now, metrics.AsOf);
-    Assert.Equal(UtcWeek.Containing(Now), metrics.Week);
+    Assert.Equal(CalendarWeek.Containing(Now, TimeZoneInfo.Utc), metrics.Week);
     Assert.Equal(WeekStart, metrics.Week.Start);
   }
 
@@ -660,7 +660,7 @@ public class HypothesisMetricsServiceTests : HypothesisMetricsServiceFixture
 
     Assert.Equal(0, activity.Applications);
     Assert.Equal(SearchGoalDefaults.WeeklyApplicationTarget, activity.WeeklyTarget);
-    Assert.Equal(UtcWeek.Containing(Now), activity.Week);
+    Assert.Equal(CalendarWeek.Containing(Now, TimeZoneInfo.Utc), activity.Week);
   }
 
   [Fact]
@@ -735,5 +735,101 @@ public class HypothesisMetricsServiceTests : HypothesisMetricsServiceFixture
 
     Assert.Equal(1, own.Applications);
     Assert.Equal(2, foreign.Applications);
+  }
+
+  [Fact]
+  public async Task GetAsync_MoscowZone_WeekStartsOnLocalMonday()
+  {
+    var hypothesisId = await CreateStartedHypothesisAsync();
+
+    var metrics = await MetricsInZone("Europe/Moscow").GetAsync(hypothesisId, asOf: Utc(11, 15, 22));
+
+    Assert.Equal(new DateOnly(2026, 11, 16), metrics.Week.FirstDay);
+    Assert.Equal(Utc(11, 15, 21), metrics.Week.Start);
+    Assert.Equal(Utc(11, 22, 21), metrics.Week.End);
+  }
+
+  [Fact]
+  public async Task GetAsync_MoscowZone_ApplicationAfterLocalMondayMidnight_IsCountedInWeeklyApplications()
+  {
+    var hypothesisId = await CreateStartedHypothesisAsync();
+    await ApplyAsync(hypothesisId, Utc(11, 15, 21, 30));
+
+    var metrics = await MetricsInZone("Europe/Moscow").GetAsync(hypothesisId, asOf: Utc(11, 15, 22));
+
+    Assert.Equal(1, metrics.WeeklyApplications);
+  }
+
+  [Fact]
+  public async Task GetAsync_MoscowZone_ApplicationOnLocalSunday_IsNotCountedInWeeklyApplications()
+  {
+    var hypothesisId = await CreateStartedHypothesisAsync();
+    await ApplyAsync(hypothesisId, Utc(11, 15, 20));
+
+    var metrics = await MetricsInZone("Europe/Moscow").GetAsync(hypothesisId, asOf: Utc(11, 15, 22));
+
+    Assert.Equal(0, metrics.WeeklyApplications);
+  }
+
+  [Fact]
+  public async Task GetAsync_UtcZoneSameInstants_CountsApplicationOnUtcSunday()
+  {
+    var hypothesisId = await CreateStartedHypothesisAsync();
+    await ApplyAsync(hypothesisId, Utc(11, 15, 20));
+
+    var metrics = await MetricsInZone("UTC").GetAsync(hypothesisId, asOf: Utc(11, 15, 22));
+
+    Assert.Equal(new DateOnly(2026, 11, 9), metrics.Week.FirstDay);
+    Assert.Equal(1, metrics.WeeklyApplications);
+  }
+
+  [Fact]
+  public async Task GetActivityAsync_MoscowZone_CountsOnlyApplicationsSinceLocalMonday()
+  {
+    var hypothesisId = await CreateStartedHypothesisAsync();
+    await ApplyAsync(hypothesisId, Utc(11, 15, 21, 30));
+    await ApplyAsync(hypothesisId, Utc(11, 15, 20));
+
+    var activity = await MetricsInZone("Europe/Moscow").GetActivityAsync(Utc(11, 15, 22));
+
+    Assert.Equal(new DateOnly(2026, 11, 16), activity.Week.FirstDay);
+    Assert.Equal(1, activity.Applications);
+  }
+
+  [Fact]
+  public async Task GetActivityAsync_UtcZoneSameInstants_CountsBothApplications()
+  {
+    var hypothesisId = await CreateStartedHypothesisAsync();
+    await ApplyAsync(hypothesisId, Utc(11, 15, 21, 30));
+    await ApplyAsync(hypothesisId, Utc(11, 15, 20));
+
+    var activity = await MetricsInZone("UTC").GetActivityAsync(Utc(11, 15, 22));
+
+    Assert.Equal(new DateOnly(2026, 11, 9), activity.Week.FirstDay);
+    Assert.Equal(2, activity.Applications);
+  }
+
+  [Fact]
+  public async Task GetAsync_MoscowZone_PositiveEventAtLocalMidnightOfApplyDay_IsPositive()
+  {
+    var hypothesisId = await CreateStartedHypothesisAsync();
+    var vacancyId = await ApplyAsync(hypothesisId, MaturedAt);
+    await AddEventAsync(vacancyId, ApplicationEventType.Screening, MaturedAt.Date.AddHours(-3));
+
+    var metrics = await MetricsInZone("Europe/Moscow").GetAsync(hypothesisId);
+
+    Assert.Equal(1, metrics.Conversion.Positive);
+  }
+
+  [Fact]
+  public async Task GetAsync_MoscowZone_PositiveEventBeforeLocalApplyDay_IsNotPositive()
+  {
+    var hypothesisId = await CreateStartedHypothesisAsync();
+    var vacancyId = await ApplyAsync(hypothesisId, MaturedAt);
+    await AddEventAsync(vacancyId, ApplicationEventType.Screening, MaturedAt.Date.AddHours(-3).AddSeconds(-1));
+
+    var metrics = await MetricsInZone("Europe/Moscow").GetAsync(hypothesisId);
+
+    Assert.Equal(0, metrics.Conversion.Positive);
   }
 }

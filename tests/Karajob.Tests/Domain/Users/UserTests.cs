@@ -73,4 +73,44 @@ public class UserTests
     Assert.ThrowsAny<ArgumentException>(() => user.Color = color);
     Assert.Equal("#26a69a", user.Color);
   }
+
+  [Fact]
+  public void Ctor_Valid_DefaultsTimeZoneToUtc()
+  {
+    var user = new User("Anna", "#26a69a", Now);
+
+    Assert.Equal("UTC", user.TimeZoneId);
+  }
+
+  [Fact]
+  public void SetTimeZoneId_Iana_StoresIt()
+  {
+    var user = new User("Anna", "#26a69a", Now);
+
+    user.TimeZoneId = "Europe/Moscow";
+
+    Assert.Equal("Europe/Moscow", user.TimeZoneId);
+  }
+
+  [Fact]
+  public void SetTimeZoneId_WindowsId_StoresIana()
+  {
+    var user = new User("Anna", "#26a69a", Now);
+
+    user.TimeZoneId = "Russian Standard Time";
+
+    Assert.Equal("Europe/Moscow", user.TimeZoneId);
+  }
+
+  [Theory]
+  [InlineData("")]
+  [InlineData("   ")]
+  [InlineData("Mars/Olympus_Mons")]
+  public void SetTimeZoneId_Invalid_ThrowsArgumentExceptionAndKeepsOldValue(string id)
+  {
+    var user = new User("Anna", "#26a69a", Now) { TimeZoneId = "Asia/Tokyo" };
+
+    Assert.ThrowsAny<ArgumentException>(() => user.TimeZoneId = id);
+    Assert.Equal("Asia/Tokyo", user.TimeZoneId);
+  }
 }

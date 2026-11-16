@@ -69,7 +69,7 @@ public class MetricsTextTests
   [Fact]
   public void Week_FormatsStartAndLastInclusiveDay()
   {
-    var week = UtcWeek.Containing(new DateTime(2026, 11, 12, 10, 0, 0, DateTimeKind.Utc));
+    var week = CalendarWeek.Containing(new DateTime(2026, 11, 12, 10, 0, 0, DateTimeKind.Utc), TimeZoneInfo.Utc);
 
     Assert.Equal("09.11–15.11", MetricsText.Week(week));
   }
@@ -77,7 +77,7 @@ public class MetricsTextTests
   [Fact]
   public void Week_AcrossMonthBoundary_ShowsEachMonth()
   {
-    var week = UtcWeek.Containing(new DateTime(2026, 11, 30, 0, 0, 0, DateTimeKind.Utc));
+    var week = CalendarWeek.Containing(new DateTime(2026, 11, 30, 0, 0, 0, DateTimeKind.Utc), TimeZoneInfo.Utc);
 
     Assert.Equal("30.11–06.12", MetricsText.Week(week));
   }

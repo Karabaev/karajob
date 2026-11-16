@@ -6,7 +6,7 @@ public record HypothesisMetrics(
   Guid HypothesisId,
   DateTime PeriodStart,
   DateTime AsOf,
-  UtcWeek Week,
+  CalendarWeek Week,
   MarketMetric Market,
   ConversionMetric Conversion,
   int WeeklyApplications);
@@ -38,7 +38,7 @@ public record ConversionMetric(
   }
 }
 
-public record ProfileActivity(UtcWeek Week, int Applications, int WeeklyTarget)
+public record ProfileActivity(CalendarWeek Week, int Applications, int WeeklyTarget)
 {
   public MetricVerdict Verdict => Applications >= WeeklyTarget ? MetricVerdict.OnTrack : MetricVerdict.BelowThreshold;
 }

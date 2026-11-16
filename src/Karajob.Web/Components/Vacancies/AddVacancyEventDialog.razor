@@ -1,5 +1,5 @@
 @inject VacancyService VacancyService
-@inject TimeProvider TimeProvider
+@inject UserDates Dates
 
 <MudDialog>
   <DialogContent>
@@ -15,7 +15,7 @@
           <MudSelectItem T="ApplicationEventType" Value="type">@VacancyText.EventType(type)</MudSelectItem>
         }
       </MudSelect>
-      <MudDatePicker Class="event-date" Label="@L["Event.Date"]" @bind-Date="_date" Editable="true" MinDate="DiscoveredAt.Date"
+      <MudDatePicker Class="event-date" Label="@L["Event.Date"]" @bind-Date="_date" Editable="true" MinDate="Dates.LocalDay(DiscoveredAt)"
                      Error="HasError(OccurredAtKey)" ErrorText="@ErrorOf(OccurredAtKey)" />
       <MudTextField T="string" Class="event-note" Label="@L["Event.Note"]" Lines="3" Sizing="InputSizing.Auto" Immediate="true" @bind-Value="_note"
                     Error="HasError(nameof(VacancyEventInput.Note))" ErrorText="@ErrorOf(nameof(VacancyEventInput.Note))" />
@@ -50,7 +50,7 @@
 
   protected override void OnInitialized()
   {
-    _date = TimeProvider.GetUtcNow().UtcDateTime.Date;
+    _date = Dates.Today();
   }
 
   private IEnumerable<ApplicationEventType> AllowedTypes()
@@ -79,9 +79,7 @@
   {
     if (_saving) return;
 
-    var now = TimeProvider.GetUtcNow().UtcDateTime;
-    var date = _date?.Date ?? now.Date;
-    var at = date == now.Date ? now : DateTime.SpecifyKind(date, DateTimeKind.Utc);
+    var at = Dates.ToUtc(_date ?? Dates.Today());
 
     _saving = true;
     try

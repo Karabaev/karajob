@@ -1,4 +1,5 @@
 using Karajob.Application.Persistence;
+using Karajob.Application.Users;
 using Karajob.Domain.Applications;
 using Karajob.Domain.Common;
 using Karajob.Domain.Metrics;
@@ -7,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Karajob.Application.Metrics;
 
-public class HypothesisMetricsService(IKarajobDbContextFactory dbContextFactory, TimeProvider timeProvider)
+public class HypothesisMetricsService(IKarajobDbContextFactory dbContextFactory, ICurrentUser currentUser, TimeProvider timeProvider)
 {
   private static readonly ApplicationEventType[] PositiveEventTypes =
   [
@@ -40,7 +41,7 @@ public class HypothesisMetricsService(IKarajobDbContextFactory dbContextFactory,
     }
 
     var goal = await db.SearchGoals.AsNoTracking().SingleAsync(cancellationToken);
-    var week = UtcWeek.Containing(now);
+    var week = CalendarWeek.Containing(now, currentUser.TimeZone);
     var weekFrom = start > week.Start ? start : week.Start;
 
     var market = await db.VacancyMatches.AsNoTracking()
@@ -69,13 +70,13 @@ public class HypothesisMetricsService(IKarajobDbContextFactory dbContextFactory,
       .GroupBy(e => e.VacancyId)
       .ToDictionary(g => g.Key, g => g.Max(e => e.OccurredAt));
 
-    // Compared by day: the event dialog stores a past day as midnight, while the application keeps its time.
+    // Compared by the profile's local day: the event dialog stores a past day as local midnight, while the application keeps its time.
     var positive = matured.Count(a =>
       a.Outcome == ApplicationOutcome.Offer && lastClosedAt.TryGetValue(a.VacancyId, out var closedAt) && closedAt <= now
       || events.Any(e => e.VacancyId == a.VacancyId
         && e.Type != ApplicationEventType.StageChanged
         && e.OccurredAt <= now
-        && e.OccurredAt.Date >= a.AppliedAt.Date));
+        && UserTime.LocalDate(e.OccurredAt, currentUser.TimeZone) >= UserTime.LocalDate(a.AppliedAt, currentUser.TimeZone)));
 
     var conversion = new ConversionMetric(
       positive,
@@ -100,7 +101,7 @@ public class HypothesisMetricsService(IKarajobDbContextFactory dbContextFactory,
   public async Task<ProfileActivity> GetActivityAsync(DateTime? asOf = null, CancellationToken cancellationToken = default)
   {
     var now = ResolveAsOf(asOf);
-    var week = UtcWeek.Containing(now);
+    var week = CalendarWeek.Containing(now, currentUser.TimeZone);
 
     await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
     var goal = await db.SearchGoals.AsNoTracking().SingleAsync(cancellationToken);

@@ -1,5 +1,6 @@
 @using Karajob.Application.Metrics
 @inject HypothesisMetricsService MetricsService
+@inject UserDates Dates
 
 <MudPaper Class="pa-4 hypothesis-criteria">
   <MudText Typo="Typo.h6" HtmlTag="h2">@L["Hypothesis.Criteria"]</MudText>
@@ -15,7 +16,7 @@
   {
     var conversion = _metrics.Conversion;
     <MudText Typo="Typo.caption" Class="mud-text-secondary">
-      @L["Hypothesis.WeekPeriod", MetricsText.Week(_metrics.Week), _metrics.PeriodStart.ToString("dd.MM.yyyy")]
+      @L["Hypothesis.WeekPeriod", MetricsText.Week(_metrics.Week), Dates.FormatDate(_metrics.PeriodStart)]
     </MudText>
 
     <MudStack Spacing="3" Class="mt-3">

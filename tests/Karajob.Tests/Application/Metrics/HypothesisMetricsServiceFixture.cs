@@ -25,6 +25,11 @@ public abstract class HypothesisMetricsServiceFixture : VacancyServiceFixture
     return new DateTime(2026, month, day, hour, minute, second, DateTimeKind.Utc);
   }
 
+  protected HypothesisMetricsService MetricsInZone(string timeZoneId)
+  {
+    return TestDbContextFactory.CreateHypothesisMetricsService(Database, SeedData.OwnerId, Clock, TimeZoneInfo.FindSystemTimeZoneById(timeZoneId));
+  }
+
   protected HypothesisMetricsService MetricsFor(Guid userId)
   {
     return TestDbContextFactory.CreateHypothesisMetricsService(Database, userId, Clock);
@@ -89,7 +94,7 @@ public abstract class HypothesisMetricsServiceFixture : VacancyServiceFixture
 
   protected Task AddEventAsync(Guid vacancyId, ApplicationEventType type, DateTime at)
   {
-    return MutateAsync(vacancyId, v => v.AddEvent(type, at, null));
+    return MutateAsync(vacancyId, v => v.AddEvent(type, at, null, TimeZoneInfo.Utc));
   }
 
   protected async Task<Guid> CreateProfileAsync()
