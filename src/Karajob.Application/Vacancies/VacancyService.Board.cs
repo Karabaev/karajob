@@ -127,7 +127,7 @@ public partial class VacancyService
     {
       errors[nameof(ApplyInput.AppliedAt)] = localizer["Error.AppliedAtInFuture"];
     }
-    else if (appliedAt.Date < last.Date)
+    else if (UserTime.LocalDate(appliedAt, currentUser.TimeZone) < UserTime.LocalDate(last, currentUser.TimeZone))
     {
       errors[nameof(ApplyInput.AppliedAt)] = localizer["Error.AppliedAtBeforeStage"];
     }

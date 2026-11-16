@@ -27,7 +27,12 @@ public class UserDates(ICurrentUser currentUser, TimeProvider timeProvider)
 
   public DateTime Today()
   {
-    return UserTime.LocalDate(Now(), currentUser.TimeZone).ToDateTime(TimeOnly.MinValue);
+    return LocalDay(Now());
+  }
+
+  public DateTime LocalDay(DateTime utc)
+  {
+    return UserTime.LocalDate(utc, currentUser.TimeZone).ToDateTime(TimeOnly.MinValue);
   }
 
   // Today keeps the current instant so the event is not placed at midnight; any other day starts at its local midnight.

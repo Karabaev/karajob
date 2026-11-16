@@ -94,7 +94,7 @@ public abstract class HypothesisMetricsServiceFixture : VacancyServiceFixture
 
   protected Task AddEventAsync(Guid vacancyId, ApplicationEventType type, DateTime at)
   {
-    return MutateAsync(vacancyId, v => v.AddEvent(type, at, null));
+    return MutateAsync(vacancyId, v => v.AddEvent(type, at, null, TimeZoneInfo.Utc));
   }
 
   protected async Task<Guid> CreateProfileAsync()

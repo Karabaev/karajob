@@ -70,13 +70,13 @@ public class HypothesisMetricsService(IKarajobDbContextFactory dbContextFactory,
       .GroupBy(e => e.VacancyId)
       .ToDictionary(g => g.Key, g => g.Max(e => e.OccurredAt));
 
-    // Compared by day: the event dialog stores a past day as midnight, while the application keeps its time.
+    // Compared by the profile's local day: the event dialog stores a past day as local midnight, while the application keeps its time.
     var positive = matured.Count(a =>
       a.Outcome == ApplicationOutcome.Offer && lastClosedAt.TryGetValue(a.VacancyId, out var closedAt) && closedAt <= now
       || events.Any(e => e.VacancyId == a.VacancyId
         && e.Type != ApplicationEventType.StageChanged
         && e.OccurredAt <= now
-        && e.OccurredAt.Date >= a.AppliedAt.Date));
+        && UserTime.LocalDate(e.OccurredAt, currentUser.TimeZone) >= UserTime.LocalDate(a.AppliedAt, currentUser.TimeZone)));
 
     var conversion = new ConversionMetric(
       positive,

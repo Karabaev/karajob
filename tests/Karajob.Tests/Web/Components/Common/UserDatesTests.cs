@@ -155,4 +155,12 @@ public class UserDatesTests
 
     Assert.Equal("13.11.2026 05:30", dates.FormatDateTime(Utc(11, 12, 20, 30)));
   }
+
+  [Fact]
+  public void LocalDay_EastOfUtc_ReturnsLocalCalendarDay()
+  {
+    var dates = Create("Europe/Moscow", Utc(11, 16));
+
+    Assert.Equal(new DateTime(2026, 11, 10), dates.LocalDay(Utc(11, 9, 22)));
+  }
 }

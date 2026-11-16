@@ -808,4 +808,28 @@ public class HypothesisMetricsServiceTests : HypothesisMetricsServiceFixture
     Assert.Equal(new DateOnly(2026, 11, 9), activity.Week.FirstDay);
     Assert.Equal(2, activity.Applications);
   }
+
+  [Fact]
+  public async Task GetAsync_MoscowZone_PositiveEventAtLocalMidnightOfApplyDay_IsPositive()
+  {
+    var hypothesisId = await CreateStartedHypothesisAsync();
+    var vacancyId = await ApplyAsync(hypothesisId, MaturedAt);
+    await AddEventAsync(vacancyId, ApplicationEventType.Screening, MaturedAt.Date.AddHours(-3));
+
+    var metrics = await MetricsInZone("Europe/Moscow").GetAsync(hypothesisId);
+
+    Assert.Equal(1, metrics.Conversion.Positive);
+  }
+
+  [Fact]
+  public async Task GetAsync_MoscowZone_PositiveEventBeforeLocalApplyDay_IsNotPositive()
+  {
+    var hypothesisId = await CreateStartedHypothesisAsync();
+    var vacancyId = await ApplyAsync(hypothesisId, MaturedAt);
+    await AddEventAsync(vacancyId, ApplicationEventType.Screening, MaturedAt.Date.AddHours(-3).AddSeconds(-1));
+
+    var metrics = await MetricsInZone("Europe/Moscow").GetAsync(hypothesisId);
+
+    Assert.Equal(0, metrics.Conversion.Positive);
+  }
 }

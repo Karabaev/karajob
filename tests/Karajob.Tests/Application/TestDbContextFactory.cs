@@ -54,9 +54,15 @@ internal class TestDbContextFactory(SqliteTestDatabase database, Guid userId) : 
     SqliteTestDatabase database,
     Guid userId,
     TimeProvider timeProvider,
-    IPageTitleReader? titleReader = null)
+    IPageTitleReader? titleReader = null,
+    TimeZoneInfo? timeZone = null)
   {
-    return new VacancyService(new TestDbContextFactory(database, userId), new FixedCurrentUser(userId), timeProvider, titleReader ?? new StubPageTitleReader(), TestLocalizer.For<VacancyMessages>());
+    return new VacancyService(
+      new TestDbContextFactory(database, userId),
+      new FixedCurrentUser(userId, timeZone),
+      timeProvider,
+      titleReader ?? new StubPageTitleReader(),
+      TestLocalizer.For<VacancyMessages>());
   }
 
   public static ApplicationService CreateApplicationService(SqliteTestDatabase database, Guid userId)

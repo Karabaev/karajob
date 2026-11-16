@@ -62,9 +62,9 @@ public abstract class VacancyServiceFixture : IAsyncLifetime
       notes);
   }
 
-  protected VacancyService ServiceFor(Guid userId)
+  protected VacancyService ServiceFor(Guid userId, TimeZoneInfo? timeZone = null)
   {
-    return TestDbContextFactory.CreateVacancyService(Database, userId, Clock);
+    return TestDbContextFactory.CreateVacancyService(Database, userId, Clock, timeZone: timeZone);
   }
 
   protected async Task<Guid> CreateCompanyAsync(string slug = "pixel-forge")

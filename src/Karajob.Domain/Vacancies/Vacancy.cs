@@ -105,7 +105,7 @@ public class Vacancy : IUserOwned
     matches.RemoveAll(m => m.HypothesisId == hypothesisId);
   }
 
-  public ApplicationEvent AddEvent(ApplicationEventType type, DateTime at, string? note)
+  public ApplicationEvent AddEvent(ApplicationEventType type, DateTime at, string? note, TimeZoneInfo zone)
   {
     UtcGuard.Ensure(at);
     if (type is ApplicationEventType.StageChanged or ApplicationEventType.Rejected or ApplicationEventType.Offer)
@@ -113,7 +113,7 @@ public class Vacancy : IUserOwned
       throw new ArgumentException($"{type} events cannot be added manually.", nameof(type));
     }
 
-    if (at < DiscoveredAt.Date)
+    if (UserTime.LocalDate(at, zone) < UserTime.LocalDate(DiscoveredAt, zone))
     {
       throw new ArgumentException("The event cannot be earlier than the day the vacancy was discovered.", nameof(at));
     }

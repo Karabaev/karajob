@@ -15,7 +15,7 @@
           <MudSelectItem T="ApplicationEventType" Value="type">@VacancyText.EventType(type)</MudSelectItem>
         }
       </MudSelect>
-      <MudDatePicker Class="event-date" Label="@L["Event.Date"]" @bind-Date="_date" Editable="true" MinDate="DiscoveredAt.Date"
+      <MudDatePicker Class="event-date" Label="@L["Event.Date"]" @bind-Date="_date" Editable="true" MinDate="Dates.LocalDay(DiscoveredAt)"
                      Error="HasError(OccurredAtKey)" ErrorText="@ErrorOf(OccurredAtKey)" />
       <MudTextField T="string" Class="event-note" Label="@L["Event.Note"]" Lines="3" Sizing="InputSizing.Auto" Immediate="true" @bind-Value="_note"
                     Error="HasError(nameof(VacancyEventInput.Note))" ErrorText="@ErrorOf(nameof(VacancyEventInput.Note))" />

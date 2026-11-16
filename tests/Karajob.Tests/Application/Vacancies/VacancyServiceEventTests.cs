@@ -207,4 +207,28 @@ public class VacancyServiceEventTests : VacancyServiceFixture
   {
     await Assert.ThrowsAsync<KeyNotFoundException>(() => Service.DeleteEventAsync(Guid.NewGuid(), Guid.NewGuid()));
   }
+
+  [Fact]
+  public async Task AddEventAsync_MoscowLocalMidnightOfDiscoveryDay_Succeeds()
+  {
+    var service = ServiceFor(SeedData.OwnerId, TimeZoneInfo.FindSystemTimeZoneById("Europe/Moscow"));
+    var created = await service.CreateAsync(Input());
+    var localMidnight = new DateTime(2026, 11, 11, 21, 0, 0, DateTimeKind.Utc);
+
+    await service.AddEventAsync(created.Id, new VacancyEventInput(ApplicationEventType.Note, localMidnight, null));
+
+    Assert.Single((await service.FindAsync(created.Id))!.Timeline);
+  }
+
+  [Fact]
+  public async Task AddEventAsync_MoscowBeforeLocalDiscoveryDay_FailsWithOccurredAtError()
+  {
+    var service = ServiceFor(SeedData.OwnerId, TimeZoneInfo.FindSystemTimeZoneById("Europe/Moscow"));
+    var created = await service.CreateAsync(Input());
+
+    var ex = await Assert.ThrowsAsync<ValidationFailedException>(() =>
+      service.AddEventAsync(created.Id, new VacancyEventInput(ApplicationEventType.Note, new DateTime(2026, 11, 11, 20, 59, 59, DateTimeKind.Utc), null)));
+
+    Assert.Contains("OccurredAt", ex.Errors.Keys);
+  }
 }
