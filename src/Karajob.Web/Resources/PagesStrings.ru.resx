@@ -4,4 +4,71 @@
   <resheader name="version"><value>2.0</value></resheader>
   <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Pages.Board" xml:space="preserve"><value>Доска</value></data>
+  <data name="Pages.Hypothesis" xml:space="preserve"><value>Гипотеза</value></data>
+  <data name="Pages.AllHypotheses" xml:space="preserve"><value>Все гипотезы</value></data>
+  <data name="Pages.Collapse" xml:space="preserve"><value>Свернуть</value></data>
+  <data name="Pages.Show" xml:space="preserve"><value>Показать</value></data>
+  <data name="Pages.ApplyTitle" xml:space="preserve"><value>Отклик</value></data>
+  <data name="Pages.CloseVacancyTitle" xml:space="preserve"><value>Закрыть вакансию</value></data>
+  <data name="Pages.InvalidTransition" xml:space="preserve"><value>Недопустимый переход: {0} → {1}</value></data>
+  <data name="Pages.DismissVacancyTitle" xml:space="preserve"><value>Отклонить вакансию</value></data>
+  <data name="Pages.Roles" xml:space="preserve"><value>Роли</value></data>
+  <data name="Pages.Locations" xml:space="preserve"><value>Локации</value></data>
+  <data name="Pages.Languages" xml:space="preserve"><value>Языки</value></data>
+  <data name="Pages.Platforms" xml:space="preserve"><value>Платформы</value></data>
+  <data name="Pages.Currencies" xml:space="preserve"><value>Валюты</value></data>
+  <data name="Pages.Engines" xml:space="preserve"><value>Движки</value></data>
+  <data name="Pages.Catalogs" xml:space="preserve"><value>Справочники</value></data>
+  <data name="Pages.Companies" xml:space="preserve"><value>Компании</value></data>
+  <data name="Pages.AddCompany" xml:space="preserve"><value>+ Компания</value></data>
+  <data name="Pages.CompanySearch" xml:space="preserve"><value>Название, домен, алиас</value></data>
+  <data name="Pages.NoCompanies" xml:space="preserve"><value>Компаний не найдено.</value></data>
+  <data name="Pages.Company" xml:space="preserve"><value>Компания</value></data>
+  <data name="Pages.Domains" xml:space="preserve"><value>Домены</value></data>
+  <data name="Pages.Blacklisted" xml:space="preserve"><value>Чёрный список</value></data>
+  <data name="Pages.NoCvs" xml:space="preserve"><value>CV пока нет.</value></data>
+  <data name="Pages.Name" xml:space="preserve"><value>Название</value></data>
+  <data name="Pages.Language" xml:space="preserve"><value>Язык</value></data>
+  <data name="Pages.Tags" xml:space="preserve"><value>Теги</value></data>
+  <data name="Pages.Versions" xml:space="preserve"><value>Версий</value></data>
+  <data name="Pages.Updated" xml:space="preserve"><value>Обновлено</value></data>
+  <data name="Pages.Hypotheses" xml:space="preserve"><value>Гипотезы</value></data>
+  <data name="Pages.AddHypothesis" xml:space="preserve"><value>+ Гипотеза</value></data>
+  <data name="Pages.NoHypotheses" xml:space="preserve"><value>Гипотез пока нет.</value></data>
+  <data name="Pages.Role" xml:space="preserve"><value>Роль</value></data>
+  <data name="Pages.Format" xml:space="preserve"><value>Формат</value></data>
+  <data name="Pages.Status" xml:space="preserve"><value>Статус</value></data>
+  <data name="Pages.AddManually" xml:space="preserve"><value>Добавить вручную</value></data>
+  <data name="Pages.InboxEmpty" xml:space="preserve"><value>В Inbox пока пусто.</value></data>
+  <data name="Pages.Link" xml:space="preserve"><value>Ссылка</value></data>
+  <data name="Pages.Discovered" xml:space="preserve"><value>Найдена</value></data>
+  <data name="Pages.ToBoardButton" xml:space="preserve"><value>→ На доску</value></data>
+  <data name="Pages.Dismiss" xml:space="preserve"><value>Отклонить</value></data>
+  <data name="Pages.ToBoardTitle" xml:space="preserve"><value>На доску</value></data>
+  <data name="Pages.NotFound" xml:space="preserve"><value>Не найдено</value></data>
+  <data name="Pages.NotFoundText" xml:space="preserve"><value>Такой страницы нет.</value></data>
+  <data name="Pages.Settings" xml:space="preserve"><value>Настройки</value></data>
+  <data name="Pages.SearchGoal" xml:space="preserve"><value>Цель поиска</value></data>
+  <data name="Pages.NotSelected" xml:space="preserve"><value>— не выбрана —</value></data>
+  <data name="Pages.Countries" xml:space="preserve"><value>Страны</value></data>
+  <data name="Pages.Industries" xml:space="preserve"><value>Индустрии</value></data>
+  <data name="Pages.MustHave" xml:space="preserve"><value>Обязательные условия</value></data>
+  <data name="Pages.MustHaveHelp" xml:space="preserve"><value>Без чего вакансия не подходит</value></data>
+  <data name="Pages.WeeklyTarget" xml:space="preserve"><value>Откликов в неделю</value></data>
+  <data name="Pages.Deadline" xml:space="preserve"><value>Дедлайн поиска</value></data>
+  <data name="Pages.Income" xml:space="preserve"><value>Доход в месяц, gross</value></data>
+  <data name="Pages.Currency" xml:space="preserve"><value>Валюта</value></data>
+  <data name="Pages.MetricThresholds" xml:space="preserve"><value>Пороги метрик</value></data>
+  <data name="Pages.MarketThreshold" xml:space="preserve"><value>Рынок: вакансий в неделю</value></data>
+  <data name="Pages.MarketThresholdHelp" xml:space="preserve"><value>Сколько подходящих вакансий в неделю считается живым рынком</value></data>
+  <data name="Pages.ConversionThreshold" xml:space="preserve"><value>Порог конверсии, %</value></data>
+  <data name="Pages.ConversionThresholdHelp" xml:space="preserve"><value>Какая доля откликов с ответом считается хорошей</value></data>
+  <data name="Pages.MinSample" xml:space="preserve"><value>Минимальная выборка откликов</value></data>
+  <data name="Pages.MinSampleHelp" xml:space="preserve"><value>Пока откликов меньше, вывод по гипотезе делать рано</value></data>
+  <data name="Pages.MaturationDays" xml:space="preserve"><value>Созревание отклика, дней</value></data>
+  <data name="Pages.MaturationDaysHelp" xml:space="preserve"><value>Через сколько дней без ответа отклик считается созревшим</value></data>
+  <data name="Pages.Save" xml:space="preserve"><value>Сохранить</value></data>
+  <data name="Pages.EmptyHint" xml:space="preserve"><value>Добавьте в разделе Справочники</value></data>
+  <data name="Pages.Saved" xml:space="preserve"><value>Сохранено</value></data>
 </root>

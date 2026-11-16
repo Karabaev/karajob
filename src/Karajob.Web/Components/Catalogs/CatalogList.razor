@@ -3,37 +3,37 @@
 @inject IDialogService DialogService
 
 <MudStack Row="true" Wrap="Wrap.Wrap" AlignItems="AlignItems.Start" Spacing="2" Class="mb-4">
-  <MudTextField T="string" Class="catalog-add-name" Label="Название" Immediate="true" @bind-Value="_name"
+  <MudTextField T="string" Class="catalog-add-name" Label="@L["Catalog.Name"]" Immediate="true" @bind-Value="_name"
                 Error="HasError(nameof(CatalogInput.Name))" ErrorText="@ErrorOf(nameof(CatalogInput.Name))" />
   @if (HasCode)
   {
-    <MudTextField T="string" Class="catalog-add-code" Label="Код" Placeholder="@CodePlaceholder" Immediate="true" @bind-Value="_code"
+    <MudTextField T="string" Class="catalog-add-code" Label="@L["Catalog.Code"]" Placeholder="@CodePlaceholder" Immediate="true" @bind-Value="_code"
                   Error="HasError(nameof(CatalogInput.Code))" ErrorText="@ErrorOf(nameof(CatalogInput.Code))" />
   }
-  <MudButton Class="catalog-add" Variant="Variant.Filled" Color="Color.Primary" OnClick="AddAsync">Добавить</MudButton>
+  <MudButton Class="catalog-add" Variant="Variant.Filled" Color="Color.Primary" OnClick="AddAsync">@L["Catalog.Add"]</MudButton>
 </MudStack>
 
 <MudTable T="CatalogListItem" Items="_items" Breakpoint="Breakpoint.Sm" Dense="true" Hover="true"
           RowClass="catalog-row" Loading="_loading">
   <HeaderContent>
-    <MudTh>Название</MudTh>
+    <MudTh>@L["Catalog.Name"]</MudTh>
     @if (HasCode)
     {
-      <MudTh>Код</MudTh>
+      <MudTh>@L["Catalog.Code"]</MudTh>
     }
     <MudTh></MudTh>
   </HeaderContent>
   <RowTemplate>
-    <MudTd DataLabel="Название"><span class="catalog-name">@context.Name</span></MudTd>
+    <MudTd DataLabel="@L["Catalog.Name"]"><span class="catalog-name">@context.Name</span></MudTd>
     @if (HasCode)
     {
-      <MudTd DataLabel="Код">@context.Code</MudTd>
+      <MudTd DataLabel="@L["Catalog.Code"]">@context.Code</MudTd>
     }
     <MudTd>
       <MudIconButton Class="catalog-rename" Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
-                     OnClick="() => RenameAsync(context)" aria-label="Переименовать" />
+                     OnClick="() => RenameAsync(context)" aria-label="@L["Catalog.Rename"]" />
       <MudIconButton Class="catalog-delete" Icon="@Icons.Material.Filled.Delete" Size="Size.Small"
-                     OnClick="() => DeleteAsync(context)" aria-label="Удалить" />
+                     OnClick="() => DeleteAsync(context)" aria-label="@L["Catalog.Delete"]" />
     </MudTd>
   </RowTemplate>
 </MudTable>
@@ -100,7 +100,7 @@
       { d => d.Kind, Kind },
       { d => d.Item, item },
     };
-    var dialog = await DialogService.ShowAsync<RenameCatalogDialog>("Переименовать", parameters);
+    var dialog = await DialogService.ShowAsync<RenameCatalogDialog>(L["Catalog.Rename"], parameters);
     var result = await dialog.Result;
     if (result is { Canceled: false })
     {
@@ -111,10 +111,10 @@
   private async Task DeleteAsync(CatalogListItem item)
   {
     var confirmed = await DialogService.ShowMessageBoxAsync(
-      "Удалить запись?",
-      $"«{item.Name}» будет удалена.",
-      yesText: "Удалить",
-      cancelText: "Отмена");
+      L["Catalog.DeleteTitle"],
+      L["Catalog.DeleteText", item.Name],
+      yesText: L["Catalog.Delete"],
+      cancelText: L["Catalog.Cancel"]);
     if (confirmed != true)
     {
       return;

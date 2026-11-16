@@ -6,7 +6,7 @@
 {
   <MudMenu @bind-Open="_open" Dense="true" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
     <ActivatorContent>
-      <MudIconButton Color="Color.Inherit" OnClick="ToggleMenu" aria-label="@($"Профиль: {_current.Name}")">
+      <MudIconButton Color="Color.Inherit" OnClick="ToggleMenu" aria-label="@L["Layout.Profile", _current.Name]">
         <ProfileAvatar Profile="_current" Size="Size.Small" />
       </MudIconButton>
     </ActivatorContent>
@@ -22,7 +22,7 @@
         </ProfileSelectForm>
       }
       <MudDivider />
-      <MudMenuItem Href="@ProfileEndpoints.ProfilesPath" ForceLoad="true">Все профили</MudMenuItem>
+      <MudMenuItem Href="@ProfileEndpoints.ProfilesPath" ForceLoad="true">@L["Layout.AllProfiles"]</MudMenuItem>
     </ChildContent>
   </MudMenu>
 }

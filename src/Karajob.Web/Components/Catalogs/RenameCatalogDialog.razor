@@ -3,12 +3,12 @@
 
 <MudDialog>
   <DialogContent>
-    <MudTextField T="string" Label="Название" @bind-Value="_name" Immediate="true" AutoFocus="true"
+    <MudTextField T="string" Label="@L["Catalog.Name"]" @bind-Value="_name" Immediate="true" AutoFocus="true"
                   Error="@(_error is not null)" ErrorText="@_error" />
   </DialogContent>
   <DialogActions>
-    <MudButton OnClick="Cancel">Отмена</MudButton>
-    <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="SaveAsync">Сохранить</MudButton>
+    <MudButton OnClick="Cancel">@L["Catalog.Cancel"]</MudButton>
+    <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="SaveAsync">@L["Catalog.Save"]</MudButton>
   </DialogActions>
 </MudDialog>
 
@@ -43,7 +43,7 @@
     }
     catch (KeyNotFoundException)
     {
-      Snackbar.Add("Запись уже удалена", Severity.Warning);
+      Snackbar.Add(L["Catalog.AlreadyDeleted"], Severity.Warning);
     }
 
     MudDialog.Close(DialogResult.Ok(true));

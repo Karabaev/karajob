@@ -3,9 +3,9 @@
 @inject CatalogService CatalogService
 @inject ISnackbar Snackbar
 
-<PageTitle>Настройки</PageTitle>
+<PageTitle>@L["Pages.Settings"]</PageTitle>
 
-<MudText Typo="Typo.h4" HtmlTag="h1" Class="mb-4">Настройки</MudText>
+<MudText Typo="Typo.h4" HtmlTag="h1" Class="mb-4">@L["Pages.Settings"]</MudText>
 
 @if (_loaded)
 {
@@ -14,21 +14,21 @@
       <MudStack Spacing="4">
         <MudPaper Class="pa-4">
           <MudStack Spacing="2">
-            <MudText Typo="Typo.h6" HtmlTag="h2">Цель поиска</MudText>
+            <MudText Typo="Typo.h6" HtmlTag="h2">@L["Pages.SearchGoal"]</MudText>
             @if (_errors.TryGetValue("", out var general))
             {
               <MudAlert Severity="Severity.Error">@general</MudAlert>
             }
-            <MudSelect T="Guid?" Class="settings-role" Label="Роль" @bind-Value="_roleId" ToStringFunc="RoleName"
+            <MudSelect T="Guid?" Class="settings-role" Label="@L["Pages.Role"]" @bind-Value="_roleId" ToStringFunc="RoleName"
                        HelperText="@EmptyHint(_roles)"
                        Error="HasError(nameof(SearchGoalInput.RoleId))" ErrorText="@ErrorOf(nameof(SearchGoalInput.RoleId))">
-              <MudSelectItem T="Guid?" Value="@((Guid?)null)">— не выбрана —</MudSelectItem>
+              <MudSelectItem T="Guid?" Value="@((Guid?)null)">@L["Pages.NotSelected"]</MudSelectItem>
               @foreach (var role in _roles)
               {
                 <MudSelectItem T="Guid?" Value="@((Guid?)role.Id)">@role.Name</MudSelectItem>
               }
             </MudSelect>
-            <MudSelect T="Guid" Class="settings-locations" Label="Страны" MultiSelection="true"
+            <MudSelect T="Guid" Class="settings-locations" Label="@L["Pages.Countries"]" MultiSelection="true"
                        SelectedValues="_locationIds" SelectedValuesChanged="OnLocationsChanged"
                        ToStringFunc="LocationName" MultiSelectionTextFunc="JoinNames"
                        HelperText="@EmptyHint(_locations)"
@@ -38,7 +38,7 @@
                 <MudSelectItem T="Guid" Value="location.Id">@location.Name</MudSelectItem>
               }
             </MudSelect>
-            <MudSelect T="Guid" Class="settings-platforms" Label="Платформы" MultiSelection="true"
+            <MudSelect T="Guid" Class="settings-platforms" Label="@L["Pages.Platforms"]" MultiSelection="true"
                        SelectedValues="_platformIds" SelectedValuesChanged="OnPlatformsChanged"
                        ToStringFunc="PlatformName" MultiSelectionTextFunc="JoinNames"
                        HelperText="@EmptyHint(_platforms)"
@@ -48,7 +48,7 @@
                 <MudSelectItem T="Guid" Value="platform.Id">@platform.Name</MudSelectItem>
               }
             </MudSelect>
-            <MudSelect T="Guid" Class="settings-engines" Label="Движки" MultiSelection="true"
+            <MudSelect T="Guid" Class="settings-engines" Label="@L["Pages.Engines"]" MultiSelection="true"
                        SelectedValues="_engineIds" SelectedValuesChanged="OnEnginesChanged"
                        ToStringFunc="EngineName" MultiSelectionTextFunc="JoinNames"
                        HelperText="@EmptyHint(_engines)"
@@ -58,27 +58,27 @@
                 <MudSelectItem T="Guid" Value="engine.Id">@engine.Name</MudSelectItem>
               }
             </MudSelect>
-            <MudTextField T="string" Class="settings-industries" Label="Индустрии"
+            <MudTextField T="string" Class="settings-industries" Label="@L["Pages.Industries"]"
                           Lines="3" Sizing="InputSizing.Auto" @bind-Value="_industries"
                           Error="HasError(nameof(SearchGoalInput.Industries))" ErrorText="@ErrorOf(nameof(SearchGoalInput.Industries))" />
-            <MudTextField T="string" Class="settings-must-have" Label="Обязательные условия"
-                          HelperText="Без чего вакансия не подходит"
+            <MudTextField T="string" Class="settings-must-have" Label="@L["Pages.MustHave"]"
+                          HelperText="@L["Pages.MustHaveHelp"]"
                           Lines="3" Sizing="InputSizing.Auto" @bind-Value="_mustHave"
                           Error="HasError(nameof(SearchGoalInput.MustHave))" ErrorText="@ErrorOf(nameof(SearchGoalInput.MustHave))" />
-            <MudNumericField T="int" Class="settings-weekly-target" Label="Откликов в неделю" Min="0"
+            <MudNumericField T="int" Class="settings-weekly-target" Label="@L["Pages.WeeklyTarget"]" Min="0"
                              @bind-Value="_weeklyTarget"
                              Error="HasError(nameof(SearchGoalInput.WeeklyApplicationTarget))" ErrorText="@ErrorOf(nameof(SearchGoalInput.WeeklyApplicationTarget))" />
-            <MudDatePicker Class="settings-deadline" Label="Дедлайн поиска" Clearable="true" DateFormat="dd.MM.yyyy"
+            <MudDatePicker Class="settings-deadline" Label="@L["Pages.Deadline"]" Clearable="true" DateFormat="dd.MM.yyyy"
                            @bind-Date="_deadline"
                            Error="HasError(nameof(SearchGoalInput.Deadline))" ErrorText="@ErrorOf(nameof(SearchGoalInput.Deadline))" />
             <MudGrid Spacing="2">
               <MudItem xs="12" sm="8">
-                <MudNumericField T="long?" Class="settings-income" Label="Доход в месяц, gross" Min="0"
+                <MudNumericField T="long?" Class="settings-income" Label="@L["Pages.Income"]" Min="0"
                                  @bind-Value="_income"
                                  Error="HasError(nameof(SearchGoalInput.DesiredMonthlyIncome))" ErrorText="@ErrorOf(nameof(SearchGoalInput.DesiredMonthlyIncome))" />
               </MudItem>
               <MudItem xs="12" sm="4">
-                <MudSelect T="string" Class="settings-currency" Label="Валюта" Clearable="true" ToStringFunc="CurrencyCode" RelativeWidth="DropdownWidth.Adaptive"
+                <MudSelect T="string" Class="settings-currency" Label="@L["Pages.Currency"]" Clearable="true" ToStringFunc="CurrencyCode" RelativeWidth="DropdownWidth.Adaptive"
                            @bind-Value="_currency" HelperText="@EmptyHint(_currencies)"
                            Error="HasError(nameof(SearchGoalInput.IncomeCurrency))" ErrorText="@ErrorOf(nameof(SearchGoalInput.IncomeCurrency))">
                   @foreach (var currency in _currencies)
@@ -93,28 +93,28 @@
 
         <MudPaper Class="pa-4">
           <MudStack Spacing="2">
-            <MudText Typo="Typo.h6" HtmlTag="h2">Пороги метрик</MudText>
-            <MudNumericField T="int" Class="settings-market-threshold" Label="Рынок: вакансий в неделю"
-                             HelperText="Сколько подходящих вакансий в неделю считается живым рынком"
+            <MudText Typo="Typo.h6" HtmlTag="h2">@L["Pages.MetricThresholds"]</MudText>
+            <MudNumericField T="int" Class="settings-market-threshold" Label="@L["Pages.MarketThreshold"]"
+                             HelperText="@L["Pages.MarketThresholdHelp"]"
                              @bind-Value="_marketThreshold"
                              Error="HasError(nameof(SearchGoalInput.MarketThresholdPerWeek))" ErrorText="@ErrorOf(nameof(SearchGoalInput.MarketThresholdPerWeek))" />
-            <MudNumericField T="decimal" Class="settings-conversion-threshold" Label="Порог конверсии, %" Step="0.1m" Min="0m" Max="100m"
-                             HelperText="Какая доля откликов с ответом считается хорошей"
+            <MudNumericField T="decimal" Class="settings-conversion-threshold" Label="@L["Pages.ConversionThreshold"]" Step="0.1m" Min="0m" Max="100m"
+                             HelperText="@L["Pages.ConversionThresholdHelp"]"
                              @bind-Value="_conversionPercent"
                              Error="HasError(nameof(SearchGoalInput.ConversionThresholdPermille))" ErrorText="@ErrorOf(nameof(SearchGoalInput.ConversionThresholdPermille))" />
-            <MudNumericField T="int" Class="settings-min-sample" Label="Минимальная выборка откликов"
-                             HelperText="Пока откликов меньше, вывод по гипотезе делать рано"
+            <MudNumericField T="int" Class="settings-min-sample" Label="@L["Pages.MinSample"]"
+                             HelperText="@L["Pages.MinSampleHelp"]"
                              @bind-Value="_minSample"
                              Error="HasError(nameof(SearchGoalInput.MinSampleSize))" ErrorText="@ErrorOf(nameof(SearchGoalInput.MinSampleSize))" />
-            <MudNumericField T="int" Class="settings-maturation-days" Label="Созревание отклика, дней"
-                             HelperText="Через сколько дней без ответа отклик считается созревшим"
+            <MudNumericField T="int" Class="settings-maturation-days" Label="@L["Pages.MaturationDays"]"
+                             HelperText="@L["Pages.MaturationDaysHelp"]"
                              @bind-Value="_maturationDays"
                              Error="HasError(nameof(SearchGoalInput.MaturationDays))" ErrorText="@ErrorOf(nameof(SearchGoalInput.MaturationDays))" />
           </MudStack>
         </MudPaper>
 
         <div>
-          <MudButton Class="settings-save" Variant="Variant.Filled" Color="Color.Primary" Disabled="_saving" OnClick="SaveAsync">Сохранить</MudButton>
+          <MudButton Class="settings-save" Variant="Variant.Filled" Color="Color.Primary" Disabled="_saving" OnClick="SaveAsync">@L["Pages.Save"]</MudButton>
         </div>
       </MudStack>
     </MudItem>
@@ -219,9 +219,9 @@
     return string.Join(", ", names);
   }
 
-  private static string? EmptyHint(IReadOnlyList<CatalogListItem> items)
+  private string? EmptyHint(IReadOnlyList<CatalogListItem> items)
   {
-    return items.Count == 0 ? "Добавьте в разделе Справочники" : null;
+    return items.Count == 0 ? L["Pages.EmptyHint"].Value : null;
   }
 
   private bool HasError(string key)
@@ -258,7 +258,7 @@
       var saved = await SearchGoalService.UpdateAsync(input);
       _errors = new Dictionary<string, string>();
       FillFields(saved);
-      Snackbar.Add("Сохранено", Severity.Success);
+      Snackbar.Add(L["Pages.Saved"], Severity.Success);
     }
     catch (ValidationFailedException exception)
     {

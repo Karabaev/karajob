@@ -1,26 +1,26 @@
 @page "/catalogs"
 
-<PageTitle>Справочники</PageTitle>
+<PageTitle>@L["Pages.Catalogs"]</PageTitle>
 
-<MudText Typo="Typo.h4" HtmlTag="h1" Class="mb-4">Справочники</MudText>
+<MudText Typo="Typo.h4" HtmlTag="h1" Class="mb-4">@L["Pages.Catalogs"]</MudText>
 
 <MudTabs Rounded="true" Elevation="0" ApplyEffectsToContainer="true">
-  <MudTabPanel Text="Роли">
+  <MudTabPanel Text="@L["Pages.Roles"]">
     <CatalogList Kind="CatalogKind.Role" />
   </MudTabPanel>
-  <MudTabPanel Text="Локации">
+  <MudTabPanel Text="@L["Pages.Locations"]">
     <CatalogList Kind="CatalogKind.Location" />
   </MudTabPanel>
-  <MudTabPanel Text="Языки">
+  <MudTabPanel Text="@L["Pages.Languages"]">
     <CatalogList Kind="CatalogKind.Language" />
   </MudTabPanel>
-  <MudTabPanel Text="Платформы">
+  <MudTabPanel Text="@L["Pages.Platforms"]">
     <CatalogList Kind="CatalogKind.Platform" />
   </MudTabPanel>
-  <MudTabPanel Text="Валюты">
+  <MudTabPanel Text="@L["Pages.Currencies"]">
     <CatalogList Kind="CatalogKind.Currency" />
   </MudTabPanel>
-  <MudTabPanel Text="Движки">
+  <MudTabPanel Text="@L["Pages.Engines"]">
     <CatalogList Kind="CatalogKind.Engine" />
   </MudTabPanel>
 </MudTabs>
