@@ -22,6 +22,7 @@ public class SearchGoalService(IKarajobDbContextFactory dbContextFactory)
 
     goal.RoleId = input.RoleId;
     goal.SetLocations(input.LocationIds);
+    goal.SetPlatforms(input.PlatformIds);
     goal.Industries = input.Industries;
     goal.MustHave = input.MustHave;
     goal.WeeklyApplicationTarget = input.WeeklyApplicationTarget;
@@ -49,6 +50,12 @@ public class SearchGoalService(IKarajobDbContextFactory dbContextFactory)
     if (locationIds.Count > 0 && await db.Locations.CountAsync(l => locationIds.Contains(l.Id), cancellationToken) != locationIds.Count)
     {
       errors[nameof(SearchGoalInput.LocationIds)] = "Локация не найдена";
+    }
+
+    var platformIds = input.PlatformIds.Distinct().ToList();
+    if (platformIds.Count > 0 && await db.Platforms.CountAsync(p => platformIds.Contains(p.Id), cancellationToken) != platformIds.Count)
+    {
+      errors[nameof(SearchGoalInput.PlatformIds)] = "Платформа не найдена";
     }
 
     if (input.WeeklyApplicationTarget < 0)
