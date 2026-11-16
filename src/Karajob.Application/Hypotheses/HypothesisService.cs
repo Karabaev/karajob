@@ -94,6 +94,7 @@ public class HypothesisService(IKarajobDbContextFactory dbContextFactory, ICurre
   private static void Apply(Hypothesis hypothesis, NormalizedHypothesis normalized, HypothesisInput input, DateTime now)
   {
     hypothesis.SetLocations(input.LocationIds);
+    hypothesis.SetPlatforms(input.PlatformIds);
     hypothesis.Industries.Clear();
     hypothesis.Industries.AddRange(normalized.Industries);
     hypothesis.WorkFormat = input.WorkFormat;
@@ -136,6 +137,12 @@ public class HypothesisService(IKarajobDbContextFactory dbContextFactory, ICurre
     if (locationIds.Count > 0 && await db.Locations.CountAsync(l => locationIds.Contains(l.Id), cancellationToken) != locationIds.Count)
     {
       errors[nameof(HypothesisInput.LocationIds)] = "Локация не найдена";
+    }
+
+    var platformIds = input.PlatformIds.Distinct().ToList();
+    if (platformIds.Count > 0 && await db.Platforms.CountAsync(p => platformIds.Contains(p.Id), cancellationToken) != platformIds.Count)
+    {
+      errors[nameof(HypothesisInput.PlatformIds)] = "Платформа не найдена";
     }
 
     if (input.WorkFormat == WorkFormat.None)
