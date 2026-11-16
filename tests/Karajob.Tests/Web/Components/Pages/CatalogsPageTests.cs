@@ -88,6 +88,41 @@ public class CatalogsPageTests : CatalogWebFixture
   }
 
   [Fact]
+  public void Render_Platforms_ShowsSeededPlatformNamesWithoutCodeInput()
+  {
+    var cut = Context.Render<CatalogList>(p => p.Add(c => c.Kind, CatalogKind.Platform));
+
+    cut.WaitForAssertion(() =>
+    {
+      var names = cut.FindAll(".catalog-row .catalog-name").Select(e => e.TextContent.Trim()).ToList();
+      Assert.Equal(["Consoles", "Mobile", "PC", "VR", "Web"], names.Order(StringComparer.OrdinalIgnoreCase));
+    });
+    Assert.Empty(cut.FindAll(".catalog-add-code input"));
+  }
+
+  [Fact]
+  public async Task Add_NewPlatformName_ShowsRowAndPersists()
+  {
+    var cut = Context.Render<CatalogList>(p => p.Add(c => c.Kind, CatalogKind.Platform));
+    TypeName(cut, "Smart TV");
+
+    cut.Find(".catalog-add").Click();
+
+    cut.WaitForAssertion(() => Assert.Contains(
+      cut.FindAll(".catalog-row .catalog-name"),
+      e => e.TextContent.Trim() == "Smart TV"));
+    Assert.Contains(await Service.ListAsync(CatalogKind.Platform), i => i.Name == "Smart TV");
+  }
+
+  [Fact]
+  public void Render_CatalogsPage_ShowsPlatformsTab()
+  {
+    var cut = Context.Render<CatalogsPage>();
+
+    cut.WaitForAssertion(() => Assert.Contains("Платформы", cut.Markup));
+  }
+
+  [Fact]
   public void Render_CatalogsPage_ShowsTabHeaders()
   {
     var cut = Context.Render<CatalogsPage>();

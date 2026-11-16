@@ -106,6 +106,67 @@ public class VacancyPageTests : VacancyWebFixture
   }
 
   [Fact]
+  public void Render_NewVacancy_ShowsPlatformsMultiSelectWithLabel()
+  {
+    var cut = Context.Render<VacancyPage>();
+
+    cut.WaitForAssertion(() =>
+    {
+      var select = PlatformsSelect(cut).Instance;
+      Assert.True(select.MultiSelection);
+      Assert.Equal("Платформы", select.Label);
+    });
+  }
+
+  [Fact]
+  public async Task Render_ExistingVacancy_ShowsStoredPlatforms()
+  {
+    var created = await Vacancies.CreateAsync(
+      Input("https://example.com/jobs/1") with { PlatformIds = [SeedData.MobilePlatformId, SeedData.WebPlatformId] });
+
+    var cut = Context.Render<VacancyPage>(p => p.Add(c => c.Id, created.Id));
+
+    cut.WaitForAssertion(() => Assert.Equal(
+      new[] { SeedData.MobilePlatformId, SeedData.WebPlatformId }.Order(),
+      PlatformsSelect(cut).Instance.SelectedValues!.Order()));
+  }
+
+  [Fact]
+  public async Task Save_PlatformsSelectedOnNewPage_PersistsPlatforms()
+  {
+    var cut = Context.Render<VacancyPage>();
+    cut.WaitForElement(".vacancy-url input").Input("https://example.com/jobs/platforms");
+    await cut.InvokeAsync(() => PlatformsSelect(cut).Instance.SelectedValuesChanged.InvokeAsync([SeedData.PcPlatformId, SeedData.VrPlatformId]));
+
+    cut.Find(".vacancy-save").Click();
+
+    var created = await WaitForSingleInboxVacancyAsync();
+    var found = await Vacancies.FindAsync(created.Id);
+    Assert.Equal(new[] { SeedData.PcPlatformId, SeedData.VrPlatformId }.Order(), found!.PlatformIds.Order());
+  }
+
+  [Fact]
+  public async Task Save_PlatformsChangedOnExistingVacancy_ReplacesPlatforms()
+  {
+    var created = await Vacancies.CreateAsync(Input("https://example.com/jobs/1") with { PlatformIds = [SeedData.PcPlatformId] });
+    var cut = Context.Render<VacancyPage>(p => p.Add(c => c.Id, created.Id));
+    cut.WaitForAssertion(() => Assert.Equal([SeedData.PcPlatformId], PlatformsSelect(cut).Instance.SelectedValues!));
+    await cut.InvokeAsync(() => PlatformsSelect(cut).Instance.SelectedValuesChanged.InvokeAsync([SeedData.ConsolesPlatformId]));
+
+    cut.Find(".vacancy-save").Click();
+
+    var deadline = DateTime.UtcNow.AddSeconds(5);
+    var found = await Vacancies.FindAsync(created.Id);
+    while (DateTime.UtcNow < deadline && !found!.PlatformIds.Contains(SeedData.ConsolesPlatformId))
+    {
+      await Task.Delay(50);
+      found = await Vacancies.FindAsync(created.Id);
+    }
+
+    Assert.Equal([SeedData.ConsolesPlatformId], found!.PlatformIds);
+  }
+
+  [Fact]
   public async Task Select_CompanyAndRoleMatchingExistingVacancyOnNewPage_ShowsSimilarWarning()
   {
     var company = await Companies.CreateAsync(new CompanyInput("pixel-forge", "Pixel Forge", null, null, [], []));
@@ -175,6 +236,11 @@ public class VacancyPageTests : VacancyWebFixture
   private static async Task SelectCompanyAsync(IRenderedComponent<VacancyPage> cut, CompanyListItem company)
   {
     await cut.InvokeAsync(() => CompanyAutocomplete(cut).Instance.ValueChanged.InvokeAsync(company));
+  }
+
+  private static IRenderedComponent<MudSelect<Guid>> PlatformsSelect(IRenderedComponent<VacancyPage> cut)
+  {
+    return cut.FindComponents<MudSelect<Guid>>().Single(c => c.Instance.Class?.Contains("vacancy-platforms") == true);
   }
 
   private static async Task SelectRoleAsync(IRenderedComponent<VacancyPage> cut, Guid roleId)

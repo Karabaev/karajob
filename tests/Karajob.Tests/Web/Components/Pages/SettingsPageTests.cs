@@ -115,6 +115,59 @@ public class SettingsPageTests : SettingsWebFixture
   }
 
   [Fact]
+  public void Render_DefaultGoal_ShowsPlatformsMultiSelectWithLabelAndNoSelection()
+  {
+    var cut = Context.Render<SettingsPage>();
+
+    cut.WaitForAssertion(() =>
+    {
+      var select = PlatformsSelect(cut).Instance;
+      Assert.True(select.MultiSelection);
+      Assert.Equal("Платформы", select.Label);
+      Assert.Empty(select.SelectedValues!);
+    });
+  }
+
+  [Fact]
+  public async Task Render_StoredGoalWithPlatforms_ShowsStoredPlatforms()
+  {
+    var goal = await Service.GetAsync();
+    await Service.UpdateAsync(new SearchGoalInput(
+      goal.RoleId,
+      goal.LocationIds,
+      [SeedData.ConsolesPlatformId, SeedData.PcPlatformId],
+      goal.Industries,
+      goal.MustHave,
+      goal.WeeklyApplicationTarget,
+      goal.Deadline,
+      goal.DesiredMonthlyIncome,
+      goal.IncomeCurrency,
+      goal.MarketThresholdPerWeek,
+      goal.ConversionThresholdPermille,
+      goal.MinSampleSize,
+      goal.MaturationDays));
+
+    var cut = Context.Render<SettingsPage>();
+
+    cut.WaitForAssertion(() => Assert.Equal(
+      new[] { SeedData.ConsolesPlatformId, SeedData.PcPlatformId }.Order(),
+      PlatformsSelect(cut).Instance.SelectedValues!.Order()));
+  }
+
+  [Fact]
+  public async Task Save_PlatformsSelected_PersistsPlatforms()
+  {
+    var cut = Context.Render<SettingsPage>();
+    cut.WaitForElement(".settings-role");
+    await cut.InvokeAsync(() => PlatformsSelect(cut).Instance.SelectedValuesChanged.InvokeAsync([SeedData.VrPlatformId, SeedData.WebPlatformId]));
+
+    cut.Find(".settings-save").Click();
+
+    var saved = await WaitForGoalAsync(g => g.PlatformIds.Count == 2);
+    Assert.Equal(new[] { SeedData.VrPlatformId, SeedData.WebPlatformId }.Order(), saved.PlatformIds.Order());
+  }
+
+  [Fact]
   public async Task Save_MinSampleZero_DoesNotSaveAndMarksFieldInvalid()
   {
     var cut = Context.Render<SettingsPage>();
@@ -212,6 +265,11 @@ public class SettingsPageTests : SettingsWebFixture
   private static IRenderedComponent<MudSelect<Guid?>> RoleSelect(IRenderedComponent<SettingsPage> cut)
   {
     return cut.FindComponents<MudSelect<Guid?>>().Single(c => c.Instance.Class?.Contains("settings-role") == true);
+  }
+
+  private static IRenderedComponent<MudSelect<Guid>> PlatformsSelect(IRenderedComponent<SettingsPage> cut)
+  {
+    return cut.FindComponents<MudSelect<Guid>>().Single(c => c.Instance.Class?.Contains("settings-platforms") == true);
   }
 
   private static IRenderedComponent<MudSelect<Guid>> LocationsSelect(IRenderedComponent<SettingsPage> cut)
