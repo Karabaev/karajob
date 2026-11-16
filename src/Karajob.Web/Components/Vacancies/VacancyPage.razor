@@ -82,7 +82,7 @@ else if (_loaded)
             </MudSelect>
             <MudSelect T="Guid" Class="vacancy-platforms" Label="Платформы" MultiSelection="true"
                        SelectedValues="_platformIds" SelectedValuesChanged="OnPlatformsChanged"
-                       ToStringFunc="PlatformName" MultiSelectionTextFunc="PlatformsText"
+                       ToStringFunc="PlatformName" MultiSelectionTextFunc="JoinNames"
                        HelperText="@EmptyHint(_platforms)"
                        Error="HasError(nameof(VacancyInput.PlatformIds))" ErrorText="@ErrorOf(nameof(VacancyInput.PlatformIds))">
               @foreach (var platform in _platforms)
@@ -364,11 +364,6 @@ else if (_loaded)
   private string PlatformName(Guid id)
   {
     return _platforms.FirstOrDefault(p => p.Id == id)?.Name ?? "";
-  }
-
-  private string PlatformsText(IReadOnlyList<string?> names)
-  {
-    return string.Join(", ", names);
   }
 
   private string LanguageName(Guid? id)

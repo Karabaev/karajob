@@ -40,7 +40,7 @@ public abstract class VacancyWebFixture : IAsyncLifetime
     Guid? roleId = null,
     IReadOnlyList<Guid>? hypothesisIds = null)
   {
-    return new VacancyInput(url, companyId, roleId, null, [], null,null, null, null, null, hypothesisIds ?? [], null, null);
+    return new VacancyInput(url, companyId, roleId, null, [], null, null,null, null, null, hypothesisIds ?? [], null, null);
   }
 
   protected async Task<Guid> CreateHypothesisAsync(string name = "Unity Developer RU")

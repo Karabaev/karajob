@@ -186,14 +186,19 @@ public class PlatformPersistenceTests
     var vacancy = new Vacancy(other.Id, "https://example.com/jobs/isolation", VacancySource.Manual, Moment);
     vacancy.SetPlatforms([SeedData.WebPlatformId]);
     await SaveAsync(database, other.Id, c => c.Vacancies.Add(vacancy));
+    var goal = new SearchGoal(other.Id);
+    goal.SetPlatforms([SeedData.MobilePlatformId]);
+    await SaveAsync(database, other.Id, c => c.SearchGoals.Add(goal));
 
     await using var owner = database.CreateContext(SeedData.OwnerId);
     await using var otherContext = database.CreateContext(other.Id);
 
     Assert.Empty(await owner.HypothesisPlatforms.ToListAsync());
     Assert.Empty(await owner.VacancyPlatforms.ToListAsync());
+    Assert.Empty(await owner.SearchGoalPlatforms.ToListAsync());
     Assert.Single(await otherContext.HypothesisPlatforms.ToListAsync());
     Assert.Single(await otherContext.VacancyPlatforms.ToListAsync());
+    Assert.Single(await otherContext.SearchGoalPlatforms.ToListAsync());
     Assert.Equal(5, await owner.Platforms.CountAsync());
   }
 
