@@ -56,7 +56,7 @@ else if (_loaded)
                             MaxLength="Vacancy.TitleMaxLength" @bind-Value="_title" />
               <MudTooltip Text="@L["Page.FetchTitle"]">
                 <MudIconButton Class="vacancy-fetch-title" Icon="@Icons.Material.Filled.Download" AriaLabel="@L["Page.FetchTitle"]"
-                               Disabled="_fetchingTitle" OnClick="FetchTitleAsync" />
+                               Disabled="_fetchingTitle || _saving" OnClick="FetchTitleAsync" />
               </MudTooltip>
             </MudStack>
 
@@ -175,7 +175,7 @@ else if (_loaded)
             <MudTextField T="string" Class="vacancy-notes" Label="@L["Page.Notes"]" Lines="3" Sizing="InputSizing.Auto"
                           @bind-Value="_notes" />
 
-            <MudButton Class="vacancy-save" Variant="Variant.Filled" Color="Color.Primary" Disabled="_saving" OnClick="SaveAsync">@L["Common.Save"]</MudButton>
+            <MudButton Class="vacancy-save" Variant="Variant.Filled" Color="Color.Primary" Disabled="_saving || _fetchingTitle" OnClick="SaveAsync">@L["Common.Save"]</MudButton>
           </MudStack>
         </MudForm>
       </MudPaper>
@@ -475,7 +475,6 @@ else if (_loaded)
     return _errors.GetValueOrDefault(key);
   }
 
-  // The page read runs inside this circuit's event handler; the button stays disabled until it returns.
   private async Task FetchTitleAsync()
   {
     if (_fetchingTitle) return;
@@ -484,7 +483,7 @@ else if (_loaded)
     try
     {
       var title = await VacancyService.FetchTitleAsync(_url ?? "");
-      _errors = new Dictionary<string, string>();
+      _errors = _errors.Where(e => e.Key != nameof(VacancyInput.Url)).ToDictionary();
       if (title is null)
       {
         Snackbar.Add(L["Page.TitleNotFound"], Severity.Warning);
@@ -495,7 +494,7 @@ else if (_loaded)
     }
     catch (ValidationFailedException exception)
     {
-      _errors = exception.Errors;
+      _errors = _errors.Where(e => e.Key != nameof(VacancyInput.Url)).Concat(exception.Errors).ToDictionary();
     }
     finally
     {

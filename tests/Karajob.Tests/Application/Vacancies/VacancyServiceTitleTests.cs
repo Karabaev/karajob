@@ -157,6 +157,17 @@ public class VacancyServiceTitleTests : VacancyServiceFixture
   }
 
   [Fact]
+  public async Task QuickAddAsync_SurrogatePairAtCutPoint_DoesNotSplitIt()
+  {
+    _reader.Title = new string('a', Vacancy.TitleMaxLength - 1) + "😀" + "tail";
+
+    var result = await TitledService().QuickAddAsync(new QuickAddInput(DefaultUrl, null));
+
+    var stored = await LoadAsync(result.VacancyId);
+    Assert.Equal(new string('a', Vacancy.TitleMaxLength - 1), stored.Title);
+  }
+
+  [Fact]
   public async Task QuickAddAsync_ReaderReturnsWhitespace_StoresNullTitle()
   {
     _reader.Title = "   ";

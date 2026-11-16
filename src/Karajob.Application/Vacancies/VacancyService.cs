@@ -174,7 +174,21 @@ public partial class VacancyService(
     Apply(vacancy, normalized);
 
     db.Vacancies.Add(vacancy);
-    await db.SaveChangesAsync(cancellationToken);
+    try
+    {
+      await db.SaveChangesAsync(cancellationToken);
+    }
+    catch (DbUpdateException)
+    {
+      if (!await UrlTakenAsync(normalized.Url, cancellationToken)) throw;
+
+      // The same URL was added concurrently while the page title was being read.
+      throw new ValidationFailedException(new Dictionary<string, string>
+      {
+        [nameof(VacancyInput.Url)] = localizer["Error.UrlExists"],
+      });
+    }
+
     return await BuildDetailsAsync(db, vacancy, cancellationToken);
   }
 
@@ -558,6 +572,12 @@ public partial class VacancyService(
     }
   }
 
+  private async Task<bool> UrlTakenAsync(string url, CancellationToken cancellationToken)
+  {
+    await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+    return await db.Vacancies.AnyAsync(v => v.Url == url, cancellationToken);
+  }
+
   private async Task<string?> ReadTitleAsync(string url, CancellationToken cancellationToken)
   {
     return CleanTitle(await titleReader.ReadTitleAsync(url, cancellationToken));
@@ -566,7 +586,10 @@ public partial class VacancyService(
   private static string? CleanTitle(string? title)
   {
     var trimmed = BlankToNull(title);
-    return trimmed is { Length: > Vacancy.TitleMaxLength } ? trimmed[..Vacancy.TitleMaxLength].TrimEnd() : trimmed;
+    if (trimmed is not { Length: > Vacancy.TitleMaxLength }) return trimmed;
+
+    var length = char.IsHighSurrogate(trimmed[Vacancy.TitleMaxLength - 1]) ? Vacancy.TitleMaxLength - 1 : Vacancy.TitleMaxLength;
+    return trimmed[..length].TrimEnd();
   }
 
   private static string? BlankToNull(string? value)

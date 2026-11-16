@@ -41,7 +41,7 @@ public static partial class PageTitleParser
     var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
     foreach (Match m in AttributeRegex().Matches(tag))
     {
-      var value = m.Groups[2].Success ? m.Groups[2].Value : m.Groups[3].Value;
+      var value = m.Groups[2].Success ? m.Groups[2].Value : m.Groups[3].Success ? m.Groups[3].Value : m.Groups[4].Value;
       result.TryAdd(m.Groups[1].Value, value);
     }
 
@@ -55,10 +55,10 @@ public static partial class PageTitleParser
     return collapsed.Length == 0 ? null : collapsed;
   }
 
-  [GeneratedRegex("<meta\\b[^>]*>", RegexOptions.IgnoreCase)]
+  [GeneratedRegex(@"<meta\b(?:[^>""']|""[^""]*""|'[^']*')*>", RegexOptions.IgnoreCase)]
   private static partial Regex MetaTagRegex();
 
-  [GeneratedRegex("([a-zA-Z_:][-a-zA-Z0-9_:.]*)\\s*=\\s*(?:\"([^\"]*)\"|'([^']*)')", RegexOptions.IgnoreCase)]
+  [GeneratedRegex(@"([a-zA-Z_:][-a-zA-Z0-9_:.]*)\s*=\s*(?:""([^""]*)""|'([^']*)'|([^\s""'>]+))", RegexOptions.IgnoreCase)]
   private static partial Regex AttributeRegex();
 
   [GeneratedRegex("<title\\b[^>]*>(.*?)</title\\s*>", RegexOptions.IgnoreCase | RegexOptions.Singleline)]

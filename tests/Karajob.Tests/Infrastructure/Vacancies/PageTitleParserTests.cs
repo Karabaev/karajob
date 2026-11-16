@@ -13,6 +13,18 @@ public class PageTitleParserTests
   }
 
   [Fact]
+  public void Parse_UnquotedAttributes_ReadsOgTitle()
+  {
+    Assert.Equal("Unity", PageTitleParser.Parse("<meta property=og:title content=Unity><title>Fallback</title>"));
+  }
+
+  [Fact]
+  public void Parse_GreaterThanInsideContent_ReadsWholeOgTitle()
+  {
+    Assert.Equal("C# > Unity", PageTitleParser.Parse("<meta property=\"og:title\" content=\"C# > Unity\"><title>Fallback</title>"));
+  }
+
+  [Fact]
   public void Parse_ContentBeforeProperty_ReadsOgTitle()
   {
     var html = "<meta content=\"Reversed\" property=\"og:title\">";
