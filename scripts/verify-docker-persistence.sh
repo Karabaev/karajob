@@ -56,6 +56,16 @@ wait_for_http() {
   fail "$url did not return 200 within 60 s"
 }
 
+expect_blazor_script() {
+  # A restore that skipped the ASP.NET web assets package leaves the page without blazor.web.js (404), and the UI is dead.
+  local html src
+  html="$(curl -s "$url")"
+  src="$(grep -oE '<script[^>]*src="[^"]*blazor[^"]*"' <<< "$html" | grep -oE '_framework/[^"]+' | head -n 1 || true)"
+  [[ -n "$src" ]] || fail "no blazor script tag found in $url"
+  [[ "$(curl -s -o /dev/null -w '%{http_code}' "http://localhost:$KARAJOB_PORT/$src" || true)" == "200" ]] \
+    || fail "$src did not return 200"
+}
+
 expect_log() {
   # Captured first: grep -q closing the pipe early would fail the step with SIGPIPE under pipefail.
   local logs
@@ -81,6 +91,7 @@ key_files() {
 echo "== First start on empty data folder $data_dir"
 "${compose[@]}" up -d --build
 wait_for_http
+expect_blazor_script
 [[ -f "$data_dir/karajob.db" ]] || fail "karajob.db was not created in the data folder"
 expect_log "Applying [0-9]+ migration"
 keys_before="$(key_files)"
@@ -92,6 +103,7 @@ echo "== Rebuild image without cache and recreate container"
 "${compose[@]}" build --no-cache
 "${compose[@]}" up -d --force-recreate
 wait_for_http
+expect_blazor_script
 expect_log "Database is up to date"
 [[ "$(key_files)" == "$keys_before" ]] || fail "Data Protection keys changed after recreation"
 

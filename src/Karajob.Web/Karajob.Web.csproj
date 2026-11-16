@@ -1,6 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
     <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
+    <!-- Dockerfile restores before the .razor files are copied; without this the SDK heuristic skips
+         Microsoft.AspNetCore.App.Internal.Assets (blazor.web.js) and the later publish without restore cannot add it. -->
+    <RequiresAspNetWebAssets>true</RequiresAspNetWebAssets>
   </PropertyGroup>
 
   <ItemGroup>
