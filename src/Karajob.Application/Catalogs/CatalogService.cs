@@ -98,7 +98,7 @@ public class CatalogService(IKarajobDbContextFactory dbContextFactory)
     await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
     var entry = await FindAsync(db, kind, id, cancellationToken);
 
-    if (await IsReferencedAsync(db, kind, id, cancellationToken))
+    if (await IsReferencedAsync(db, kind, entry, cancellationToken))
     {
       throw new ValidationFailedException(new Dictionary<string, string>
       {
@@ -204,8 +204,9 @@ public class CatalogService(IKarajobDbContextFactory dbContextFactory)
     return normalized;
   }
 
-  private static async Task<bool> IsReferencedAsync(IKarajobDbContext db, CatalogKind kind, Guid id, CancellationToken cancellationToken)
+  private static async Task<bool> IsReferencedAsync(IKarajobDbContext db, CatalogKind kind, CatalogEntry entry, CancellationToken cancellationToken)
   {
+    var id = entry.Id;
     switch (kind)
     {
       case CatalogKind.Role:
@@ -225,7 +226,7 @@ public class CatalogService(IKarajobDbContextFactory dbContextFactory)
           || await db.SearchGoalPlatforms.IgnoreQueryFilters().AnyAsync(p => p.PlatformId == id, cancellationToken)
           || await db.VacancyPlatforms.IgnoreQueryFilters().AnyAsync(p => p.PlatformId == id, cancellationToken);
       case CatalogKind.Currency:
-        var code = await db.Currencies.Where(c => c.Id == id).Select(c => c.Code).SingleAsync(cancellationToken);
+        var code = ((Currency)entry).Code;
         return await db.SearchGoals.IgnoreQueryFilters().AnyAsync(g => g.IncomeCurrency == code, cancellationToken)
           || await db.Vacancies.IgnoreQueryFilters().AnyAsync(v => v.Salary != null && v.Salary.Currency == code, cancellationToken);
       case CatalogKind.Engine:

@@ -1,6 +1,7 @@
 using Karajob.Application.Common;
 using Karajob.Application.Persistence;
 using Karajob.Domain.Goals;
+using Karajob.Domain.Normalization;
 using Microsoft.EntityFrameworkCore;
 
 namespace Karajob.Application.Goals;
@@ -90,7 +91,7 @@ public class SearchGoalService(IKarajobDbContextFactory dbContextFactory)
       errors[nameof(SearchGoalInput.MaturationDays)] = $"Срок созревания — от 0 до {SearchGoal.MaxMaturationDays} дней";
     }
 
-    var currency = string.IsNullOrWhiteSpace(input.IncomeCurrency) ? null : input.IncomeCurrency.Trim().ToUpperInvariant();
+    var currency = string.IsNullOrWhiteSpace(input.IncomeCurrency) ? null : input.IncomeCurrency;
     if (input.DesiredMonthlyIncome is { } income)
     {
       if (income <= 0)
@@ -108,11 +109,20 @@ public class SearchGoalService(IKarajobDbContextFactory dbContextFactory)
       errors[nameof(SearchGoalInput.DesiredMonthlyIncome)] = "Укажите желаемый доход";
     }
 
-    if (currency is not null && (currency.Length != 3 || !currency.All(char.IsAsciiLetter)))
+    string? code = null;
+    if (currency is not null)
     {
-      errors[nameof(SearchGoalInput.IncomeCurrency)] = "Валюта — 3 латинские буквы";
+      try
+      {
+        code = Normalize.CurrencyCode(currency);
+      }
+      catch (ArgumentException)
+      {
+        errors[nameof(SearchGoalInput.IncomeCurrency)] = "Валюта — 3 латинские буквы";
+      }
     }
-    else if (currency is not null && !await db.Currencies.AnyAsync(c => c.Code == currency, cancellationToken))
+
+    if (code is not null && !await db.Currencies.AnyAsync(c => c.Code == code, cancellationToken))
     {
       errors[nameof(SearchGoalInput.IncomeCurrency)] = "Валюта не найдена";
     }
@@ -122,7 +132,7 @@ public class SearchGoalService(IKarajobDbContextFactory dbContextFactory)
       throw new ValidationFailedException(errors);
     }
 
-    return currency;
+    return code;
   }
 
   private static SearchGoalDetails ToDetails(SearchGoal goal)

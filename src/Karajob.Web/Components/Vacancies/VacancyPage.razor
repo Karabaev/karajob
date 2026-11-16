@@ -212,7 +212,7 @@ else if (_loaded)
   private WorkFormat _format = WorkFormat.None;
   private long? _salaryMin;
   private long? _salaryMax;
-  private string? _salaryCurrency = DefaultCurrency;
+  private string? _salaryCurrency;
   private IReadOnlyCollection<Guid> _hypothesisIds = [];
   private string? _description;
   private string? _notes;
@@ -274,7 +274,7 @@ else if (_loaded)
     _format = _details?.WorkFormat ?? WorkFormat.None;
     _salaryMin = _details?.SalaryMin;
     _salaryMax = _details?.SalaryMax;
-    _salaryCurrency = _details?.SalaryCurrency ?? DefaultCurrency;
+    _salaryCurrency = _details?.SalaryCurrency ?? (_currencies.Any(c => c.Code == DefaultCurrency) ? DefaultCurrency : null);
     _hypothesisIds = _details?.HypothesisIds.ToList() ?? [];
     _description = _details?.Description;
     _notes = _details?.Notes;
