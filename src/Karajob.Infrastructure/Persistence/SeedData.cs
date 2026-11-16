@@ -17,4 +17,10 @@ public static class SeedData
 
   public static readonly Guid RussianLanguageId = new("019a7c1e-0000-7000-8000-000000000301");
   public static readonly Guid EnglishLanguageId = new("019a7c1e-0000-7000-8000-000000000302");
+
+  public static readonly Guid PcPlatformId = new("019a7c1e-0000-7000-8000-000000000501");
+  public static readonly Guid ConsolesPlatformId = new("019a7c1e-0000-7000-8000-000000000502");
+  public static readonly Guid MobilePlatformId = new("019a7c1e-0000-7000-8000-000000000503");
+  public static readonly Guid VrPlatformId = new("019a7c1e-0000-7000-8000-000000000504");
+  public static readonly Guid WebPlatformId = new("019a7c1e-0000-7000-8000-000000000505");
 }

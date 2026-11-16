@@ -185,6 +185,7 @@ public class HypothesisService(IKarajobDbContextFactory dbContextFactory, ICurre
       h.Name,
       h.RoleId,
       h.Locations.Select(l => l.LocationId).ToList(),
+      h.Platforms.Select(p => p.PlatformId).ToList(),
       h.Industries.ToList(),
       h.WorkFormat,
       h.LanguageId,

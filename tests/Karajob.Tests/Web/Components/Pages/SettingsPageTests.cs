@@ -30,6 +30,7 @@ public class SettingsPageTests : SettingsWebFixture
     await Service.UpdateAsync(new SearchGoalInput(
       SeedData.UnrealDeveloperRoleId,
       [SeedData.EuLocationId, SeedData.SerbiaLocationId],
+      [],
       "Gamedev",
       "Remote",
       17,

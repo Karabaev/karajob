@@ -8,6 +8,7 @@ namespace Karajob.Domain.Vacancies;
 public class Vacancy : IUserOwned
 {
   private readonly List<VacancyMatch> matches = [];
+  private readonly List<VacancyPlatform> platforms = [];
   private readonly List<ApplicationEvent> events = [];
   private DateTime? publishedAt;
 
@@ -17,6 +18,7 @@ public class Vacancy : IUserOwned
   public Guid? RoleId { get; set; }
   public string Url { get; private set; }
   public Guid? LocationId { get; set; }
+  public IReadOnlyCollection<VacancyPlatform> Platforms => platforms;
   public Guid? LanguageId { get; set; }
   public WorkFormat? WorkFormat { get; set; }
   public SalaryRange? Salary { get; set; }
@@ -39,6 +41,11 @@ public class Vacancy : IUserOwned
   public void ChangeUrl(string url)
   {
     Url = Normalize.VacancyUrl(url);
+  }
+
+  public void SetPlatforms(IEnumerable<Guid> platformIds)
+  {
+    throw new NotImplementedException();
   }
 
   public VacancyMatch SetMatch(Guid hypothesisId, int? score, string? rationale, MatchAuthor matchedBy)

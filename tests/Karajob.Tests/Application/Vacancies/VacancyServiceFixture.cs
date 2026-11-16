@@ -39,13 +39,15 @@ public abstract class VacancyServiceFixture : IAsyncLifetime
     string? salaryCurrency = null,
     IReadOnlyList<Guid>? hypothesisIds = null,
     string? description = null,
-    string? notes = null)
+    string? notes = null,
+    IReadOnlyList<Guid>? platformIds = null)
   {
     return new VacancyInput(
       url,
       companyId,
       roleId,
       locationId,
+      platformIds ?? [],
       languageId,
       workFormat,
       salaryMin,
@@ -78,6 +80,7 @@ public abstract class VacancyServiceFixture : IAsyncLifetime
     var hypothesis = await service.CreateAsync(new HypothesisInput(
       name,
       SeedData.UnityDeveloperRoleId,
+      [],
       [],
       [],
       WorkFormat.Remote,

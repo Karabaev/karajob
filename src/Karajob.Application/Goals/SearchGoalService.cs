@@ -112,6 +112,7 @@ public class SearchGoalService(IKarajobDbContextFactory dbContextFactory)
     return new SearchGoalDetails(
       goal.RoleId,
       goal.Locations.Select(l => l.LocationId).ToList(),
+      goal.Platforms.Select(p => p.PlatformId).ToList(),
       goal.Industries,
       goal.MustHave,
       goal.WeeklyApplicationTarget,

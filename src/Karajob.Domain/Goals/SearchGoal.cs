@@ -9,11 +9,13 @@ public class SearchGoal : IUserOwned
   public const int MaxMaturationDays = 365;
 
   private readonly List<SearchGoalLocation> locations = [];
+  private readonly List<SearchGoalPlatform> platforms = [];
 
   public Guid Id { get; private set; }
   public Guid UserId { get; private set; }
   public Guid? RoleId { get; set => field = value is { } id ? Require.NotEmpty(id) : null; }
   public IReadOnlyCollection<SearchGoalLocation> Locations => locations;
+  public IReadOnlyCollection<SearchGoalPlatform> Platforms => platforms;
   public string? Industries { get; set => field = BlankToNull(value); }
   public string? MustHave { get; set => field = BlankToNull(value); }
 
@@ -81,6 +83,11 @@ public class SearchGoal : IUserOwned
     {
       locations.Add(new SearchGoalLocation(UserId, Id, locationId));
     }
+  }
+
+  public void SetPlatforms(IEnumerable<Guid> platformIds)
+  {
+    throw new NotImplementedException();
   }
 
   public void SetDesiredIncome(long? amount, string? currency)

@@ -21,16 +21,20 @@ public interface IKarajobDbContext : IAsyncDisposable
   DbSet<Role> Roles { get; }
   DbSet<Location> Locations { get; }
   DbSet<Language> Languages { get; }
+  DbSet<Platform> Platforms { get; }
   DbSet<Hypothesis> Hypotheses { get; }
   DbSet<HypothesisLocation> HypothesisLocations { get; }
+  DbSet<HypothesisPlatform> HypothesisPlatforms { get; }
   DbSet<CvDocument> CvDocuments { get; }
   DbSet<CvVersion> CvVersions { get; }
   DbSet<Vacancy> Vacancies { get; }
   DbSet<VacancyMatch> VacancyMatches { get; }
+  DbSet<VacancyPlatform> VacancyPlatforms { get; }
   DbSet<JobApplication> JobApplications { get; }
   DbSet<ApplicationEvent> ApplicationEvents { get; }
   DbSet<SearchGoal> SearchGoals { get; }
   DbSet<SearchGoalLocation> SearchGoalLocations { get; }
+  DbSet<SearchGoalPlatform> SearchGoalPlatforms { get; }
 
   Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }
