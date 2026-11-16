@@ -12,8 +12,8 @@ public class CurrencyConfiguration : IEntityTypeConfiguration<Currency>
     builder.HasAlternateKey(c => c.Code);
     builder.HasIndex(c => c.NormalizedName).IsUnique();
     builder.HasData(
-      new { Id = SeedData.RubCurrencyId, Code = "RUB", Name = "Российский рубль", NormalizedName = "российский рубль" },
-      new { Id = SeedData.UsdCurrencyId, Code = "USD", Name = "Доллар США", NormalizedName = "доллар сша" },
-      new { Id = SeedData.EurCurrencyId, Code = "EUR", Name = "Евро", NormalizedName = "евро" });
+      new { Id = SeedData.RubCurrencyId, Code = "RUB", Name = "Russian ruble", NormalizedName = "russian ruble" },
+      new { Id = SeedData.UsdCurrencyId, Code = "USD", Name = "US dollar", NormalizedName = "us dollar" },
+      new { Id = SeedData.EurCurrencyId, Code = "EUR", Name = "Euro", NormalizedName = "euro" });
   }
 }

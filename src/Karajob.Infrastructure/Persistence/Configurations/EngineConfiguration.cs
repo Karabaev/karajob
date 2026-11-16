@@ -15,6 +15,6 @@ public class EngineConfiguration : IEntityTypeConfiguration<Engine>
       new { Id = SeedData.GodotEngineId, Name = "Godot", NormalizedName = "godot" },
       new { Id = SeedData.DefoldEngineId, Name = "Defold", NormalizedName = "defold" },
       new { Id = SeedData.CocosEngineId, Name = "Cocos", NormalizedName = "cocos" },
-      new { Id = SeedData.ProprietaryEngineId, Name = "Собственный", NormalizedName = "собственный" });
+      new { Id = SeedData.ProprietaryEngineId, Name = "Proprietary", NormalizedName = "proprietary" });
   }
 }

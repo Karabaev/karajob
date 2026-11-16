@@ -126,22 +126,22 @@ namespace Karajob.Migrations.Sqlite.Migrations
                         {
                             Id = new Guid("019a7c1e-0000-7000-8000-000000000601"),
                             Code = "RUB",
-                            Name = "Российский рубль",
-                            NormalizedName = "российский рубль"
+                            Name = "Russian ruble",
+                            NormalizedName = "russian ruble"
                         },
                         new
                         {
                             Id = new Guid("019a7c1e-0000-7000-8000-000000000602"),
                             Code = "USD",
-                            Name = "Доллар США",
-                            NormalizedName = "доллар сша"
+                            Name = "US dollar",
+                            NormalizedName = "us dollar"
                         },
                         new
                         {
                             Id = new Guid("019a7c1e-0000-7000-8000-000000000603"),
                             Code = "EUR",
-                            Name = "Евро",
-                            NormalizedName = "евро"
+                            Name = "Euro",
+                            NormalizedName = "euro"
                         });
                 });
 
@@ -199,8 +199,8 @@ namespace Karajob.Migrations.Sqlite.Migrations
                         new
                         {
                             Id = new Guid("019a7c1e-0000-7000-8000-000000000706"),
-                            Name = "Собственный",
-                            NormalizedName = "собственный"
+                            Name = "Proprietary",
+                            NormalizedName = "proprietary"
                         });
                 });
 
@@ -236,8 +236,8 @@ namespace Karajob.Migrations.Sqlite.Migrations
                         {
                             Id = new Guid("019a7c1e-0000-7000-8000-000000000301"),
                             Code = "ru",
-                            Name = "Русский",
-                            NormalizedName = "русский"
+                            Name = "Russian",
+                            NormalizedName = "russian"
                         },
                         new
                         {

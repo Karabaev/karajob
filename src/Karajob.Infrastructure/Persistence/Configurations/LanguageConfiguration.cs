@@ -11,7 +11,7 @@ public class LanguageConfiguration : IEntityTypeConfiguration<Language>
     builder.HasIndex(l => l.NormalizedName).IsUnique();
     builder.HasIndex(l => l.Code).IsUnique();
     builder.HasData(
-      new { Id = SeedData.RussianLanguageId, Code = "ru", Name = "Русский", NormalizedName = "русский" },
+      new { Id = SeedData.RussianLanguageId, Code = "ru", Name = "Russian", NormalizedName = "russian" },
       new { Id = SeedData.EnglishLanguageId, Code = "en", Name = "English", NormalizedName = "english" });
   }
 }
