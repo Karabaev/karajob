@@ -14,15 +14,17 @@ Self-hosted: один Docker-контейнер (ASP.NET Core + Blazor Server + 
 
 Один образ `karajob`, одна папка данных на хосте, смонтированная как `/data` (SQLite, бэкапы перед миграциями, ключи Data Protection).
 
+Локально — сборка из исходников корневым `docker-compose.yml`:
+
 ```bash
 cp .env.example .env
 mkdir -p data && sudo chown 1654:1654 data   # только Linux: контейнер работает от пользователя app (UID 1654)
 docker compose up -d --build
 ```
 
-Приложение — на `http://<хост>:8080` (порт и папка данных — в `.env`). Обновление: `git pull && docker compose up -d --build`; миграции применятся при старте, перед ними база копируется в `data/backups/`. Раз в сутки приложение кладёт снимок базы в `data/backups/daily/`.
+Приложение — на `http://<хост>:8080` (порт и папка данных — в `.env`). Локальное обновление: `git pull && docker compose up -d --build`; миграции применятся при старте, перед ними база копируется в `data/backups/`. Раз в сутки приложение кладёт снимок базы в `data/backups/daily/`.
 
-Выкат на домашний сервер, бэкап вне сервера (restic), восстановление и откат: [docs/deploy.md](docs/deploy.md).
+На сервере ничего не собирается: CI на каждый push в `master` публикует образ `ghcr.io/karabaev/karajob` с тегами `sha-<коммит>` и `latest`, а сервер запускает явный тег через [docs/deploy/compose.yaml](docs/deploy/compose.yaml). Выкат, обновление и откат по тегу, бэкап вне сервера (restic), восстановление: [docs/deploy.md](docs/deploy.md).
 
 Проверка, что пересборка образа и пересоздание контейнера не теряют данные (её же гоняет CI):
 
