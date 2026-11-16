@@ -368,6 +368,65 @@ public class VacancyPageTests : VacancyWebFixture
     await cut.InvokeAsync(() => CompanyAutocomplete(cut).Instance.ValueChanged.InvokeAsync(company));
   }
 
+  [Fact]
+  public async Task Render_RoleSelected_HypothesesSelectOffersOnlyHypothesesOfThatRole()
+  {
+    var unity = await CreateHypothesisAsync("Unity one");
+    await CreateHypothesisAsync("Unreal one", SeedData.UnrealDeveloperRoleId);
+    var cut = Context.Render<VacancyPage>();
+    cut.WaitForElement(".vacancy-url input");
+
+    await SelectRoleAsync(cut, SeedData.UnityDeveloperRoleId);
+
+    cut.WaitForAssertion(() => Assert.Equal([unity], HypothesisOptionIds(cut)));
+  }
+
+  [Fact]
+  public async Task Render_NoRoleSelected_HypothesesSelectOffersAllHypotheses()
+  {
+    var unity = await CreateHypothesisAsync("Unity one");
+    var unreal = await CreateHypothesisAsync("Unreal one", SeedData.UnrealDeveloperRoleId);
+
+    var cut = Context.Render<VacancyPage>();
+
+    cut.WaitForAssertion(() => Assert.Equal(new[] { unity, unreal }.Order(), HypothesisOptionIds(cut).Order()));
+  }
+
+  [Fact]
+  public async Task Render_SelectedHypothesisOfAnotherRole_StaysInOptions()
+  {
+    var unity = await CreateHypothesisAsync("Unity one");
+    var unreal = await CreateHypothesisAsync("Unreal one", SeedData.UnrealDeveloperRoleId);
+    var created = await Vacancies.CreateAsync(Input("https://example.com/jobs/1", roleId: SeedData.UnityDeveloperRoleId, hypothesisIds: [unity]));
+    await MutateAsync(created.Id, v => v.RoleId = SeedData.UnrealDeveloperRoleId);
+
+    var cut = Context.Render<VacancyPage>(p => p.Add(c => c.Id, created.Id));
+
+    cut.WaitForAssertion(() => Assert.Equal(new[] { unity, unreal }.Order(), HypothesisOptionIds(cut).Order()));
+  }
+
+  [Fact]
+  public async Task Render_RoleChangedAfterHypothesisSelected_KeepsSelectedHypothesisAndHidesOthersOfOtherRoles()
+  {
+    var unity = await CreateHypothesisAsync("Unity one");
+    var unityTwo = await CreateHypothesisAsync("Unity two");
+    await CreateHypothesisAsync("Unreal one", SeedData.UnrealDeveloperRoleId);
+    var created = await Vacancies.CreateAsync(Input("https://example.com/jobs/1", roleId: SeedData.UnityDeveloperRoleId, hypothesisIds: [unity]));
+    var cut = Context.Render<VacancyPage>(p => p.Add(c => c.Id, created.Id));
+    cut.WaitForElement(".vacancy-url input");
+
+    await SelectRoleAsync(cut, SeedData.UnrealDeveloperRoleId);
+
+    cut.WaitForAssertion(() => Assert.DoesNotContain(unityTwo, HypothesisOptionIds(cut)));
+    Assert.Contains(unity, HypothesisOptionIds(cut));
+  }
+
+  private static List<Guid> HypothesisOptionIds(IRenderedComponent<VacancyPage> cut)
+  {
+    var select = cut.FindComponents<MudSelect<Guid>>().Single(c => c.Instance.Class?.Contains("vacancy-hypotheses") == true);
+    return select.FindComponents<MudSelectItem<Guid>>().Select(i => i.Instance.Value).ToList();
+  }
+
   private static IRenderedComponent<MudSelect<Guid>> PlatformsSelect(IRenderedComponent<VacancyPage> cut)
   {
     return cut.FindComponents<MudSelect<Guid>>().Single(c => c.Instance.Class?.Contains("vacancy-platforms") == true);

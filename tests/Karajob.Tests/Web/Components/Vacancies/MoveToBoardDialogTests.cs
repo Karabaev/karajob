@@ -29,6 +29,32 @@ public class MoveToBoardDialogTests : VacancyWebFixture
   }
 
   [Fact]
+  public async Task Render_VacancyWithRole_ListsOnlyHypothesesOfThatRole()
+  {
+    await CreateHypothesisAsync("Unity one");
+    await CreateHypothesisAsync("Unreal one", SeedData.UnrealDeveloperRoleId);
+    var vacancy = await Vacancies.CreateAsync(Input("https://example.com/jobs/1", roleId: SeedData.UnityDeveloperRoleId));
+
+    var (provider, _) = await ShowAsync(vacancy.Id);
+
+    var items = provider.WaitForElements(".move-to-board-hypothesis");
+    Assert.Single(items);
+    Assert.Contains("Unity one", items[0].TextContent);
+  }
+
+  [Fact]
+  public async Task Render_VacancyWithoutRole_ListsHypothesesOfAllRoles()
+  {
+    await CreateHypothesisAsync("Unity one");
+    await CreateHypothesisAsync("Unreal one", SeedData.UnrealDeveloperRoleId);
+    var vacancy = await Vacancies.CreateAsync(Input("https://example.com/jobs/1"));
+
+    var (provider, _) = await ShowAsync(vacancy.Id);
+
+    provider.WaitForAssertion(() => Assert.Equal(2, provider.FindAll(".move-to-board-hypothesis").Count));
+  }
+
+  [Fact]
   public async Task Render_NothingSelected_SubmitIsDisabled()
   {
     await CreateHypothesisAsync();

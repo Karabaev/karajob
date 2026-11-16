@@ -24,7 +24,7 @@ public class HypothesisService(
     return hypotheses
       .OrderBy(h => StatusRank(h.Status))
       .ThenBy(h => h.Name, StringComparer.OrdinalIgnoreCase)
-      .Select(h => new HypothesisListItem(h.Id, h.Name, roleNames[h.RoleId], h.WorkFormat, languageCodes[h.LanguageId], h.Status))
+      .Select(h => new HypothesisListItem(h.Id, h.Name, h.RoleId, roleNames[h.RoleId], h.WorkFormat, languageCodes[h.LanguageId], h.Status))
       .ToList();
   }
 
