@@ -1,6 +1,5 @@
 using Karajob.Application.Common;
 using Karajob.Application.MasterProfiles;
-using Karajob.Domain.MasterProfiles;
 using Karajob.Infrastructure.Persistence;
 using Karajob.Tests.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -20,7 +19,7 @@ public class MasterProfileServiceTests : MasterProfileServiceFixture
   {
     var details = await Service.GetAsync();
 
-    Assert.Equal(MasterProfileTemplate.Markdown, details.Markdown);
+    Assert.Equal(MasterProfileTestTemplate.English, details.Markdown);
     var version = Assert.Single(details.Versions);
     Assert.Equal(version.Id, details.CurrentVersionId);
     Assert.Equal(Now, version.CreatedAt);
@@ -77,7 +76,7 @@ public class MasterProfileServiceTests : MasterProfileServiceFixture
     Assert.Equal("# Mine", details.Markdown);
     Assert.Equal(2, details.Versions.Count);
     var older = await Service.GetVersionAsync(details.Versions[1].Id);
-    Assert.Equal(MasterProfileTemplate.Markdown, older.Markdown);
+    Assert.Equal(MasterProfileTestTemplate.English, older.Markdown);
     Assert.Equal((1, 2), await CountAsync(SeedData.OwnerId));
   }
 
@@ -117,7 +116,7 @@ public class MasterProfileServiceTests : MasterProfileServiceFixture
     var older = await Service.GetVersionAsync(first.CurrentVersionId);
     var newer = await Service.GetVersionAsync(saved.CurrentVersionId);
 
-    Assert.Equal(MasterProfileTemplate.Markdown, older.Markdown);
+    Assert.Equal(MasterProfileTestTemplate.English, older.Markdown);
     Assert.Equal(Now, older.CreatedAt);
     Assert.Null(older.Comment);
     Assert.Equal("# Second", newer.Markdown);
@@ -152,7 +151,7 @@ public class MasterProfileServiceTests : MasterProfileServiceFixture
 
     var details = await Service.RestoreAsync(first.CurrentVersionId);
 
-    Assert.Equal(MasterProfileTemplate.Markdown, details.Markdown);
+    Assert.Equal(MasterProfileTestTemplate.English, details.Markdown);
     Assert.Equal(3, details.Versions.Count);
     Assert.Equal(details.Versions[0].Id, details.CurrentVersionId);
     Assert.Equal(first.CurrentVersionId, details.Versions[0].RestoredFromVersionId);
@@ -179,7 +178,7 @@ public class MasterProfileServiceTests : MasterProfileServiceFixture
     Clock.UtcNow = Now.AddDays(1);
     await Service.SaveAsync(new MasterProfileInput("# Second", null));
     Clock.UtcNow = Now.AddDays(2);
-    await Service.SaveAsync(new MasterProfileInput(MasterProfileTemplate.Markdown, null));
+    await Service.SaveAsync(new MasterProfileInput(MasterProfileTestTemplate.English, null));
 
     await Assert.ThrowsAsync<ValidationFailedException>(() => Service.RestoreAsync(first.CurrentVersionId));
 
@@ -218,7 +217,7 @@ public class MasterProfileServiceTests : MasterProfileServiceFixture
 
     var details = await ServiceFor(other.Id).GetAsync();
 
-    Assert.Equal(MasterProfileTemplate.Markdown, details.Markdown);
+    Assert.Equal(MasterProfileTestTemplate.English, details.Markdown);
     Assert.Single(details.Versions);
     Assert.DoesNotContain(details.Versions, v => v.Comment == "owner");
     Assert.Equal((1, 2), await CountAsync(SeedData.OwnerId));

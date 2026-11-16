@@ -1,6 +1,6 @@
 using Bunit;
 using Karajob.Application.MasterProfiles;
-using Karajob.Domain.MasterProfiles;
+using Karajob.Tests.Application.MasterProfiles;
 using Karajob.Web.Components.MasterProfiles;
 using MudBlazor;
 
@@ -46,7 +46,7 @@ public class MasterProfilePageTests : MasterProfileWebFixture
   {
     var cut = RenderPage();
 
-    cut.WaitForAssertion(() => Assert.Equal(MasterProfileTemplate.Markdown, EditorText(cut)));
+    cut.WaitForAssertion(() => Assert.Equal(MasterProfileTestTemplate.English, EditorText(cut)));
   }
 
   [Fact]
@@ -65,7 +65,7 @@ public class MasterProfilePageTests : MasterProfileWebFixture
   public void Render_FirstOpen_HidesUnsavedIndicator()
   {
     var cut = RenderPage();
-    cut.WaitForAssertion(() => Assert.Equal(MasterProfileTemplate.Markdown, EditorText(cut)));
+    cut.WaitForAssertion(() => Assert.Equal(MasterProfileTestTemplate.English, EditorText(cut)));
 
     Assert.Empty(cut.FindAll(".master-profile-unsaved"));
   }
@@ -87,7 +87,7 @@ public class MasterProfilePageTests : MasterProfileWebFixture
     SetEditor(cut, "# Changed");
     cut.WaitForElement(".master-profile-unsaved");
 
-    SetEditor(cut, MasterProfileTemplate.Markdown);
+    SetEditor(cut, MasterProfileTestTemplate.English);
 
     cut.WaitForAssertion(() => Assert.Empty(cut.FindAll(".master-profile-unsaved")));
   }
@@ -119,21 +119,21 @@ public class MasterProfilePageTests : MasterProfileWebFixture
   public void Save_UnchangedText_ShowsNoChangesError()
   {
     var cut = RenderPage();
-    cut.WaitForAssertion(() => Assert.Equal(MasterProfileTemplate.Markdown, EditorText(cut)));
+    cut.WaitForAssertion(() => Assert.Equal(MasterProfileTestTemplate.English, EditorText(cut)));
 
     cut.Find(".master-profile-save").Click();
 
-    cut.WaitForAssertion(() => Assert.Contains("Нет изменений", cut.Markup));
+    cut.WaitForAssertion(() => Assert.Contains("No changes", cut.Markup));
   }
 
   [Fact]
   public async Task Save_UnchangedText_AddsNoVersion()
   {
     var cut = RenderPage();
-    cut.WaitForAssertion(() => Assert.Equal(MasterProfileTemplate.Markdown, EditorText(cut)));
+    cut.WaitForAssertion(() => Assert.Equal(MasterProfileTestTemplate.English, EditorText(cut)));
 
     cut.Find(".master-profile-save").Click();
-    cut.WaitForAssertion(() => Assert.Contains("Нет изменений", cut.Markup));
+    cut.WaitForAssertion(() => Assert.Contains("No changes", cut.Markup));
 
     var details = await Service.GetAsync();
     Assert.Single(details.Versions);
@@ -143,9 +143,9 @@ public class MasterProfilePageTests : MasterProfileWebFixture
   public void PreviewTab_TemplateText_RendersHeadingsInPreview()
   {
     var cut = RenderPage();
-    cut.WaitForAssertion(() => Assert.Equal(MasterProfileTemplate.Markdown, EditorText(cut)));
+    cut.WaitForAssertion(() => Assert.Equal(MasterProfileTestTemplate.English, EditorText(cut)));
 
-    cut.FindAll("[role=tab]").First(t => t.TextContent.Contains("Превью")).Click();
+    cut.FindAll("[role=tab]").First(t => t.TextContent.Contains("Preview")).Click();
 
     cut.WaitForAssertion(() => Assert.Contains("<h2", cut.Find(".master-profile-preview").InnerHtml));
   }
@@ -159,15 +159,15 @@ public class MasterProfilePageTests : MasterProfileWebFixture
     cut.WaitForAssertion(() => Assert.Equal("# Second", EditorText(cut)));
 
     cut.FindAll(".master-profile-version")[1].QuerySelector(".master-profile-restore")!.Click();
-    dialogs.WaitForAssertion(() => Assert.Contains(dialogs.FindAll("button"), b => b.TextContent.Contains("Восстановить")));
-    dialogs.FindAll("button").First(b => b.TextContent.Contains("Восстановить")).Click();
+    dialogs.WaitForAssertion(() => Assert.Contains(dialogs.FindAll("button"), b => b.TextContent.Contains("Restore")));
+    dialogs.FindAll("button").First(b => b.TextContent.Contains("Restore")).Click();
 
     var details = await WaitForVersionsAsync(3);
-    Assert.Equal(MasterProfileTemplate.Markdown, details.Markdown);
+    Assert.Equal(MasterProfileTestTemplate.English, details.Markdown);
     Assert.Equal(first.CurrentVersionId, details.Versions[0].RestoredFromVersionId);
     cut.WaitForAssertion(() =>
     {
-      Assert.Equal(MasterProfileTemplate.Markdown, EditorText(cut));
+      Assert.Equal(MasterProfileTestTemplate.English, EditorText(cut));
       var rows = cut.FindAll(".master-profile-version");
       Assert.Equal(3, rows.Count);
       Assert.NotNull(rows[0].QuerySelector(".master-profile-restored-from"));

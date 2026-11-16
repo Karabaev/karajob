@@ -845,9 +845,9 @@ namespace Karajob.Migrations.Sqlite.Migrations
                 columns: new[] { "Id", "Code", "Name", "NormalizedName" },
                 values: new object[,]
                 {
-                    { new Guid("019a7c1e-0000-7000-8000-000000000601"), "RUB", "Российский рубль", "российский рубль" },
-                    { new Guid("019a7c1e-0000-7000-8000-000000000602"), "USD", "Доллар США", "доллар сша" },
-                    { new Guid("019a7c1e-0000-7000-8000-000000000603"), "EUR", "Евро", "евро" }
+                    { new Guid("019a7c1e-0000-7000-8000-000000000601"), "RUB", "Russian ruble", "russian ruble" },
+                    { new Guid("019a7c1e-0000-7000-8000-000000000602"), "USD", "US dollar", "us dollar" },
+                    { new Guid("019a7c1e-0000-7000-8000-000000000603"), "EUR", "Euro", "euro" }
                 });
 
             migrationBuilder.InsertData(
@@ -860,7 +860,7 @@ namespace Karajob.Migrations.Sqlite.Migrations
                     { new Guid("019a7c1e-0000-7000-8000-000000000703"), "Godot", "godot" },
                     { new Guid("019a7c1e-0000-7000-8000-000000000704"), "Defold", "defold" },
                     { new Guid("019a7c1e-0000-7000-8000-000000000705"), "Cocos", "cocos" },
-                    { new Guid("019a7c1e-0000-7000-8000-000000000706"), "Собственный", "собственный" }
+                    { new Guid("019a7c1e-0000-7000-8000-000000000706"), "Proprietary", "proprietary" }
                 });
 
             migrationBuilder.InsertData(
@@ -868,7 +868,7 @@ namespace Karajob.Migrations.Sqlite.Migrations
                 columns: new[] { "Id", "Code", "Name", "NormalizedName" },
                 values: new object[,]
                 {
-                    { new Guid("019a7c1e-0000-7000-8000-000000000301"), "ru", "Русский", "русский" },
+                    { new Guid("019a7c1e-0000-7000-8000-000000000301"), "ru", "Russian", "russian" },
                     { new Guid("019a7c1e-0000-7000-8000-000000000302"), "en", "English", "english" }
                 });
 

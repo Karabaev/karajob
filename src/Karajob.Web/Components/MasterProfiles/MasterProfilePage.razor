@@ -4,9 +4,9 @@
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 
-<PageTitle>Мастер-профиль</PageTitle>
+<PageTitle>@L["MasterProfile.Title"]</PageTitle>
 
-<MudText Typo="Typo.h4" HtmlTag="h1" Class="mb-4">Мастер-профиль</MudText>
+<MudText Typo="Typo.h4" HtmlTag="h1" Class="mb-4">@L["MasterProfile.Title"]</MudText>
 
 @if (_details is not null)
 {
@@ -14,21 +14,21 @@
     <MudPaper Class="pa-4">
       <MudStack Spacing="2">
         <MudTabs Elevation="0" Rounded="true" MinimumTabWidth="120px">
-          <MudTabPanel Text="Редактор">
+          <MudTabPanel Text="@L["MasterProfile.EditorTab"]">
             <MudTextField T="string" Class="master-profile-editor" Variant="Variant.Outlined"
                           Lines="25" Immediate="true" @bind-Value="_markdown"
                           Error="@(_errors.ContainsKey(MarkdownKey))" ErrorText="@_errors.GetValueOrDefault(MarkdownKey)" />
           </MudTabPanel>
-          <MudTabPanel Text="Превью">
+          <MudTabPanel Text="@L["MasterProfile.PreviewTab"]">
             <div class="master-profile-preview markdown-body">@MarkdownHtml.Render(_markdown)</div>
           </MudTabPanel>
         </MudTabs>
-        <MudTextField T="string" Class="master-profile-comment" Label="Комментарий к изменениям" Immediate="true" @bind-Value="_comment" />
+        <MudTextField T="string" Class="master-profile-comment" Label="@L["MasterProfile.Comment"]" Immediate="true" @bind-Value="_comment" />
         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
-          <MudButton Class="master-profile-save" Variant="Variant.Filled" Color="Color.Primary" Disabled="_saving" OnClick="SaveAsync">Сохранить</MudButton>
+          <MudButton Class="master-profile-save" Variant="Variant.Filled" Color="Color.Primary" Disabled="_saving" OnClick="SaveAsync">@L["MasterProfile.Save"]</MudButton>
           @if (_markdown != _details.Markdown)
           {
-            <MudText Class="master-profile-unsaved" Typo="Typo.body2" Color="Color.Warning">Есть несохранённые изменения</MudText>
+            <MudText Class="master-profile-unsaved" Typo="Typo.body2" Color="Color.Warning">@L["MasterProfile.Unsaved"]</MudText>
           }
         </MudStack>
       </MudStack>
@@ -36,7 +36,7 @@
 
     <MudPaper Class="pa-4">
       <MudStack Spacing="2">
-        <MudText Typo="Typo.h6" HtmlTag="h2">История версий</MudText>
+        <MudText Typo="Typo.h6" HtmlTag="h2">@L["MasterProfile.History"]</MudText>
         @foreach (var version in _details.Versions)
         {
           var isCurrent = version.Id == _details.CurrentVersionId;
@@ -47,7 +47,7 @@
                   <MudText Typo="Typo.body1">@FormatDate(version.CreatedAt)</MudText>
                   @if (isCurrent)
                   {
-                    <MudChip T="string" Size="Size.Small" Color="Color.Primary">текущая</MudChip>
+                    <MudChip T="string" Size="Size.Small" Color="Color.Primary">@L["MasterProfile.Current"]</MudChip>
                   }
                 </MudStack>
                 @if (!string.IsNullOrWhiteSpace(version.Comment))
@@ -56,14 +56,14 @@
                 }
                 @if (RestoredFromDate(version) is { } restoredFrom)
                 {
-                  <span class="master-profile-restored-from mud-typography mud-typography-caption">восстановлена из версии от @restoredFrom</span>
+                  <span class="master-profile-restored-from mud-typography mud-typography-caption">@L["MasterProfile.RestoredFrom", restoredFrom]</span>
                 }
               </MudStack>
               <MudStack Row="true" Spacing="1">
-                <MudButton Class="master-profile-view" Size="Size.Small" Variant="Variant.Text" OnClick="@(() => ViewAsync(version, isCurrent))">Посмотреть</MudButton>
+                <MudButton Class="master-profile-view" Size="Size.Small" Variant="Variant.Text" OnClick="@(() => ViewAsync(version, isCurrent))">@L["MasterProfile.View"]</MudButton>
                 @if (!isCurrent)
                 {
-                  <MudButton Class="master-profile-restore" Size="Size.Small" Variant="Variant.Text" OnClick="@(() => RestoreAsync(version.Id))">Восстановить</MudButton>
+                  <MudButton Class="master-profile-restore" Size="Size.Small" Variant="Variant.Text" OnClick="@(() => RestoreAsync(version.Id))">@L["MasterProfile.Restore"]</MudButton>
                 }
               </MudStack>
             </MudStack>
@@ -114,7 +114,7 @@
       _markdown = _details.Markdown;
       _comment = null;
       _errors = new Dictionary<string, string>();
-      Snackbar.Add("Сохранено", Severity.Success);
+      Snackbar.Add(L["MasterProfile.Saved"], Severity.Success);
     }
     catch (ValidationFailedException exception)
     {
@@ -135,7 +135,7 @@
       { x => x.CanRestore, !isCurrent }
     };
     var dialog = await DialogService.ShowAsync<MasterProfileVersionDialog>(
-      "Версия профиля",
+      L["MasterProfile.VersionTitle"],
       parameters,
       new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true, CloseButton = true });
     var result = await dialog.Result;
@@ -148,13 +148,13 @@
   private async Task RestoreAsync(Guid versionId)
   {
     var message = _markdown == _details!.Markdown
-      ? "Текст версии станет новой текущей версией."
-      : "Текст версии станет новой текущей версией. Несохранённые изменения в редакторе будут потеряны.";
+      ? L["MasterProfile.RestoreMessage"]
+      : L["MasterProfile.RestoreMessageUnsaved"];
     var confirmed = await DialogService.ShowMessageBoxAsync(
-      "Восстановить версию?",
+      L["MasterProfile.RestoreTitle"],
       message,
-      yesText: "Восстановить",
-      cancelText: "Отмена");
+      yesText: L["MasterProfile.Restore"],
+      cancelText: L["MasterProfile.Cancel"]);
     if (confirmed != true)
     {
       return;
@@ -166,7 +166,7 @@
       _markdown = _details.Markdown;
       _comment = null;
       _errors = new Dictionary<string, string>();
-      Snackbar.Add("Версия восстановлена", Severity.Success);
+      Snackbar.Add(L["MasterProfile.Restored"], Severity.Success);
     }
     catch (ValidationFailedException exception)
     {
@@ -174,7 +174,7 @@
     }
     catch (KeyNotFoundException)
     {
-      Snackbar.Add("Версия не найдена", Severity.Warning);
+      Snackbar.Add(L["MasterProfile.VersionNotFound"], Severity.Warning);
     }
   }
 }

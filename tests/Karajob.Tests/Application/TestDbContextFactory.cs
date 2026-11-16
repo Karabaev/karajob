@@ -45,7 +45,7 @@ internal class TestDbContextFactory(SqliteTestDatabase database, Guid userId) : 
 
   public static MasterProfileService CreateMasterProfileService(SqliteTestDatabase database, Guid userId, TimeProvider timeProvider)
   {
-    return new MasterProfileService(new TestDbContextFactory(database, userId), new FixedCurrentUser(userId), timeProvider);
+    return new MasterProfileService(new TestDbContextFactory(database, userId), new FixedCurrentUser(userId), timeProvider, TestLocalizer.For<MasterProfileMessages>());
   }
 
   public static VacancyService CreateVacancyService(SqliteTestDatabase database, Guid userId, TimeProvider timeProvider)

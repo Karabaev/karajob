@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Error.MarkdownRequired" xml:space="preserve"><value>The profile cannot be empty</value></data>
+  <data name="Error.NoChanges" xml:space="preserve"><value>No changes</value></data>
+  <data name="Error.AlreadyCurrent" xml:space="preserve"><value>This is already the current version</value></data>
+  <data name="Template" xml:space="preserve"><value># Master profile
+
+Everything that is true about you, with no length limit. CVs are built from this document.
+
+## Contacts
+
+Name, city, email, phone, LinkedIn, GitHub, portfolio.
+
+## Experience
+
+Every job: company, role, dates, responsibilities, tech stack.
+
+## Projects
+
+Games and products: title, platform, engine, your area of responsibility, links.
+
+## Achievements with numbers
+
+- What you did → the measurable result (FPS, crashes, deadlines, metrics).
+
+## Skills
+
+Programming languages, engines, tools, practices.
+
+## Education
+
+Schools, courses, certificates.
+
+## Languages
+
+Language — level.
+
+## Interview stories (STAR)
+
+### Story title
+
+- **Situation:**
+- **Task:**
+- **Action:**
+- **Result:**
+</value></data>
+</root>

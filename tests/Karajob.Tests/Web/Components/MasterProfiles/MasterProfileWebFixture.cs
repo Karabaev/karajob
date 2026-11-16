@@ -32,5 +32,6 @@ public abstract class MasterProfileWebFixture : IAsyncLifetime
   {
     Context.JSInterop.Mode = JSRuntimeMode.Loose;
     Context.Services.AddMudServices();
+    Context.Services.AddLocalization();
   }
 }

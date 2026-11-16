@@ -1,13 +1,19 @@
 using Karajob.Application.Common;
 using Karajob.Application.Persistence;
+using Karajob.Application.Resources;
 using Karajob.Application.Users;
 using Karajob.Domain.MasterProfiles;
 using Karajob.Domain.Normalization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
 
 namespace Karajob.Application.MasterProfiles;
 
-public class MasterProfileService(IKarajobDbContextFactory dbContextFactory, ICurrentUser currentUser, TimeProvider timeProvider)
+public class MasterProfileService(
+  IKarajobDbContextFactory dbContextFactory,
+  ICurrentUser currentUser,
+  TimeProvider timeProvider,
+  IStringLocalizer<MasterProfileMessages> localizer)
 {
   public async Task<MasterProfileDetails> GetAsync(CancellationToken cancellationToken = default)
   {
@@ -21,14 +27,14 @@ public class MasterProfileService(IKarajobDbContextFactory dbContextFactory, ICu
   {
     if (string.IsNullOrWhiteSpace(input.Markdown))
     {
-      throw MarkdownError("Профиль не может быть пустым");
+      throw MarkdownError(localizer["Error.MarkdownRequired"]);
     }
 
     await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
     var profile = await LoadOrCreateAsync(db, cancellationToken);
     if (profile.CurrentVersion.Markdown == Normalize.LineEndings(input.Markdown))
     {
-      throw MarkdownError("Нет изменений");
+      throw MarkdownError(localizer["Error.NoChanges"]);
     }
 
     profile.AddVersion(input.Markdown, input.Comment, Now());
@@ -52,7 +58,7 @@ public class MasterProfileService(IKarajobDbContextFactory dbContextFactory, ICu
       ?? throw new KeyNotFoundException($"Master profile version {versionId} was not found.");
     if (profile.CurrentVersion.Markdown == source.Markdown)
     {
-      throw MarkdownError("Это уже текущая версия");
+      throw MarkdownError(localizer["Error.AlreadyCurrent"]);
     }
 
     profile.AddVersion(source.Markdown, null, Now(), source.Id);
@@ -68,7 +74,7 @@ public class MasterProfileService(IKarajobDbContextFactory dbContextFactory, ICu
       return profile;
     }
 
-    profile = new MasterProfile(currentUser.UserId, MasterProfileTemplate.Markdown, Now());
+    profile = new MasterProfile(currentUser.UserId, localizer["Template"], Now());
     db.MasterProfiles.Add(profile);
     return profile;
   }
