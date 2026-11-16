@@ -52,7 +52,12 @@ public class Hypothesis : IUserOwned
 
   public void SetEngines(IEnumerable<Guid> engineIds)
   {
-    throw new NotImplementedException();
+    var wanted = engineIds.Select(id => Require.NotEmpty(id, nameof(engineIds))).Distinct().ToList();
+    engines.RemoveAll(e => !wanted.Contains(e.EngineId));
+    foreach (var engineId in wanted.Where(id => engines.All(e => e.EngineId != id)))
+    {
+      engines.Add(new HypothesisEngine(UserId, Id, engineId));
+    }
   }
 
   public void ChangeStatus(HypothesisStatus status, DateTime utcNow)

@@ -95,6 +95,7 @@ public class HypothesisService(IKarajobDbContextFactory dbContextFactory, ICurre
   {
     hypothesis.SetLocations(input.LocationIds);
     hypothesis.SetPlatforms(input.PlatformIds);
+    hypothesis.SetEngines(input.EngineIds);
     hypothesis.Industries.Clear();
     hypothesis.Industries.AddRange(normalized.Industries);
     hypothesis.WorkFormat = input.WorkFormat;
@@ -143,6 +144,12 @@ public class HypothesisService(IKarajobDbContextFactory dbContextFactory, ICurre
     if (platformIds.Count > 0 && await db.Platforms.CountAsync(p => platformIds.Contains(p.Id), cancellationToken) != platformIds.Count)
     {
       errors[nameof(HypothesisInput.PlatformIds)] = "Платформа не найдена";
+    }
+
+    var engineIds = input.EngineIds.Distinct().ToList();
+    if (engineIds.Count > 0 && await db.Engines.CountAsync(e => engineIds.Contains(e.Id), cancellationToken) != engineIds.Count)
+    {
+      errors[nameof(HypothesisInput.EngineIds)] = "Движок не найден";
     }
 
     if (input.WorkFormat == WorkFormat.None)

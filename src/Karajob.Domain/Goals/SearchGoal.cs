@@ -100,7 +100,12 @@ public class SearchGoal : IUserOwned
 
   public void SetEngines(IEnumerable<Guid> engineIds)
   {
-    throw new NotImplementedException();
+    var wanted = engineIds.Select(id => Require.NotEmpty(id, nameof(engineIds))).Distinct().ToList();
+    engines.RemoveAll(e => !wanted.Contains(e.EngineId));
+    foreach (var engineId in wanted.Where(id => engines.All(e => e.EngineId != id)))
+    {
+      engines.Add(new SearchGoalEngine(UserId, Id, engineId));
+    }
   }
 
   public void SetDesiredIncome(long? amount, string? currency)

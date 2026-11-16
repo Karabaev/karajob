@@ -23,6 +23,7 @@ public class SearchGoalService(IKarajobDbContextFactory dbContextFactory)
     goal.RoleId = input.RoleId;
     goal.SetLocations(input.LocationIds);
     goal.SetPlatforms(input.PlatformIds);
+    goal.SetEngines(input.EngineIds);
     goal.Industries = input.Industries;
     goal.MustHave = input.MustHave;
     goal.WeeklyApplicationTarget = input.WeeklyApplicationTarget;
@@ -58,6 +59,12 @@ public class SearchGoalService(IKarajobDbContextFactory dbContextFactory)
       errors[nameof(SearchGoalInput.PlatformIds)] = "Платформа не найдена";
     }
 
+    var engineIds = input.EngineIds.Distinct().ToList();
+    if (engineIds.Count > 0 && await db.Engines.CountAsync(e => engineIds.Contains(e.Id), cancellationToken) != engineIds.Count)
+    {
+      errors[nameof(SearchGoalInput.EngineIds)] = "Движок не найден";
+    }
+
     if (input.WeeklyApplicationTarget < 0)
     {
       errors[nameof(SearchGoalInput.WeeklyApplicationTarget)] = "Цель по откликам не может быть отрицательной";
@@ -83,7 +90,7 @@ public class SearchGoalService(IKarajobDbContextFactory dbContextFactory)
       errors[nameof(SearchGoalInput.MaturationDays)] = $"Срок созревания — от 0 до {SearchGoal.MaxMaturationDays} дней";
     }
 
-    var currency = string.IsNullOrWhiteSpace(input.IncomeCurrency) ? null : input.IncomeCurrency.Trim();
+    var currency = string.IsNullOrWhiteSpace(input.IncomeCurrency) ? null : input.IncomeCurrency.Trim().ToUpperInvariant();
     if (input.DesiredMonthlyIncome is { } income)
     {
       if (income <= 0)
@@ -104,6 +111,10 @@ public class SearchGoalService(IKarajobDbContextFactory dbContextFactory)
     if (currency is not null && (currency.Length != 3 || !currency.All(char.IsAsciiLetter)))
     {
       errors[nameof(SearchGoalInput.IncomeCurrency)] = "Валюта — 3 латинские буквы";
+    }
+    else if (currency is not null && !await db.Currencies.AnyAsync(c => c.Code == currency, cancellationToken))
+    {
+      errors[nameof(SearchGoalInput.IncomeCurrency)] = "Валюта не найдена";
     }
 
     if (errors.Count > 0)

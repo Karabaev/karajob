@@ -57,7 +57,12 @@ public class Vacancy : IUserOwned
 
   public void SetEngines(IEnumerable<Guid> engineIds)
   {
-    throw new NotImplementedException();
+    var wanted = engineIds.Select(id => Require.NotEmpty(id, nameof(engineIds))).Distinct().ToList();
+    engines.RemoveAll(e => !wanted.Contains(e.EngineId));
+    foreach (var engineId in wanted.Where(id => engines.All(e => e.EngineId != id)))
+    {
+      engines.Add(new VacancyEngine(UserId, Id, engineId));
+    }
   }
 
   public VacancyMatch SetMatch(Guid hypothesisId, int? score, string? rationale, MatchAuthor matchedBy)
