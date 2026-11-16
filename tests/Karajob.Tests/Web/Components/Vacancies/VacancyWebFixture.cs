@@ -81,7 +81,8 @@ public abstract class VacancyWebFixture : IAsyncLifetime
     VacancyStage stage,
     Guid hypothesisId,
     string url,
-    ApplicationOutcome outcome = ApplicationOutcome.Rejected)
+    ApplicationOutcome outcome = ApplicationOutcome.Rejected,
+    string? coverLetter = null)
   {
     var vacancy = await Vacancies.CreateAsync(Input(url, hypothesisIds: [hypothesisId]));
     var at = vacancy.DiscoveredAt.AddMinutes(1);
@@ -99,7 +100,7 @@ public abstract class VacancyWebFixture : IAsyncLifetime
         return;
       }
 
-      v.Apply(hypothesisId, cvVersionId!.Value, ApplicationChannel.Website, at, null);
+      v.Apply(hypothesisId, cvVersionId!.Value, ApplicationChannel.Website, at, coverLetter);
       if (stage == VacancyStage.Interviewing)
       {
         v.MoveTo(VacancyStage.Interviewing, at);

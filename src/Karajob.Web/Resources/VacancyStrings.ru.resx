@@ -103,4 +103,9 @@
   <data name="Page.NewEvent" xml:space="preserve"><value>Новое событие</value></data>
   <data name="Page.DeleteEventTitle" xml:space="preserve"><value>Удалить событие?</value></data>
   <data name="Page.DeleteEventText" xml:space="preserve"><value>Событие «{0}» будет удалено.</value></data>
+  <data name="CoverLetter.Title" xml:space="preserve"><value>Сопроводительное письмо</value></data>
+  <data name="CoverLetter.Empty" xml:space="preserve"><value>Без письма</value></data>
+  <data name="CoverLetter.Copy" xml:space="preserve"><value>Копировать</value></data>
+  <data name="CoverLetter.Copied" xml:space="preserve"><value>Скопировано</value></data>
+  <data name="CoverLetter.CopyFailed" xml:space="preserve"><value>Не удалось скопировать — выделите текст вручную</value></data>
 </root>

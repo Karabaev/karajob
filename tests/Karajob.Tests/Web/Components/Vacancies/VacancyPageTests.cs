@@ -8,6 +8,7 @@ using Karajob.Infrastructure.Persistence;
 using Karajob.Web.Components.Vacancies;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.JSInterop;
 using MudBlazor;
 
 namespace Karajob.Tests.Web.Components.Vacancies;
@@ -351,6 +352,122 @@ public class VacancyPageTests : VacancyWebFixture
     cut.Find(".vacancy-save").Click();
     var saved = await WaitForInboxCountAsync(2);
     Assert.Contains(saved, v => v.CompanyName == "Pixel Forge");
+  }
+
+  [Theory]
+  [InlineData(VacancyStage.Applied, ApplicationOutcome.Rejected)]
+  [InlineData(VacancyStage.Interviewing, ApplicationOutcome.Rejected)]
+  [InlineData(VacancyStage.Closed, ApplicationOutcome.Rejected)]
+  [InlineData(VacancyStage.Closed, ApplicationOutcome.Offer)]
+  public async Task Render_StageWithApplicationAndCoverLetter_ShowsLetterText(VacancyStage stage, ApplicationOutcome outcome)
+  {
+    var id = await CreateWithLetterAsync(stage, "Hello,\nI am a Unity developer.", outcome);
+
+    var cut = Context.Render<VacancyPage>(p => p.Add(c => c.Id, id));
+
+    cut.WaitForAssertion(() =>
+    {
+      var text = cut.Find(".vacancy-cover-letter .cover-letter-text").TextContent;
+      Assert.Contains("Hello,", text);
+      Assert.Contains("I am a Unity developer.", text);
+      Assert.Empty(cut.FindAll(".cover-letter-empty"));
+    });
+  }
+
+  [Fact]
+  public async Task Render_AppliedWithoutCoverLetter_ShowsPlaceholderAndNoCopyButton()
+  {
+    var id = await CreateWithLetterAsync(VacancyStage.Applied, null);
+
+    var cut = Context.Render<VacancyPage>(p => p.Add(c => c.Id, id));
+
+    cut.WaitForAssertion(() =>
+    {
+      Assert.Contains("No cover letter", cut.Find(".vacancy-cover-letter .cover-letter-empty").TextContent);
+      Assert.Empty(cut.FindAll(".cover-letter-text"));
+      Assert.Empty(cut.FindAll(".cover-letter-copy"));
+    });
+  }
+
+  [Theory]
+  [InlineData(VacancyStage.Inbox)]
+  [InlineData(VacancyStage.Targeted)]
+  [InlineData(VacancyStage.Preparing)]
+  public async Task Render_StageBeforeApplied_HasNoCoverLetterCard(VacancyStage stage)
+  {
+    var id = await CreateWithLetterAsync(stage, null);
+
+    var cut = Context.Render<VacancyPage>(p => p.Add(c => c.Id, id));
+
+    cut.WaitForElement(".vacancy-url");
+    Assert.Empty(cut.FindAll(".vacancy-cover-letter"));
+  }
+
+  [Fact]
+  public async Task Copy_ClickCopyButton_WritesLetterToClipboard()
+  {
+    const string letter = "Hello,\nI am a Unity developer.";
+    var id = await CreateWithLetterAsync(VacancyStage.Applied, letter);
+    Context.JSInterop.SetupVoid("navigator.clipboard.writeText", letter);
+    var cut = Context.Render<VacancyPage>(p => p.Add(c => c.Id, id));
+
+    cut.WaitForElement(".cover-letter-copy");
+    cut.Find("button.cover-letter-copy, .cover-letter-copy button").Click();
+
+    cut.WaitForAssertion(() =>
+    {
+      var call = Context.JSInterop.VerifyInvoke("navigator.clipboard.writeText");
+      Assert.Equal(letter, Assert.Single(call.Arguments));
+    });
+  }
+
+  [Fact]
+  public async Task Copy_ClipboardSucceeds_ShowsCopiedSnackbar()
+  {
+    const string letter = "Hello,\nI am a Unity developer.";
+    var id = await CreateWithLetterAsync(VacancyStage.Applied, letter);
+    Context.JSInterop.SetupVoid("navigator.clipboard.writeText", letter).SetVoidResult();
+    var cut = Context.Render<VacancyPage>(p => p.Add(c => c.Id, id));
+
+    cut.WaitForElement(".cover-letter-copy");
+    cut.Find("button.cover-letter-copy, .cover-letter-copy button").Click();
+
+    cut.WaitForAssertion(() =>
+    {
+      var snackbar = Assert.Single(Context.Services.GetRequiredService<ISnackbar>().ShownSnackbars);
+      Assert.Equal(Severity.Success, snackbar.Severity);
+      Assert.Equal("Copied", snackbar.Message?.ToString());
+    });
+  }
+
+  [Fact]
+  public async Task Copy_ClipboardUnavailable_ShowsWarningSnackbar()
+  {
+    const string letter = "Hello,\nI am a Unity developer.";
+    var id = await CreateWithLetterAsync(VacancyStage.Applied, letter);
+    Context.JSInterop.SetupVoid("navigator.clipboard.writeText", letter).SetException(new JSException("not allowed"));
+    var cut = Context.Render<VacancyPage>(p => p.Add(c => c.Id, id));
+
+    cut.WaitForElement(".cover-letter-copy");
+    cut.Find("button.cover-letter-copy, .cover-letter-copy button").Click();
+
+    cut.WaitForAssertion(() =>
+    {
+      var snackbar = Assert.Single(Context.Services.GetRequiredService<ISnackbar>().ShownSnackbars);
+      Assert.Equal(Severity.Warning, snackbar.Severity);
+      Assert.Equal("Could not copy, select the text manually", snackbar.Message?.ToString());
+    });
+  }
+
+  private async Task<Guid> CreateWithLetterAsync(VacancyStage stage, string? letter, ApplicationOutcome outcome = ApplicationOutcome.Rejected)
+  {
+    var hypothesisId = await CreateHypothesisAsync();
+    if (stage == VacancyStage.Inbox)
+    {
+      return (await Vacancies.CreateAsync(Input("https://example.com/jobs/letter", hypothesisIds: [hypothesisId]))).Id;
+    }
+
+    return await CreateOnBoardAsync(stage, hypothesisId, "https://example.com/jobs/letter", outcome, letter);
   }
 
   private static CompanyListItem ToItem(CompanyDetails company)

@@ -499,6 +499,7 @@ public partial class VacancyService(
       vacancy.DismissReason,
       vacancy.DiscoveredAt,
       vacancy.Application?.HypothesisId,
+      vacancy.Application?.CoverLetter,
       vacancy.Events.OrderByDescending(e => e.OccurredAt).Select(ToItem).ToList(),
       similar);
   }
