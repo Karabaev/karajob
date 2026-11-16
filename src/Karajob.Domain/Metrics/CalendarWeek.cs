@@ -6,9 +6,9 @@ public readonly record struct CalendarWeek(DateOnly FirstDay, DateTime Start, Da
 {
   public static CalendarWeek Containing(DateTime utc, TimeZoneInfo zone)
   {
-    UtcGuard.Ensure(utc);
-    var daysSinceMonday = ((int)utc.DayOfWeek + 6) % 7;
-    var start = DateTime.SpecifyKind(utc.Date.AddDays(-daysSinceMonday), DateTimeKind.Utc);
-    return new CalendarWeek(DateOnly.FromDateTime(start), start, start.AddDays(7));
+    var localDate = UserTime.LocalDate(utc, zone);
+    var daysSinceMonday = ((int)localDate.DayOfWeek + 6) % 7;
+    var monday = localDate.AddDays(-daysSinceMonday);
+    return new CalendarWeek(monday, UserTime.StartOfDayUtc(monday, zone), UserTime.StartOfDayUtc(monday.AddDays(7), zone));
   }
 }

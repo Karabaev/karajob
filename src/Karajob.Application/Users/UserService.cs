@@ -2,6 +2,7 @@ using Karajob.Application.Resources;
 using Microsoft.Extensions.Localization;
 using Karajob.Application.Common;
 using Karajob.Application.Persistence;
+using Karajob.Domain.Common;
 using Karajob.Domain.Goals;
 using Karajob.Domain.Normalization;
 using Karajob.Domain.Users;
@@ -35,7 +36,7 @@ public class UserService(IKarajobDbContextFactory dbContextFactory, TimeProvider
   {
     Validate(input);
     await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-    var user = new User(input.Name, input.Color, timeProvider.GetUtcNow().UtcDateTime);
+    var user = new User(input.Name, input.Color, timeProvider.GetUtcNow().UtcDateTime) { TimeZoneId = input.TimeZoneId };
     db.Users.Add(user);
     db.SearchGoals.Add(new SearchGoal(user.Id));
     await db.SaveChangesAsync(cancellationToken);
@@ -50,13 +51,17 @@ public class UserService(IKarajobDbContextFactory dbContextFactory, TimeProvider
       ?? throw new KeyNotFoundException($"Profile {id} not found.");
     user.Name = input.Name;
     user.Color = input.Color;
+    user.TimeZoneId = input.TimeZoneId;
     await db.SaveChangesAsync(cancellationToken);
     return ToDto(user);
   }
 
-  public Task<TimeZoneInfo> GetTimeZoneAsync(Guid userId, CancellationToken cancellationToken = default)
+  public async Task<TimeZoneInfo> GetTimeZoneAsync(Guid userId, CancellationToken cancellationToken = default)
   {
-    throw new NotImplementedException();
+    await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+    var timeZoneId = await db.Users.AsNoTracking().Where(u => u.Id == userId).Select(u => u.TimeZoneId).SingleOrDefaultAsync(cancellationToken)
+      ?? throw new KeyNotFoundException($"Profile {userId} not found.");
+    return UserTime.Find(timeZoneId);
   }
 
   private void Validate(UserInput input)
@@ -76,6 +81,15 @@ public class UserService(IKarajobDbContextFactory dbContextFactory, TimeProvider
       errors[nameof(UserInput.Color)] = localizer["Error.ColorInvalid"];
     }
 
+    try
+    {
+      UserTime.NormalizeId(input.TimeZoneId);
+    }
+    catch (ArgumentException)
+    {
+      errors[nameof(UserInput.TimeZoneId)] = localizer["Error.TimeZoneInvalid"];
+    }
+
     if (errors.Count > 0)
     {
       throw new ValidationFailedException(errors);
@@ -84,6 +98,6 @@ public class UserService(IKarajobDbContextFactory dbContextFactory, TimeProvider
 
   private static UserDto ToDto(User user)
   {
-    return new UserDto(user.Id, user.Name, user.Color);
+    return new UserDto(user.Id, user.Name, user.Color, user.TimeZoneId);
   }
 }
