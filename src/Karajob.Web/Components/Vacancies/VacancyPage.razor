@@ -51,6 +51,15 @@ else if (_loaded)
               </MudAlert>
             }
 
+            <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center">
+              <MudTextField T="string" Class="vacancy-title" Label="@L["Page.VacancyTitle"]"
+                            MaxLength="Vacancy.TitleMaxLength" @bind-Value="_title" />
+              <MudTooltip Text="@L["Page.FetchTitle"]">
+                <MudIconButton Class="vacancy-fetch-title" Icon="@Icons.Material.Filled.Download" AriaLabel="@L["Page.FetchTitle"]"
+                               Disabled="_fetchingTitle" OnClick="FetchTitleAsync" />
+              </MudTooltip>
+            </MudStack>
+
             <MudTextField T="string" Class="vacancy-url" Label="@L["Page.Url"]" Required="true" Immediate="true" spellcheck="false"
                           @bind-Value="_url"
                           Error="HasError(nameof(VacancyInput.Url))" ErrorText="@ErrorOf(nameof(VacancyInput.Url))" />
@@ -207,6 +216,8 @@ else if (_loaded)
   private int _companyKey;
   private string? _companyQuery;
   private string? _url;
+  private string? _title;
+  private bool _fetchingTitle;
   private CompanyListItem? _company;
   private Guid? _roleId;
   private Guid? _locationId;
@@ -266,6 +277,7 @@ else if (_loaded)
   private void FillFields()
   {
     _url = _details?.Url;
+    _title = _details?.Title;
     _company = _details?.CompanyId is { } companyId
       ? new CompanyListItem(companyId, "", _details.CompanyName ?? "", null, [], false)
       : null;
@@ -463,6 +475,34 @@ else if (_loaded)
     return _errors.GetValueOrDefault(key);
   }
 
+  // The page read runs inside this circuit's event handler; the button stays disabled until it returns.
+  private async Task FetchTitleAsync()
+  {
+    if (_fetchingTitle) return;
+
+    _fetchingTitle = true;
+    try
+    {
+      var title = await VacancyService.FetchTitleAsync(_url ?? "");
+      _errors = new Dictionary<string, string>();
+      if (title is null)
+      {
+        Snackbar.Add(L["Page.TitleNotFound"], Severity.Warning);
+        return;
+      }
+
+      _title = title;
+    }
+    catch (ValidationFailedException exception)
+    {
+      _errors = exception.Errors;
+    }
+    finally
+    {
+      _fetchingTitle = false;
+    }
+  }
+
   private async Task SaveAsync()
   {
     if (_saving) return;
@@ -470,7 +510,7 @@ else if (_loaded)
     var hasSalary = _salaryMin is not null || _salaryMax is not null;
     var input = new VacancyInput(
       _url ?? "",
-      null,
+      _title,
       _company?.Id,
       _roleId,
       _locationId,
