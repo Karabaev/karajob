@@ -111,4 +111,8 @@
   <data name="CoverLetter.Copy" xml:space="preserve"><value>Copy</value></data>
   <data name="CoverLetter.Copied" xml:space="preserve"><value>Copied</value></data>
   <data name="CoverLetter.CopyFailed" xml:space="preserve"><value>Could not copy, select the text manually</value></data>
+  <data name="Reopen.Target" xml:space="preserve"><value>Reopen at</value></data>
+  <data name="Reopen.Submit" xml:space="preserve"><value>Reopen</value></data>
+  <data name="Page.Reopen" xml:space="preserve"><value>Reopen</value></data>
+  <data name="Page.ReopenTitle" xml:space="preserve"><value>Reopen vacancy</value></data>
 </root>

@@ -1,3 +1,4 @@
+using Karajob.Application.Applications;
 using Karajob.Application.Catalogs;
 using Karajob.Application.Companies;
 using Karajob.Application.Cvs;
@@ -61,6 +62,7 @@ builder.Services.AddScoped<CompanyService>();
 builder.Services.AddScoped<HypothesisService>();
 builder.Services.AddScoped<CatalogService>();
 builder.Services.AddScoped<VacancyService>();
+builder.Services.AddScoped<ApplicationService>();
 builder.Services.AddHttpClient<IPageTitleReader, HttpPageTitleReader>(client =>
 {
   client.Timeout = TimeSpan.FromSeconds(5);

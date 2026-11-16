@@ -36,6 +36,7 @@ public class MainLayoutTests : IAsyncLifetime
 
   [Theory]
   [InlineData("inbox", "Inbox")]
+  [InlineData("applications", "Applications")]
   [InlineData("companies", "Companies")]
   [InlineData("hypotheses", "Hypotheses")]
   [InlineData("cvs", "CV")]

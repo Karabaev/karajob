@@ -37,6 +37,12 @@ public class Vacancy : IUserOwned
   public IReadOnlyCollection<ApplicationEvent> Events => events;
   public JobApplication? Application { get; private set; }
 
+  public VacancyStage? ClosedFromStage => Stage == VacancyStage.Closed ? LatestClosedEvent()?.FromStage : null;
+
+  public DateTime? ClosedAt => Stage == VacancyStage.Closed ? LatestClosedEvent()?.OccurredAt : null;
+
+  public VacancyStage? ReopenTarget => Stage == VacancyStage.Closed ? ClosedFromStage ?? VacancyStage.Applied : null;
+
   public DateTime? PublishedAt
   {
     get => publishedAt;
@@ -202,6 +208,25 @@ public class Vacancy : IUserOwned
     EnsureCanMove(VacancyStage.Closed);
     Application!.SetOutcome(outcome);
     return ChangeStage(VacancyStage.Closed, at, null);
+  }
+
+  public ApplicationEvent Reopen(VacancyStage target, DateTime at)
+  {
+    if (Stage != VacancyStage.Closed || target is not (VacancyStage.Applied or VacancyStage.Interviewing))
+    {
+      throw new StageTransitionException(Stage, target, $"Cannot reopen a vacancy from {Stage} to {target}.");
+    }
+
+    return MoveTo(target, at);
+  }
+
+  private ApplicationEvent? LatestClosedEvent()
+  {
+    return events
+      .Where(e => e.Type == ApplicationEventType.StageChanged && e.ToStage == VacancyStage.Closed)
+      .OrderBy(e => e.OccurredAt)
+      .ThenBy(e => e.Id)
+      .LastOrDefault();
   }
 
   private void EnsureCanMove(VacancyStage target)

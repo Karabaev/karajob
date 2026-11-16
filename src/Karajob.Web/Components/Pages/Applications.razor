@@ -1,0 +1,189 @@
+@page "/applications"
+@inject ApplicationService ApplicationService
+@inject IDialogService DialogService
+
+<PageTitle>@L["Pages.Applications"]</PageTitle>
+
+<MudText Typo="Typo.h4" HtmlTag="h1" GutterBottom="true">@L["Pages.Applications"]</MudText>
+
+<MudStack Row="true" Wrap="Wrap.Wrap" Spacing="2" Class="mb-4">
+  <MudSelect T="VacancyStage?" Class="applications-stage" Label="@L["Pages.Stage"]" Variant="Variant.Outlined" Dense="true"
+             Style="max-width: 220px;" Value="_stage" ValueChanged="OnStageChangedAsync">
+    <MudSelectItem T="VacancyStage?" Value="@((VacancyStage?)null)">@L["Pages.AllStages"]</MudSelectItem>
+    @foreach (var stage in _stages)
+    {
+      <MudSelectItem T="VacancyStage?" Value="@((VacancyStage?)stage)">@VacancyText.Stage(stage)</MudSelectItem>
+    }
+  </MudSelect>
+  <MudSelect T="ApplicationOutcome?" Class="applications-outcome" Label="@L["Pages.Outcome"]" Variant="Variant.Outlined" Dense="true"
+             Style="max-width: 220px;" Value="_outcome" ValueChanged="OnOutcomeChangedAsync">
+    <MudSelectItem T="ApplicationOutcome?" Value="@((ApplicationOutcome?)null)">@L["Pages.AllOutcomes"]</MudSelectItem>
+    @foreach (var outcome in Enum.GetValues<ApplicationOutcome>())
+    {
+      <MudSelectItem T="ApplicationOutcome?" Value="@((ApplicationOutcome?)outcome)">@VacancyText.Outcome(outcome)</MudSelectItem>
+    }
+  </MudSelect>
+  <MudTextField T="string" Class="applications-search" Label="@L["Pages.Search"]" Variant="Variant.Outlined" Dense="true"
+                Style="max-width: 280px;" Clearable="true" DebounceInterval="300"
+                Value="_search" ValueChanged="OnSearchChangedAsync" />
+</MudStack>
+
+@if (_items is null)
+{
+  <MudProgressLinear Indeterminate="true" />
+}
+else
+{
+  <MudTable T="ApplicationHistoryItem" Items="_items" Breakpoint="Breakpoint.Sm" Dense="true" Hover="true"
+            RowClassFunc="@((_, _) => "application-row")">
+    <HeaderContent>
+      <MudTh>@L["Pages.ColVacancy"]</MudTh>
+      <MudTh>@L["Pages.ColStatus"]</MudTh>
+      <MudTh>@L["Pages.ColHypothesis"]</MudTh>
+      <MudTh>@L["Pages.ColCv"]</MudTh>
+      <MudTh>@L["Pages.ColChannel"]</MudTh>
+      <MudTh>@L["Pages.ColApplied"]</MudTh>
+      <MudTh>@L["Pages.ColClosed"]</MudTh>
+      <MudTh></MudTh>
+    </HeaderContent>
+    <RowTemplate>
+      <MudTd DataLabel="@L["Pages.ColVacancy"]"><MudLink Href="@($"/vacancies/{context.VacancyId}")">@Title(context)</MudLink></MudTd>
+      <MudTd DataLabel="@L["Pages.ColStatus"]">
+        <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center">
+          <MudChip T="string" Size="Size.Small" Color="@VacancyText.StageColor(context.Stage)">@VacancyText.Stage(context.Stage)</MudChip>
+          @if (context.Outcome is { } outcome)
+          {
+            <span>@VacancyText.Outcome(outcome)</span>
+          }
+        </MudStack>
+      </MudTd>
+      <MudTd DataLabel="@L["Pages.ColHypothesis"]">@context.HypothesisName</MudTd>
+      <MudTd DataLabel="@L["Pages.ColCv"]">@context.CvName / @context.CvFileName</MudTd>
+      <MudTd DataLabel="@L["Pages.ColChannel"]">@VacancyText.Channel(context.Channel)</MudTd>
+      <MudTd DataLabel="@L["Pages.ColApplied"]">@VacancyText.Date(context.AppliedAt)</MudTd>
+      <MudTd DataLabel="@L["Pages.ColClosed"]">@(context.ClosedAt is { } closedAt ? VacancyText.Date(closedAt) : "")</MudTd>
+      <MudTd>
+        @if (!string.IsNullOrWhiteSpace(context.CoverLetter))
+        {
+          <MudButton Class="application-cover-toggle" Size="Size.Small" Variant="Variant.Text" OnClick="() => ToggleCoverLetter(context.VacancyId)">
+            @L["Pages.CoverLetter"]
+          </MudButton>
+        }
+        @if (context.ReopenTarget is { } reopenTarget)
+        {
+          <MudButton Class="application-reopen" Size="Size.Small" Variant="Variant.Text" OnClick="() => ReopenAsync(context.VacancyId, reopenTarget)">
+            @L["Pages.Reopen"]
+          </MudButton>
+        }
+      </MudTd>
+    </RowTemplate>
+    <ChildRowContent>
+      @if (_expanded.Contains(context.VacancyId) && !string.IsNullOrWhiteSpace(context.CoverLetter))
+      {
+        <MudTr>
+          <td colspan="8">
+            <div class="application-cover-letter">@context.CoverLetter</div>
+          </td>
+        </MudTr>
+      }
+    </ChildRowContent>
+    <NoRecordsContent>
+      <MudText>@L["Pages.NoApplications"]</MudText>
+    </NoRecordsContent>
+  </MudTable>
+}
+
+@code {
+  private static readonly VacancyStage[] _stages = [VacancyStage.Applied, VacancyStage.Interviewing, VacancyStage.Closed];
+
+  private readonly HashSet<Guid> _expanded = [];
+  private IReadOnlyList<ApplicationHistoryItem>? _items;
+  private VacancyStage? _stage;
+  private ApplicationOutcome? _outcome;
+  private string? _search;
+  private int _request;
+
+  protected override async Task OnInitializedAsync()
+  {
+    await ReloadAsync();
+  }
+
+  // Filter changes can overlap (debounced search vs. selects); only the latest request may update the table.
+  private async Task ReloadAsync()
+  {
+    var request = ++_request;
+    var items = await ApplicationService.ListHistoryAsync(new ApplicationHistoryFilter(_stage, _outcome, _search));
+    if (request != _request) return;
+
+    _items = items;
+  }
+
+  private Task OnStageChangedAsync(VacancyStage? stage)
+  {
+    _stage = stage;
+    return ReloadAsync();
+  }
+
+  private Task OnOutcomeChangedAsync(ApplicationOutcome? outcome)
+  {
+    _outcome = outcome;
+    return ReloadAsync();
+  }
+
+  private Task OnSearchChangedAsync(string? search)
+  {
+    _search = search;
+    return ReloadAsync();
+  }
+
+  private void ToggleCoverLetter(Guid vacancyId)
+  {
+    if (!_expanded.Remove(vacancyId))
+    {
+      _expanded.Add(vacancyId);
+    }
+  }
+
+  private async Task ReopenAsync(Guid vacancyId, VacancyStage defaultTarget)
+  {
+    try
+    {
+      var parameters = new DialogParameters<ReopenVacancyDialog>
+      {
+        { d => d.VacancyId, vacancyId },
+        { d => d.DefaultTarget, defaultTarget },
+      };
+      var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
+      var dialog = await DialogService.ShowAsync<ReopenVacancyDialog>(L["Pages.ReopenTitle"], parameters, options);
+      var result = await dialog.Result;
+      if (result is { Canceled: false })
+      {
+        await ReloadAsync();
+      }
+    }
+    catch (Exception ex)
+    {
+      await DispatchExceptionAsync(ex);
+    }
+  }
+
+  private static string Title(ApplicationHistoryItem item)
+  {
+    var parts = new List<string>();
+    if (item.CompanyName is not null)
+    {
+      parts.Add(item.CompanyName);
+    }
+    else
+    {
+      parts.Add(Uri.TryCreate(item.Url, UriKind.Absolute, out var uri) ? uri.Host : item.Url);
+    }
+
+    if (item.RoleName is not null)
+    {
+      parts.Add(item.RoleName);
+    }
+
+    return string.Join(" · ", parts);
+  }
+}

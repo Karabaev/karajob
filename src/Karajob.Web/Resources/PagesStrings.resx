@@ -71,4 +71,21 @@
   <data name="Pages.Save" xml:space="preserve"><value>Save</value></data>
   <data name="Pages.EmptyHint" xml:space="preserve"><value>Add some in the Catalogs section</value></data>
   <data name="Pages.Saved" xml:space="preserve"><value>Saved</value></data>
+  <data name="Pages.Applications" xml:space="preserve"><value>Applications</value></data>
+  <data name="Pages.AllStages" xml:space="preserve"><value>All stages</value></data>
+  <data name="Pages.AllOutcomes" xml:space="preserve"><value>All outcomes</value></data>
+  <data name="Pages.Stage" xml:space="preserve"><value>Stage</value></data>
+  <data name="Pages.Outcome" xml:space="preserve"><value>Outcome</value></data>
+  <data name="Pages.Search" xml:space="preserve"><value>Search</value></data>
+  <data name="Pages.ColVacancy" xml:space="preserve"><value>Vacancy</value></data>
+  <data name="Pages.ColStatus" xml:space="preserve"><value>Status</value></data>
+  <data name="Pages.ColHypothesis" xml:space="preserve"><value>Hypothesis</value></data>
+  <data name="Pages.ColCv" xml:space="preserve"><value>CV</value></data>
+  <data name="Pages.ColChannel" xml:space="preserve"><value>Channel</value></data>
+  <data name="Pages.ColApplied" xml:space="preserve"><value>Applied</value></data>
+  <data name="Pages.ColClosed" xml:space="preserve"><value>Closed</value></data>
+  <data name="Pages.CoverLetter" xml:space="preserve"><value>Cover letter</value></data>
+  <data name="Pages.Reopen" xml:space="preserve"><value>Reopen</value></data>
+  <data name="Pages.ReopenTitle" xml:space="preserve"><value>Reopen vacancy</value></data>
+  <data name="Pages.NoApplications" xml:space="preserve"><value>No applications found</value></data>
 </root>

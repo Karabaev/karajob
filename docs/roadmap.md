@@ -72,7 +72,7 @@ Epic: #18. Tasks are in the [Phase 0.5](https://github.com/Karabaev/karajob/mile
 
 **Result:** a Weekly Review is held once a week: for each active hypothesis the metrics are visible with "k of n" and an interval, and a check-in and a decision are recorded. Each family member has their own profile. A vacancy can be added from a phone via "Share" (Android) or a quick command (iPhone). The database can be exported to JSON and loaded back.
 
-Order: block A → block B; blocks C, D, E are independent after #41.
+Order: block A → block B; blocks C, D, E, G are independent after #41.
 
 ### A. Profiles and settings
 
@@ -106,6 +106,10 @@ Order: block A → block B; blocks C, D, E are independent after #41.
 ### F. Localization
 
 - [x] #62 English UI: resx localization (en by default, ru kept), reference data seeds and documentation in English.
+
+### G. Application history
+
+- [x] #75 Application history: every application (Applied, Interviewing, Closed) with outcome, hypothesis, CV version, channel, dates and cover letter, filters by stage/outcome and search by company or role; a closed vacancy can be reopened to Applied or Interviewing (the outcome is cleared, the application data is kept).
 
 
 ### G. Vacancy title

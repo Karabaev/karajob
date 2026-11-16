@@ -172,6 +172,24 @@ public partial class VacancyService
     await db.SaveChangesAsync(cancellationToken);
   }
 
+  public async Task ReopenAsync(Guid vacancyId, VacancyStage expectedStage, VacancyStage target, CancellationToken cancellationToken = default)
+  {
+    await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+    var vacancy = await FindVacancyAsync(db, vacancyId, cancellationToken);
+    EnsureStage(vacancy, expectedStage);
+
+    try
+    {
+      vacancy.Reopen(target, timeProvider.GetUtcNow().UtcDateTime);
+    }
+    catch (StageTransitionException)
+    {
+      throw Failure(localizer["Error.CannotReopen"]);
+    }
+
+    await db.SaveChangesAsync(cancellationToken);
+  }
+
   private static ValidationFailedException Failure(string message)
   {
     return new ValidationFailedException(new Dictionary<string, string> { [string.Empty] = message });

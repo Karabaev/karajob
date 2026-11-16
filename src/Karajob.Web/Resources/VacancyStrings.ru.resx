@@ -111,4 +111,8 @@
   <data name="CoverLetter.Copy" xml:space="preserve"><value>Копировать</value></data>
   <data name="CoverLetter.Copied" xml:space="preserve"><value>Скопировано</value></data>
   <data name="CoverLetter.CopyFailed" xml:space="preserve"><value>Не удалось скопировать — выделите текст вручную</value></data>
+  <data name="Reopen.Target" xml:space="preserve"><value>Вернуть на этап</value></data>
+  <data name="Reopen.Submit" xml:space="preserve"><value>Вернуть</value></data>
+  <data name="Page.Reopen" xml:space="preserve"><value>Вернуть в работу</value></data>
+  <data name="Page.ReopenTitle" xml:space="preserve"><value>Вернуть вакансию в работу</value></data>
 </root>

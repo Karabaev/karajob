@@ -16,4 +16,5 @@
   <data name="Layout.Settings" xml:space="preserve"><value>Настройки</value></data>
   <data name="Layout.Profile" xml:space="preserve"><value>Профиль: {0}</value></data>
   <data name="Layout.AllProfiles" xml:space="preserve"><value>Все профили</value></data>
+  <data name="Layout.Applications" xml:space="preserve"><value>Отклики</value></data>
 </root>

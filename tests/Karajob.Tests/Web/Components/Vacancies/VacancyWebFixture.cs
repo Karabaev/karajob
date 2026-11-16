@@ -1,4 +1,5 @@
 using Bunit;
+using Karajob.Application.Applications;
 using Karajob.Application.Catalogs;
 using Karajob.Application.Companies;
 using Karajob.Application.Cvs;
@@ -29,6 +30,7 @@ public abstract class VacancyWebFixture : IAsyncLifetime
   protected BunitContext Context { get; } = new();
   protected SqliteTestDatabase Database { get; private set; } = null!;
   protected VacancyService Vacancies { get; private set; } = null!;
+  protected ApplicationService Applications { get; private set; } = null!;
   protected CompanyService Companies { get; private set; } = null!;
   protected HypothesisService Hypotheses { get; private set; } = null!;
   protected CatalogService Catalogs { get; private set; } = null!;
@@ -143,6 +145,7 @@ public abstract class VacancyWebFixture : IAsyncLifetime
   {
     Database = await SqliteTestDatabase.CreateAsync();
     Vacancies = TestDbContextFactory.CreateVacancyService(Database, SeedData.OwnerId, TimeProvider.System, TitleReader);
+    Applications = TestDbContextFactory.CreateApplicationService(Database, SeedData.OwnerId);
     Companies = TestDbContextFactory.CreateCompanyService(Database, SeedData.OwnerId);
     Hypotheses = TestDbContextFactory.CreateHypothesisService(Database, SeedData.OwnerId, TimeProvider.System);
     Catalogs = TestDbContextFactory.CreateCatalogService(Database, SeedData.OwnerId);
@@ -151,6 +154,7 @@ public abstract class VacancyWebFixture : IAsyncLifetime
     Context.Services.AddSingleton<ICurrentUser>(new FixedCurrentUser(SeedData.OwnerId));
     Context.Services.AddSingleton(TimeProvider.System);
     Context.Services.AddSingleton(Vacancies);
+    Context.Services.AddSingleton(Applications);
     Context.Services.AddSingleton(Companies);
     Context.Services.AddSingleton(Hypotheses);
     Context.Services.AddSingleton(Catalogs);

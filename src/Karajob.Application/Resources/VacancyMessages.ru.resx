@@ -12,6 +12,7 @@
   <data name="Error.AppliedAtBeforeStage" xml:space="preserve"><value>Дата отклика раньше последней смены стадии</value></data>
   <data name="Error.CannotApplyAtStage" xml:space="preserve"><value>Откликнуться на вакансию на этой стадии нельзя</value></data>
   <data name="Error.CannotCloseAtStage" xml:space="preserve"><value>Вакансию на этой стадии нельзя закрыть</value></data>
+  <data name="Error.CannotReopen" xml:space="preserve"><value>Эту вакансию нельзя вернуть на эту стадию.</value></data>
   <data name="Error.UrlInvalid" xml:space="preserve"><value>Некорректная ссылка на вакансию</value></data>
   <data name="Error.HypothesisRequired" xml:space="preserve"><value>Выберите хотя бы одну гипотезу</value></data>
   <data name="Error.CannotDismissAtStage" xml:space="preserve"><value>Вакансию на этой стадии нельзя отклонить</value></data>
