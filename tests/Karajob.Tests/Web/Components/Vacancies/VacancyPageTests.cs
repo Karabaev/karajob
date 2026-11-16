@@ -8,6 +8,7 @@ using Karajob.Infrastructure.Persistence;
 using Karajob.Web.Components.Vacancies;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.JSInterop;
 using MudBlazor;
 
 namespace Karajob.Tests.Web.Components.Vacancies;
@@ -417,6 +418,44 @@ public class VacancyPageTests : VacancyWebFixture
     {
       var call = Context.JSInterop.VerifyInvoke("navigator.clipboard.writeText");
       Assert.Equal(letter, Assert.Single(call.Arguments));
+    });
+  }
+
+  [Fact]
+  public async Task Copy_ClipboardSucceeds_ShowsCopiedSnackbar()
+  {
+    const string letter = "Hello,\nI am a Unity developer.";
+    var id = await CreateWithLetterAsync(VacancyStage.Applied, letter);
+    Context.JSInterop.SetupVoid("navigator.clipboard.writeText", letter).SetVoidResult();
+    var cut = Context.Render<VacancyPage>(p => p.Add(c => c.Id, id));
+
+    cut.WaitForElement(".cover-letter-copy");
+    cut.Find("button.cover-letter-copy, .cover-letter-copy button").Click();
+
+    cut.WaitForAssertion(() =>
+    {
+      var snackbar = Assert.Single(Context.Services.GetRequiredService<ISnackbar>().ShownSnackbars);
+      Assert.Equal(Severity.Success, snackbar.Severity);
+      Assert.Equal("Copied", snackbar.Message?.ToString());
+    });
+  }
+
+  [Fact]
+  public async Task Copy_ClipboardUnavailable_ShowsWarningSnackbar()
+  {
+    const string letter = "Hello,\nI am a Unity developer.";
+    var id = await CreateWithLetterAsync(VacancyStage.Applied, letter);
+    Context.JSInterop.SetupVoid("navigator.clipboard.writeText", letter).SetException(new JSException("not allowed"));
+    var cut = Context.Render<VacancyPage>(p => p.Add(c => c.Id, id));
+
+    cut.WaitForElement(".cover-letter-copy");
+    cut.Find("button.cover-letter-copy, .cover-letter-copy button").Click();
+
+    cut.WaitForAssertion(() =>
+    {
+      var snackbar = Assert.Single(Context.Services.GetRequiredService<ISnackbar>().ShownSnackbars);
+      Assert.Equal(Severity.Warning, snackbar.Severity);
+      Assert.Equal("Could not copy, select the text manually", snackbar.Message?.ToString());
     });
   }
 
