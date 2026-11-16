@@ -53,7 +53,7 @@ h1:focus {
   content: "An error has occurred.";
 }
 
-.master-profile-editor textarea {
+.master-profile-editor textarea.mud-input-root {
   font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
   font-size: 0.875rem;
 }
