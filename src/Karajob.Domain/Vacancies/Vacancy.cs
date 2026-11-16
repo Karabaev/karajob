@@ -39,6 +39,8 @@ public class Vacancy : IUserOwned
 
   public VacancyStage? ClosedFromStage => Stage == VacancyStage.Closed ? LatestClosedEvent()?.FromStage : null;
 
+  public DateTime? ClosedAt => Stage == VacancyStage.Closed ? LatestClosedEvent()?.OccurredAt : null;
+
   public DateTime? PublishedAt
   {
     get => publishedAt;
@@ -215,8 +217,6 @@ public class Vacancy : IUserOwned
 
     return MoveTo(target, at);
   }
-
-  public DateTime? ClosedAt => Stage == VacancyStage.Closed ? LatestClosedEvent()?.OccurredAt : null;
 
   private ApplicationEvent? LatestClosedEvent()
   {
