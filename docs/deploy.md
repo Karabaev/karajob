@@ -2,23 +2,34 @@
 
 Karajob runs as one Docker container on a home server. All state lives in one host folder mounted as `/data`. The app has no passwords, so it must stay inside the home network: from outside, reach it only through the router's WireGuard VPN and never expose the port publicly.
 
+The server runs a ready image from GitHub Container Registry: CI builds it on every push to `master` that passed the tests and publishes `ghcr.io/karabaev/karajob` with two tags, `sha-<full commit sha>` and `latest`. The server has no sources and builds nothing: its folder holds only `compose.yaml`, `.env` and `data/`. The server always runs an explicit `sha-` tag, never `latest`, so the running version is known and a rollback is a one-line change. Why: [ADR RegistryImageDeployment](adr/RegistryImageDeployment.md).
+
 ## 1. Prepare the server
 
 1. Install Docker Engine with the compose plugin (`docker compose version` should work).
 2. Give the server a fixed IP address: add a DHCP reservation for its MAC address on the router (preferred over a static IP set on the server itself, so the router stays the single source of addresses).
-3. Clone the repository and create the config:
+3. Create the app folder with the compose file and the config from [`docs/deploy/`](deploy/):
 
    ```bash
-   git clone https://github.com/Karabaev/karajob.git /srv/karajob
+   sudo mkdir -p /srv/karajob && sudo chown "$USER" /srv/karajob
    cd /srv/karajob
-   cp .env.example .env              # adjust KARAJOB_PORT / KARAJOB_DATA_DIR if needed
+   curl -fsSLO https://raw.githubusercontent.com/Karabaev/karajob/master/docs/deploy/compose.yaml
+   curl -fsSL -o .env https://raw.githubusercontent.com/Karabaev/karajob/master/docs/deploy/.env.example
    mkdir -p data && sudo chown 1654:1654 data   # the container runs as user app (UID 1654)
+   ```
+
+4. In `.env`, set `KARAJOB_TAG` to the tag to run: GitHub → the repository → Packages → `karajob` lists them, take the `sha-` tag of the `master` commit you want. Adjust `KARAJOB_PORT` / `KARAJOB_DATA_DIR` if needed. Compose refuses to start while `KARAJOB_TAG` is empty.
+5. Registry access. The package is public (a one-time step by the owner after the first publish: package page → Package settings → Change visibility → Public), so the server pulls without logging in. If the package is private, log in once with a personal access token (classic) that has only the `read:packages` scope; Docker keeps it in `~/.docker/config.json`:
+
+   ```bash
+   docker login ghcr.io -u <github-user>   # paste the token as the password
    ```
 
 ## 2. Start and check
 
 ```bash
-docker compose up -d --build
+docker compose pull
+docker compose up -d
 docker compose logs -f karajob    # expect "Applying N migration(s)" on the first start, then "Now listening on"
 ```
 
@@ -31,29 +42,28 @@ Check from the phone:
 
 ## 3. Update and roll back
 
+Write down the tag that is running now (`KARAJOB_TAG` in `.env`): it is the rollback target. Then set `KARAJOB_TAG` to the new tag and run:
+
 ```bash
 cd /srv/karajob
-git pull
-docker tag karajob karajob:prev   # keep the running image for a rollback
-docker compose up -d --build
+docker compose pull
+docker compose up -d
 ```
 
 Migrations run on start. Before applying any, the app copies the database to `data/backups/<timestamp>-before-<migration>.db`. If a migration fails, the app exits and the log names that backup. Because of `restart: unless-stopped` the container then restarts in a loop, and every attempt writes one more backup: stop it with `docker compose down` first, and restore the **earliest** backup for that migration.
 
-Rollback (no down migrations are supported):
+Rollback: set `KARAJOB_TAG` in `.env` back to the previous tag. If the new image applied a migration (the log says "Applying N migration(s)" and a `before-<migration>` backup appeared in `data/backups/`), the database must be restored too: no down migrations are supported, and the old image fails on the newer schema. Restore from the **earliest** backup taken before the first new migration:
 
 ```bash
 cd /srv/karajob
 docker compose down
-cp data/backups/<timestamp>-before-<migration>.db data/karajob.db
+cp data/backups/<timestamp>-before-<migration>.db data/karajob.db   # skip these three lines if no migration ran
 rm -f data/karajob.db-journal data/karajob.db-wal data/karajob.db-shm
 sudo chown 1654:1654 data/karajob.db
-git checkout <previous commit>    # detaches HEAD
-docker tag karajob:prev karajob
-docker compose up -d              # without --build: runs the previous image
+docker compose up -d              # runs the previous tag from .env
 ```
 
-Before the next update, return to the branch with `git checkout master`, otherwise `git pull` fails on the detached HEAD.
+Data written between the update and the rollback is lost with the restored database.
 
 ## 4. What is in `data/`
 
@@ -111,7 +121,7 @@ Check it regularly: `restic snapshots` and, once in a while, `restic check`.
    sudo chown -R 1654:1654 data
    ```
 
-4. Start: `docker compose up -d --build`. If the snapshot is from an older schema, the pending migrations are applied on start, with a backup taken first.
+4. Start the tag set in `.env` (on a new server, set `KARAJOB_TAG` as in section 1): `docker compose pull && docker compose up -d`. If the snapshot is from an older schema, the pending migrations are applied on start, with a backup taken first. A snapshot from a newer schema than the tag needs a newer tag.
 5. Open the app and check that the latest vacancies and applications are there.
 
 Try a restore into a scratch folder once after setting up restic, so the procedure is known to work before it is needed.
