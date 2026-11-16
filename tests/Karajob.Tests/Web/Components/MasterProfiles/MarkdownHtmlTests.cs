@@ -39,6 +39,25 @@ public class MarkdownHtmlTests
     Assert.DoesNotContain("javascript:", Html(markdown), StringComparison.OrdinalIgnoreCase);
   }
 
+  [Theory]
+  [InlineData("[x][r]\n\n[r]: javascript:alert(1)", "javascript")]
+  [InlineData("[x](javascript&#58;alert(1))", "javascript")]
+  [InlineData("[x](java&#9;script:alert(1))", "script:")]
+  [InlineData("[x](vbscript:msgbox(1))", "vbscript")]
+  [InlineData("![i](data:text/html;base64,PHNjcmlwdD4=)", "data:")]
+  public void Render_UnsafeUrlVariant_IsNotEmitted(string markdown, string forbidden)
+  {
+    Assert.DoesNotContain(forbidden, Html(markdown), StringComparison.OrdinalIgnoreCase);
+  }
+
+  [Theory]
+  [InlineData("see https://example.com/a", "href=\"https://example.com/a\"")]
+  [InlineData("see www.example.com", "href=\"http://www.example.com\"")]
+  public void Render_BareAutolink_KeepsHref(string markdown, string expected)
+  {
+    Assert.Contains(expected, Html(markdown));
+  }
+
   [Fact]
   public void Render_HttpsLink_KeepsHref()
   {
