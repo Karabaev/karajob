@@ -5,9 +5,9 @@
 <MudStack Row="true" Wrap="Wrap.Wrap" AlignItems="AlignItems.Start" Spacing="2" Class="mb-4">
   <MudTextField T="string" Class="catalog-add-name" Label="Название" Immediate="true" @bind-Value="_name"
                 Error="HasError(nameof(CatalogInput.Name))" ErrorText="@ErrorOf(nameof(CatalogInput.Name))" />
-  @if (Kind == CatalogKind.Language)
+  @if (HasCode)
   {
-    <MudTextField T="string" Class="catalog-add-code" Label="Код" Placeholder="ru" Immediate="true" @bind-Value="_code"
+    <MudTextField T="string" Class="catalog-add-code" Label="Код" Placeholder="@CodePlaceholder" Immediate="true" @bind-Value="_code"
                   Error="HasError(nameof(CatalogInput.Code))" ErrorText="@ErrorOf(nameof(CatalogInput.Code))" />
   }
   <MudButton Class="catalog-add" Variant="Variant.Filled" Color="Color.Primary" OnClick="AddAsync">Добавить</MudButton>
@@ -17,7 +17,7 @@
           RowClass="catalog-row" Loading="_loading">
   <HeaderContent>
     <MudTh>Название</MudTh>
-    @if (Kind == CatalogKind.Language)
+    @if (HasCode)
     {
       <MudTh>Код</MudTh>
     }
@@ -25,7 +25,7 @@
   </HeaderContent>
   <RowTemplate>
     <MudTd DataLabel="Название"><span class="catalog-name">@context.Name</span></MudTd>
-    @if (Kind == CatalogKind.Language)
+    @if (HasCode)
     {
       <MudTd DataLabel="Код">@context.Code</MudTd>
     }
@@ -47,6 +47,10 @@
 
   [Parameter, EditorRequired]
   public CatalogKind Kind { get; set; }
+
+  private bool HasCode => Kind is CatalogKind.Language or CatalogKind.Currency;
+
+  private string CodePlaceholder => Kind == CatalogKind.Currency ? "RUB" : "ru";
 
   protected override async Task OnInitializedAsync()
   {

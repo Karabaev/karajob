@@ -95,6 +95,16 @@ else if (_loaded)
                 <MudSelectItem T="Guid" Value="platform.Id">@platform.Name</MudSelectItem>
               }
             </MudSelect>
+            <MudSelect T="Guid" Class="hypothesis-engines" Label="Движки" MultiSelection="true"
+                       SelectedValues="_engineIds" SelectedValuesChanged="OnEnginesChanged"
+                       ToStringFunc="EngineName" MultiSelectionTextFunc="JoinNames"
+                       HelperText="@EmptyHint(_engineOptions)"
+                       Error="HasError(nameof(HypothesisInput.EngineIds))" ErrorText="@ErrorOf(nameof(HypothesisInput.EngineIds))">
+              @foreach (var engine in _engineOptions)
+              {
+                <MudSelectItem T="Guid" Value="engine.Id">@engine.Name</MudSelectItem>
+              }
+            </MudSelect>
             <MudTextField T="string" Class="hypothesis-industries" Label="Индустрии" HelperText="по одной на строку"
                           Lines="3" Sizing="InputSizing.Auto" @bind-Value="_industries"
                           Error="HasError(nameof(HypothesisInput.Industries))" ErrorText="@ErrorOf(nameof(HypothesisInput.Industries))" />
@@ -141,6 +151,7 @@ else if (_loaded)
   private IReadOnlyList<CatalogListItem> _roles = [];
   private IReadOnlyList<CatalogListItem> _locationOptions = [];
   private IReadOnlyList<CatalogListItem> _platformOptions = [];
+  private IReadOnlyList<CatalogListItem> _engineOptions = [];
   private IReadOnlyList<CatalogListItem> _languages = [];
   private HypothesisDetails? _details;
   private bool _loaded;
@@ -153,6 +164,7 @@ else if (_loaded)
   private WorkFormat _format = WorkFormat.Remote;
   private IReadOnlyCollection<Guid> _locationIds = [];
   private IReadOnlyCollection<Guid> _platformIds = [];
+  private IReadOnlyCollection<Guid> _engineIds = [];
   private string? _industries;
   private string? _positioning;
   private Guid? _primaryCvId;
@@ -182,6 +194,7 @@ else if (_loaded)
     _roles = await CatalogService.ListAsync(CatalogKind.Role);
     _locationOptions = await CatalogService.ListAsync(CatalogKind.Location);
     _platformOptions = await CatalogService.ListAsync(CatalogKind.Platform);
+    _engineOptions = await CatalogService.ListAsync(CatalogKind.Engine);
     _languages = await CatalogService.ListAsync(CatalogKind.Language);
 
     if (Id is not null)
@@ -203,6 +216,7 @@ else if (_loaded)
     _format = _details?.WorkFormat ?? WorkFormat.Remote;
     _locationIds = _details?.LocationIds.ToList() ?? [];
     _platformIds = _details?.PlatformIds.ToList() ?? [];
+    _engineIds = _details?.EngineIds.ToList() ?? [];
     _industries = _details is null ? null : string.Join('\n', _details.Industries);
     _positioning = _details?.Positioning;
     _primaryCvId = _details?.PrimaryCvDocumentId;
@@ -269,6 +283,16 @@ else if (_loaded)
     return string.Join(", ", names);
   }
 
+  private void OnEnginesChanged(IReadOnlyCollection<Guid>? engineIds)
+  {
+    _engineIds = engineIds?.ToList() ?? [];
+  }
+
+  private string EngineName(Guid id)
+  {
+    return _engineOptions.FirstOrDefault(e => e.Id == id)?.Name ?? "";
+  }
+
   private string PlatformName(Guid id)
   {
     return _platformOptions.FirstOrDefault(p => p.Id == id)?.Name ?? "";
@@ -313,7 +337,7 @@ else if (_loaded)
       _roleId,
       _locationIds.ToList(),
       _platformIds.ToList(),
-      [],
+      _engineIds.ToList(),
       SplitLines(_industries),
       _format,
       _languageId,

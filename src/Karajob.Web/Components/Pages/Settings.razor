@@ -48,6 +48,16 @@
                 <MudSelectItem T="Guid" Value="platform.Id">@platform.Name</MudSelectItem>
               }
             </MudSelect>
+            <MudSelect T="Guid" Class="settings-engines" Label="Движки" MultiSelection="true"
+                       SelectedValues="_engineIds" SelectedValuesChanged="OnEnginesChanged"
+                       ToStringFunc="EngineName" MultiSelectionTextFunc="JoinNames"
+                       HelperText="@EmptyHint(_engines)"
+                       Error="HasError(nameof(SearchGoalInput.EngineIds))" ErrorText="@ErrorOf(nameof(SearchGoalInput.EngineIds))">
+              @foreach (var engine in _engines)
+              {
+                <MudSelectItem T="Guid" Value="engine.Id">@engine.Name</MudSelectItem>
+              }
+            </MudSelect>
             <MudTextField T="string" Class="settings-industries" Label="Индустрии"
                           Lines="3" Sizing="InputSizing.Auto" @bind-Value="_industries"
                           Error="HasError(nameof(SearchGoalInput.Industries))" ErrorText="@ErrorOf(nameof(SearchGoalInput.Industries))" />
@@ -68,9 +78,14 @@
                                  Error="HasError(nameof(SearchGoalInput.DesiredMonthlyIncome))" ErrorText="@ErrorOf(nameof(SearchGoalInput.DesiredMonthlyIncome))" />
               </MudItem>
               <MudItem xs="12" sm="4">
-                <MudTextField T="string" Class="settings-currency" Label="Валюта" Placeholder="RUB"
-                              @bind-Value="_currency"
-                              Error="HasError(nameof(SearchGoalInput.IncomeCurrency))" ErrorText="@ErrorOf(nameof(SearchGoalInput.IncomeCurrency))" />
+                <MudSelect T="string" Class="settings-currency" Label="Валюта" Clearable="true"
+                           @bind-Value="_currency" HelperText="@EmptyHint(_currencies)"
+                           Error="HasError(nameof(SearchGoalInput.IncomeCurrency))" ErrorText="@ErrorOf(nameof(SearchGoalInput.IncomeCurrency))">
+                  @foreach (var currency in _currencies)
+                  {
+                    <MudSelectItem T="string" Value="currency.Code!">@currency.Code — @currency.Name</MudSelectItem>
+                  }
+                </MudSelect>
               </MudItem>
             </MudGrid>
           </MudStack>
@@ -111,11 +126,14 @@
   private IReadOnlyList<CatalogListItem> _roles = [];
   private IReadOnlyList<CatalogListItem> _locations = [];
   private IReadOnlyList<CatalogListItem> _platforms = [];
+  private IReadOnlyList<CatalogListItem> _engines = [];
+  private IReadOnlyList<CatalogListItem> _currencies = [];
   private bool _loaded;
   private bool _saving;
   private Guid? _roleId;
   private IReadOnlyCollection<Guid> _locationIds = [];
   private IReadOnlyCollection<Guid> _platformIds = [];
+  private IReadOnlyCollection<Guid> _engineIds = [];
   private string? _industries;
   private string? _mustHave;
   private int _weeklyTarget;
@@ -132,6 +150,8 @@
     _roles = await CatalogService.ListAsync(CatalogKind.Role);
     _locations = await CatalogService.ListAsync(CatalogKind.Location);
     _platforms = await CatalogService.ListAsync(CatalogKind.Platform);
+    _engines = await CatalogService.ListAsync(CatalogKind.Engine);
+    _currencies = await CatalogService.ListAsync(CatalogKind.Currency);
     FillFields(await SearchGoalService.GetAsync());
     _loaded = true;
   }
@@ -141,6 +161,7 @@
     _roleId = goal.RoleId;
     _locationIds = goal.LocationIds.ToList();
     _platformIds = goal.PlatformIds.ToList();
+    _engineIds = goal.EngineIds.ToList();
     _industries = goal.Industries;
     _mustHave = goal.MustHave;
     _weeklyTarget = goal.WeeklyApplicationTarget;
@@ -161,6 +182,16 @@
   private void OnPlatformsChanged(IReadOnlyCollection<Guid>? platformIds)
   {
     _platformIds = platformIds?.ToList() ?? [];
+  }
+
+  private void OnEnginesChanged(IReadOnlyCollection<Guid>? engineIds)
+  {
+    _engineIds = engineIds?.ToList() ?? [];
+  }
+
+  private string EngineName(Guid id)
+  {
+    return _engines.FirstOrDefault(e => e.Id == id)?.Name ?? "";
   }
 
   private string RoleName(Guid? id)
@@ -204,7 +235,7 @@
       _roleId,
       _locationIds.ToList(),
       _platformIds.ToList(),
-      [],
+      _engineIds.ToList(),
       _industries,
       _mustHave,
       _weeklyTarget,
