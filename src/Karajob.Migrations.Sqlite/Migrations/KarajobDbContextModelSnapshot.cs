@@ -858,6 +858,60 @@ namespace Karajob.Migrations.Sqlite.Migrations
                     b.ToTable("HypothesisPlatforms");
                 });
 
+            modelBuilder.Entity("Karajob.Domain.MasterProfiles.MasterProfile", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("MasterProfiles");
+                });
+
+            modelBuilder.Entity("Karajob.Domain.MasterProfiles.MasterProfileVersion", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Comment")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Markdown")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("MasterProfileId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("RestoredFromVersionId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MasterProfileId");
+
+                    b.HasIndex("RestoredFromVersionId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("MasterProfileVersions");
+                });
+
             modelBuilder.Entity("Karajob.Domain.Users.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1346,6 +1400,35 @@ namespace Karajob.Migrations.Sqlite.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Karajob.Domain.MasterProfiles.MasterProfile", b =>
+                {
+                    b.HasOne("Karajob.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Karajob.Domain.MasterProfiles.MasterProfileVersion", b =>
+                {
+                    b.HasOne("Karajob.Domain.MasterProfiles.MasterProfile", null)
+                        .WithMany("Versions")
+                        .HasForeignKey("MasterProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Karajob.Domain.MasterProfiles.MasterProfileVersion", null)
+                        .WithMany()
+                        .HasForeignKey("RestoredFromVersionId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Karajob.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Karajob.Domain.Vacancies.Vacancy", b =>
                 {
                     b.HasOne("Karajob.Domain.Companies.Company", null)
@@ -1466,6 +1549,11 @@ namespace Karajob.Migrations.Sqlite.Migrations
                     b.Navigation("Locations");
 
                     b.Navigation("Platforms");
+                });
+
+            modelBuilder.Entity("Karajob.Domain.MasterProfiles.MasterProfile", b =>
+                {
+                    b.Navigation("Versions");
                 });
 
             modelBuilder.Entity("Karajob.Domain.Vacancies.Vacancy", b =>

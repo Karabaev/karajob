@@ -220,6 +220,25 @@ namespace Karajob.Migrations.Sqlite.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "MasterProfiles",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    UserId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MasterProfiles", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_MasterProfiles_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "SearchGoals",
                 columns: table => new
                 {
@@ -416,6 +435,41 @@ namespace Karajob.Migrations.Sqlite.Migrations
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Hypotheses_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "MasterProfileVersions",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    UserId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    MasterProfileId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    Markdown = table.Column<string>(type: "TEXT", nullable: false),
+                    Comment = table.Column<string>(type: "TEXT", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    RestoredFromVersionId = table.Column<Guid>(type: "TEXT", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MasterProfileVersions", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_MasterProfileVersions_MasterProfileVersions_RestoredFromVersionId",
+                        column: x => x.RestoredFromVersionId,
+                        principalTable: "MasterProfileVersions",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_MasterProfileVersions_MasterProfiles_MasterProfileId",
+                        column: x => x.MasterProfileId,
+                        principalTable: "MasterProfiles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_MasterProfileVersions_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "Id",
@@ -1037,6 +1091,27 @@ namespace Karajob.Migrations.Sqlite.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_MasterProfiles_UserId",
+                table: "MasterProfiles",
+                column: "UserId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MasterProfileVersions_MasterProfileId",
+                table: "MasterProfileVersions",
+                column: "MasterProfileId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MasterProfileVersions_RestoredFromVersionId",
+                table: "MasterProfileVersions",
+                column: "RestoredFromVersionId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MasterProfileVersions_UserId",
+                table: "MasterProfileVersions",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Platforms_NormalizedName",
                 table: "Platforms",
                 column: "NormalizedName",
@@ -1233,6 +1308,9 @@ namespace Karajob.Migrations.Sqlite.Migrations
                 name: "JobApplications");
 
             migrationBuilder.DropTable(
+                name: "MasterProfileVersions");
+
+            migrationBuilder.DropTable(
                 name: "Projects");
 
             migrationBuilder.DropTable(
@@ -1258,6 +1336,9 @@ namespace Karajob.Migrations.Sqlite.Migrations
 
             migrationBuilder.DropTable(
                 name: "CvVersions");
+
+            migrationBuilder.DropTable(
+                name: "MasterProfiles");
 
             migrationBuilder.DropTable(
                 name: "SearchGoals");

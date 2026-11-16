@@ -4,6 +4,7 @@ using Karajob.Domain.Companies;
 using Karajob.Domain.Cvs;
 using Karajob.Domain.Goals;
 using Karajob.Domain.Hypotheses;
+using Karajob.Domain.MasterProfiles;
 using Karajob.Domain.Users;
 using Karajob.Domain.Vacancies;
 using Microsoft.EntityFrameworkCore;
@@ -40,6 +41,8 @@ public interface IKarajobDbContext : IAsyncDisposable
   DbSet<SearchGoalLocation> SearchGoalLocations { get; }
   DbSet<SearchGoalPlatform> SearchGoalPlatforms { get; }
   DbSet<SearchGoalEngine> SearchGoalEngines { get; }
+  DbSet<MasterProfile> MasterProfiles { get; }
+  DbSet<MasterProfileVersion> MasterProfileVersions { get; }
 
   Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }
