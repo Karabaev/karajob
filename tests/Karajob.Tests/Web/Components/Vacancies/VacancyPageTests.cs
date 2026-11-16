@@ -27,6 +27,51 @@ public class VacancyPageTests : VacancyWebFixture
   }
 
   [Fact]
+  public async Task Render_ExistingVacancyWithTitle_PrefillsTitleField()
+  {
+    var created = await Vacancies.CreateAsync(Input("https://example.com/jobs/1", title: "Senior Unity Dev"));
+
+    var cut = Context.Render<VacancyPage>(p => p.Add(c => c.Id, created.Id));
+
+    cut.WaitForAssertion(() => Assert.Equal("Senior Unity Dev", cut.Find(".vacancy-title input").GetAttribute("value")));
+  }
+
+  [Fact]
+  public async Task Save_TitleEditedOnExistingVacancy_PersistsNewTitle()
+  {
+    var created = await Vacancies.CreateAsync(Input("https://example.com/jobs/1", title: "Old title"));
+    var cut = Context.Render<VacancyPage>(p => p.Add(c => c.Id, created.Id));
+    cut.WaitForAssertion(() => Assert.Equal("Old title", cut.Find(".vacancy-title input").GetAttribute("value")));
+    cut.Find(".vacancy-title input").Change("New title");
+
+    cut.Find(".vacancy-save").Click();
+
+    var deadline = DateTime.UtcNow.AddSeconds(5);
+    var found = await Vacancies.FindAsync(created.Id);
+    while (DateTime.UtcNow < deadline && found!.Title != "New title")
+    {
+      await Task.Delay(50);
+      found = await Vacancies.FindAsync(created.Id);
+    }
+    Assert.Equal("New title", found!.Title);
+  }
+
+  [Fact]
+  public async Task ClickFetchTitle_ExistingVacancy_FillsTitleFieldFromReader()
+  {
+    TitleReader.Title = "Fetched title";
+    var created = await Vacancies.CreateAsync(Input("https://example.com/jobs/1", title: "Old title"));
+    var cut = Context.Render<VacancyPage>(p => p.Add(c => c.Id, created.Id));
+    cut.WaitForAssertion(() => Assert.Equal("Old title", cut.Find(".vacancy-title input").GetAttribute("value")));
+    TitleReader.RequestedUrls.Clear();
+
+    cut.Find(".vacancy-fetch-title").Click();
+
+    cut.WaitForAssertion(() => Assert.Equal("Fetched title", cut.Find(".vacancy-title input").GetAttribute("value")));
+    Assert.Equal(["https://example.com/jobs/1"], TitleReader.RequestedUrls);
+  }
+
+  [Fact]
   public void Render_UnknownId_ShowsNotFoundHeading()
   {
     var cut = Context.Render<VacancyPage>(p => p.Add(c => c.Id, Guid.NewGuid()));

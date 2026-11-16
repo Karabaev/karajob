@@ -261,6 +261,55 @@ public class BoardPageTests : VacancyWebFixture
     Assert.Equal(VacancyStage.Dismissed, (await Vacancies.FindAsync(id))!.Stage);
   }
 
+  [Fact]
+  public async Task Render_CardWithTitle_ShowsTitleInCardLink()
+  {
+    var hypothesisId = await CreateHypothesisAsync();
+    var id = await CreateOnBoardAsync(VacancyStage.Targeted, hypothesisId, "https://example.com/jobs/1");
+    await MutateAsync(id, v => v.Title = "Senior Unity Dev");
+
+    var cut = Context.Render<BoardPage>();
+
+    cut.WaitForAssertion(() =>
+    {
+      var link = CardsIn(cut, VacancyStage.Targeted, id).Single().QuerySelector("a")!;
+      Assert.Contains("Senior Unity Dev", link.TextContent);
+    });
+  }
+
+  [Fact]
+  public async Task Render_CardWithoutTitleAndCompany_ShowsUrlInCardLink()
+  {
+    var hypothesisId = await CreateHypothesisAsync();
+    var id = await CreateOnBoardAsync(VacancyStage.Targeted, hypothesisId, "https://example.com/jobs/1");
+
+    var cut = Context.Render<BoardPage>();
+
+    cut.WaitForAssertion(() =>
+    {
+      var link = CardsIn(cut, VacancyStage.Targeted, id).Single().QuerySelector("a")!;
+      Assert.Contains("https://example.com/jobs/1", link.TextContent);
+    });
+  }
+
+  [Fact]
+  public async Task Render_CardWithoutTitleButWithCompanyAndRole_ShowsCompanyAndRoleInCardLink()
+  {
+    var hypothesisId = await CreateHypothesisAsync();
+    var company = await Companies.CreateAsync(new Karajob.Application.Companies.CompanyInput("pixel-forge", "Pixel Forge", null, null, [], []));
+    var vacancy = await Vacancies.CreateAsync(Input("https://example.com/jobs/1", company.Id, Karajob.Infrastructure.Persistence.SeedData.UnityDeveloperRoleId, [hypothesisId]));
+    await MutateAsync(vacancy.Id, v => v.MoveTo(VacancyStage.Targeted, vacancy.DiscoveredAt.AddMinutes(1)));
+
+    var cut = Context.Render<BoardPage>();
+
+    cut.WaitForAssertion(() =>
+    {
+      var link = CardsIn(cut, VacancyStage.Targeted, vacancy.Id).Single().QuerySelector("a")!;
+      Assert.Contains("Pixel Forge", link.TextContent);
+      Assert.DoesNotContain("https://example.com/jobs/1", link.TextContent);
+    });
+  }
+
   private static async Task DropAsync(IRenderedComponent<BoardPage> cut, Guid id, VacancyStage zone)
   {
     var container = cut.FindComponent<MudDropContainer<BoardCard>>();

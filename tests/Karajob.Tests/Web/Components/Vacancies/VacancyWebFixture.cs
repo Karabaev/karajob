@@ -13,6 +13,7 @@ using Karajob.Infrastructure.Persistence;
 using Karajob.Infrastructure.Users;
 using Karajob.Tests.Application;
 using Karajob.Tests.Application.Cvs;
+using Karajob.Tests.Application.Vacancies;
 using Karajob.Tests.Infrastructure.Persistence;
 using Karajob.Web.Vacancies;
 using Microsoft.AspNetCore.Components;
@@ -33,14 +34,16 @@ public abstract class VacancyWebFixture : IAsyncLifetime
   protected CatalogService Catalogs { get; private set; } = null!;
   protected CvService Cvs { get; private set; } = null!;
   internal InMemoryFileStorage Storage { get; } = new();
+  internal StubPageTitleReader TitleReader { get; } = new();
 
   protected static VacancyInput Input(
     string url,
     Guid? companyId = null,
     Guid? roleId = null,
-    IReadOnlyList<Guid>? hypothesisIds = null)
+    IReadOnlyList<Guid>? hypothesisIds = null,
+    string? title = null)
   {
-    return new VacancyInput(url, null, companyId, roleId, null, [], [], null, null, null, null, null, hypothesisIds ?? [], null, null);
+    return new VacancyInput(url, title, companyId, roleId, null, [], [], null, null, null, null, null, hypothesisIds ?? [], null, null);
   }
 
   protected async Task<Guid> CreateHypothesisAsync(string name = "Unity Developer RU", Guid? roleId = null)
@@ -139,7 +142,7 @@ public abstract class VacancyWebFixture : IAsyncLifetime
   public async Task InitializeAsync()
   {
     Database = await SqliteTestDatabase.CreateAsync();
-    Vacancies = TestDbContextFactory.CreateVacancyService(Database, SeedData.OwnerId, TimeProvider.System);
+    Vacancies = TestDbContextFactory.CreateVacancyService(Database, SeedData.OwnerId, TimeProvider.System, TitleReader);
     Companies = TestDbContextFactory.CreateCompanyService(Database, SeedData.OwnerId);
     Hypotheses = TestDbContextFactory.CreateHypothesisService(Database, SeedData.OwnerId, TimeProvider.System);
     Catalogs = TestDbContextFactory.CreateCatalogService(Database, SeedData.OwnerId);
