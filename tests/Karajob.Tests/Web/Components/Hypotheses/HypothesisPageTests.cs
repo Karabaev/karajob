@@ -82,7 +82,7 @@ public class HypothesisPageTests : HypothesisWebFixture
     await cut.InvokeAsync(() => LocationsSelect(cut).Instance.SelectedValuesChanged.InvokeAsync([SeedData.EuLocationId, SeedData.UsaLocationId]));
     cut.WaitForAssertion(() => Assert.Equal("Unreal Developer EN", cut.Find(".hypothesis-name input").GetAttribute("value")));
 
-    cut.Find(".hypothesis-save").Click();
+    ClickSave(cut);
 
     var deadline = DateTime.UtcNow.AddSeconds(5);
     IReadOnlyList<HypothesisListItem> items = [];
@@ -108,7 +108,7 @@ public class HypothesisPageTests : HypothesisWebFixture
     var cut = Context.Render<HypothesisPage>();
     cut.WaitForElement(".hypothesis-name input").Input("Some name");
 
-    cut.Find(".hypothesis-save").Click();
+    ClickSave(cut);
 
     cut.WaitForAssertion(() => Assert.Contains("Укажите роль", cut.Markup));
     Assert.Empty(await Service.ListAsync());
@@ -140,6 +140,12 @@ public class HypothesisPageTests : HypothesisWebFixture
     var cut = Context.Render<HypothesisPage>(p => p.Add(c => c.Id, created.Id));
 
     cut.WaitForElement(".hypothesis-criteria .criteria-market");
+  }
+
+  // The form can re-render between Find and Click after an input; a stale button then has no handler.
+  private static void ClickSave(IRenderedComponent<HypothesisPage> cut)
+  {
+    cut.WaitForAssertion(() => cut.Find(".hypothesis-save").Click());
   }
 
   private static async Task SelectRoleAsync(IRenderedComponent<HypothesisPage> cut, Guid roleId)
