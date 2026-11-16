@@ -1,9 +1,35 @@
+@inject VacancyService VacancyService
+
 <MudDialog>
   <DialogContent>
+    <MudStack Spacing="2">
+      @if (_error is not null)
+      {
+        <MudAlert Severity="Severity.Error">@_error</MudAlert>
+      }
+      <MudSelect T="VacancyStage" Class="reopen-target" Label="@L["Reopen.Target"]" @bind-Value="_target">
+        @foreach (var stage in _targets)
+        {
+          <MudSelectItem T="VacancyStage" Value="stage">@VacancyText.Stage(stage)</MudSelectItem>
+        }
+      </MudSelect>
+    </MudStack>
   </DialogContent>
+  <DialogActions>
+    <MudButton Class="reopen-cancel" OnClick="Cancel">@L["Common.Cancel"]</MudButton>
+    <MudButton Class="reopen-submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="_saving" OnClick="SubmitAsync">
+      @L["Reopen.Submit"]
+    </MudButton>
+  </DialogActions>
 </MudDialog>
 
 @code {
+  private static readonly VacancyStage[] _targets = [VacancyStage.Applied, VacancyStage.Interviewing];
+
+  private VacancyStage _target;
+  private string? _error;
+  private bool _saving;
+
   [CascadingParameter]
   private IMudDialogInstance MudDialog { get; set; } = null!;
 
@@ -12,4 +38,34 @@
 
   [Parameter, EditorRequired]
   public VacancyStage DefaultTarget { get; set; }
+
+  protected override void OnInitialized()
+  {
+    _target = DefaultTarget;
+  }
+
+  private async Task SubmitAsync()
+  {
+    if (_saving) return;
+
+    _saving = true;
+    try
+    {
+      await VacancyService.ReopenAsync(VacancyId, VacancyStage.Closed, _target);
+      MudDialog.Close(DialogResult.Ok(true));
+    }
+    catch (ValidationFailedException ex)
+    {
+      _error = ex.Message;
+    }
+    finally
+    {
+      _saving = false;
+    }
+  }
+
+  private void Cancel()
+  {
+    MudDialog.Cancel();
+  }
 }

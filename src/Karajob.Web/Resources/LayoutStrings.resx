@@ -16,4 +16,5 @@
   <data name="Layout.Settings" xml:space="preserve"><value>Settings</value></data>
   <data name="Layout.Profile" xml:space="preserve"><value>Profile: {0}</value></data>
   <data name="Layout.AllProfiles" xml:space="preserve"><value>All profiles</value></data>
+  <data name="Layout.Applications" xml:space="preserve"><value>Applications</value></data>
 </root>
