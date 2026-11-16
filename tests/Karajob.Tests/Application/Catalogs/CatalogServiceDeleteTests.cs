@@ -328,10 +328,15 @@ public class CatalogServiceDeleteTests : CatalogServiceFixture
 
   private async Task AddSearchGoalWithPlatformAsync(Guid userId, Guid platformId)
   {
-    var goal = new SearchGoal(userId);
-    goal.SetPlatforms([platformId]);
     await using var context = Database.CreateContext(userId);
-    context.SearchGoals.Add(goal);
+    var goal = await context.SearchGoals.SingleOrDefaultAsync();
+    if (goal is null)
+    {
+      goal = new SearchGoal(userId);
+      context.SearchGoals.Add(goal);
+    }
+
+    goal.SetPlatforms([platformId]);
     await context.SaveChangesAsync();
   }
 

@@ -45,7 +45,12 @@ public class Vacancy : IUserOwned
 
   public void SetPlatforms(IEnumerable<Guid> platformIds)
   {
-    throw new NotImplementedException();
+    var wanted = platformIds.Select(id => Require.NotEmpty(id, nameof(platformIds))).Distinct().ToList();
+    platforms.RemoveAll(p => !wanted.Contains(p.PlatformId));
+    foreach (var platformId in wanted.Where(id => platforms.All(p => p.PlatformId != id)))
+    {
+      platforms.Add(new VacancyPlatform(UserId, Id, platformId));
+    }
   }
 
   public VacancyMatch SetMatch(Guid hypothesisId, int? score, string? rationale, MatchAuthor matchedBy)

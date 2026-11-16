@@ -103,7 +103,7 @@ public static class DevelopmentSeed
       Status = HypothesisStatus.Active,
       StartedAt = startedAt,
     };
-    hypothesis.Industries.Add("PC");
+    hypothesis.SetPlatforms([SeedData.PcPlatformId]);
     return hypothesis;
   }
 

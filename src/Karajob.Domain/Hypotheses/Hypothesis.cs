@@ -40,7 +40,12 @@ public class Hypothesis : IUserOwned
 
   public void SetPlatforms(IEnumerable<Guid> platformIds)
   {
-    throw new NotImplementedException();
+    var wanted = platformIds.Select(id => Require.NotEmpty(id, nameof(platformIds))).Distinct().ToList();
+    platforms.RemoveAll(p => !wanted.Contains(p.PlatformId));
+    foreach (var platformId in wanted.Where(id => platforms.All(p => p.PlatformId != id)))
+    {
+      platforms.Add(new HypothesisPlatform(UserId, Id, platformId));
+    }
   }
 
   public void ChangeStatus(HypothesisStatus status, DateTime utcNow)
