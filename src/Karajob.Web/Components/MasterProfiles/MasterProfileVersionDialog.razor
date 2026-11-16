@@ -1,9 +1,10 @@
 @using Karajob.Application.MasterProfiles
+@inject UserDates Dates
 
 <MudDialog>
   <DialogContent>
     <MudStack Spacing="2">
-      <MudText Typo="Typo.caption">@Version.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")@(string.IsNullOrWhiteSpace(Version.Comment) ? "" : " · " + Version.Comment)</MudText>
+      <MudText Typo="Typo.caption">@Dates.FormatDateTime(Version.CreatedAt)@(string.IsNullOrWhiteSpace(Version.Comment) ? "" : " · " + Version.Comment)</MudText>
       <div class="master-profile-version-body markdown-body">@MarkdownHtml.Render(Version.Markdown)</div>
     </MudStack>
   </DialogContent>

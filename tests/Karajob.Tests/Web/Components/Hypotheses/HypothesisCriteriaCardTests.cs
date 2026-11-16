@@ -1,4 +1,8 @@
 using Bunit;
+using Karajob.Application.Users;
+using Karajob.Infrastructure.Persistence;
+using Karajob.Infrastructure.Users;
+using Karajob.Web.Components.Common;
 using Karajob.Domain.Applications;
 using Karajob.Tests.Application.Metrics;
 using Karajob.Web.Components.Hypotheses;
@@ -256,5 +260,8 @@ public class HypothesisCriteriaCardTests : HypothesisMetricsServiceFixture, IAsy
     Context.JSInterop.Mode = JSRuntimeMode.Loose;
     Context.Services.AddMudServices();
     Context.Services.AddLocalization();
+    Context.Services.AddSingleton<ICurrentUser>(new FixedCurrentUser(SeedData.OwnerId));
+    Context.Services.AddSingleton(TimeProvider.System);
+    Context.Services.AddScoped<UserDates>();
   }
 }

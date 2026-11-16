@@ -1,5 +1,5 @@
 @inject VacancyService VacancyService
-@inject TimeProvider TimeProvider
+@inject UserDates Dates
 
 <MudDialog>
   <DialogContent>
@@ -33,7 +33,7 @@
                    Error="HasError(nameof(ApplyInput.CvVersionId))" ErrorText="@ErrorOf(nameof(ApplyInput.CvVersionId))">
           @foreach (var cv in _options.CvVersions)
           {
-            <MudSelectItem T="Guid?" Value="@((Guid?)cv.Id)">@($"{cv.CvName} · {cv.FileName} · {VacancyText.Date(cv.CreatedAt)}")</MudSelectItem>
+            <MudSelectItem T="Guid?" Value="@((Guid?)cv.Id)">@($"{cv.CvName} · {cv.FileName} · {Dates.Format(cv.CreatedAt)}")</MudSelectItem>
           }
         </MudSelect>
         <MudSelect T="ApplicationChannel" Class="apply-channel" Label="@L["Apply.Channel"]" @bind-Value="_channel"
@@ -95,7 +95,7 @@
 
   protected override async Task OnInitializedAsync()
   {
-    _date = TimeProvider.GetUtcNow().UtcDateTime.Date;
+    _date = Dates.Today();
     _options = await VacancyService.GetApplyOptionsAsync(VacancyId);
     if (_options.Hypotheses.Count > 0)
     {
@@ -130,8 +130,7 @@
   {
     if (_saving) return;
 
-    var now = TimeProvider.GetUtcNow().UtcDateTime;
-    var appliedAt = AppliedAtConverter.ToAppliedAt(_date ?? now, now);
+    var appliedAt = Dates.ToUtc(_date ?? Dates.Today());
 
     _saving = true;
     try

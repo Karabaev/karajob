@@ -14,4 +14,14 @@ public class ProfileCurrentUser : ICurrentUser
   {
     _userId = ProfileAuthentication.GetUserId(user);
   }
+
+  public void SetTimeZone(TimeZoneInfo timeZone)
+  {
+    TimeZone = timeZone;
+  }
+
+  public bool IsCurrent(Guid userId)
+  {
+    return _userId == userId;
+  }
 }

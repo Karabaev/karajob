@@ -89,9 +89,4 @@ public static class VacancyText
       _ => throw new ArgumentOutOfRangeException(nameof(channel), channel, null)
     };
   }
-
-  public static string Date(DateTime utc)
-  {
-    return utc.ToString(utc.TimeOfDay == TimeSpan.Zero ? "dd.MM.yyyy" : "dd.MM.yyyy HH:mm");
-  }
 }

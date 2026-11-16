@@ -134,4 +134,44 @@ public class ProfileDialogTests : ProfileWebFixture
     Assert.False(reference.Result!.IsCompleted);
     Assert.Equal("Anna", (await Users.GetAsync(created.Id))!.Name);
   }
+
+  [Fact]
+  public async Task Render_EditMode_ShowsProfileTimeZone()
+  {
+    var created = await Users.CreateAsync(new UserInput("Anna", ProfilePalette.Colors[0], "Asia/Tokyo"));
+    var (provider, _) = await ShowDialogAsync(EditMode(created));
+
+    var input = provider.WaitForElement(".profile-time-zone input");
+
+    Assert.Equal("(UTC+09:00) Asia/Tokyo", input.GetAttribute("value"));
+  }
+
+  [Fact]
+  public async Task Save_EditModeWithoutTouchingTimeZone_KeepsIt()
+  {
+    var created = await Users.CreateAsync(new UserInput("Anna", ProfilePalette.Colors[0], "Asia/Tokyo"));
+    var (provider, reference) = await ShowDialogAsync(EditMode(created));
+    provider.WaitForElement(".profile-name input").Input("Maria");
+    provider.Find(".profile-save").Click();
+
+    var result = await reference.Result!.WaitAsync(TimeSpan.FromSeconds(5));
+
+    Assert.Equal("Asia/Tokyo", Assert.IsType<UserDto>(result!.Data).TimeZoneId);
+  }
+
+  [Fact]
+  public async Task Save_PickedTimeZone_PersistsIt()
+  {
+    var created = await Users.CreateAsync(new UserInput("Anna", ProfilePalette.Colors[0]));
+    var (provider, reference) = await ShowDialogAsync(EditMode(created));
+    provider.WaitForElement(".profile-time-zone input");
+    var timeZone = provider.FindComponent<MudAutocomplete<string>>();
+    await provider.InvokeAsync(() => timeZone.Instance.ValueChanged.InvokeAsync("Asia/Tokyo"));
+    provider.Find(".profile-save").Click();
+
+    var result = await reference.Result!.WaitAsync(TimeSpan.FromSeconds(5));
+
+    Assert.Equal("Asia/Tokyo", Assert.IsType<UserDto>(result!.Data).TimeZoneId);
+    Assert.Equal("Asia/Tokyo", (await Users.GetAsync(created.Id))!.TimeZoneId);
+  }
 }

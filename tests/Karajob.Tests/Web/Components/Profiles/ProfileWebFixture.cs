@@ -5,6 +5,7 @@ using Karajob.Infrastructure.Persistence;
 using Karajob.Infrastructure.Users;
 using Karajob.Tests.Application;
 using Karajob.Tests.Infrastructure.Persistence;
+using Karajob.Web.Users;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,6 +19,7 @@ public abstract class ProfileWebFixture : IAsyncLifetime
   protected BunitContext Context { get; } = new();
   protected SqliteTestDatabase Database { get; private set; } = null!;
   protected UserService Users { get; private set; } = null!;
+  protected ProfileCurrentUser CurrentUser { get; } = new();
 
   protected async Task<(IRenderedComponent<MudDialogProvider> Provider, IDialogReference Reference)> ShowDialogAsync<TDialog>(
     DialogParameters<TDialog> parameters)
@@ -38,6 +40,8 @@ public abstract class ProfileWebFixture : IAsyncLifetime
     Context.Services.AddSingleton<ICurrentUser>(new FixedCurrentUser(SeedData.OwnerId));
     Context.Services.AddSingleton(TimeProvider.System);
     Context.Services.AddSingleton(Users);
+    CurrentUser.SetUser(ProfileAuthentication.CreatePrincipal(SeedData.OwnerId, "Owner"));
+    Context.Services.AddSingleton(CurrentUser);
     Context.Services.AddSingleton<AntiforgeryStateProvider>(new FakeAntiforgeryStateProvider());
   }
 

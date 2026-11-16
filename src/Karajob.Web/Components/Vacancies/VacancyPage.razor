@@ -8,6 +8,7 @@
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 @inject InboxNotifier InboxNotifier
+@inject UserDates Dates
 
 <PageTitle>@Title</PageTitle>
 
@@ -49,7 +50,7 @@ else if (_loaded)
                 {
                   <div>
                     <MudLink Href="@($"/vacancies/{similar.Id}")" Style="overflow-wrap: anywhere;">@similar.Url</MudLink>
-                    <MudText Typo="Typo.caption" Inline="true">· @VacancyText.Stage(similar.Stage), @VacancyText.Date(similar.DiscoveredAt)</MudText>
+                    <MudText Typo="Typo.caption" Inline="true">· @VacancyText.Stage(similar.Stage), @Dates.Format(similar.DiscoveredAt)</MudText>
                   </div>
                 }
               </MudAlert>

@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Karajob.Application.Users;
+using Karajob.Domain.Common;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components.Server.Circuits;
@@ -71,11 +72,16 @@ public static class ProfileAuthentication
   private static async Task ValidatePrincipalAsync(CookieValidatePrincipalContext context)
   {
     var userId = GetUserId(context.Principal!);
-    var users = context.HttpContext.RequestServices.GetRequiredService<UserService>();
-    if (userId is null || !await users.ExistsAsync(userId.Value, context.HttpContext.RequestAborted))
+    var services = context.HttpContext.RequestServices;
+    var user = userId is null ? null : await services.GetRequiredService<UserService>().GetAsync(userId.Value, context.HttpContext.RequestAborted);
+    if (user is null)
     {
       context.RejectPrincipal();
       await context.HttpContext.SignOutAsync(Scheme);
+      return;
     }
+
+    // The profile is loaded here anyway, so its time zone is taken for the request without a second query.
+    services.GetRequiredService<ProfileCurrentUser>().SetTimeZone(UserTime.Find(user.TimeZoneId));
   }
 }

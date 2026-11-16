@@ -3,6 +3,7 @@
 @attribute [Microsoft.AspNetCore.Authorization.AllowAnonymous]
 @inject UserService Users
 @inject IDialogService DialogService
+@inject ProfileCurrentUser CurrentUser
 
 <PageTitle>@L["Profile.Title"]</PageTitle>
 
@@ -65,6 +66,12 @@
     var result = await dialog.Result;
     if (result is { Canceled: false })
     {
+      // The circuit keeps the time zone it opened with; editing the active profile updates it in place.
+      if (result.Data is UserDto saved && CurrentUser.IsCurrent(saved.Id))
+      {
+        CurrentUser.SetTimeZone(UserTime.Find(saved.TimeZoneId));
+      }
+
       await LoadAsync();
     }
   }

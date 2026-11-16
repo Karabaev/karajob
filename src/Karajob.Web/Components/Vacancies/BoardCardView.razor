@@ -1,3 +1,4 @@
+@inject UserDates Dates
 <div class="board-card" data-id="@Card.Id">
   <MudPaper Elevation="1" Class="pa-2">
     <MudStack Spacing="1">
@@ -20,7 +21,7 @@
       {
         <MudText Typo="Typo.body2">@(Card.CompanyName ?? "—") · @(Card.RoleName ?? "—")</MudText>
       }
-      <MudText Typo="Typo.caption" Class="mud-text-secondary">@VacancyText.Date(Card.DiscoveredAt)</MudText>
+      <MudText Typo="Typo.caption" Class="mud-text-secondary">@Dates.Format(Card.DiscoveredAt)</MudText>
       @if (Card.Outcome is { } outcome)
       {
         <MudChip T="string" Class="board-outcome" Size="Size.Small" Variant="Variant.Outlined">@VacancyText.Outcome(outcome)</MudChip>

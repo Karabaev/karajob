@@ -6,6 +6,7 @@
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
+@inject UserDates Dates
 
 <PageTitle>@Title</PageTitle>
 
@@ -99,7 +100,7 @@ else if (_loaded)
               </HeaderContent>
               <RowTemplate>
                 <MudTd DataLabel="@L["Cv.File"]">@context.FileName</MudTd>
-                <MudTd DataLabel="@L["Cv.Uploaded"]">@context.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</MudTd>
+                <MudTd DataLabel="@L["Cv.Uploaded"]">@Dates.FormatDateTime(context.CreatedAt)</MudTd>
                 <MudTd DataLabel="@L["Cv.Size"]">@FormatSize(context.SizeBytes)</MudTd>
                 <MudTd DataLabel="@L["Cv.Comment"]">@context.Comment</MudTd>
                 <MudTd>

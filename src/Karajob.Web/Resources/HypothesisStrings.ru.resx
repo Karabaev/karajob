@@ -6,7 +6,7 @@
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <data name="Hypothesis.Criteria" xml:space="preserve"><value>Критерии</value></data>
   <data name="Hypothesis.MetricsUnavailable" xml:space="preserve"><value>Метрики недоступны: гипотеза не найдена.</value></data>
-  <data name="Hypothesis.WeekPeriod" xml:space="preserve"><value>Неделя {0} (UTC) · период с {1}</value></data>
+  <data name="Hypothesis.WeekPeriod" xml:space="preserve"><value>Неделя {0} · период с {1}</value></data>
   <data name="Hypothesis.Market" xml:space="preserve"><value>Рынок</value></data>
   <data name="Hypothesis.MarketCaption" xml:space="preserve"><value>вакансий за неделю · порог: {0} в неделю</value></data>
   <data name="Hypothesis.Conversion" xml:space="preserve"><value>Конверсия</value></data>

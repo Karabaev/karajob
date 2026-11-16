@@ -3,6 +3,7 @@
 @inject MasterProfileService MasterProfileService
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
+@inject UserDates Dates
 
 <PageTitle>@L["MasterProfile.Title"]</PageTitle>
 
@@ -89,9 +90,9 @@
     _markdown = _details.Markdown;
   }
 
-  private static string FormatDate(DateTime createdAt)
+  private string FormatDate(DateTime createdAt)
   {
-    return createdAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm");
+    return Dates.FormatDateTime(createdAt);
   }
 
   private string? RestoredFromDate(MasterProfileVersionSummary version)

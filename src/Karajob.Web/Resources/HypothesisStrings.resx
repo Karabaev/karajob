@@ -6,7 +6,7 @@
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <data name="Hypothesis.Criteria" xml:space="preserve"><value>Criteria</value></data>
   <data name="Hypothesis.MetricsUnavailable" xml:space="preserve"><value>Metrics unavailable: hypothesis not found.</value></data>
-  <data name="Hypothesis.WeekPeriod" xml:space="preserve"><value>Week {0} (UTC) · period from {1}</value></data>
+  <data name="Hypothesis.WeekPeriod" xml:space="preserve"><value>Week {0} · period from {1}</value></data>
   <data name="Hypothesis.Market" xml:space="preserve"><value>Market</value></data>
   <data name="Hypothesis.MarketCaption" xml:space="preserve"><value>vacancies this week · threshold: {0} per week</value></data>
   <data name="Hypothesis.Conversion" xml:space="preserve"><value>Conversion</value></data>
