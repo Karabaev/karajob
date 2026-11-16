@@ -54,7 +54,10 @@
       ?? throw new KeyNotFoundException($"Vacancy {VacancyId} was not found.");
     _selected.UnionWith(details.HypothesisIds);
     var hypotheses = await HypothesisService.ListAsync();
-    _hypotheses = hypotheses.Where(h => h.Status != HypothesisStatus.Disabled || _selected.Contains(h.Id)).ToList();
+    _hypotheses = hypotheses
+      .Where(h => details.RoleId is null || h.RoleId == details.RoleId || _selected.Contains(h.Id))
+      .Where(h => h.Status != HypothesisStatus.Disabled || _selected.Contains(h.Id))
+      .ToList();
   }
 
   private void Toggle(Guid hypothesisId, bool isChecked)

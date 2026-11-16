@@ -18,6 +18,7 @@ public record HypothesisInput(
 public record HypothesisListItem(
   Guid Id,
   string Name,
+  Guid RoleId,
   string Role,
   WorkFormat WorkFormat,
   string LanguageCode,

@@ -74,14 +74,15 @@ public abstract class VacancyServiceFixture : IAsyncLifetime
   protected async Task<Guid> CreateHypothesisAsync(
     string name = "Unity Developer RU",
     Guid? userId = null,
-    HypothesisStatus status = HypothesisStatus.Draft)
+    HypothesisStatus status = HypothesisStatus.Draft,
+    Guid? roleId = null)
   {
     var service = userId is null
       ? Hypotheses
       : TestDbContextFactory.CreateHypothesisService(Database, userId.Value, Clock);
     var hypothesis = await service.CreateAsync(new HypothesisInput(
       name,
-      SeedData.UnityDeveloperRoleId,
+      roleId ?? SeedData.UnityDeveloperRoleId,
       [],
       [],
       [],

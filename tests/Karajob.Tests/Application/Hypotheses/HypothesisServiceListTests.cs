@@ -50,6 +50,16 @@ public class HypothesisServiceListTests : HypothesisServiceFixture
   }
 
   [Fact]
+  public async Task ListAsync_ReturnsHypothesisRoleId()
+  {
+    await Service.CreateAsync(Input(roleId: SeedData.UnrealDeveloperRoleId));
+
+    var item = Assert.Single(await Service.ListAsync());
+
+    Assert.Equal(SeedData.UnrealDeveloperRoleId, item.RoleId);
+  }
+
+  [Fact]
   public async Task ListCvOptionsAsync_ReturnsOwnCvsOrderedByName()
   {
     var other = await PersistenceFixtures.AddUserAsync(Database);

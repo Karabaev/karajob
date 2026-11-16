@@ -21,6 +21,7 @@
   <data name="Error.StageChanged" xml:space="preserve"><value>The vacancy stage has already changed</value></data>
   <data name="Error.HypothesisNotFound" xml:space="preserve"><value>Hypothesis not found</value></data>
   <data name="Error.HypothesisDisabled" xml:space="preserve"><value>The hypothesis is disabled</value></data>
+  <data name="Error.HypothesisRoleMismatch" xml:space="preserve"><value>The hypothesis role does not match the vacancy role</value></data>
   <data name="Error.UrlExists" xml:space="preserve"><value>A vacancy with this link already exists</value></data>
   <data name="Error.CompanyNotFound" xml:space="preserve"><value>Company not found</value></data>
   <data name="Error.RoleNotFound" xml:space="preserve"><value>Role not found</value></data>

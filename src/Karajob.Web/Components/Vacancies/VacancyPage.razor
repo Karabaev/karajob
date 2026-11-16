@@ -153,9 +153,9 @@ else if (_loaded)
             <MudSelect T="Guid" Class="vacancy-hypotheses" Label="@L["Page.Hypotheses"]" MultiSelection="true"
                        SelectedValues="_hypothesisIds" SelectedValuesChanged="OnHypothesesChanged"
                        ToStringFunc="HypothesisName" MultiSelectionTextFunc="JoinNames"
-                       HelperText="@(_hypotheses.Count == 0 ? L["Page.NoHypotheses"].Value : null)"
+                       HelperText="@HypothesesHint()"
                        Error="HasError(nameof(VacancyInput.HypothesisIds))" ErrorText="@ErrorOf(nameof(VacancyInput.HypothesisIds))">
-              @foreach (var hypothesis in _hypotheses)
+              @foreach (var hypothesis in VisibleHypotheses())
               {
                 <MudSelectItem T="Guid" Value="hypothesis.Id">@hypothesis.Name</MudSelectItem>
               }
@@ -360,6 +360,23 @@ else if (_loaded)
     {
       _similar = similar;
     }
+  }
+
+  // Hypotheses of another role stay listed only while selected, so a role change can't silently drop a match;
+  // the server rejects the save until the user deselects them.
+  private IEnumerable<HypothesisListItem> VisibleHypotheses()
+  {
+    return _hypotheses.Where(h => _roleId is null || h.RoleId == _roleId || _hypothesisIds.Contains(h.Id));
+  }
+
+  private string? HypothesesHint()
+  {
+    if (_hypotheses.Count == 0)
+    {
+      return L["Page.NoHypotheses"];
+    }
+
+    return VisibleHypotheses().Any() ? null : L["Page.NoHypothesesForRole"].Value;
   }
 
   private void OnHypothesesChanged(IReadOnlyCollection<Guid>? hypothesisIds)

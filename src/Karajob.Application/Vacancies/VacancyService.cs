@@ -104,7 +104,7 @@ public partial class VacancyService(
     var ids = hypothesisIds.Distinct().ToList();
     var error = ids.Count == 0
       ? localizer["Error.HypothesisRequired"]
-      : await FindHypothesesErrorAsync(db, ids, vacancy, cancellationToken);
+      : await FindHypothesesErrorAsync(db, ids, vacancy, vacancy.RoleId, cancellationToken);
     if (error is not null)
     {
       throw new ValidationFailedException(new Dictionary<string, string> { [nameof(VacancyInput.HypothesisIds)] = error });
@@ -313,15 +313,23 @@ public partial class VacancyService(
     IKarajobDbContext db,
     List<Guid> hypothesisIds,
     Vacancy? existing,
+    Guid? roleId,
     CancellationToken cancellationToken)
   {
     var knownHypotheses = await db.Hypotheses
       .Where(h => hypothesisIds.Contains(h.Id))
-      .Select(h => new { h.Id, h.Status })
+      .Select(h => new { h.Id, h.Status, h.RoleId })
       .ToListAsync(cancellationToken);
     if (knownHypotheses.Count != hypothesisIds.Count)
     {
       return localizer["Error.HypothesisNotFound"];
+    }
+
+    // The applied hypothesis can't be unselected, so exempting it keeps a vacancy with an application editable.
+    var appliedId = existing?.Application?.HypothesisId;
+    if (roleId is not null && knownHypotheses.Any(h => h.RoleId != roleId && h.Id != appliedId))
+    {
+      return localizer["Error.HypothesisRoleMismatch"];
     }
 
     var addsDisabled = knownHypotheses.Any(h => h.Status == HypothesisStatus.Disabled
@@ -404,7 +412,7 @@ public partial class VacancyService(
     }
 
     var hypothesisIds = input.HypothesisIds.Distinct().ToList();
-    var hypothesesError = await FindHypothesesErrorAsync(db, hypothesisIds, existing, cancellationToken);
+    var hypothesesError = await FindHypothesesErrorAsync(db, hypothesisIds, existing, input.RoleId, cancellationToken);
     if (hypothesesError is null && existing is not null)
     {
       hypothesesError = FindMatchRemovalError(existing, hypothesisIds);

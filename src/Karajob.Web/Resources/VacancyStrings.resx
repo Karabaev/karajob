@@ -93,6 +93,7 @@
   <data name="Page.Currency" xml:space="preserve"><value>Currency</value></data>
   <data name="Page.Hypotheses" xml:space="preserve"><value>Matching hypotheses</value></data>
   <data name="Page.NoHypotheses" xml:space="preserve"><value>Create a hypothesis first</value></data>
+  <data name="Page.NoHypothesesForRole" xml:space="preserve"><value>No hypotheses for this role</value></data>
   <data name="Page.Description" xml:space="preserve"><value>Description</value></data>
   <data name="Page.Notes" xml:space="preserve"><value>Notes</value></data>
   <data name="Page.Saved" xml:space="preserve"><value>Saved</value></data>
