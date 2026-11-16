@@ -50,7 +50,7 @@ docker compose pull
 docker compose up -d
 ```
 
-Migrations run on start. Before applying any, the app copies the database to `data/backups/<timestamp>-before-<migration>.db`. If a migration fails, the app exits and the log names that backup. Because of `restart: unless-stopped` the container then restarts in a loop, and every attempt writes one more backup: stop it with `docker compose down` first, and restore the **earliest** backup for that migration.
+Migrations run on start. Before applying any, the app copies the database to `data/backups/<timestamp>-before-<migration>.db`. If a migration fails, the app exits and the log names that backup. Because of `restart: unless-stopped` the container then restarts in a loop, and every attempt writes one more backup: stop it with `docker compose down` first, then roll back as below: restore the **earliest** backup for that migration and set `KARAJOB_TAG` back to the previous tag, otherwise the new tag runs the failing migration again.
 
 Rollback: set `KARAJOB_TAG` in `.env` back to the previous tag. If the new image applied a migration (the log says "Applying N migration(s)" and a `before-<migration>` backup appeared in `data/backups/`), the database must be restored too: no down migrations are supported, and the old image fails on the newer schema. Restore from the **earliest** backup taken before the first new migration:
 
