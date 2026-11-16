@@ -931,6 +931,13 @@ namespace Karajob.Migrations.Sqlite.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("TimeZoneId")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT")
+                        .HasDefaultValue("UTC");
+
                     b.HasKey("Id");
 
                     b.ToTable("Users");
@@ -941,7 +948,8 @@ namespace Karajob.Migrations.Sqlite.Migrations
                             Id = new Guid("019a7c1e-0000-7000-8000-000000000001"),
                             Color = "#7e57c2",
                             CreatedAt = new DateTime(2026, 11, 13, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Name = "Owner"
+                            Name = "Owner",
+                            TimeZoneId = "UTC"
                         });
                 });
 
