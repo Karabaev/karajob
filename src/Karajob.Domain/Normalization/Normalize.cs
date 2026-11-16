@@ -159,6 +159,12 @@ public static partial class Normalize
     return result.ToString().ToLowerInvariant();
   }
 
+  // Browsers submit textarea text with LF, while a Windows checkout compiles string literals with CRLF.
+  public static string LineEndings(string value)
+  {
+    return value.ReplaceLineEndings("\n");
+  }
+
   private static string Transliterate(string value)
   {
     var builder = new StringBuilder(value.Length);

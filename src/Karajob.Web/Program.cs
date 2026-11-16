@@ -3,6 +3,7 @@ using Karajob.Application.Companies;
 using Karajob.Application.Cvs;
 using Karajob.Application.Goals;
 using Karajob.Application.Hypotheses;
+using Karajob.Application.MasterProfiles;
 using Karajob.Application.Metrics;
 using Karajob.Application.Users;
 using Karajob.Application.Vacancies;
@@ -19,7 +20,10 @@ using Microsoft.AspNetCore.DataProtection;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddRazorComponents()
-  .AddInteractiveServerComponents();
+  .AddInteractiveServerComponents()
+  // Each keystroke in the master profile editor sends the whole text; the 32 KB default drops the circuit
+  // at ~16k Cyrillic characters, while the profile has no length limit.
+  .AddHubOptions(options => options.MaximumReceiveMessageSize = 2 * 1024 * 1024);
 builder.Services.AddMudServices();
 builder.Services.AddLocalization();
 
@@ -51,6 +55,7 @@ if (databaseOptions.Provider == DatabaseOptions.SqliteProvider)
 builder.Services.AddProfileAuthentication();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<SearchGoalService>();
+builder.Services.AddScoped<MasterProfileService>();
 builder.Services.AddScoped<CompanyService>();
 builder.Services.AddScoped<HypothesisService>();
 builder.Services.AddScoped<CatalogService>();

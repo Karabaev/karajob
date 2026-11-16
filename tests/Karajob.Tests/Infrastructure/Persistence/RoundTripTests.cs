@@ -1,6 +1,7 @@
 using Karajob.Domain.Applications;
 using Karajob.Domain.Companies;
 using Karajob.Domain.Hypotheses;
+using Karajob.Domain.MasterProfiles;
 using Karajob.Domain.Users;
 using Karajob.Domain.Vacancies;
 using Karajob.Infrastructure.Persistence;
@@ -344,6 +345,38 @@ public class RoundTripTests
     Assert.Null(loaded.FromStage);
     Assert.Null(loaded.ToStage);
     Assert.Equal("called", loaded.Note);
+  }
+
+  [Fact]
+  public async Task MasterProfile_SavedAndReloaded_PreservesVersionsAndRestoreLink()
+  {
+    await using var database = await SqliteTestDatabase.CreateAsync();
+    var profile = new MasterProfile(SeedData.OwnerId, "# First\n", Moment);
+    var first = profile.CurrentVersion;
+    var second = profile.AddVersion("# Second", " tweak ", Moment.AddHours(1), first.Id);
+    await using (var context = database.CreateContext(SeedData.OwnerId))
+    {
+      context.MasterProfiles.Add(profile);
+      await context.SaveChangesAsync();
+    }
+
+    await using var fresh = database.CreateContext(SeedData.OwnerId);
+    var loaded = await fresh.MasterProfiles.Include(p => p.Versions).SingleAsync(p => p.Id == profile.Id);
+
+    Assert.Equal(SeedData.OwnerId, loaded.UserId);
+    AssertUtc(Moment, loaded.CreatedAt);
+    Assert.Equal(2, loaded.Versions.Count);
+    var loadedFirst = loaded.Versions.Single(v => v.Id == first.Id);
+    Assert.Equal("# First\n", loadedFirst.Markdown);
+    Assert.Null(loadedFirst.RestoredFromVersionId);
+    AssertUtc(Moment, loadedFirst.CreatedAt);
+    var loadedSecond = loaded.Versions.Single(v => v.Id == second.Id);
+    Assert.Equal("# Second", loadedSecond.Markdown);
+    Assert.Equal("tweak", loadedSecond.Comment);
+    Assert.Equal(first.Id, loadedSecond.RestoredFromVersionId);
+    Assert.Equal(profile.Id, loadedSecond.MasterProfileId);
+    AssertUtc(Moment.AddHours(1), loadedSecond.CreatedAt);
+    Assert.Same(loadedSecond, loaded.CurrentVersion);
   }
 
   private static void AssertUtc(DateTime expected, DateTime? actual)

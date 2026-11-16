@@ -1,6 +1,7 @@
 using Karajob.Domain.Catalogs;
 using Karajob.Domain.Companies;
 using Karajob.Domain.Goals;
+using Karajob.Domain.MasterProfiles;
 using Karajob.Domain.Vacancies;
 using Karajob.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -176,5 +177,21 @@ public class UniqueIndexTests
     context.SearchGoals.Add(new SearchGoal(SeedData.OwnerId));
 
     await Assert.ThrowsAsync<DbUpdateException>(() => context.SaveChangesAsync());
+  }
+
+  [Fact]
+  public async Task SaveChanges_SecondMasterProfileForSameUser_ThrowsDbUpdateException()
+  {
+    await using var database = await SqliteTestDatabase.CreateAsync();
+    await using (var context = database.CreateContext(SeedData.OwnerId))
+    {
+      context.MasterProfiles.Add(new MasterProfile(SeedData.OwnerId, "# One", PersistenceFixtures.Moment));
+      await context.SaveChangesAsync();
+    }
+
+    await using var second = database.CreateContext(SeedData.OwnerId);
+    second.MasterProfiles.Add(new MasterProfile(SeedData.OwnerId, "# Two", PersistenceFixtures.Moment));
+
+    await Assert.ThrowsAsync<DbUpdateException>(() => second.SaveChangesAsync());
   }
 }

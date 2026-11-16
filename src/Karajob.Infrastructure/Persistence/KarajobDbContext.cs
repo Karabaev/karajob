@@ -8,6 +8,7 @@ using Karajob.Domain.Companies;
 using Karajob.Domain.Cvs;
 using Karajob.Domain.Goals;
 using Karajob.Domain.Hypotheses;
+using Karajob.Domain.MasterProfiles;
 using Karajob.Domain.Users;
 using Karajob.Domain.Vacancies;
 using Microsoft.EntityFrameworkCore;
@@ -53,6 +54,8 @@ public class KarajobDbContext(DbContextOptions<KarajobDbContext> options, ICurre
   public DbSet<SearchGoalLocation> SearchGoalLocations => Set<SearchGoalLocation>();
   public DbSet<SearchGoalPlatform> SearchGoalPlatforms => Set<SearchGoalPlatform>();
   public DbSet<SearchGoalEngine> SearchGoalEngines => Set<SearchGoalEngine>();
+  public DbSet<MasterProfile> MasterProfiles => Set<MasterProfile>();
+  public DbSet<MasterProfileVersion> MasterProfileVersions => Set<MasterProfileVersion>();
 
   protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
   {

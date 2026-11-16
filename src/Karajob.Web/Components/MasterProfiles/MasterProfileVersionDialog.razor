@@ -1,0 +1,38 @@
+@using Karajob.Application.MasterProfiles
+
+<MudDialog>
+  <DialogContent>
+    <MudStack Spacing="2">
+      <MudText Typo="Typo.caption">@Version.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")@(string.IsNullOrWhiteSpace(Version.Comment) ? "" : " · " + Version.Comment)</MudText>
+      <div class="master-profile-version-body markdown-body">@MarkdownHtml.Render(Version.Markdown)</div>
+    </MudStack>
+  </DialogContent>
+  <DialogActions>
+    <MudButton OnClick="Close">@L["MasterProfile.Close"]</MudButton>
+    @if (CanRestore)
+    {
+      <MudButton Class="master-profile-dialog-restore" Color="Color.Primary" Variant="Variant.Filled" OnClick="Restore">@L["MasterProfile.Restore"]</MudButton>
+    }
+  </DialogActions>
+</MudDialog>
+
+@code {
+  [CascadingParameter]
+  private IMudDialogInstance MudDialog { get; set; } = null!;
+
+  [Parameter, EditorRequired]
+  public MasterProfileVersionDto Version { get; set; } = null!;
+
+  [Parameter]
+  public bool CanRestore { get; set; }
+
+  private void Restore()
+  {
+    MudDialog.Close(DialogResult.Ok(true));
+  }
+
+  private void Close()
+  {
+    MudDialog.Cancel();
+  }
+}

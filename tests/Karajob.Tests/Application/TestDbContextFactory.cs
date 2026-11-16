@@ -4,6 +4,7 @@ using Karajob.Application.Cvs;
 using Karajob.Application.Files;
 using Karajob.Application.Goals;
 using Karajob.Application.Hypotheses;
+using Karajob.Application.MasterProfiles;
 using Karajob.Application.Metrics;
 using Karajob.Application.Persistence;
 using Karajob.Application.Resources;
@@ -40,6 +41,11 @@ internal class TestDbContextFactory(SqliteTestDatabase database, Guid userId) : 
     CvOptions options)
   {
     return new CvService(new TestDbContextFactory(database, userId), new FixedCurrentUser(userId), fileStorage, timeProvider, options, NullLogger<CvService>.Instance, TestLocalizer.For<CvMessages>());
+  }
+
+  public static MasterProfileService CreateMasterProfileService(SqliteTestDatabase database, Guid userId, TimeProvider timeProvider)
+  {
+    return new MasterProfileService(new TestDbContextFactory(database, userId), new FixedCurrentUser(userId), timeProvider, TestLocalizer.For<MasterProfileMessages>());
   }
 
   public static VacancyService CreateVacancyService(SqliteTestDatabase database, Guid userId, TimeProvider timeProvider)

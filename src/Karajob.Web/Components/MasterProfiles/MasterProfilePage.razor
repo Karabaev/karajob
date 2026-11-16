@@ -1,0 +1,180 @@
+@page "/master-profile"
+@using Karajob.Application.MasterProfiles
+@inject MasterProfileService MasterProfileService
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<PageTitle>@L["MasterProfile.Title"]</PageTitle>
+
+<MudText Typo="Typo.h4" HtmlTag="h1" Class="mb-4">@L["MasterProfile.Title"]</MudText>
+
+@if (_details is not null)
+{
+  <MudStack Spacing="4">
+    <MudPaper Class="pa-4">
+      <MudStack Spacing="2">
+        <MudTabs Elevation="0" Rounded="true" MinimumTabWidth="120px">
+          <MudTabPanel Text="@L["MasterProfile.EditorTab"]">
+            <MudTextField T="string" Class="master-profile-editor" Variant="Variant.Outlined"
+                          Lines="25" Immediate="true" @bind-Value="_markdown"
+                          Error="@(_errors.ContainsKey(MarkdownKey))" ErrorText="@_errors.GetValueOrDefault(MarkdownKey)" />
+          </MudTabPanel>
+          <MudTabPanel Text="@L["MasterProfile.PreviewTab"]">
+            <div class="master-profile-preview markdown-body">@MarkdownHtml.Render(_markdown)</div>
+          </MudTabPanel>
+        </MudTabs>
+        <MudTextField T="string" Class="master-profile-comment" Label="@L["MasterProfile.Comment"]" Immediate="true" @bind-Value="_comment" />
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
+          <MudButton Class="master-profile-save" Variant="Variant.Filled" Color="Color.Primary" Disabled="_saving" OnClick="SaveAsync">@L["MasterProfile.Save"]</MudButton>
+          @if (_markdown != _details.Markdown)
+          {
+            <MudText Class="master-profile-unsaved" Typo="Typo.body2" Color="Color.Warning">@L["MasterProfile.Unsaved"]</MudText>
+          }
+        </MudStack>
+      </MudStack>
+    </MudPaper>
+
+    <MudPaper Class="pa-4">
+      <MudStack Spacing="2">
+        <MudText Typo="Typo.h6" HtmlTag="h2">@L["MasterProfile.History"]</MudText>
+        @foreach (var version in _details.Versions)
+        {
+          var isCurrent = version.Id == _details.CurrentVersionId;
+          <div class="@(isCurrent ? "master-profile-version master-profile-version-current" : "master-profile-version")">
+            <MudStack Row="true" Wrap="Wrap.Wrap" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Spacing="2">
+              <MudStack Spacing="0">
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                  <MudText Typo="Typo.body1">@FormatDate(version.CreatedAt)</MudText>
+                  @if (isCurrent)
+                  {
+                    <MudChip T="string" Size="Size.Small" Color="Color.Primary">@L["MasterProfile.Current"]</MudChip>
+                  }
+                </MudStack>
+                @if (!string.IsNullOrWhiteSpace(version.Comment))
+                {
+                  <MudText Typo="Typo.body2">@version.Comment</MudText>
+                }
+                @if (RestoredFromDate(version) is { } restoredFrom)
+                {
+                  <span class="master-profile-restored-from mud-typography mud-typography-caption">@L["MasterProfile.RestoredFrom", restoredFrom]</span>
+                }
+              </MudStack>
+              <MudStack Row="true" Spacing="1">
+                <MudButton Class="master-profile-view" Size="Size.Small" Variant="Variant.Text" OnClick="@(() => ViewAsync(version, isCurrent))">@L["MasterProfile.View"]</MudButton>
+                @if (!isCurrent)
+                {
+                  <MudButton Class="master-profile-restore" Size="Size.Small" Variant="Variant.Text" OnClick="@(() => RestoreAsync(version.Id))">@L["MasterProfile.Restore"]</MudButton>
+                }
+              </MudStack>
+            </MudStack>
+          </div>
+        }
+      </MudStack>
+    </MudPaper>
+  </MudStack>
+}
+
+@code {
+  private const string MarkdownKey = nameof(MasterProfileInput.Markdown);
+
+  private MasterProfileDetails? _details;
+  private string _markdown = string.Empty;
+  private string? _comment;
+  private bool _saving;
+  private IReadOnlyDictionary<string, string> _errors = new Dictionary<string, string>();
+
+  protected override async Task OnInitializedAsync()
+  {
+    _details = await MasterProfileService.GetAsync();
+    _markdown = _details.Markdown;
+  }
+
+  private static string FormatDate(DateTime createdAt)
+  {
+    return createdAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm");
+  }
+
+  private string? RestoredFromDate(MasterProfileVersionSummary version)
+  {
+    if (version.RestoredFromVersionId is null)
+    {
+      return null;
+    }
+
+    var source = _details!.Versions.FirstOrDefault(v => v.Id == version.RestoredFromVersionId);
+    return source is null ? "—" : FormatDate(source.CreatedAt);
+  }
+
+  private async Task SaveAsync()
+  {
+    _saving = true;
+    try
+    {
+      _details = await MasterProfileService.SaveAsync(new MasterProfileInput(_markdown, _comment));
+      _markdown = _details.Markdown;
+      _comment = null;
+      _errors = new Dictionary<string, string>();
+      Snackbar.Add(L["MasterProfile.Saved"], Severity.Success);
+    }
+    catch (ValidationFailedException exception)
+    {
+      _errors = exception.Errors;
+    }
+    finally
+    {
+      _saving = false;
+    }
+  }
+
+  private async Task ViewAsync(MasterProfileVersionSummary summary, bool isCurrent)
+  {
+    var version = await MasterProfileService.GetVersionAsync(summary.Id);
+    var parameters = new DialogParameters<MasterProfileVersionDialog>
+    {
+      { x => x.Version, version },
+      { x => x.CanRestore, !isCurrent }
+    };
+    var dialog = await DialogService.ShowAsync<MasterProfileVersionDialog>(
+      L["MasterProfile.VersionTitle"],
+      parameters,
+      new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true, CloseButton = true });
+    var result = await dialog.Result;
+    if (result is { Canceled: false })
+    {
+      await RestoreAsync(summary.Id);
+    }
+  }
+
+  private async Task RestoreAsync(Guid versionId)
+  {
+    var message = _markdown == _details!.Markdown
+      ? L["MasterProfile.RestoreMessage"]
+      : L["MasterProfile.RestoreMessageUnsaved"];
+    var confirmed = await DialogService.ShowMessageBoxAsync(
+      L["MasterProfile.RestoreTitle"],
+      message,
+      yesText: L["MasterProfile.Restore"],
+      cancelText: L["MasterProfile.Cancel"]);
+    if (confirmed != true)
+    {
+      return;
+    }
+
+    try
+    {
+      _details = await MasterProfileService.RestoreAsync(versionId);
+      _markdown = _details.Markdown;
+      _comment = null;
+      _errors = new Dictionary<string, string>();
+      Snackbar.Add(L["MasterProfile.Restored"], Severity.Success);
+    }
+    catch (ValidationFailedException exception)
+    {
+      Snackbar.Add(string.Join(" ", exception.Errors.Values), Severity.Warning);
+    }
+    catch (KeyNotFoundException)
+    {
+      Snackbar.Add(L["MasterProfile.VersionNotFound"], Severity.Warning);
+    }
+  }
+}
