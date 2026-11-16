@@ -102,7 +102,7 @@ public class CatalogService(IKarajobDbContextFactory dbContextFactory)
     {
       throw new ValidationFailedException(new Dictionary<string, string>
       {
-        [string.Empty] = "Запись используется в гипотезах, вакансиях или CV — удалить нельзя",
+        [string.Empty] = "Запись уже используется — удалить нельзя",
       });
     }
 

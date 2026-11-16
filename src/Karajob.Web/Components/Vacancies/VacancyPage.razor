@@ -135,7 +135,7 @@ else if (_loaded)
                                    @bind-Value="_salaryMax" Error="HasError(SalaryKey)" />
                 </MudItem>
                 <MudItem xs="12" sm="4">
-                  <MudSelect T="string" Class="vacancy-salary-currency" Label="Валюта" @bind-Value="_salaryCurrency"
+                  <MudSelect T="string" Class="vacancy-salary-currency" Label="Валюта" ToStringFunc="CurrencyCode" RelativeWidth="DropdownWidth.Adaptive" @bind-Value="_salaryCurrency"
                              Error="HasError(SalaryKey)">
                     @foreach (var currency in _currencies)
                     {
@@ -390,6 +390,11 @@ else if (_loaded)
   private void OnEnginesChanged(IReadOnlyCollection<Guid>? engineIds)
   {
     _engineIds = engineIds?.ToList() ?? [];
+  }
+
+  private static string CurrencyCode(string? code)
+  {
+    return code ?? "";
   }
 
   private string EngineName(Guid id)

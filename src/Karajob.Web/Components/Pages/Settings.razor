@@ -78,7 +78,7 @@
                                  Error="HasError(nameof(SearchGoalInput.DesiredMonthlyIncome))" ErrorText="@ErrorOf(nameof(SearchGoalInput.DesiredMonthlyIncome))" />
               </MudItem>
               <MudItem xs="12" sm="4">
-                <MudSelect T="string" Class="settings-currency" Label="Валюта" Clearable="true"
+                <MudSelect T="string" Class="settings-currency" Label="Валюта" Clearable="true" ToStringFunc="CurrencyCode" RelativeWidth="DropdownWidth.Adaptive"
                            @bind-Value="_currency" HelperText="@EmptyHint(_currencies)"
                            Error="HasError(nameof(SearchGoalInput.IncomeCurrency))" ErrorText="@ErrorOf(nameof(SearchGoalInput.IncomeCurrency))">
                   @foreach (var currency in _currencies)
@@ -187,6 +187,11 @@
   private void OnEnginesChanged(IReadOnlyCollection<Guid>? engineIds)
   {
     _engineIds = engineIds?.ToList() ?? [];
+  }
+
+  private static string CurrencyCode(string? code)
+  {
+    return code ?? "";
   }
 
   private string EngineName(Guid id)
