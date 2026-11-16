@@ -44,6 +44,7 @@ public abstract class HypothesisWebFixture : IAsyncLifetime
     Context.Services.AddSingleton(TimeProvider.System);
     Context.Services.AddSingleton(Service);
     Context.Services.AddSingleton(Catalogs);
+    Context.Services.AddSingleton(TestDbContextFactory.CreateHypothesisMetricsService(Database, SeedData.OwnerId, TimeProvider.System));
   }
 
   // MudBlazor services are IAsyncDisposable only, and xUnit v2 disposes test classes synchronously.
