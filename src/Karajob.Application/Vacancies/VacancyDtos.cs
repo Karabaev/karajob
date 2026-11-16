@@ -51,8 +51,12 @@ public record VacancyDetails(
   DismissReason? DismissReason,
   DateTime DiscoveredAt,
   Guid? ApplicationHypothesisId,
+  string? CoverLetter,
   IReadOnlyList<TimelineItem> Timeline,
-  IReadOnlyList<SimilarVacancy> Similar);
+  IReadOnlyList<SimilarVacancy> Similar)
+{
+  public bool HasApplication => ApplicationHypothesisId is not null;
+}
 
 public record TimelineItem(
   Guid Id,
