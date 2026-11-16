@@ -52,6 +52,14 @@ public class MasterProfileTests
     Assert.Equal(markdown, profile.CurrentVersion.Markdown);
   }
 
+  [Fact]
+  public void Ctor_CrlfMarkdown_StoresLfLineEndings()
+  {
+    var profile = Create("# Profile\r\n\r\ntext\r\n");
+
+    Assert.Equal("# Profile\n\ntext\n", profile.CurrentVersion.Markdown);
+  }
+
   [Theory]
   [InlineData("")]
   [InlineData("   ")]

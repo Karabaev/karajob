@@ -1,3 +1,5 @@
+using Karajob.Domain.Normalization;
+
 namespace Karajob.Domain.MasterProfiles;
 
 public static class MasterProfileTemplate
@@ -14,7 +16,7 @@ public static class MasterProfileTemplate
     "Истории для интервью (STAR)",
   ];
 
-  public const string Markdown = """
+  public static readonly string Markdown = Normalize.LineEndings("""
     # Мастер-профиль
 
     Всё, что правда про вас, без ограничения длины. CV собирается из этого документа.
@@ -55,5 +57,5 @@ public static class MasterProfileTemplate
     - **Task:**
     - **Action:**
     - **Result:**
-    """;
+    """);
 }

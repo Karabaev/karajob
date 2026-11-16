@@ -92,7 +92,7 @@ Order: block A → block B; blocks C, D, E are independent after #41.
 
 ### C. Master profile
 
-- [ ] #47 Master profile: Markdown with fixed sections, versions, preview, restore.
+- [x] #47 Master profile: Markdown with fixed sections, versions, preview, restore.
 
 ### D. Access from a phone
 

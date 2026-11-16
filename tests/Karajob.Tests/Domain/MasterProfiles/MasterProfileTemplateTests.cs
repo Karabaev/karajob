@@ -18,4 +18,10 @@ public class MasterProfileTemplateTests
       Assert.Contains($"## {section}", MasterProfileTemplate.Markdown);
     }
   }
+
+  [Fact]
+  public void Markdown_UsesLfLineEndings()
+  {
+    Assert.DoesNotContain('\r', MasterProfileTemplate.Markdown);
+  }
 }

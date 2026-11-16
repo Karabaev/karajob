@@ -23,7 +23,7 @@
             <div class="master-profile-preview markdown-body">@MarkdownHtml.Render(_markdown)</div>
           </MudTabPanel>
         </MudTabs>
-        <MudTextField T="string" Class="master-profile-comment" Label="Комментарий к изменениям" @bind-Value="_comment" />
+        <MudTextField T="string" Class="master-profile-comment" Label="Комментарий к изменениям" Immediate="true" @bind-Value="_comment" />
         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
           <MudButton Class="master-profile-save" Variant="Variant.Filled" Color="Color.Primary" Disabled="_saving" OnClick="SaveAsync">Сохранить</MudButton>
           @if (_markdown != _details.Markdown)
@@ -75,7 +75,7 @@
 }
 
 @code {
-  private const string MarkdownKey = "Markdown";
+  private const string MarkdownKey = nameof(MasterProfileInput.Markdown);
 
   private MasterProfileDetails? _details;
   private string _markdown = string.Empty;

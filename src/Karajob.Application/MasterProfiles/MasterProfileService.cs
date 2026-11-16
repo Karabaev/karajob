@@ -2,6 +2,7 @@ using Karajob.Application.Common;
 using Karajob.Application.Persistence;
 using Karajob.Application.Users;
 using Karajob.Domain.MasterProfiles;
+using Karajob.Domain.Normalization;
 using Microsoft.EntityFrameworkCore;
 
 namespace Karajob.Application.MasterProfiles;
@@ -25,7 +26,7 @@ public class MasterProfileService(IKarajobDbContextFactory dbContextFactory, ICu
 
     await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
     var profile = await LoadOrCreateAsync(db, cancellationToken);
-    if (profile.CurrentVersion.Markdown == input.Markdown)
+    if (profile.CurrentVersion.Markdown == Normalize.LineEndings(input.Markdown))
     {
       throw MarkdownError("Нет изменений");
     }

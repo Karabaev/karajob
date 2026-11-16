@@ -1,4 +1,5 @@
 using Karajob.Domain.Common;
+using Karajob.Domain.Normalization;
 
 namespace Karajob.Domain.MasterProfiles;
 
@@ -20,12 +21,12 @@ public class MasterProfileVersion : IUserOwned
     DateTime createdAt,
     Guid? restoredFromVersionId)
   {
-    // Not Require.NotBlank: trimming would rewrite the user's Markdown.
+    // Not Require.NotBlank: trimming would rewrite the user's Markdown; only line endings are unified.
     ArgumentException.ThrowIfNullOrWhiteSpace(markdown);
     Id = Guid.CreateVersion7();
     UserId = Require.NotEmpty(userId);
     MasterProfileId = Require.NotEmpty(masterProfileId);
-    Markdown = markdown;
+    Markdown = Normalize.LineEndings(markdown);
     Comment = string.IsNullOrWhiteSpace(comment) ? null : comment.Trim();
     CreatedAt = UtcGuard.Ensure(createdAt);
     RestoredFromVersionId = restoredFromVersionId;
