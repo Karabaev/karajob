@@ -54,6 +54,11 @@ public class UserService(IKarajobDbContextFactory dbContextFactory, TimeProvider
     return ToDto(user);
   }
 
+  public Task<TimeZoneInfo> GetTimeZoneAsync(Guid userId, CancellationToken cancellationToken = default)
+  {
+    throw new NotImplementedException();
+  }
+
   private void Validate(UserInput input)
   {
     var errors = new Dictionary<string, string>();

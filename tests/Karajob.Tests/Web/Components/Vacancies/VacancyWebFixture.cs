@@ -16,6 +16,7 @@ using Karajob.Tests.Application;
 using Karajob.Tests.Application.Cvs;
 using Karajob.Tests.Application.Vacancies;
 using Karajob.Tests.Infrastructure.Persistence;
+using Karajob.Web.Components.Common;
 using Karajob.Web.Vacancies;
 using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
@@ -153,6 +154,7 @@ public abstract class VacancyWebFixture : IAsyncLifetime
     Context.Services.AddSingleton<IKarajobDbContextFactory>(new TestDbContextFactory(Database, SeedData.OwnerId));
     Context.Services.AddSingleton<ICurrentUser>(new FixedCurrentUser(SeedData.OwnerId));
     Context.Services.AddSingleton(TimeProvider.System);
+    Context.Services.AddScoped<UserDates>();
     Context.Services.AddSingleton(Vacancies);
     Context.Services.AddSingleton(Applications);
     Context.Services.AddSingleton(Companies);

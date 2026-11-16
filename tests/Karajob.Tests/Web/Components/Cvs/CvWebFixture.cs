@@ -1,3 +1,4 @@
+using Karajob.Web.Components.Common;
 using Bunit;
 using Karajob.Application.Catalogs;
 using Karajob.Application.Cvs;
@@ -42,6 +43,7 @@ public abstract class CvWebFixture : IAsyncLifetime
     Context.Services.AddSingleton<IKarajobDbContextFactory>(new TestDbContextFactory(Database, SeedData.OwnerId));
     Context.Services.AddSingleton<ICurrentUser>(new FixedCurrentUser(SeedData.OwnerId));
     Context.Services.AddSingleton(TimeProvider.System);
+    Context.Services.AddScoped<UserDates>();
     Context.Services.AddSingleton<IFileStorage>(Storage);
     Context.Services.AddSingleton(Options);
     Context.Services.AddSingleton(Service);

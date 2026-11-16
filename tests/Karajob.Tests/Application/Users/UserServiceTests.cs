@@ -237,6 +237,122 @@ public class UserServiceTests : UserServiceFixture
   }
 
   [Fact]
+  public async Task CreateAsync_WithTimeZone_PersistsIt()
+  {
+    var dto = await Service.CreateAsync(new UserInput("Anna", "#26a69a", "Asia/Tokyo"));
+
+    Assert.Equal("Asia/Tokyo", dto.TimeZoneId);
+    await using var context = Database.CreateContext(SeedData.OwnerId);
+    Assert.Equal("Asia/Tokyo", (await context.Users.SingleAsync(u => u.Id == dto.Id)).TimeZoneId);
+  }
+
+  [Fact]
+  public async Task CreateAsync_WithoutTimeZone_DefaultsToUtc()
+  {
+    var dto = await Service.CreateAsync(new UserInput("Anna", "#26a69a"));
+
+    Assert.Equal("UTC", dto.TimeZoneId);
+  }
+
+  [Fact]
+  public async Task CreateAsync_WindowsTimeZoneId_StoresIana()
+  {
+    var dto = await Service.CreateAsync(new UserInput("Anna", "#26a69a", "Russian Standard Time"));
+
+    Assert.Equal("Europe/Moscow", dto.TimeZoneId);
+    await using var context = Database.CreateContext(SeedData.OwnerId);
+    Assert.Equal("Europe/Moscow", (await context.Users.SingleAsync(u => u.Id == dto.Id)).TimeZoneId);
+  }
+
+  [Theory]
+  [InlineData("")]
+  [InlineData("   ")]
+  [InlineData("Mars/Olympus_Mons")]
+  public async Task CreateAsync_InvalidTimeZone_ThrowsValidationFailedOnTimeZoneIdAndSavesNothing(string id)
+  {
+    var ex = await Assert.ThrowsAsync<ValidationFailedException>(() => Service.CreateAsync(new UserInput("Anna", "#26a69a", id)));
+
+    Assert.Equal([nameof(UserInput.TimeZoneId)], ex.Errors.Keys);
+    Assert.False(string.IsNullOrWhiteSpace(ex.Errors[nameof(UserInput.TimeZoneId)]));
+    Assert.Single(await Service.ListAsync());
+  }
+
+  [Fact]
+  public async Task UpdateAsync_NewTimeZone_ChangesIt()
+  {
+    var created = await Service.CreateAsync(new UserInput("Anna", "#26a69a"));
+
+    var updated = await Service.UpdateAsync(created.Id, new UserInput("Anna", "#26a69a", "America/Los_Angeles"));
+
+    Assert.Equal("America/Los_Angeles", updated.TimeZoneId);
+    Assert.Equal("America/Los_Angeles", (await Service.GetAsync(created.Id))!.TimeZoneId);
+  }
+
+  [Fact]
+  public async Task UpdateAsync_InvalidTimeZone_ThrowsValidationFailedOnTimeZoneIdAndKeepsStoredZone()
+  {
+    var created = await Service.CreateAsync(new UserInput("Anna", "#26a69a", "Asia/Tokyo"));
+
+    var ex = await Assert.ThrowsAsync<ValidationFailedException>(() => Service.UpdateAsync(created.Id, new UserInput("Anna", "#26a69a", "Mars/Olympus_Mons")));
+
+    Assert.Equal([nameof(UserInput.TimeZoneId)], ex.Errors.Keys);
+    Assert.Equal(created, await Service.GetAsync(created.Id));
+  }
+
+  [Fact]
+  public async Task ListAsync_ProfileWithTimeZone_ReturnsItInDto()
+  {
+    var created = await Service.CreateAsync(new UserInput("Anna", "#26a69a", "Europe/Moscow"));
+
+    var listed = (await Service.ListAsync()).Single(p => p.Id == created.Id);
+
+    Assert.Equal("Europe/Moscow", listed.TimeZoneId);
+  }
+
+  [Fact]
+  public async Task GetAsync_SeedOwner_HasUtcTimeZoneId()
+  {
+    var dto = await Service.GetAsync(SeedData.OwnerId);
+
+    Assert.Equal("UTC", dto!.TimeZoneId);
+  }
+
+  [Fact]
+  public async Task GetTimeZoneAsync_CreatedProfile_ReturnsItsZone()
+  {
+    var created = await Service.CreateAsync(new UserInput("Anna", "#26a69a", "Asia/Tokyo"));
+
+    var zone = await Service.GetTimeZoneAsync(created.Id);
+
+    Assert.Equal(TimeSpan.FromHours(9), zone.GetUtcOffset(Now));
+  }
+
+  [Fact]
+  public async Task GetTimeZoneAsync_SeedOwner_ReturnsUtc()
+  {
+    var zone = await Service.GetTimeZoneAsync(SeedData.OwnerId);
+
+    Assert.Equal(TimeSpan.Zero, zone.GetUtcOffset(Now));
+  }
+
+  [Fact]
+  public async Task GetTimeZoneAsync_AfterUpdate_ReturnsNewZone()
+  {
+    var created = await Service.CreateAsync(new UserInput("Anna", "#26a69a"));
+    await Service.UpdateAsync(created.Id, new UserInput("Anna", "#26a69a", "Europe/Moscow"));
+
+    var zone = await Service.GetTimeZoneAsync(created.Id);
+
+    Assert.Equal(TimeSpan.FromHours(3), zone.GetUtcOffset(Now));
+  }
+
+  [Fact]
+  public async Task GetTimeZoneAsync_UnknownId_ThrowsKeyNotFoundException()
+  {
+    await Assert.ThrowsAsync<KeyNotFoundException>(() => Service.GetTimeZoneAsync(Guid.NewGuid()));
+  }
+
+  [Fact]
   public async Task ListAsync_ServiceBuiltForOtherUser_StillListsEveryProfile()
   {
     var anna = await Service.CreateAsync(new UserInput("Anna", "#26a69a"));

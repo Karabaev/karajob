@@ -74,9 +74,9 @@ internal class TestDbContextFactory(SqliteTestDatabase database, Guid userId) : 
     return new SearchGoalService(new TestDbContextFactory(database, userId), TestLocalizer.For<GoalMessages>());
   }
 
-  public static HypothesisMetricsService CreateHypothesisMetricsService(SqliteTestDatabase database, Guid userId, TimeProvider timeProvider)
+  public static HypothesisMetricsService CreateHypothesisMetricsService(SqliteTestDatabase database, Guid userId, TimeProvider timeProvider, TimeZoneInfo? timeZone = null)
   {
-    return new HypothesisMetricsService(new TestDbContextFactory(database, userId), timeProvider);
+    return new HypothesisMetricsService(new TestDbContextFactory(database, userId), new FixedCurrentUser(userId, timeZone), timeProvider);
   }
 
   public Task<IKarajobDbContext> CreateDbContextAsync(CancellationToken cancellationToken = default)

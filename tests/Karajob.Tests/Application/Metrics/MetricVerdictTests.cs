@@ -52,7 +52,7 @@ public class MetricVerdictTests
   [InlineData(0, 0, MetricVerdict.OnTrack)]
   public void ActivityVerdict_ComparesApplicationsWithWeeklyTarget(int applications, int target, MetricVerdict expected)
   {
-    var activity = new ProfileActivity(UtcWeek.Containing(new DateTime(2026, 11, 12, 0, 0, 0, DateTimeKind.Utc)), applications, target);
+    var activity = new ProfileActivity(CalendarWeek.Containing(new DateTime(2026, 11, 12, 0, 0, 0, DateTimeKind.Utc), TimeZoneInfo.Utc), applications, target);
 
     Assert.Equal(expected, activity.Verdict);
   }

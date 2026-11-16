@@ -159,5 +159,7 @@ public class PersistenceScopingTests
     public Guid? Id { get; set; }
 
     public Guid UserId => Id ?? throw new InvalidOperationException("No profile selected.");
+
+    public TimeZoneInfo TimeZone => TimeZoneInfo.Utc;
   }
 }

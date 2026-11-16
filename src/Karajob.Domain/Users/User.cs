@@ -8,6 +8,7 @@ public class User
   public Guid Id { get; private set; }
   public string Name { get; set => field = Require.NotBlank(value); }
   public string Color { get; set => field = Normalize.HexColor(value); }
+  public string TimeZoneId { get; set => field = UserTime.NormalizeId(value); }
   public DateTime CreatedAt { get; private set; }
 
   public User(string name, string color, DateTime createdAt)
@@ -15,6 +16,7 @@ public class User
     Id = Guid.CreateVersion7();
     Name = name;
     Color = color;
+    TimeZoneId = UserTime.DefaultTimeZoneId;
     CreatedAt = UtcGuard.Ensure(createdAt);
   }
 }
