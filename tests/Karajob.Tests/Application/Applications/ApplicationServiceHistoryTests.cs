@@ -308,6 +308,18 @@ public class ApplicationServiceHistoryTests : VacancyServiceFixture
   }
 
   [Fact]
+  public async Task ListHistoryAsync_SearchByUrl_FindsVacancyWithoutCompany()
+  {
+    var hypothesisId = await CreateHypothesisAsync();
+    var hh = await CreateOnBoardAsync(VacancyStage.Applied, hypothesisId, "https://hh.ru/vacancy/1");
+    await CreateOnBoardAsync(VacancyStage.Applied, hypothesisId, "https://example.com/jobs/2");
+
+    var items = await ListAsync(new ApplicationHistoryFilter(null, null, "HH.RU"));
+
+    Assert.Equal(hh, Assert.Single(items).VacancyId);
+  }
+
+  [Fact]
   public async Task ListHistoryAsync_SearchWithNoMatch_ReturnsEmpty()
   {
     var hypothesisId = await CreateHypothesisAsync();

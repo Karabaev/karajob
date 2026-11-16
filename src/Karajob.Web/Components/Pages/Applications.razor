@@ -69,9 +69,9 @@ else
             @L["Pages.CoverLetter"]
           </MudButton>
         }
-        @if (context.Stage == VacancyStage.Closed)
+        @if (context.ReopenTarget is { } reopenTarget)
         {
-          <MudButton Class="application-reopen" Size="Size.Small" Variant="Variant.Text" OnClick="() => ReopenAsync(context)">
+          <MudButton Class="application-reopen" Size="Size.Small" Variant="Variant.Text" OnClick="() => ReopenAsync(context.VacancyId, reopenTarget)">
             @L["Pages.Reopen"]
           </MudButton>
         }
@@ -101,15 +101,21 @@ else
   private VacancyStage? _stage;
   private ApplicationOutcome? _outcome;
   private string? _search;
+  private int _request;
 
   protected override async Task OnInitializedAsync()
   {
     await ReloadAsync();
   }
 
+  // Filter changes can overlap (debounced search vs. selects); only the latest request may update the table.
   private async Task ReloadAsync()
   {
-    _items = await ApplicationService.ListHistoryAsync(new ApplicationHistoryFilter(_stage, _outcome, _search));
+    var request = ++_request;
+    var items = await ApplicationService.ListHistoryAsync(new ApplicationHistoryFilter(_stage, _outcome, _search));
+    if (request != _request) return;
+
+    _items = items;
   }
 
   private Task OnStageChangedAsync(VacancyStage? stage)
@@ -138,14 +144,14 @@ else
     }
   }
 
-  private async Task ReopenAsync(ApplicationHistoryItem item)
+  private async Task ReopenAsync(Guid vacancyId, VacancyStage defaultTarget)
   {
     try
     {
       var parameters = new DialogParameters<ReopenVacancyDialog>
       {
-        { d => d.VacancyId, item.VacancyId },
-        { d => d.DefaultTarget, item.ClosedFromStage ?? VacancyStage.Applied },
+        { d => d.VacancyId, vacancyId },
+        { d => d.DefaultTarget, defaultTarget },
       };
       var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
       var dialog = await DialogService.ShowAsync<ReopenVacancyDialog>(L["Pages.ReopenTitle"], parameters, options);

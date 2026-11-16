@@ -1,4 +1,5 @@
 using Karajob.Application.Persistence;
+using Karajob.Domain.Applications;
 using Karajob.Domain.Vacancies;
 using Microsoft.EntityFrameworkCore;
 
@@ -22,7 +23,10 @@ public class ApplicationService(IKarajobDbContextFactory dbContextFactory)
       query = query.Where(v => v.Application!.Outcome == outcome);
     }
 
-    var vacancies = await query.Include(v => v.Application).Include(v => v.Events).ToListAsync(cancellationToken);
+    var vacancies = await query
+      .Include(v => v.Application)
+      .Include(v => v.Events.Where(e => e.Type == ApplicationEventType.StageChanged && e.ToStage == VacancyStage.Closed))
+      .ToListAsync(cancellationToken);
     var companyIds = vacancies.Where(v => v.CompanyId is not null).Select(v => v.CompanyId!.Value).Distinct().ToList();
     var roleIds = vacancies.Where(v => v.RoleId is not null).Select(v => v.RoleId!.Value).Distinct().ToList();
     var hypothesisIds = vacancies.Select(v => v.Application!.HypothesisId).Distinct().ToList();
@@ -51,7 +55,8 @@ public class ApplicationService(IKarajobDbContextFactory dbContextFactory)
       vacancies = vacancies
         .Where(v =>
           v.CompanyId is { } companyId && (Contains(companies[companyId].Name, search) || Contains(companies[companyId].Slug, search))
-          || v.RoleId is { } roleId && Contains(roleNames[roleId], search))
+          || v.RoleId is { } roleId && Contains(roleNames[roleId], search)
+          || Contains(v.Url, search))
         .ToList();
     }
 
@@ -76,7 +81,8 @@ public class ApplicationService(IKarajobDbContextFactory dbContextFactory)
           application.AppliedAt,
           v.ClosedAt,
           application.CoverLetter,
-          v.ClosedFromStage);
+          v.ClosedFromStage,
+          v.ReopenTarget);
       })
       .ToList();
   }

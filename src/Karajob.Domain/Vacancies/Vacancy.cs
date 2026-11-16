@@ -41,6 +41,8 @@ public class Vacancy : IUserOwned
 
   public DateTime? ClosedAt => Stage == VacancyStage.Closed ? LatestClosedEvent()?.OccurredAt : null;
 
+  public VacancyStage? ReopenTarget => Stage == VacancyStage.Closed ? ClosedFromStage ?? VacancyStage.Applied : null;
+
   public DateTime? PublishedAt
   {
     get => publishedAt;

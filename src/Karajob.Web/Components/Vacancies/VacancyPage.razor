@@ -25,9 +25,9 @@ else if (_loaded)
       <MudChip T="string" Class="vacancy-stage" Size="Size.Small" Color="@VacancyText.StageColor(_details.Stage)">
         @VacancyText.Stage(_details.Stage)@(_details.DismissReason is { } reason ? $": {VacancyText.Dismiss(reason)}" : "")
       </MudChip>
-      @if (_details.Stage == VacancyStage.Closed)
+      @if (_details.ReopenTarget is { } reopenTarget)
       {
-        <MudButton Class="vacancy-reopen" Size="Size.Small" Variant="Variant.Outlined" OnClick="ReopenAsync">@L["Page.Reopen"]</MudButton>
+        <MudButton Class="vacancy-reopen" Size="Size.Small" Variant="Variant.Outlined" OnClick="() => ReopenAsync(reopenTarget)">@L["Page.Reopen"]</MudButton>
       }
     }
   </MudStack>
@@ -566,12 +566,12 @@ else if (_loaded)
     }
   }
 
-  private async Task ReopenAsync()
+  private async Task ReopenAsync(VacancyStage defaultTarget)
   {
     var parameters = new DialogParameters<ReopenVacancyDialog>
     {
       { d => d.VacancyId, _details!.Id },
-      { d => d.DefaultTarget, _details.ClosedFromStage ?? VacancyStage.Applied },
+      { d => d.DefaultTarget, defaultTarget },
     };
     var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
     var reference = await DialogService.ShowAsync<ReopenVacancyDialog>(L["Page.ReopenTitle"], parameters, options);

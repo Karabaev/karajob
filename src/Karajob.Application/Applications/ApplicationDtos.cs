@@ -20,4 +20,5 @@ public record ApplicationHistoryItem(
   DateTime AppliedAt,
   DateTime? ClosedAt,
   string? CoverLetter,
-  VacancyStage? ClosedFromStage);
+  VacancyStage? ClosedFromStage,
+  VacancyStage? ReopenTarget);
