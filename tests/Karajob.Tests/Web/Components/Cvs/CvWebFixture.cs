@@ -59,5 +59,6 @@ public abstract class CvWebFixture : IAsyncLifetime
   {
     Context.JSInterop.Mode = JSRuntimeMode.Loose;
     Context.Services.AddMudServices();
+    Context.Services.AddLocalization();
   }
 }

@@ -42,5 +42,6 @@ public abstract class SettingsWebFixture : IAsyncLifetime
   {
     Context.JSInterop.Mode = JSRuntimeMode.Loose;
     Context.Services.AddMudServices();
+    Context.Services.AddLocalization();
   }
 }

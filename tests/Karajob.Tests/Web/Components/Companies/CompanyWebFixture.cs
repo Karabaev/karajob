@@ -46,5 +46,6 @@ public abstract class CompanyWebFixture : IAsyncLifetime
   {
     Context.JSInterop.Mode = JSRuntimeMode.Loose;
     Context.Services.AddMudServices();
+    Context.Services.AddLocalization();
   }
 }

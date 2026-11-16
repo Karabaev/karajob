@@ -1,3 +1,5 @@
+using Karajob.Application.Resources;
+using Microsoft.Extensions.Localization;
 using Karajob.Application.Common;
 using Karajob.Application.Persistence;
 using Karajob.Domain.Goals;
@@ -6,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Karajob.Application.Goals;
 
-public class SearchGoalService(IKarajobDbContextFactory dbContextFactory)
+public class SearchGoalService(IKarajobDbContextFactory dbContextFactory, IStringLocalizer<GoalMessages> localizer)
 {
   public async Task<SearchGoalDetails> GetAsync(CancellationToken cancellationToken = default)
   {

@@ -21,6 +21,15 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
   .AddInteractiveServerComponents();
 builder.Services.AddMudServices();
+builder.Services.AddLocalization();
+
+var defaultCulture = builder.Configuration["Localization:DefaultCulture"]
+  ?? throw new InvalidOperationException("Configuration value 'Localization:DefaultCulture' is missing.");
+var supportedCultures = new[] { "en", "ru" };
+if (!supportedCultures.Contains(defaultCulture))
+{
+  throw new InvalidOperationException($"Localization:DefaultCulture must be one of: {string.Join(", ", supportedCultures)}.");
+}
 
 // In Docker the default key ring lives inside the container and is lost on recreation.
 var keysDirectory = builder.Configuration["DataProtection:KeysDirectory"];
@@ -83,6 +92,13 @@ if (!app.Environment.IsDevelopment())
   app.UseExceptionHandler("/Error", createScopeForErrors: true);
   app.UseHsts();
 }
+var localizationOptions = new RequestLocalizationOptions()
+  .SetDefaultCulture(defaultCulture)
+  .AddSupportedCultures(supportedCultures)
+  .AddSupportedUICultures(supportedCultures);
+// The browser Accept-Language must not switch the language: it is a deployment setting.
+localizationOptions.RequestCultureProviders.Clear();
+app.UseRequestLocalization(localizationOptions);
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
 

@@ -1,3 +1,5 @@
+using Karajob.Application.Resources;
+using Microsoft.Extensions.Localization;
 using Karajob.Application.Common;
 using Karajob.Application.Files;
 using Karajob.Application.Persistence;
@@ -14,7 +16,8 @@ public class CvService(
   IFileStorage fileStorage,
   TimeProvider timeProvider,
   CvOptions options,
-  ILogger<CvService> logger)
+  ILogger<CvService> logger,
+  IStringLocalizer<CvMessages> localizer)
 {
   public const string FileErrorKey = "File";
 

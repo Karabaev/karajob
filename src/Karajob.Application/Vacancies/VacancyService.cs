@@ -1,3 +1,5 @@
+using Karajob.Application.Resources;
+using Microsoft.Extensions.Localization;
 using Karajob.Application.Common;
 using Karajob.Application.Persistence;
 using Karajob.Application.Users;
@@ -10,7 +12,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Karajob.Application.Vacancies;
 
-public partial class VacancyService(IKarajobDbContextFactory dbContextFactory, ICurrentUser currentUser, TimeProvider timeProvider)
+public partial class VacancyService(
+  IKarajobDbContextFactory dbContextFactory,
+  ICurrentUser currentUser,
+  TimeProvider timeProvider,
+  IStringLocalizer<VacancyMessages> localizer)
 {
   private static readonly TimeSpan SimilarWindow = TimeSpan.FromDays(30);
 

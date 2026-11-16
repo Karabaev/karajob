@@ -211,5 +211,6 @@ public class MainLayoutTests : IAsyncLifetime
   {
     _context.JSInterop.Mode = JSRuntimeMode.Loose;
     _context.Services.AddMudServices();
+    _context.Services.AddLocalization();
   }
 }

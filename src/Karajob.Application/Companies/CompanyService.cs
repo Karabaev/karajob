@@ -1,3 +1,5 @@
+using Karajob.Application.Resources;
+using Microsoft.Extensions.Localization;
 using Karajob.Application.Common;
 using Karajob.Application.Persistence;
 using Karajob.Application.Users;
@@ -7,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Karajob.Application.Companies;
 
-public class CompanyService(IKarajobDbContextFactory dbContextFactory, ICurrentUser currentUser)
+public class CompanyService(IKarajobDbContextFactory dbContextFactory, ICurrentUser currentUser, IStringLocalizer<CompanyMessages> localizer)
 {
   // Company pages live at /companies/{slug}; these slugs collide with fixed routes there.
   private static readonly HashSet<string> ReservedSlugs = ["new"];

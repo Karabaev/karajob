@@ -255,5 +255,6 @@ public class HypothesisCriteriaCardTests : HypothesisMetricsServiceFixture, IAsy
   {
     Context.JSInterop.Mode = JSRuntimeMode.Loose;
     Context.Services.AddMudServices();
+    Context.Services.AddLocalization();
   }
 }

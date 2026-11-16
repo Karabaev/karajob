@@ -1,3 +1,5 @@
+using Karajob.Application.Resources;
+using Microsoft.Extensions.Localization;
 using Karajob.Application.Common;
 using Karajob.Application.Persistence;
 using Karajob.Domain.Goals;
@@ -7,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Karajob.Application.Users;
 
-public class UserService(IKarajobDbContextFactory dbContextFactory, TimeProvider timeProvider)
+public class UserService(IKarajobDbContextFactory dbContextFactory, TimeProvider timeProvider, IStringLocalizer<UserMessages> localizer)
 {
   public async Task<IReadOnlyList<UserDto>> ListAsync(CancellationToken cancellationToken = default)
   {

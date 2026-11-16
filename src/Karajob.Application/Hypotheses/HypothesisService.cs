@@ -1,3 +1,5 @@
+using Karajob.Application.Resources;
+using Microsoft.Extensions.Localization;
 using Karajob.Application.Common;
 using Karajob.Application.Persistence;
 using Karajob.Application.Users;
@@ -6,7 +8,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Karajob.Application.Hypotheses;
 
-public class HypothesisService(IKarajobDbContextFactory dbContextFactory, ICurrentUser currentUser, TimeProvider timeProvider)
+public class HypothesisService(
+  IKarajobDbContextFactory dbContextFactory,
+  ICurrentUser currentUser,
+  TimeProvider timeProvider,
+  IStringLocalizer<HypothesisMessages> localizer)
 {
   public async Task<IReadOnlyList<HypothesisListItem>> ListAsync(CancellationToken cancellationToken = default)
   {

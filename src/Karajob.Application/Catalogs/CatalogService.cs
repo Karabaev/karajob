@@ -1,3 +1,5 @@
+using Karajob.Application.Resources;
+using Microsoft.Extensions.Localization;
 using Karajob.Application.Common;
 using Karajob.Application.Persistence;
 using Karajob.Domain.Catalogs;
@@ -6,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Karajob.Application.Catalogs;
 
-public class CatalogService(IKarajobDbContextFactory dbContextFactory)
+public class CatalogService(IKarajobDbContextFactory dbContextFactory, IStringLocalizer<CatalogMessages> localizer)
 {
   public async Task<IReadOnlyList<CatalogListItem>> ListAsync(CatalogKind kind, CancellationToken cancellationToken = default)
   {
