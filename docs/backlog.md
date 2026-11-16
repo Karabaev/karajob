@@ -1,13 +1,13 @@
-# Бэклог
+# Backlog
 
-Идеи, которые всплыли по ходу работы, но не входят в текущую фазу (см. [roadmap.md](roadmap.md)). Формат: одна строка — идея, откуда пришла, к какой фазе относится.
+Ideas that came up along the way but are not part of the current phase (see [roadmap.md](roadmap.md)). Format: one line — the idea, where it came from, which phase it belongs to.
 
-- Удаление профиля: решить, что делать с его данными (каскадом всё личное или перенос), и подтверждение в UI. Из #41, по ситуации.
-- `OnValidatePrincipal` проверяет существование профиля в БД на каждый запрос с cookie, включая статику. Если станет заметно — проверять раз в N минут по `IssuedUtc`. Из ревью #41, по ситуации.
-- Смена профиля в одной вкладке: в другой открытой вкладке circuit остаётся на старом профиле до перезагрузки, а переключатель в шапке отдаёт 400 (antiforgery-токен привязан к старой identity). Ловить ошибку antiforgery на `/profiles/select` и уводить на `/profiles`. Из ревью #41, по ситуации.
-- Извлечение текста CV при загрузке (PdfPig для PDF, OpenXML для DOCX) и хранение в `CvVersion` — нужно для `get_cv_text` и ИИ-сценариев. Из #11, Фаза 1.
-- Чистка осиротевших файлов в `/data/files` (файл остался после сбоя удаления или в Development после перезапуска in-memory базы). Из #11, по ситуации.
-- Часовой пояс отображения дат: в Interactive Server `ToLocalTime()` выполняется на сервере (в контейнере — UTC). Выбрать один пояс (настройка или смещение браузера) и общий форматтер. Тот же пояс — для ввода дат: «сегодня» по умолчанию в диалогах отклика и событий сейчас считается по UTC. Из ревью #11 и #14, Фаза 0.5 — #38.
-- REST `POST /api/inbox` (URL + заметка → `VacancyService.QuickAddAsync`) для быстрой команды iPhone Shortcuts из design.md «Быстрое добавление в Inbox». Нужен вместе с доступом вне дома и какой-то авторизацией эндпоинта. Из #13, Фаза 0.5 — #48.
-- Загрузка вакансии тянет `Matches`, `Events` и `Platforms` одним запросом (декартово произведение), доска грузит платформы, которые не показывает. Если станет заметно — `AsSplitQuery()` в `VacancyService` и `IgnoreAutoIncludes()` на доске. Из ревью #60, по ситуации.
-- Цели «Активности» по контактам и адаптациям CV в `SearchGoal` и метриках: в Фазе 0.5 считаются только отклики, потому что сущности Contact и адаптации CV появятся позже. Из декомпозиции #18, Фаза 2.
+- Profile deletion: decide what to do with its data (cascade all personal data, or transfer it), and a confirmation in the UI. From #41, as the situation demands.
+- `OnValidatePrincipal` checks that the profile exists in the DB on every request with a cookie, static files included. If it becomes noticeable, check once every N minutes by `IssuedUtc`. From the #41 review, as the situation demands.
+- Switching profile in one tab: in another open tab the circuit stays on the old profile until reload, and the header switcher returns 400 (the antiforgery token is bound to the old identity). Catch the antiforgery error on `/profiles/select` and redirect to `/profiles`. From the #41 review, as the situation demands.
+- Extracting CV text on upload (PdfPig for PDF, OpenXML for DOCX) and storing it in `CvVersion` — needed for `get_cv_text` and AI scenarios. From #11, Phase 1.
+- Cleaning up orphaned files in `/data/files` (a file left behind after a failed deletion, or in Development after the in-memory database restarts). From #11, as the situation demands.
+- Display time zone for dates: in Interactive Server `ToLocalTime()` runs on the server (UTC in the container). Pick one zone (a setting or the browser offset) and a shared formatter. The same zone for entering dates: "today" by default in the application and event dialogs is currently computed in UTC. From the #11 and #14 reviews, Phase 0.5 — #38.
+- REST `POST /api/inbox` (URL + note → `VacancyService.QuickAddAsync`) for the iPhone Shortcuts quick command from design.md "Quick add to Inbox". Needed together with access from outside the home and some authorization of the endpoint. From #13, Phase 0.5 — #48.
+- Loading a vacancy pulls `Matches`, `Events` and `Platforms` in one query (a Cartesian product), and the board loads platforms it does not show. If it becomes noticeable — `AsSplitQuery()` in `VacancyService` and `IgnoreAutoIncludes()` on the board. From the #60 review, as the situation demands.
+- "Activity" goals for contacts and CV adaptations in `SearchGoal` and the metrics: in Phase 0.5 only applications are counted, because the Contact entity and CV adaptations come later. From the #18 decomposition, Phase 2.

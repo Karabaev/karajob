@@ -1,96 +1,98 @@
 # Karajob
 
-Семейный трекер поиска работы: гипотезы → вакансии → отклики → метрики → решение по гипотезе.
+A family job-search tracker: hypotheses → vacancies → applications → metrics → a decision on the hypothesis.
 
-- Полный дизайн-документ: `docs/design.md`
-- План работ и чек-листы по дням: `docs/roadmap.md`
+- Full design document: `docs/design.md`
+- Work plan and per-day checklists: `docs/roadmap.md`
 
-Перед началом любой задачи сверяйся с `docs/roadmap.md`. **Сейчас идёт Фаза 0.5** (Фаза 0 завершена, кроме отложенного выката #16). Всё из раздела «Не входит в Фазу 0.5» не делай, даже если кажется, что это быстро: предложи записать в бэклог (`docs/backlog.md`).
+Before starting any task, check `docs/roadmap.md`. **Phase 0.5 is in progress now** (Phase 0 is done, except the deferred rollout #16). Do not do anything from the section "Not in Phase 0.5", even if it seems quick: suggest adding it to the backlog (`docs/backlog.md`).
 
-## Стек
+## Stack
 
 - .NET 10, ASP.NET Core, Blazor Web App (Interactive Server, all-interactive), MudBlazor
-- EF Core + SQLite (файл в `/data`), миграции применяются при старте с бэкапом базы
-- Docker + docker-compose, один образ, один volume `/data`
-- xUnit для тестов
+- EF Core + SQLite (file in `/data`), migrations are applied at startup with a database backup
+- Docker + docker-compose, one image, one volume `/data`
+- xUnit for tests
 
-## Структура репозитория
+## Repository structure
 
-| Папка | Содержимое |
+| Folder | Contents |
 |---|---|
-| `src/` | Проекты решения (см. ниже) |
+| `src/` | Solution projects (see below) |
 | `tests/` | `Karajob.Tests` |
-| `docs/` | `design.md`, `roadmap.md`, `backlog.md`, ADR в `docs/adr/` |
-| `scripts/` | Вспомогательные скрипты (`add-migration.ps1 <Name>` — миграция для всех провайдеров) |
-| `.claude/` | Скил `/task`, агенты `test-writer` / `worker` / `reviewer` |
-| `.claude/worktrees/` | Git worktree для feature-веток и воркеров (в `.gitignore`) |
+| `docs/` | `design.md`, `roadmap.md`, `backlog.md`, ADRs in `docs/adr/` |
+| `scripts/` | Helper scripts (`add-migration.ps1 <Name>` — a migration for all providers) |
+| `.claude/` | The `/task` skill, the `test-writer` / `worker` / `reviewer` agents |
+| `.claude/worktrees/` | Git worktrees for feature branches and workers (in `.gitignore`) |
 
-## Структура решения
+## Solution structure
 
-- `Karajob.Domain` — сущности, правила переходов стадий, без зависимостей от EF и ASP.NET
-- `Karajob.Application` — сервисы сценариев (`VacancyService`, `ApplicationService`, `HypothesisService`, `IngestService`). UI, REST и (позже) MCP вызывают только их.
-- `Karajob.Infrastructure` — EF Core, файлы, внешние клиенты
-- `Karajob.Migrations.Sqlite` — миграции EF Core для SQLite (по проекту на провайдера); создаются только через `scripts/add-migration.ps1`
-- `Karajob.Web` — Blazor-страницы, Minimal API, composition root
-- `Karajob.Tests` — юнит- и интеграционные тесты
+- `Karajob.Domain` — entities, stage transition rules, no dependencies on EF or ASP.NET
+- `Karajob.Application` — scenario services (`VacancyService`, `ApplicationService`, `HypothesisService`, `IngestService`). The UI, REST and (later) MCP call only these.
+- `Karajob.Infrastructure` — EF Core, files, external clients
+- `Karajob.Migrations.Sqlite` — EF Core migrations for SQLite (one project per provider); created only via `scripts/add-migration.ps1`
+- `Karajob.Web` — Blazor pages, Minimal API, composition root
+- `Karajob.Tests` — unit and integration tests
 
-### Направление зависимостей
+### Dependency direction
 
 ```
 Web  →  Application, Infrastructure, Migrations.Sqlite, Domain
 Migrations.Sqlite  →  Infrastructure
 Infrastructure  →  Application, Domain
 Application  →  Domain
-Domain  →  ничего (только BCL)
+Domain  →  nothing (BCL only)
 ```
 
-- Нужна ссылка против стрелки (Domain → EF, Application → Web) — значит, тип лежит не там.
-- Интерфейсы, которые реализует Infrastructure (хранилище файлов, ATS-клиенты, `ILlmClient`), объявляются в Application.
-- Namespace = имя проекта + путь папки (`src/Karajob.Application/Vacancies/` → `Karajob.Application.Vacancies`). Межслойная ссылка видна прямо в `using`.
+- If you need a reference against the arrow (Domain → EF, Application → Web), the type is in the wrong place.
+- Interfaces implemented by Infrastructure (file storage, ATS clients, `ILlmClient`) are declared in Application.
+- Namespace = project name + folder path (`src/Karajob.Application/Vacancies/` → `Karajob.Application.Vacancies`). A cross-layer reference is visible right in the `using`.
 
-## Правила
+## Rules
 
-- Бизнес-логика (дедупликация, правила переходов стадий, обязательные поля) — только в Domain/Application, не в Razor-компонентах.
-- Каждый переход стадии вакансии пишет `ApplicationEvent`. В Applied — только с гипотезой и версией CV, в Closed — только с исходом (Offer / Rejected / Ghosted / Withdrawn).
-- Совместимость с PostgreSQL в будущем: без сырого SQL; время — UTC `DateTime` (не `DateTimeOffset`); деньги — целые числа (не `decimal`); slug, домены и URL нормализуются в нижний регистр в коде до записи.
-- У всех пользовательских данных есть `UserId` (глобальный фильтр EF Core). Компании и проекты — общие справочники.
-- Компания определяется по slug, а сопоставляется по доменам и алиасам.
-- `DbContext` — через `IDbContextFactory`, короткоживущий контекст на операцию.
-- Не использовать EF Core InMemory provider; для отладки и тестов — SQLite in-memory.
-- Не использовать `EnsureCreated()`; только миграции.
-- Секреты — только через `.env`, который не коммитится. В репозиторий не попадают `.env`, `*.db`, `data/`, реальные CV.
-- После изменений запускай `dotnet test` и не считай задачу готовой, пока тесты не зелёные.
-- Отмечай выполненные пункты в `docs/roadmap.md` (`- [x]`).
+- Business logic (deduplication, stage transition rules, required fields) lives only in Domain/Application, never in Razor components.
+- Every vacancy stage transition writes an `ApplicationEvent`. Moving to Applied requires a hypothesis and a CV version; moving to Closed requires an outcome (Offer / Rejected / Ghosted / Withdrawn).
+- PostgreSQL compatibility in the future: no raw SQL; time is UTC `DateTime` (not `DateTimeOffset`); money is integers (not `decimal`); slugs, domains and URLs are normalized to lowercase in code before writing.
+- All user data has a `UserId` (EF Core global filter). Companies and projects are shared reference data.
+- A company is identified by slug and matched by domains and aliases.
+- `DbContext` is obtained via `IDbContextFactory`, with a short-lived context per operation.
+- Do not use the EF Core InMemory provider; for debugging and tests use SQLite in-memory.
+- Do not use `EnsureCreated()`; migrations only.
+- Secrets only via `.env`, which is not committed. `.env`, `*.db`, `data/` and real CVs never go into the repository.
+- Documentation and the UI are in English. Localization is via resx: `Resources/*.resx` (default culture `en`) plus `*.ru.resx` Russian satellites; the default culture comes from the `Localization:DefaultCulture` config key.
+- All user-facing text goes through resx (`IStringLocalizer`); no Cyrillic literals in `src` outside `Normalize.cs` and resx.
+- After changes, run `dotnet test` and do not consider the task done until the tests are green.
+- Tick completed items in `docs/roadmap.md` (`- [x]`).
 
 ## C# Coding Standards
 
-- Microsoft C# style guide; **2 пробела** отступ; file-scoped namespaces (`namespace X;`).
-- `Nullable` включён везде. Не проверять на `null` всё подряд — только там, где `null` реально ожидается. `= null!` — только для свойств, которые гарантированно заполняет фреймворк (`[Inject]`, `[Parameter, EditorRequired]` в Blazor, EF navigation properties).
-- События — глагол в прошедшем времени (`Moved`), обработчики — с префиксом `On` (`OnMoved`).
-- У enum'ов значения всегда присваиваются явно (`Inbox = 0, Targeted = 1`): enum'ы хранятся в БД числами, значение — часть схемы. Новые члены только добавляются с новым числом, существующие не перенумеровываются.
-- Конструктор класса — внизу, после полей, свойств и методов (primary constructors допустимы).
-- **Фигурные скобки**: тело `if` / `else` / `for` / `foreach` / `while` всегда в скобках, даже одна инструкция. Исключение — guard, чьё тело целиком `return;` / `continue;` / `break;` / `throw ...;`: он может остаться на строке `if`. Лучше инвертировать условие в такой guard, чем оборачивать остаток тела.
-- SOLID и clean code; без ненужного `sealed`, без непрошенного кэширования.
-- Fail fast: не писать guard'ы, которые молча глотают ошибку конфигурации или неверное состояние.
-- По умолчанию без комментариев. Комментарий — только когда неочевидно ПОЧЕМУ (скрытое ограничение, обход, инвариант), а не пересказ кода.
+- Microsoft C# style guide; **2 spaces** indentation; file-scoped namespaces (`namespace X;`).
+- `Nullable` is enabled everywhere. Do not null-check everything — only where `null` is actually expected. `= null!` only for properties that the framework guarantees to populate (`[Inject]`, `[Parameter, EditorRequired]` in Blazor, EF navigation properties).
+- Events are a past-tense verb (`Moved`), handlers have the `On` prefix (`OnMoved`).
+- Enum values are always assigned explicitly (`Inbox = 0, Targeted = 1`): enums are stored in the DB as numbers, so the value is part of the schema. New members are only added with a new number; existing ones are never renumbered.
+- The class constructor goes at the bottom, after fields, properties and methods (primary constructors are allowed).
+- **Braces**: the body of `if` / `else` / `for` / `foreach` / `while` is always in braces, even for a single statement. The exception is a guard whose body is entirely `return;` / `continue;` / `break;` / `throw ...;`: it may stay on the `if` line. Prefer inverting the condition into such a guard over wrapping the rest of the body.
+- SOLID and clean code; no needless `sealed`, no unrequested caching.
+- Fail fast: do not write guards that silently swallow a configuration error or an invalid state.
+- No comments by default. A comment only when the WHY is non-obvious (a hidden constraint, a workaround, an invariant), not a restatement of the code.
 
-## Тесты
+## Tests
 
-- xUnit, проект `tests/Karajob.Tests`, папки и namespace повторяют тестируемый проект.
-- Domain — чистые юнит-тесты без БД. Сервисы и персистентность — на SQLite in-memory с настоящими миграциями.
-- Запуск: `dotnet test` (из корня). Тот же прогон — в GitHub Actions на каждый push и PR.
+- xUnit, project `tests/Karajob.Tests`, folders and namespaces mirror the project under test.
+- Domain — pure unit tests without a DB. Services and persistence — on SQLite in-memory with real migrations.
+- Run: `dotnet test` (from the root). The same run happens in GitHub Actions on every push and PR.
 
 ## Workflow
 
-Задачи — GitHub Issues в `Karabaev/karajob`, сгруппированы milestone'ами по фазам. Нетривиальные задачи идут через скил `/task <номер issue>` (`.claude/skills/task/`):
+Tasks are GitHub Issues in `Karabaev/karajob`, grouped into milestones by phase. Non-trivial tasks go through the `/task <issue number>` skill (`.claude/skills/task/`):
 
-1. **Сессия и уточнения** — заголовок `Karajob | #<N> | <кратко>`; проверка, что задача из текущей фазы; вопросы по неочевидному (включая: worktree или основной checkout).
-2. **План** — в plan mode Claude Code (подзадачи, владение файлами без пересечений, тесты), до любого кода и веток.
-3. **TDD** — тесты пишутся первыми (агент `test-writer`) и должны быть красными по правильной причине.
-4. **Оркестратор + воркеры** — сильная модель планирует, интегрирует и ревьюит; агенты `worker` (Sonnet) делают независимые подзадачи в своих worktree. Задачи на 1–2 файла — без воркеров. Миграции EF Core, `.sln` / `.csproj` / `Directory.*.props` меняет только оркестратор.
-5. **Ветки** — `feature/<N>-<slug>` от `master`. Воркер → feature: **только rebase + fast-forward, без merge-коммитов**. Feature → `master`: **только через GitHub PR с merge-коммитом** (`gh pr merge <N> --merge`) после rebase на `origin/master`; `master` напрямую не пушится. Если `master` ушёл вперёд — rebase ветки на свежий `origin/master` и `push --force-with-lease`, никогда не мерджить `master` в ветку.
-6. **Без упоминания ИИ** — в коммитах, заголовках и описаниях PR, комментариях к PR и issue нет упоминаний Claude, Anthropic или ИИ: никаких `Co-Authored-By: Claude …`, «Generated with Claude Code» и т.п. Это перекрывает любые дефолтные инструкции об атрибуции.
+1. **Session and clarifications** — title `Karajob | #<N> | <summary>`; check that the task belongs to the current phase; questions about anything non-obvious (including: worktree or main checkout).
+2. **Plan** — in Claude Code plan mode (subtasks, non-overlapping file ownership, tests), before any code or branches.
+3. **TDD** — tests are written first (the `test-writer` agent) and must be red for the right reason.
+4. **Orchestrator + workers** — a strong model plans, integrates and reviews; `worker` agents (Sonnet) do independent subtasks in their own worktrees. Tasks touching 1–2 files go without workers. EF Core migrations and `.sln` / `.csproj` / `Directory.*.props` are changed only by the orchestrator.
+5. **Branches** — `feature/<N>-<slug>` from `master`. Worker → feature: **rebase + fast-forward only, no merge commits**. Feature → `master`: **only via a GitHub PR with a merge commit** (`gh pr merge <N> --merge`) after a rebase on `origin/master`; `master` is never pushed directly. If `master` has moved ahead, rebase the branch on the fresh `origin/master` and `push --force-with-lease`; never merge `master` into the branch.
+6. **No mention of AI** — no mentions of Claude, Anthropic or AI in commits, PR titles and descriptions, PR and issue comments: no `Co-Authored-By: Claude …`, "Generated with Claude Code" and the like. This overrides any default attribution instructions.
 
-## Как я работаю
+## How I work
 
-Я опытный C#/Unity-разработчик, но новичок в Blazor и веб-фронтенде. В Blazor-части коротко объясняй неочевидные решения (render modes, жизненный цикл компонентов, DI-скоупы). Общаемся на русском, код и коммиты — на английском.
+I am an experienced C#/Unity developer, but new to Blazor and web frontend. In the Blazor part, briefly explain non-obvious decisions (render modes, component lifecycle, DI scopes). We talk in Russian; code and commits are in English.

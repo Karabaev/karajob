@@ -1,139 +1,139 @@
-# Роадмап
+# Roadmap
 
-Первая цель — за 2–3 дня заменить таблицу откликов рабочим трекером на домашнем сервере. Дальше каждая фаза начинается только тогда, когда предыдущая используется ежедневно: сам поиск работы важнее инструмента.
+The first goal is to replace the applications spreadsheet with a working tracker on the home server within 2–3 days. After that, each phase starts only when the previous one is used daily: the job search itself matters more than the tool.
 
-| Фаза | Суть | Срок | Когда начинать |
+| Phase | Essence | Duration | When to start |
 | --- | --- | --- | --- |
-| 0 | Ручной трекер | 2–3 дня | сразу |
-| 0.5 | Метрики, Weekly Review, мастер-профиль, PWA | ~1 неделя | когда накопится 3–4 недели откликов |
-| 1 | ИИ через MCP | 2–3 дня | после Фазы 0, можно раньше 0.5 |
-| 2 | Фоновая автоматизация | 1–2 недели | когда ручной ввод станет узким местом |
-| 3 | По итогам использования | — | по ситуации |
+| 0 | Manual tracker | 2–3 days | right away |
+| 0.5 | Metrics, Weekly Review, master profile, PWA | ~1 week | once 3–4 weeks of applications have accumulated |
+| 1 | AI via MCP | 2–3 days | after Phase 0, can be earlier than 0.5 |
+| 2 | Background automation | 1–2 weeks | when manual entry becomes the bottleneck |
+| 3 | Based on usage results | — | as the situation demands |
 
-## Фаза 0 — ручной трекер (2–3 дня)
+## Phase 0 — manual tracker (2–3 days)
 
-Задачи — GitHub Issues в milestone [Phase 0](https://github.com/Karabaev/karajob/milestone/1). Номер issue указан у каждого пункта.
+Tasks are GitHub Issues in the [Phase 0](https://github.com/Karabaev/karajob/milestone/1) milestone. Each item carries its issue number.
 
-**Результат:** вакансии заводятся кнопкой «+ Вакансия», ведутся по доске, отклик фиксируется с гипотезой и версией CV. Все переходы пишутся в журнал. Приложение работает на домашнем сервере и открывается с телефона через WireGuard.
+**Result:** vacancies are added with the "+ Vacancy" button and moved along the board, and an application is recorded with a hypothesis and a CV version. All transitions are written to the journal. The app runs on the home server and opens from a phone via WireGuard.
 
-### День 1 — каркас и данные
+### Day 1 — skeleton and data
 
-- [x] #1 Репозиторий на GitHub: решение из проектов `Karajob.Domain`, `Karajob.Application`, `Karajob.Infrastructure`, `Karajob.Web`, `Karajob.Tests`; `.gitignore` с `.env`, `*.db`, `data/`.
-- [x] #2 Сущности: User, Company (slug, домены, алиасы, UserCompanyNote), Project, Hypothesis, CvDocument + CvVersion, Vacancy + VacancyMatch, JobApplication, ApplicationEvent (привязан к вакансии). Время — UTC `DateTime`, деньги — целыми числами, slug и домены — в нижнем регистре.
-- [x] #3 Правила переходов стадий в Domain (в Applied — только с гипотезой и версией CV, в Closed — только с исходом) + юнит-тесты на них.
-- [x] #4 EF Core + SQLite, первая миграция, уникальные индексы (slug, домен, нормализованный URL вакансии), фильтр по `UserId`. Один пользователь создаётся сидом.
-- [x] #5 Миграции при старте с бэкапом базы; режим `SqliteInMemory` с сид-данными для отладки.
-- [x] #6, #7 Dockerfile + `docker-compose.yml` с volume `/data`; GitHub Actions с `dotnet test`.
+- [x] #1 GitHub repository: a solution of the projects `Karajob.Domain`, `Karajob.Application`, `Karajob.Infrastructure`, `Karajob.Web`, `Karajob.Tests`; `.gitignore` with `.env`, `*.db`, `data/`.
+- [x] #2 Entities: User, Company (slug, domains, aliases, UserCompanyNote), Project, Hypothesis, CvDocument + CvVersion, Vacancy + VacancyMatch, JobApplication, ApplicationEvent (bound to the vacancy). Time is UTC `DateTime`, money is integers, slugs and domains are lowercase.
+- [x] #3 Stage transition rules in Domain (to Applied only with a hypothesis and a CV version, to Closed only with an outcome) + unit tests for them.
+- [x] #4 EF Core + SQLite, the first migration, unique indexes (slug, domain, normalized vacancy URL), a `UserId` filter. A single user is created by the seed.
+- [x] #5 Migrations at startup with a database backup; a `SqliteInMemory` mode with seed data for debugging.
+- [x] #6, #7 Dockerfile + `docker-compose.yml` with a `/data` volume; GitHub Actions with `dotnet test`.
 
-### День 2 — справочники и карточка
+### Day 2 — reference data and the card
 
-- [x] #8 Blazor (Interactive Server) + MudBlazor: макет с меню и кнопкой «+ Вакансия» в шапке.
-- [x] #9 Компании: список, форма (slug, название, сайт, домены, описание, иконка по favicon), проекты компании.
-- [x] #10 Гипотезы: форма по шаблону (роль, локации, индустрии, формат, язык, позиционирование, основной CV, статус). Завести 3 гипотезы:
-  1. Unity Developer, PC, удалёнка, русский
-  2. Unreal Developer, PC, удалёнка, русский
-  3. Unity Developer, PC, удалёнка или релокация в ЕС, английский
-- [x] #32 Справочники ролей, языков и локаций; гипотезы и вакансии ссылаются на них. Сопоставление по формату и локации — не здесь, это предфильтр Фазы 2.
-- [x] #11 CV: загрузка PDF/DOCX, список версий, скачивание. У `IBrowserFile.OpenReadStream` по умолчанию лимит ~500 КБ — явно задать `maxAllowedSize`.
-- [x] #12 Карточка вакансии: форма (компания с автодополнением и созданием на лету, роль, ссылка, локация, формат, подходящие гипотезы, заметки), таймлайн событий.
-- [x] #13 «+ Вакансия»: диалог из одного поля URL (+ заметка) → карточка в Inbox, дедупликация по URL. Компанию и роль можно заполнить позже. Inbox — отдельный раздел в боковом меню: список карточек с кнопками «→ На доску» (Targeted + гипотезы) и «Отклонить» (с причиной → Dismissed).
+- [x] #8 Blazor (Interactive Server) + MudBlazor: a layout with a menu and a "+ Vacancy" button in the header.
+- [x] #9 Companies: a list, a form (slug, name, website, domains, description, an icon from the favicon), company projects.
+- [x] #10 Hypotheses: a form from a template (role, locations, industries, format, language, positioning, primary CV, status). Create 3 hypotheses:
+  1. Unity Developer, PC, remote, Russian
+  2. Unreal Developer, PC, remote, Russian
+  3. Unity Developer, PC, remote or relocation to the EU, English
+- [x] #32 Reference data for roles, languages and locations; hypotheses and vacancies link to them. Matching by format and location is not here, it is the Phase 2 prefilter.
+- [x] #11 CV: PDF/DOCX upload, a list of versions, download. `IBrowserFile.OpenReadStream` has a default limit of ~500 KB — set `maxAllowedSize` explicitly.
+- [x] #12 Vacancy card: a form (company with autocomplete and on-the-fly creation, role, link, location, format, matching hypotheses, notes), an event timeline.
+- [x] #13 "+ Vacancy": a dialog with a single URL field (+ a note) → a card in Inbox, deduplication by URL. The company and role can be filled in later. Inbox is a separate section in the side menu: a list of cards with the buttons "→ To the board" (Targeted + hypotheses) and "Dismiss" (with a reason → Dismissed).
 
-### День 3 — доска, отклик и выкат
+### Day 3 — board, application and rollout
 
-- [x] #14 Канбан на `MudDropContainer`: Targeted → Preparing → Applied → Interviewing → Closed (Closed свёрнута; Inbox — не колонка, а раздел меню, см. #13). Фильтр по гипотезе.
-- [x] #14 Каждое перемещение пишет ApplicationEvent; недопустимый переход откатывается с сообщением.
-- [x] #15 Перетаскивание в Applied открывает диалог «Откликнулся»: гипотеза, версия CV, канал, дата, текст письма (вставляется руками). В Closed — диалог с исходом.
-- [ ] #16 Выкат на домашний сервер: фиксированный IP, проверка с телефона через WireGuard, ежедневное копирование `/data` на другое устройство. **Отложено:** ежедневные снимки базы и инструкция по выкату готовы (#40), сам выкат и копия вне сервера — позже. Образ публикуется в GHCR, сервер разворачивается из него без исходников (#66).
-- [x] ~~#17 Перенести в трекер текущие отклики из таблицы (вручную, если их меньше 30; иначе — простой CSV-импорт).~~ Не актуально.
+- [x] #14 A kanban on `MudDropContainer`: Targeted → Preparing → Applied → Interviewing → Closed (Closed is collapsed; Inbox is not a column but a menu section, see #13). A filter by hypothesis.
+- [x] #14 Every move writes an ApplicationEvent; an invalid transition is rolled back with a message.
+- [x] #15 Dragging to Applied opens an "I applied" dialog: hypothesis, CV version, channel, date, cover letter text (pasted by hand). Dragging to Closed opens a dialog with the outcome.
+- [ ] #16 Rollout to the home server: a fixed IP, a check from a phone via WireGuard, a daily copy of `/data` to another device. **Deferred:** daily database snapshots and the rollout instructions are ready (#40), the rollout itself and the off-server copy come later. The image is published to GHCR, and the server is deployed from it without the sources (#66).
+- [x] ~~#17 Move the current applications from the spreadsheet into the tracker (by hand if there are fewer than 30; otherwise a simple CSV import).~~ No longer relevant.
 
-### Не входит в Фазу 0
+### Not in Phase 0
 
-Метрики и Weekly Review, чек-ины и решения по гипотезам, мастер-профиль, экран выбора профиля, PWA и HTTPS, экспорт/импорт, адаптация CV, любой ИИ, календарь, отправка писем. Если по ходу тянет добавить что-то из этого списка — записываете в бэклог и идёте дальше.
+Metrics and Weekly Review, check-ins and hypothesis decisions, master profile, profile selection screen, PWA and HTTPS, export/import, CV adaptation, any AI, calendar, sending emails. If you feel like adding something from this list along the way, write it into the backlog and move on.
 
-### Готово, когда
+### Done when
 
-- [ ] Таблица больше не ведётся: все текущие вакансии и отклики — в трекере.
-- [ ] Вакансию можно добавить с телефона вне дома за пару кликов.
-- [x] Каждый отклик привязан к гипотезе и версии CV, в журнале есть все переходы.
-- [ ] Перезапуск контейнера не теряет данные, бэкап вне сервера существует.
+- [ ] The spreadsheet is no longer maintained: all current vacancies and applications are in the tracker.
+- [ ] A vacancy can be added from a phone outside the home in a couple of clicks.
+- [x] Every application is bound to a hypothesis and a CV version, and the journal has all transitions.
+- [ ] Restarting the container does not lose data, and an off-server backup exists.
 
-### Где можно застрять
+### Where you can get stuck
 
-| Ловушка | Как избежать |
+| Trap | How to avoid it |
 | --- | --- |
-| Render modes в Blazor (.NET 8+): страница отрисовалась, но кнопки не реагируют | Шаблон `dotnet new blazor --interactivity Server --all-interactive` |
-| `DbContext` в Blazor Server живёт всю сессию и ловит конфликты параллельных запросов | `IDbContextFactory` и короткоживущий контекст на операцию |
-| Drag-and-drop в MudBlazor окажется неудобным | Кнопки «→ следующая колонка» на карточке; на телефоне они всё равно удобнее |
-| Файл SQLite в контейнере без volume — данные пропадут при пересборке | Строка подключения смотрит в `/data`, проверить пересборкой в День 1 |
+| Render modes in Blazor (.NET 8+): the page rendered but the buttons do not react | The template `dotnet new blazor --interactivity Server --all-interactive` |
+| `DbContext` in Blazor Server lives for the whole session and hits concurrent-request conflicts | `IDbContextFactory` and a short-lived context per operation |
+| Drag-and-drop in MudBlazor turns out to be inconvenient | "→ next column" buttons on the card; on a phone they are more convenient anyway |
+| A SQLite file in a container without a volume — the data disappears on rebuild | The connection string points to `/data`; verify by rebuilding on Day 1 |
 
-## Фаза 0.5 — когда накопятся данные (~1 неделя)
+## Phase 0.5 — when data has accumulated (~1 week)
 
-Эпик: #18. Задачи — в milestone [Phase 0.5](https://github.com/Karabaev/karajob/milestone/2).
+Epic: #18. Tasks are in the [Phase 0.5](https://github.com/Karabaev/karajob/milestone/2) milestone.
 
-**Результат:** раз в неделю проводится Weekly Review: по каждой активной гипотезе видны метрики с «k из n» и интервалом, записываются чек-ин и решение. У каждого члена семьи свой профиль. Вакансию можно добавить с телефона через «Поделиться» (Android) или быструю команду (iPhone). Базу можно выгрузить в JSON и загрузить обратно.
+**Result:** a Weekly Review is held once a week: for each active hypothesis the metrics are visible with "k of n" and an interval, and a check-in and a decision are recorded. Each family member has their own profile. A vacancy can be added from a phone via "Share" (Android) or a quick command (iPhone). The database can be exported to JSON and loaded back.
 
-Порядок: блок A → блок B; блоки C, D, E — независимо после #41.
+Order: block A → block B; blocks C, D, E are independent after #41.
 
-### A. Профили и настройки
+### A. Profiles and settings
 
-- [x] #41 Выбор профиля для семьи: экран выбора → cookie, переключатель в шапке, `ICurrentUser` на circuit, фабрика `DbContext` — scoped.
-- [x] #42 `SearchGoal`: недельная цель по откликам, дедлайн, желаемый доход; пороги метрик (рынок, конверсия, минимальная выборка, созревание) — у каждого профиля свои. Экран «Настройки».
-- [x] #60 Справочник платформ (PC, Consoles, Mobile, VR, Web): гипотеза, вакансия и цель поиска ссылаются на несколько платформ.
-- [x] #58 Справочник валют (по ISO-коду): валюта зарплаты вакансии и желаемого дохода выбирается из справочника.
-- [x] #59 Справочник движков: у проекта компании один движок, гипотеза, вакансия и цель поиска ссылаются на несколько.
+- [x] #41 Profile selection for the family: a selection screen → a cookie, a switcher in the header, `ICurrentUser` on the circuit, the `DbContext` factory is scoped.
+- [x] #42 `SearchGoal`: a weekly applications goal, a deadline, a desired income; metric thresholds (market, conversion, minimum sample, maturation) — separate for each profile. A "Settings" screen.
+- [x] #60 Platform reference data (PC, Consoles, Mobile, VR, Web): a hypothesis, a vacancy and a search goal link to several platforms.
+- [x] #58 Currency reference data (by ISO code): the currency of a vacancy's salary and of the desired income is chosen from the reference data.
+- [x] #59 Engine reference data: a company project has one engine, while a hypothesis, a vacancy and a search goal link to several.
 
-### B. Метрики, решения и Weekly Review
+### B. Metrics, decisions and Weekly Review
 
-- [x] #43 Расчёт метрик в Application: рынок, конверсия «k из n» по созревшим откликам + интервал Уилсона, активность против цели, статус «данных мало».
-- [x] #44 Дашборд гипотезы: критерии, «k из n» и интервал рядом с процентом.
-- [ ] #45 Чек-ины (мотивация, уверенность) и решения (Continue / Expand / Disable) со снимком метрик; Expand начинает новый период; подсказка по дереву решений.
-- [ ] #38 Часовой пояс пользователя для отображения и ввода дат (нужен для границ недели).
-- [ ] #46 Экран Weekly Review: все активные гипотезы, чек-ин, решения, зависшие отклики → Ghosted, факт против недельной цели.
+- [x] #43 Metrics calculation in Application: market, "k of n" conversion over matured applications + the Wilson interval, activity against the goal, a "not enough data" status.
+- [x] #44 Hypothesis dashboard: criteria, "k of n" and the interval next to the percentage.
+- [ ] #45 Check-ins (motivation, confidence) and decisions (Continue / Expand / Disable) with a metrics snapshot; Expand starts a new period; a hint based on the decision tree.
+- [ ] #38 The user's time zone for displaying and entering dates (needed for week boundaries).
+- [ ] #46 Weekly Review screen: all active hypotheses, a check-in, decisions, stale applications → Ghosted, actual against the weekly goal.
 
-### C. Мастер-профиль
+### C. Master profile
 
-- [ ] #47 Мастер-профиль: Markdown с фиксированными разделами, версии, предпросмотр, восстановление.
+- [ ] #47 Master profile: Markdown with fixed sections, versions, preview, restore.
 
-### D. Доступ с телефона
+### D. Access from a phone
 
-- [ ] #48 Персональный токен профиля и `POST /api/inbox` для быстрой команды iPhone Shortcuts.
-- [ ] #49 HTTPS на реверс-прокси, PWA и Web Share Target → Quick Add; адаптивная вёрстка Inbox и Quick Add.
+- [ ] #48 A personal profile token and `POST /api/inbox` for an iPhone Shortcuts quick command.
+- [ ] #49 HTTPS on a reverse proxy, PWA and Web Share Target → Quick Add; responsive layout of Inbox and Quick Add.
 
-### E. Перенос данных
+### E. Data transfer
 
-- [ ] #50 Экспорт/импорт всей базы в JSON (импорт — только в пустую базу).
+- [ ] #50 Export/import of the whole database to JSON (import only into an empty database).
 
-### F. Локализация
+### F. Localization
 
-- [ ] #62 Интерфейс на английском: resx-локализация (en по умолчанию, ru сохранён), сиды справочников и документация на английском.
+- [ ] #62 English UI: resx localization (en by default, ru kept), reference data seeds and documentation in English.
 
 
-### Не входит в Фазу 0.5
+### Not in Phase 0.5
 
-Любой ИИ и MCP, сбор мастер-профиля из CV ИИ, адаптация и генерация CV, сущность Contact и цели «Активности» по контактам и адаптациям CV, площадки и сканер, календарь, публичный доступ и OAuth. Если по ходу тянет добавить что-то из этого списка — записываете в бэклог и идёте дальше.
+Any AI and MCP, building the master profile from a CV with AI, CV adaptation and generation, the Contact entity and "Activity" goals for contacts and CV adaptations, job boards and a scanner, calendar, public access and OAuth. If you feel like adding something from this list along the way, write it into the backlog and move on.
 
-### Готово, когда
+### Done when
 
-- [ ] Проведён первый Weekly Review на реальных откликах, по гипотезе записано решение со снимком метрик.
-- [ ] У каждой активной гипотезы на дашборде видны «k из n» и интервал, до минимальной выборки — «данных мало».
-- [ ] У второго члена семьи свой профиль, данные профилей не смешиваются.
-- [ ] Вакансия добавляется через «Поделиться → Karajob» на Android и быструю команду на iPhone.
-- [ ] Экспорт → импорт в пустую базу восстанавливает все данные.
+- [ ] The first Weekly Review has been held on real applications, and a decision with a metrics snapshot is recorded for a hypothesis.
+- [ ] For every active hypothesis the dashboard shows "k of n" and the interval, and "not enough data" until the minimum sample is reached.
+- [ ] The second family member has their own profile, and profile data is not mixed.
+- [ ] A vacancy is added via "Share → Karajob" on Android and a quick command on iPhone.
+- [ ] Export → import into an empty database restores all data.
 
-## Фаза 1 — ИИ через MCP
+## Phase 1 — AI via MCP
 
-Эпик: #19.
+Epic: #19.
 
-MCP-эндпоинт, скилы `karajob-ingest`, `karajob-apply`, `karajob-weekly-review` (на основе режимов career-ops), букмарклет. Встречи в календарь — через коннектор Google Calendar в самом Claude. Вся ИИ-работа — из Claude Desktop/Code на лимитах подписки.
+An MCP endpoint, the skills `karajob-ingest`, `karajob-apply`, `karajob-weekly-review` (based on the career-ops modes), a bookmarklet. Meetings into the calendar go through the Google Calendar connector in Claude itself. All AI work happens from Claude Desktop/Code on subscription limits.
 
-## Фаза 2 — фоновая автоматизация
+## Phase 2 — background automation
 
-Эпик: #20.
+Epic: #20.
 
-`ILlmClient` + воркер на `claude -p`, парсинг ссылки прямо из UI, адаптация CV кнопкой. Сканер на базе career-ops (импорт компаний и промптов, при необходимости — сайдкар) плюс hh.ru, с предфильтром и скорингом по гипотезам. Сущность Contact, нативная синхронизация встреч с Google Calendar.
+`ILlmClient` + a worker on `claude -p`, parsing a link right from the UI, CV adaptation with a button. A scanner based on career-ops (importing companies and prompts, a sidecar if needed) plus hh.ru, with a prefilter and scoring by hypotheses. The Contact entity, native meeting sync with Google Calendar.
 
-## Фаза 3 — по итогам использования
+## Phase 3 — based on usage results
 
-Эпик: #21.
+Epic: #21.
 
-Ассистированное заполнение форм в браузере (режим `apply` из career-ops, остановка перед Submit), удалённый MCP-коннектор с OAuth, подготовка к интервью, анализ отказов.
+Assisted form filling in the browser (the `apply` mode from career-ops, stopping before Submit), a remote MCP connector with OAuth, interview preparation, rejection analysis.

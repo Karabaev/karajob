@@ -37,7 +37,7 @@ Check from the phone:
 
 1. Connect to the home WireGuard VPN (or the home Wi-Fi).
 2. Open `http://<server-ip>:<KARAJOB_PORT>/`.
-3. Add a vacancy with Quick Add (the round **+** button on a phone, **+ Вакансия** on a wide screen) and make sure it shows up in Inbox.
+3. Add a vacancy with Quick Add (the round **+** button on a phone, **+ Vacancy** on a wide screen) and make sure it shows up in Inbox.
 4. Move it to the board, apply and close it once to check the whole flow on a small screen.
 
 ## 3. Update and roll back

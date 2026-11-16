@@ -1,26 +1,26 @@
 # Architecture Decision Records
 
-Один файл на решение: `docs/adr/<PascalCaseName>.md`. Пишется вручную, когда принимается заметное архитектурное решение, и фиксирует его так, как оно реализовано.
+One file per decision: `docs/adr/<PascalCaseName>.md`. Written by hand when a notable architectural decision is made, and records it as implemented.
 
-Шаблон:
+Template:
 
 ```markdown
-# <Название>
+# <Title>
 
 ## Status
 Accepted. Implemented for issue #<N>.
 
 ## Context
-Что было и почему понадобилось решение.
+What there was and why the decision was needed.
 
 ## Related ADRs
-- [[OtherAdr]] — как связано.
+- [[OtherAdr]] — how it is related.
 
 ## Decisions
 
-### 1. <Решение>
-**Decision.** Что сделано.
+### 1. <Decision>
+**Decision.** What was done.
 
 **Alternatives.**
-- Вариант — почему отклонён.
+- Option — why it was rejected.
 ```
