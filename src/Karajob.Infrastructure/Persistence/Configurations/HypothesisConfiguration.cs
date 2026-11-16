@@ -17,5 +17,8 @@ public class HypothesisConfiguration : IEntityTypeConfiguration<Hypothesis>
     builder.HasMany(h => h.Locations).WithOne().HasForeignKey(l => l.HypothesisId).OnDelete(DeleteBehavior.Cascade);
     // SetLocations diffs against the loaded collection.
     builder.Navigation(h => h.Locations).AutoInclude();
+
+    builder.HasMany(h => h.Platforms).WithOne().HasForeignKey(p => p.HypothesisId).OnDelete(DeleteBehavior.Cascade);
+    builder.Navigation(h => h.Platforms).AutoInclude();
   }
 }

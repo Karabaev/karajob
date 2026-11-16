@@ -80,6 +80,16 @@ else if (_loaded)
                 <MudSelectItem T="Guid?" Value="@((Guid?)location.Id)">@location.Name</MudSelectItem>
               }
             </MudSelect>
+            <MudSelect T="Guid" Class="vacancy-platforms" Label="Платформы" MultiSelection="true"
+                       SelectedValues="_platformIds" SelectedValuesChanged="OnPlatformsChanged"
+                       ToStringFunc="PlatformName" MultiSelectionTextFunc="JoinNames"
+                       HelperText="@EmptyHint(_platforms)"
+                       Error="HasError(nameof(VacancyInput.PlatformIds))" ErrorText="@ErrorOf(nameof(VacancyInput.PlatformIds))">
+              @foreach (var platform in _platforms)
+              {
+                <MudSelectItem T="Guid" Value="platform.Id">@platform.Name</MudSelectItem>
+              }
+            </MudSelect>
             <MudSelect T="Guid?" Class="vacancy-language" Label="Язык" @bind-Value="_languageId" ToStringFunc="LanguageName"
                        HelperText="@EmptyHint(_languages)"
                        Error="HasError(nameof(VacancyInput.LanguageId))" ErrorText="@ErrorOf(nameof(VacancyInput.LanguageId))">
@@ -165,6 +175,7 @@ else if (_loaded)
   private IReadOnlyList<CatalogListItem> _roles = [];
   private IReadOnlyList<CatalogListItem> _locations = [];
   private IReadOnlyList<CatalogListItem> _languages = [];
+  private IReadOnlyList<CatalogListItem> _platforms = [];
   private IReadOnlyList<HypothesisListItem> _hypotheses = [];
   private IReadOnlyList<SimilarVacancy> _similar = [];
   private VacancyDetails? _details;
@@ -179,6 +190,7 @@ else if (_loaded)
   private Guid? _roleId;
   private Guid? _locationId;
   private Guid? _languageId;
+  private IReadOnlyCollection<Guid> _platformIds = [];
   private WorkFormat _format = WorkFormat.None;
   private long? _salaryMin;
   private long? _salaryMax;
@@ -211,6 +223,7 @@ else if (_loaded)
     _roles = await CatalogService.ListAsync(CatalogKind.Role);
     _locations = await CatalogService.ListAsync(CatalogKind.Location);
     _languages = await CatalogService.ListAsync(CatalogKind.Language);
+    _platforms = await CatalogService.ListAsync(CatalogKind.Platform);
 
     if (Id is not null)
     {
@@ -236,6 +249,7 @@ else if (_loaded)
     _roleId = _details?.RoleId;
     _locationId = _details?.LocationId;
     _languageId = _details?.LanguageId;
+    _platformIds = _details?.PlatformIds.ToList() ?? [];
     _format = _details?.WorkFormat ?? WorkFormat.None;
     _salaryMin = _details?.SalaryMin;
     _salaryMax = _details?.SalaryMax;
@@ -342,6 +356,16 @@ else if (_loaded)
     return _locations.FirstOrDefault(l => l.Id == id)?.Name ?? "";
   }
 
+  private void OnPlatformsChanged(IReadOnlyCollection<Guid>? platformIds)
+  {
+    _platformIds = platformIds?.ToList() ?? [];
+  }
+
+  private string PlatformName(Guid id)
+  {
+    return _platforms.FirstOrDefault(p => p.Id == id)?.Name ?? "";
+  }
+
   private string LanguageName(Guid? id)
   {
     return _languages.FirstOrDefault(l => l.Id == id)?.Name ?? "";
@@ -392,6 +416,7 @@ else if (_loaded)
       _company?.Id,
       _roleId,
       _locationId,
+      _platformIds.ToList(),
       _languageId,
       _format == WorkFormat.None ? null : _format,
       _salaryMin,

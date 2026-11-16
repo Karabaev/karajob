@@ -162,4 +162,79 @@ public class VacancyTests
 
     Assert.Empty(vacancy.Matches);
   }
+
+  [Fact]
+  public void SetPlatforms_NewIds_AddsOneEntryPerIdOwnedByVacancy()
+  {
+    var vacancy = Create();
+    var first = Guid.NewGuid();
+    var second = Guid.NewGuid();
+
+    vacancy.SetPlatforms([first, second]);
+
+    Assert.Equal([first, second], vacancy.Platforms.Select(p => p.PlatformId));
+    Assert.All(vacancy.Platforms, p =>
+    {
+      Assert.NotEqual(Guid.Empty, p.Id);
+      Assert.Equal(vacancy.UserId, p.UserId);
+      Assert.Equal(vacancy.Id, p.VacancyId);
+    });
+  }
+
+  [Fact]
+  public void SetPlatforms_DuplicateIds_KeepsEachOnce()
+  {
+    var vacancy = Create();
+    var id = Guid.NewGuid();
+
+    vacancy.SetPlatforms([id, id, id]);
+
+    Assert.Equal(id, Assert.Single(vacancy.Platforms).PlatformId);
+  }
+
+  [Fact]
+  public void SetPlatforms_IdsMissingFromNewSet_AreRemoved()
+  {
+    var vacancy = Create();
+    var kept = Guid.NewGuid();
+    vacancy.SetPlatforms([kept, Guid.NewGuid()]);
+
+    vacancy.SetPlatforms([kept]);
+
+    Assert.Equal(kept, Assert.Single(vacancy.Platforms).PlatformId);
+  }
+
+  [Fact]
+  public void SetPlatforms_IdsThatStay_KeepSameEntryInstance()
+  {
+    var vacancy = Create();
+    var kept = Guid.NewGuid();
+    vacancy.SetPlatforms([kept]);
+    var original = Assert.Single(vacancy.Platforms);
+
+    vacancy.SetPlatforms([kept, Guid.NewGuid()]);
+
+    var stayed = Assert.Single(vacancy.Platforms, p => p.PlatformId == kept);
+    Assert.Same(original, stayed);
+    Assert.Equal(2, vacancy.Platforms.Count);
+  }
+
+  [Fact]
+  public void SetPlatforms_Empty_ClearsPlatforms()
+  {
+    var vacancy = Create();
+    vacancy.SetPlatforms([Guid.NewGuid(), Guid.NewGuid()]);
+
+    vacancy.SetPlatforms([]);
+
+    Assert.Empty(vacancy.Platforms);
+  }
+
+  [Fact]
+  public void SetPlatforms_EmptyGuid_Throws()
+  {
+    var vacancy = Create();
+
+    Assert.ThrowsAny<ArgumentException>(() => vacancy.SetPlatforms([Guid.NewGuid(), Guid.Empty]));
+  }
 }

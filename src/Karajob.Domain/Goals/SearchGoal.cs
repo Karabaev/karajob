@@ -9,11 +9,13 @@ public class SearchGoal : IUserOwned
   public const int MaxMaturationDays = 365;
 
   private readonly List<SearchGoalLocation> locations = [];
+  private readonly List<SearchGoalPlatform> platforms = [];
 
   public Guid Id { get; private set; }
   public Guid UserId { get; private set; }
   public Guid? RoleId { get; set => field = value is { } id ? Require.NotEmpty(id) : null; }
   public IReadOnlyCollection<SearchGoalLocation> Locations => locations;
+  public IReadOnlyCollection<SearchGoalPlatform> Platforms => platforms;
   public string? Industries { get; set => field = BlankToNull(value); }
   public string? MustHave { get; set => field = BlankToNull(value); }
 
@@ -80,6 +82,16 @@ public class SearchGoal : IUserOwned
     foreach (var locationId in wanted.Where(id => locations.All(l => l.LocationId != id)))
     {
       locations.Add(new SearchGoalLocation(UserId, Id, locationId));
+    }
+  }
+
+  public void SetPlatforms(IEnumerable<Guid> platformIds)
+  {
+    var wanted = platformIds.Select(id => Require.NotEmpty(id, nameof(platformIds))).Distinct().ToList();
+    platforms.RemoveAll(p => !wanted.Contains(p.PlatformId));
+    foreach (var platformId in wanted.Where(id => platforms.All(p => p.PlatformId != id)))
+    {
+      platforms.Add(new SearchGoalPlatform(UserId, Id, platformId));
     }
   }
 

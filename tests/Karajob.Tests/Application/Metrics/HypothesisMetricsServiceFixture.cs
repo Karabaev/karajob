@@ -111,6 +111,7 @@ public abstract class HypothesisMetricsServiceFixture : VacancyServiceFixture
     await goals.UpdateAsync(new SearchGoalInput(
       null,
       [],
+      [],
       null,
       null,
       weeklyApplicationTarget,

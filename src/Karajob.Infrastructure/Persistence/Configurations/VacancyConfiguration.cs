@@ -25,6 +25,7 @@ public class VacancyConfiguration : IEntityTypeConfiguration<Vacancy>
     });
 
     builder.HasMany(v => v.Matches).WithOne().HasForeignKey(m => m.VacancyId).OnDelete(DeleteBehavior.Cascade);
+    builder.HasMany(v => v.Platforms).WithOne().HasForeignKey(p => p.VacancyId).OnDelete(DeleteBehavior.Cascade);
     builder.HasMany(v => v.Events).WithOne().HasForeignKey(e => e.VacancyId).OnDelete(DeleteBehavior.Cascade);
     builder.HasOne(v => v.Application)
       .WithOne()
@@ -34,5 +35,7 @@ public class VacancyConfiguration : IEntityTypeConfiguration<Vacancy>
     // Stage transitions read these: MoveTo/Apply check matches, Close and reopening from Closed set the outcome.
     builder.Navigation(v => v.Matches).AutoInclude();
     builder.Navigation(v => v.Application).AutoInclude();
+    // SetPlatforms diffs against the loaded collection.
+    builder.Navigation(v => v.Platforms).AutoInclude();
   }
 }

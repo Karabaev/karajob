@@ -30,12 +30,22 @@
             </MudSelect>
             <MudSelect T="Guid" Class="settings-locations" Label="Страны" MultiSelection="true"
                        SelectedValues="_locationIds" SelectedValuesChanged="OnLocationsChanged"
-                       ToStringFunc="LocationName" MultiSelectionTextFunc="LocationsText"
+                       ToStringFunc="LocationName" MultiSelectionTextFunc="JoinNames"
                        HelperText="@EmptyHint(_locations)"
                        Error="HasError(nameof(SearchGoalInput.LocationIds))" ErrorText="@ErrorOf(nameof(SearchGoalInput.LocationIds))">
               @foreach (var location in _locations)
               {
                 <MudSelectItem T="Guid" Value="location.Id">@location.Name</MudSelectItem>
+              }
+            </MudSelect>
+            <MudSelect T="Guid" Class="settings-platforms" Label="Платформы" MultiSelection="true"
+                       SelectedValues="_platformIds" SelectedValuesChanged="OnPlatformsChanged"
+                       ToStringFunc="PlatformName" MultiSelectionTextFunc="JoinNames"
+                       HelperText="@EmptyHint(_platforms)"
+                       Error="HasError(nameof(SearchGoalInput.PlatformIds))" ErrorText="@ErrorOf(nameof(SearchGoalInput.PlatformIds))">
+              @foreach (var platform in _platforms)
+              {
+                <MudSelectItem T="Guid" Value="platform.Id">@platform.Name</MudSelectItem>
               }
             </MudSelect>
             <MudTextField T="string" Class="settings-industries" Label="Индустрии"
@@ -100,10 +110,12 @@
   private IReadOnlyDictionary<string, string> _errors = new Dictionary<string, string>();
   private IReadOnlyList<CatalogListItem> _roles = [];
   private IReadOnlyList<CatalogListItem> _locations = [];
+  private IReadOnlyList<CatalogListItem> _platforms = [];
   private bool _loaded;
   private bool _saving;
   private Guid? _roleId;
   private IReadOnlyCollection<Guid> _locationIds = [];
+  private IReadOnlyCollection<Guid> _platformIds = [];
   private string? _industries;
   private string? _mustHave;
   private int _weeklyTarget;
@@ -119,6 +131,7 @@
   {
     _roles = await CatalogService.ListAsync(CatalogKind.Role);
     _locations = await CatalogService.ListAsync(CatalogKind.Location);
+    _platforms = await CatalogService.ListAsync(CatalogKind.Platform);
     FillFields(await SearchGoalService.GetAsync());
     _loaded = true;
   }
@@ -127,6 +140,7 @@
   {
     _roleId = goal.RoleId;
     _locationIds = goal.LocationIds.ToList();
+    _platformIds = goal.PlatformIds.ToList();
     _industries = goal.Industries;
     _mustHave = goal.MustHave;
     _weeklyTarget = goal.WeeklyApplicationTarget;
@@ -144,6 +158,11 @@
     _locationIds = locationIds?.ToList() ?? [];
   }
 
+  private void OnPlatformsChanged(IReadOnlyCollection<Guid>? platformIds)
+  {
+    _platformIds = platformIds?.ToList() ?? [];
+  }
+
   private string RoleName(Guid? id)
   {
     return _roles.FirstOrDefault(r => r.Id == id)?.Name ?? "";
@@ -154,7 +173,12 @@
     return _locations.FirstOrDefault(l => l.Id == id)?.Name ?? "";
   }
 
-  private string LocationsText(IReadOnlyList<string?> names)
+  private string PlatformName(Guid id)
+  {
+    return _platforms.FirstOrDefault(p => p.Id == id)?.Name ?? "";
+  }
+
+  private static string JoinNames(IReadOnlyList<string?> names)
   {
     return string.Join(", ", names);
   }
@@ -179,6 +203,7 @@
     var input = new SearchGoalInput(
       _roleId,
       _locationIds.ToList(),
+      _platformIds.ToList(),
       _industries,
       _mustHave,
       _weeklyTarget,

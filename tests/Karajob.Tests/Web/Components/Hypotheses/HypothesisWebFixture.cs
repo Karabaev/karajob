@@ -27,6 +27,7 @@ public abstract class HypothesisWebFixture : IAsyncLifetime
       roleId ?? SeedData.UnityDeveloperRoleId,
       [],
       [],
+      [],
       WorkFormat.Remote,
       SeedData.RussianLanguageId,
       null,

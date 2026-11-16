@@ -17,6 +17,7 @@ public class CatalogServiceDeleteTests : CatalogServiceFixture
   [Theory]
   [InlineData(CatalogKind.Role, "Godot Developer", null)]
   [InlineData(CatalogKind.Location, "Germany", null)]
+  [InlineData(CatalogKind.Platform, "Smart TV", null)]
   [InlineData(CatalogKind.Language, "Deutsch", "de")]
   public async Task DeleteAsync_UnusedEntry_RemovesIt(CatalogKind kind, string name, string? code)
   {
@@ -30,6 +31,7 @@ public class CatalogServiceDeleteTests : CatalogServiceFixture
   [Theory]
   [InlineData(CatalogKind.Role)]
   [InlineData(CatalogKind.Location)]
+  [InlineData(CatalogKind.Platform)]
   [InlineData(CatalogKind.Language)]
   public async Task DeleteAsync_UnknownId_ThrowsKeyNotFound(CatalogKind kind)
   {
@@ -201,6 +203,65 @@ public class CatalogServiceDeleteTests : CatalogServiceFixture
     await AssertDeleteBlockedAsync(CatalogKind.Location, SeedData.EuLocationId);
   }
 
+  [Fact]
+  public async Task DeleteAsync_SeededPlatformNotReferenced_RemovesIt()
+  {
+    await Service.DeleteAsync(CatalogKind.Platform, SeedData.VrPlatformId);
+
+    Assert.DoesNotContain(await Service.ListAsync(CatalogKind.Platform), i => i.Id == SeedData.VrPlatformId);
+  }
+
+  [Fact]
+  public async Task DeleteAsync_PlatformUsedByHypothesis_ThrowsValidationWithEmptyKeyAndKeepsIt()
+  {
+    await AddHypothesisWithPlatformAsync(SeedData.OwnerId, SeedData.PcPlatformId);
+
+    await AssertDeleteBlockedAsync(CatalogKind.Platform, SeedData.PcPlatformId);
+  }
+
+  [Fact]
+  public async Task DeleteAsync_PlatformUsedByHypothesisOfAnotherUser_ThrowsValidationWithEmptyKey()
+  {
+    var other = await PersistenceFixtures.AddUserAsync(Database);
+    await AddHypothesisWithPlatformAsync(other.Id, SeedData.PcPlatformId);
+
+    await AssertDeleteBlockedAsync(CatalogKind.Platform, SeedData.PcPlatformId);
+  }
+
+  [Fact]
+  public async Task DeleteAsync_PlatformUsedByVacancy_ThrowsValidationWithEmptyKeyAndKeepsIt()
+  {
+    await AddVacancyWithPlatformAsync(SeedData.OwnerId, SeedData.MobilePlatformId);
+
+    await AssertDeleteBlockedAsync(CatalogKind.Platform, SeedData.MobilePlatformId);
+  }
+
+  [Fact]
+  public async Task DeleteAsync_PlatformUsedByVacancyOfAnotherUser_ThrowsValidationWithEmptyKey()
+  {
+    var other = await PersistenceFixtures.AddUserAsync(Database);
+    await AddVacancyWithPlatformAsync(other.Id, SeedData.MobilePlatformId);
+
+    await AssertDeleteBlockedAsync(CatalogKind.Platform, SeedData.MobilePlatformId);
+  }
+
+  [Fact]
+  public async Task DeleteAsync_PlatformUsedBySearchGoal_ThrowsValidationWithEmptyKeyAndKeepsIt()
+  {
+    await AddSearchGoalWithPlatformAsync(SeedData.OwnerId, SeedData.WebPlatformId);
+
+    await AssertDeleteBlockedAsync(CatalogKind.Platform, SeedData.WebPlatformId);
+  }
+
+  [Fact]
+  public async Task DeleteAsync_PlatformUsedBySearchGoalOfAnotherUser_ThrowsValidationWithEmptyKey()
+  {
+    var other = await PersistenceFixtures.AddUserAsync(Database);
+    await AddSearchGoalWithPlatformAsync(other.Id, SeedData.WebPlatformId);
+
+    await AssertDeleteBlockedAsync(CatalogKind.Platform, SeedData.WebPlatformId);
+  }
+
   private async Task AssertDeleteBlockedAsync(CatalogKind kind, Guid id)
   {
     var exception = await Assert.ThrowsAsync<ValidationFailedException>(() => Service.DeleteAsync(kind, id));
@@ -244,6 +305,38 @@ public class CatalogServiceDeleteTests : CatalogServiceFixture
     hypothesis.SetLocations([locationId]);
     await using var context = Database.CreateContext(userId);
     context.Hypotheses.Add(hypothesis);
+    await context.SaveChangesAsync();
+  }
+
+  private async Task AddHypothesisWithPlatformAsync(Guid userId, Guid platformId)
+  {
+    var hypothesis = new Hypothesis(userId, "Hypo", SeedData.UnrealDeveloperRoleId, SeedData.RussianLanguageId, Moment);
+    hypothesis.SetPlatforms([platformId]);
+    await using var context = Database.CreateContext(userId);
+    context.Hypotheses.Add(hypothesis);
+    await context.SaveChangesAsync();
+  }
+
+  private async Task AddVacancyWithPlatformAsync(Guid userId, Guid platformId)
+  {
+    var vacancy = new Vacancy(userId, "https://example.com/jobs/catalog", VacancySource.Manual, Moment);
+    vacancy.SetPlatforms([platformId]);
+    await using var context = Database.CreateContext(userId);
+    context.Vacancies.Add(vacancy);
+    await context.SaveChangesAsync();
+  }
+
+  private async Task AddSearchGoalWithPlatformAsync(Guid userId, Guid platformId)
+  {
+    await using var context = Database.CreateContext(userId);
+    var goal = await context.SearchGoals.SingleOrDefaultAsync();
+    if (goal is null)
+    {
+      goal = new SearchGoal(userId);
+      context.SearchGoals.Add(goal);
+    }
+
+    goal.SetPlatforms([platformId]);
     await context.SaveChangesAsync();
   }
 

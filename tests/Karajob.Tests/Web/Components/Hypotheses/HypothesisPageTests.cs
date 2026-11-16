@@ -103,6 +103,73 @@ public class HypothesisPageTests : HypothesisWebFixture
   }
 
   [Fact]
+  public void Render_NewHypothesis_ShowsPlatformsMultiSelectWithLabel()
+  {
+    var cut = Context.Render<HypothesisPage>();
+
+    cut.WaitForAssertion(() =>
+    {
+      var select = PlatformsSelect(cut).Instance;
+      Assert.True(select.MultiSelection);
+      Assert.Equal("Платформы", select.Label);
+    });
+  }
+
+  [Fact]
+  public async Task Render_ExistingHypothesis_ShowsStoredPlatforms()
+  {
+    var created = await Service.CreateAsync(Input("Gamedev EU") with { PlatformIds = [SeedData.PcPlatformId, SeedData.VrPlatformId] });
+
+    var cut = Context.Render<HypothesisPage>(p => p.Add(c => c.Id, created.Id));
+
+    cut.WaitForAssertion(() => Assert.Equal(
+      new[] { SeedData.PcPlatformId, SeedData.VrPlatformId }.Order(),
+      PlatformsSelect(cut).Instance.SelectedValues!.Order()));
+  }
+
+  [Fact]
+  public async Task Save_PlatformsSelectedOnNewPage_PersistsPlatforms()
+  {
+    var cut = Context.Render<HypothesisPage>();
+    await SelectRoleAsync(cut, SeedData.UnrealDeveloperRoleId);
+    await cut.InvokeAsync(() => PlatformsSelect(cut).Instance.SelectedValuesChanged.InvokeAsync([SeedData.PcPlatformId, SeedData.WebPlatformId]));
+
+    ClickSave(cut);
+
+    var deadline = DateTime.UtcNow.AddSeconds(5);
+    IReadOnlyList<HypothesisListItem> items = [];
+    while (DateTime.UtcNow < deadline && items.Count == 0)
+    {
+      items = await Service.ListAsync();
+      await Task.Delay(50);
+    }
+
+    var saved = await Service.FindAsync(Assert.Single(items).Id);
+    Assert.Equal(new[] { SeedData.PcPlatformId, SeedData.WebPlatformId }.Order(), saved!.PlatformIds.Order());
+  }
+
+  [Fact]
+  public async Task Save_PlatformsChangedOnExistingHypothesis_ReplacesPlatforms()
+  {
+    var created = await Service.CreateAsync(Input("Gamedev EU") with { PlatformIds = [SeedData.PcPlatformId] });
+    var cut = Context.Render<HypothesisPage>(p => p.Add(c => c.Id, created.Id));
+    cut.WaitForAssertion(() => Assert.Equal([SeedData.PcPlatformId], PlatformsSelect(cut).Instance.SelectedValues!));
+    await cut.InvokeAsync(() => PlatformsSelect(cut).Instance.SelectedValuesChanged.InvokeAsync([SeedData.MobilePlatformId]));
+
+    ClickSave(cut);
+
+    var deadline = DateTime.UtcNow.AddSeconds(5);
+    var found = await Service.FindAsync(created.Id);
+    while (DateTime.UtcNow < deadline && !found!.PlatformIds.Contains(SeedData.MobilePlatformId))
+    {
+      await Task.Delay(50);
+      found = await Service.FindAsync(created.Id);
+    }
+
+    Assert.Equal([SeedData.MobilePlatformId], found!.PlatformIds);
+  }
+
+  [Fact]
   public async Task Save_NoRoleSelected_ShowsRoleErrorAndPersistsNothing()
   {
     var cut = Context.Render<HypothesisPage>();
@@ -170,6 +237,11 @@ public class HypothesisPageTests : HypothesisWebFixture
   private static IRenderedComponent<MudSelect<Guid?>> LanguageSelect(IRenderedComponent<HypothesisPage> cut)
   {
     return cut.FindComponents<MudSelect<Guid?>>().Single(c => c.Instance.Class!.Contains("hypothesis-language"));
+  }
+
+  private static IRenderedComponent<MudSelect<Guid>> PlatformsSelect(IRenderedComponent<HypothesisPage> cut)
+  {
+    return cut.FindComponents<MudSelect<Guid>>().Single(c => c.Instance.Class!.Contains("hypothesis-platforms"));
   }
 
   private static IRenderedComponent<MudSelect<Guid>> LocationsSelect(IRenderedComponent<HypothesisPage> cut)

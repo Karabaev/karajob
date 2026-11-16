@@ -247,4 +247,79 @@ public class HypothesisTests
     Assert.ThrowsAny<ArgumentException>(() =>
       hypothesis.ChangeStatus(HypothesisStatus.Active, new DateTime(2026, 11, 12, 10, 0, 0, DateTimeKind.Local)));
   }
+
+  [Fact]
+  public void SetPlatforms_NewIds_AddsOneEntryPerIdOwnedByHypothesis()
+  {
+    var hypothesis = Create();
+    var first = Guid.NewGuid();
+    var second = Guid.NewGuid();
+
+    hypothesis.SetPlatforms([first, second]);
+
+    Assert.Equal([first, second], hypothesis.Platforms.Select(p => p.PlatformId));
+    Assert.All(hypothesis.Platforms, p =>
+    {
+      Assert.NotEqual(Guid.Empty, p.Id);
+      Assert.Equal(hypothesis.UserId, p.UserId);
+      Assert.Equal(hypothesis.Id, p.HypothesisId);
+    });
+  }
+
+  [Fact]
+  public void SetPlatforms_DuplicateIds_KeepsEachOnce()
+  {
+    var hypothesis = Create();
+    var id = Guid.NewGuid();
+
+    hypothesis.SetPlatforms([id, id, id]);
+
+    Assert.Equal(id, Assert.Single(hypothesis.Platforms).PlatformId);
+  }
+
+  [Fact]
+  public void SetPlatforms_IdsMissingFromNewSet_AreRemoved()
+  {
+    var hypothesis = Create();
+    var kept = Guid.NewGuid();
+    hypothesis.SetPlatforms([kept, Guid.NewGuid()]);
+
+    hypothesis.SetPlatforms([kept]);
+
+    Assert.Equal(kept, Assert.Single(hypothesis.Platforms).PlatformId);
+  }
+
+  [Fact]
+  public void SetPlatforms_IdsThatStay_KeepSameEntryInstance()
+  {
+    var hypothesis = Create();
+    var kept = Guid.NewGuid();
+    hypothesis.SetPlatforms([kept]);
+    var original = Assert.Single(hypothesis.Platforms);
+
+    hypothesis.SetPlatforms([kept, Guid.NewGuid()]);
+
+    var stayed = Assert.Single(hypothesis.Platforms, p => p.PlatformId == kept);
+    Assert.Same(original, stayed);
+    Assert.Equal(2, hypothesis.Platforms.Count);
+  }
+
+  [Fact]
+  public void SetPlatforms_Empty_ClearsPlatforms()
+  {
+    var hypothesis = Create();
+    hypothesis.SetPlatforms([Guid.NewGuid(), Guid.NewGuid()]);
+
+    hypothesis.SetPlatforms([]);
+
+    Assert.Empty(hypothesis.Platforms);
+  }
+
+  [Fact]
+  public void SetPlatforms_EmptyGuid_Throws()
+  {
+    var hypothesis = Create();
+
+    Assert.ThrowsAny<ArgumentException>(() => hypothesis.SetPlatforms([Guid.NewGuid(), Guid.Empty]));
+  }
 }

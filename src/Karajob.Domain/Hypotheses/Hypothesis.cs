@@ -5,6 +5,7 @@ namespace Karajob.Domain.Hypotheses;
 public class Hypothesis : IUserOwned
 {
   private readonly List<HypothesisLocation> locations = [];
+  private readonly List<HypothesisPlatform> platforms = [];
   private DateTime? startedAt;
 
   public Guid Id { get; private set; }
@@ -12,6 +13,7 @@ public class Hypothesis : IUserOwned
   public string Name { get; set => field = Require.NotBlank(value); }
   public Guid RoleId { get; set => field = Require.NotEmpty(value); }
   public IReadOnlyCollection<HypothesisLocation> Locations => locations;
+  public IReadOnlyCollection<HypothesisPlatform> Platforms => platforms;
   public List<string> Industries { get; private set; } = [];
   public WorkFormat WorkFormat { get; set; }
   public Guid LanguageId { get; set => field = Require.NotEmpty(value); }
@@ -33,6 +35,16 @@ public class Hypothesis : IUserOwned
     foreach (var locationId in wanted.Where(id => locations.All(l => l.LocationId != id)))
     {
       locations.Add(new HypothesisLocation(UserId, Id, locationId));
+    }
+  }
+
+  public void SetPlatforms(IEnumerable<Guid> platformIds)
+  {
+    var wanted = platformIds.Select(id => Require.NotEmpty(id, nameof(platformIds))).Distinct().ToList();
+    platforms.RemoveAll(p => !wanted.Contains(p.PlatformId));
+    foreach (var platformId in wanted.Where(id => platforms.All(p => p.PlatformId != id)))
+    {
+      platforms.Add(new HypothesisPlatform(UserId, Id, platformId));
     }
   }
 

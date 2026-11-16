@@ -133,12 +133,12 @@ public class ProfileIsolationTests : IAsyncLifetime
 
   private static VacancyInput NewVacancy(string url)
   {
-    return new VacancyInput(url, null, null, null, null, null, null, null, null, [], null, null);
+    return new VacancyInput(url, null, null, null, [], null, null,null, null, null, [], null, null);
   }
 
   private static HypothesisInput NewHypothesis(string name)
   {
-    return new HypothesisInput(name, SeedData.UnityDeveloperRoleId, [], [], WorkFormat.Remote, SeedData.RussianLanguageId, null, null, HypothesisStatus.Draft);
+    return new HypothesisInput(name, SeedData.UnityDeveloperRoleId, [], [], [], WorkFormat.Remote, SeedData.RussianLanguageId, null, null, HypothesisStatus.Draft);
   }
 
   private static CompanyInput NewCompany(string slug, string name)

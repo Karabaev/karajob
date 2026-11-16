@@ -261,6 +261,7 @@ public partial class VacancyService(IKarajobDbContextFactory dbContextFactory, I
     vacancy.CompanyId = normalized.CompanyId;
     vacancy.RoleId = normalized.RoleId;
     vacancy.LocationId = normalized.LocationId;
+    vacancy.SetPlatforms(normalized.PlatformIds);
     vacancy.LanguageId = normalized.LanguageId;
     vacancy.WorkFormat = normalized.WorkFormat;
     vacancy.Salary = normalized.Salary;
@@ -365,6 +366,12 @@ public partial class VacancyService(IKarajobDbContextFactory dbContextFactory, I
       errors[nameof(VacancyInput.LanguageId)] = "Язык не найден";
     }
 
+    var platformIds = input.PlatformIds.Distinct().ToList();
+    if (platformIds.Count > 0 && await db.Platforms.CountAsync(p => platformIds.Contains(p.Id), cancellationToken) != platformIds.Count)
+    {
+      errors[nameof(VacancyInput.PlatformIds)] = "Платформа не найдена";
+    }
+
     SalaryRange? salary = null;
     if (input.SalaryMin is not null || input.SalaryMax is not null)
     {
@@ -400,6 +407,7 @@ public partial class VacancyService(IKarajobDbContextFactory dbContextFactory, I
       input.CompanyId,
       input.RoleId,
       input.LocationId,
+      platformIds,
       input.LanguageId,
       input.WorkFormat is null or WorkFormat.None ? null : input.WorkFormat,
       salary,
@@ -449,6 +457,7 @@ public partial class VacancyService(IKarajobDbContextFactory dbContextFactory, I
       companyName,
       vacancy.RoleId,
       vacancy.LocationId,
+      vacancy.Platforms.Select(p => p.PlatformId).ToList(),
       vacancy.LanguageId,
       vacancy.WorkFormat,
       vacancy.Salary?.Min,
@@ -502,6 +511,7 @@ public partial class VacancyService(IKarajobDbContextFactory dbContextFactory, I
     Guid? CompanyId,
     Guid? RoleId,
     Guid? LocationId,
+    List<Guid> PlatformIds,
     Guid? LanguageId,
     WorkFormat? WorkFormat,
     SalaryRange? Salary,

@@ -29,6 +29,16 @@ public class CatalogServiceTests : CatalogServiceFixture
   }
 
   [Fact]
+  public async Task ListAsync_Platforms_ReturnsSeededPlatformsSortedByNameWithoutCode()
+  {
+    var items = await Service.ListAsync(CatalogKind.Platform);
+
+    Assert.Equal(["Consoles", "Mobile", "PC", "VR", "Web"], items.Select(i => i.Name));
+    Assert.Equal(SeedData.PcPlatformId, items.Single(i => i.Name == "PC").Id);
+    Assert.All(items, i => Assert.Null(i.Code));
+  }
+
+  [Fact]
   public async Task ListAsync_Languages_ReturnsSeededLanguagesWithCode()
   {
     var items = await Service.ListAsync(CatalogKind.Language);
@@ -73,6 +83,17 @@ public class CatalogServiceTests : CatalogServiceFixture
   }
 
   [Fact]
+  public async Task CreateAsync_Platform_ReturnsAndPersistsItem()
+  {
+    var created = await Service.CreateAsync(CatalogKind.Platform, new CatalogInput("  Smart TV "));
+
+    Assert.NotEqual(Guid.Empty, created.Id);
+    Assert.Equal("Smart TV", created.Name);
+    Assert.Null(created.Code);
+    Assert.Contains(await Service.ListAsync(CatalogKind.Platform), i => i.Id == created.Id && i.Name == "Smart TV");
+  }
+
+  [Fact]
   public async Task CreateAsync_Language_NormalizesCodeAndPersists()
   {
     var created = await Service.CreateAsync(CatalogKind.Language, new CatalogInput("Deutsch", " DE "));
@@ -85,6 +106,7 @@ public class CatalogServiceTests : CatalogServiceFixture
   [Theory]
   [InlineData(CatalogKind.Role)]
   [InlineData(CatalogKind.Location)]
+  [InlineData(CatalogKind.Platform)]
   public async Task CreateAsync_CodeForNonLanguage_IsIgnored(CatalogKind kind)
   {
     var created = await Service.CreateAsync(kind, new CatalogInput("Something new", "xx"));
@@ -96,6 +118,8 @@ public class CatalogServiceTests : CatalogServiceFixture
   [InlineData(CatalogKind.Role, "")]
   [InlineData(CatalogKind.Role, "   ")]
   [InlineData(CatalogKind.Location, "")]
+  [InlineData(CatalogKind.Platform, "")]
+  [InlineData(CatalogKind.Platform, "   ")]
   [InlineData(CatalogKind.Language, "")]
   public async Task CreateAsync_BlankName_ThrowsValidationWithNameKey(CatalogKind kind, string name)
   {
@@ -109,6 +133,8 @@ public class CatalogServiceTests : CatalogServiceFixture
   [InlineData(CatalogKind.Role, "unity  developer")]
   [InlineData(CatalogKind.Role, "UNITY DEVELOPER")]
   [InlineData(CatalogKind.Location, " usa ")]
+  [InlineData(CatalogKind.Platform, " pc ")]
+  [InlineData(CatalogKind.Platform, "MOBILE")]
   [InlineData(CatalogKind.Language, "ENGLISH")]
   public async Task CreateAsync_DuplicateName_ThrowsValidationWithNameKey(CatalogKind kind, string name)
   {
@@ -173,6 +199,25 @@ public class CatalogServiceTests : CatalogServiceFixture
   }
 
   [Fact]
+  public async Task RenameAsync_Platform_ReturnsAndPersistsNewName()
+  {
+    var renamed = await Service.RenameAsync(CatalogKind.Platform, SeedData.VrPlatformId, "  XR ");
+
+    Assert.Equal(SeedData.VrPlatformId, renamed.Id);
+    Assert.Equal("XR", renamed.Name);
+    Assert.Contains(await Service.ListAsync(CatalogKind.Platform), i => i.Id == renamed.Id && i.Name == "XR");
+  }
+
+  [Fact]
+  public async Task RenameAsync_PlatformToAnotherPlatformsName_ThrowsValidationWithNameKey()
+  {
+    var exception = await Assert.ThrowsAsync<ValidationFailedException>(
+      () => Service.RenameAsync(CatalogKind.Platform, SeedData.VrPlatformId, "web"));
+
+    Assert.Contains(nameof(CatalogInput.Name), exception.Errors.Keys);
+  }
+
+  [Fact]
   public async Task RenameAsync_Language_KeepsCode()
   {
     var renamed = await Service.RenameAsync(CatalogKind.Language, SeedData.RussianLanguageId, "Russian");
@@ -205,6 +250,7 @@ public class CatalogServiceTests : CatalogServiceFixture
   [Theory]
   [InlineData(CatalogKind.Role)]
   [InlineData(CatalogKind.Location)]
+  [InlineData(CatalogKind.Platform)]
   [InlineData(CatalogKind.Language)]
   public async Task RenameAsync_UnknownId_ThrowsKeyNotFound(CatalogKind kind)
   {

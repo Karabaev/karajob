@@ -8,7 +8,7 @@ public class DomainConventionsTests
   private static readonly Assembly DomainAssembly = typeof(IUserOwned).Assembly;
 
   private static readonly string[] SharedReferenceTypes =
-    ["User", "Company", "CompanyDomain", "CompanyAlias", "Project", "Role", "Location", "Language"];
+    ["User", "Company", "CompanyDomain", "CompanyAlias", "Project", "Role", "Location", "Language", "Platform"];
 
   [Fact]
   public void EntitiesWithGuidId_ExceptSharedReferenceData_ImplementIUserOwned()

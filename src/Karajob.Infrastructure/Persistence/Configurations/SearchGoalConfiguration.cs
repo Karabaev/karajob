@@ -17,6 +17,9 @@ public class SearchGoalConfiguration : IEntityTypeConfiguration<SearchGoal>
     // SetLocations diffs against the loaded collection.
     builder.Navigation(g => g.Locations).AutoInclude();
 
+    builder.HasMany(g => g.Platforms).WithOne().HasForeignKey(p => p.SearchGoalId).OnDelete(DeleteBehavior.Cascade);
+    builder.Navigation(g => g.Platforms).AutoInclude();
+
     // Literals, not SearchGoalDefaults: changing a default for new profiles must not emit UpdateData over the Owner's edited goal.
     builder.HasData(new
     {

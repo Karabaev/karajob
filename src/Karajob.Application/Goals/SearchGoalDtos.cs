@@ -3,6 +3,7 @@ namespace Karajob.Application.Goals;
 public record SearchGoalInput(
   Guid? RoleId,
   IReadOnlyList<Guid> LocationIds,
+  IReadOnlyList<Guid> PlatformIds,
   string? Industries,
   string? MustHave,
   int WeeklyApplicationTarget,
@@ -17,6 +18,7 @@ public record SearchGoalInput(
 public record SearchGoalDetails(
   Guid? RoleId,
   IReadOnlyList<Guid> LocationIds,
+  IReadOnlyList<Guid> PlatformIds,
   string? Industries,
   string? MustHave,
   int WeeklyApplicationTarget,

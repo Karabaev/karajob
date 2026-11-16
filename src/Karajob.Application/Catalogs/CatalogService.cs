@@ -53,6 +53,11 @@ public class CatalogService(IKarajobDbContextFactory dbContextFactory)
         db.Languages.Add(language);
         entry = language;
         break;
+      case CatalogKind.Platform:
+        var platform = new Platform(input.Name);
+        db.Platforms.Add(platform);
+        entry = platform;
+        break;
       default:
         throw new ArgumentOutOfRangeException(nameof(kind), kind, null);
     }
@@ -102,6 +107,9 @@ public class CatalogService(IKarajobDbContextFactory dbContextFactory)
       case Language language:
         db.Languages.Remove(language);
         break;
+      case Platform platform:
+        db.Platforms.Remove(platform);
+        break;
       default:
         throw new ArgumentOutOfRangeException(nameof(kind), kind, null);
     }
@@ -116,6 +124,7 @@ public class CatalogService(IKarajobDbContextFactory dbContextFactory)
       CatalogKind.Role => db.Roles,
       CatalogKind.Location => db.Locations,
       CatalogKind.Language => db.Languages,
+      CatalogKind.Platform => db.Platforms,
       _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null),
     };
   }
@@ -188,6 +197,10 @@ public class CatalogService(IKarajobDbContextFactory dbContextFactory)
         return await db.Hypotheses.IgnoreQueryFilters().AnyAsync(h => h.LanguageId == id, cancellationToken)
           || await db.Vacancies.IgnoreQueryFilters().AnyAsync(v => v.LanguageId == id, cancellationToken)
           || await db.CvDocuments.IgnoreQueryFilters().AnyAsync(d => d.LanguageId == id, cancellationToken);
+      case CatalogKind.Platform:
+        return await db.HypothesisPlatforms.IgnoreQueryFilters().AnyAsync(p => p.PlatformId == id, cancellationToken)
+          || await db.SearchGoalPlatforms.IgnoreQueryFilters().AnyAsync(p => p.PlatformId == id, cancellationToken)
+          || await db.VacancyPlatforms.IgnoreQueryFilters().AnyAsync(p => p.PlatformId == id, cancellationToken);
       default:
         throw new ArgumentOutOfRangeException(nameof(kind), kind, null);
     }
