@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Pages.Board" xml:space="preserve"><value>Board</value></data>
+  <data name="Pages.Hypothesis" xml:space="preserve"><value>Hypothesis</value></data>
+  <data name="Pages.AllHypotheses" xml:space="preserve"><value>All hypotheses</value></data>
+  <data name="Pages.Collapse" xml:space="preserve"><value>Collapse</value></data>
+  <data name="Pages.Show" xml:space="preserve"><value>Show</value></data>
+  <data name="Pages.ApplyTitle" xml:space="preserve"><value>Application</value></data>
+  <data name="Pages.CloseVacancyTitle" xml:space="preserve"><value>Close vacancy</value></data>
+  <data name="Pages.InvalidTransition" xml:space="preserve"><value>Invalid transition: {0} → {1}</value></data>
+  <data name="Pages.DismissVacancyTitle" xml:space="preserve"><value>Dismiss vacancy</value></data>
+  <data name="Pages.Roles" xml:space="preserve"><value>Roles</value></data>
+  <data name="Pages.Locations" xml:space="preserve"><value>Locations</value></data>
+  <data name="Pages.Languages" xml:space="preserve"><value>Languages</value></data>
+  <data name="Pages.Platforms" xml:space="preserve"><value>Platforms</value></data>
+  <data name="Pages.Currencies" xml:space="preserve"><value>Currencies</value></data>
+  <data name="Pages.Engines" xml:space="preserve"><value>Engines</value></data>
+  <data name="Pages.Catalogs" xml:space="preserve"><value>Catalogs</value></data>
+  <data name="Pages.Companies" xml:space="preserve"><value>Companies</value></data>
+  <data name="Pages.AddCompany" xml:space="preserve"><value>+ Company</value></data>
+  <data name="Pages.CompanySearch" xml:space="preserve"><value>Name, domain, alias</value></data>
+  <data name="Pages.NoCompanies" xml:space="preserve"><value>No companies found.</value></data>
+  <data name="Pages.Company" xml:space="preserve"><value>Company</value></data>
+  <data name="Pages.Domains" xml:space="preserve"><value>Domains</value></data>
+  <data name="Pages.Blacklisted" xml:space="preserve"><value>Blacklisted</value></data>
+  <data name="Pages.NoCvs" xml:space="preserve"><value>No CVs yet.</value></data>
+  <data name="Pages.Name" xml:space="preserve"><value>Name</value></data>
+  <data name="Pages.Language" xml:space="preserve"><value>Language</value></data>
+  <data name="Pages.Tags" xml:space="preserve"><value>Tags</value></data>
+  <data name="Pages.Versions" xml:space="preserve"><value>Versions</value></data>
+  <data name="Pages.Updated" xml:space="preserve"><value>Updated</value></data>
+  <data name="Pages.Hypotheses" xml:space="preserve"><value>Hypotheses</value></data>
+  <data name="Pages.AddHypothesis" xml:space="preserve"><value>+ Hypothesis</value></data>
+  <data name="Pages.NoHypotheses" xml:space="preserve"><value>No hypotheses yet.</value></data>
+  <data name="Pages.Role" xml:space="preserve"><value>Role</value></data>
+  <data name="Pages.Format" xml:space="preserve"><value>Format</value></data>
+  <data name="Pages.Status" xml:space="preserve"><value>Status</value></data>
+  <data name="Pages.AddManually" xml:space="preserve"><value>Add manually</value></data>
+  <data name="Pages.InboxEmpty" xml:space="preserve"><value>Inbox is empty for now.</value></data>
+  <data name="Pages.Link" xml:space="preserve"><value>Link</value></data>
+  <data name="Pages.Discovered" xml:space="preserve"><value>Discovered</value></data>
+  <data name="Pages.ToBoardButton" xml:space="preserve"><value>→ To board</value></data>
+  <data name="Pages.Dismiss" xml:space="preserve"><value>Dismiss</value></data>
+  <data name="Pages.ToBoardTitle" xml:space="preserve"><value>To board</value></data>
+  <data name="Pages.NotFound" xml:space="preserve"><value>Not found</value></data>
+  <data name="Pages.NotFoundText" xml:space="preserve"><value>There is no such page.</value></data>
+  <data name="Pages.Settings" xml:space="preserve"><value>Settings</value></data>
+  <data name="Pages.SearchGoal" xml:space="preserve"><value>Search goal</value></data>
+  <data name="Pages.NotSelected" xml:space="preserve"><value>— not selected —</value></data>
+  <data name="Pages.Countries" xml:space="preserve"><value>Countries</value></data>
+  <data name="Pages.Industries" xml:space="preserve"><value>Industries</value></data>
+  <data name="Pages.MustHave" xml:space="preserve"><value>Must-have conditions</value></data>
+  <data name="Pages.MustHaveHelp" xml:space="preserve"><value>What makes a vacancy a no-go</value></data>
+  <data name="Pages.WeeklyTarget" xml:space="preserve"><value>Applications per week</value></data>
+  <data name="Pages.Deadline" xml:space="preserve"><value>Search deadline</value></data>
+  <data name="Pages.Income" xml:space="preserve"><value>Monthly income, gross</value></data>
+  <data name="Pages.Currency" xml:space="preserve"><value>Currency</value></data>
+  <data name="Pages.MetricThresholds" xml:space="preserve"><value>Metric thresholds</value></data>
+  <data name="Pages.MarketThreshold" xml:space="preserve"><value>Market: vacancies per week</value></data>
+  <data name="Pages.MarketThresholdHelp" xml:space="preserve"><value>How many matching vacancies per week count as a live market</value></data>
+  <data name="Pages.ConversionThreshold" xml:space="preserve"><value>Conversion threshold, %</value></data>
+  <data name="Pages.ConversionThresholdHelp" xml:space="preserve"><value>What share of applications with a response counts as good</value></data>
+  <data name="Pages.MinSample" xml:space="preserve"><value>Minimum application sample</value></data>
+  <data name="Pages.MinSampleHelp" xml:space="preserve"><value>Until there are this many applications, it is too early to draw conclusions about a hypothesis</value></data>
+  <data name="Pages.MaturationDays" xml:space="preserve"><value>Application maturation, days</value></data>
+  <data name="Pages.MaturationDaysHelp" xml:space="preserve"><value>After how many days without a response an application is considered matured</value></data>
+  <data name="Pages.Save" xml:space="preserve"><value>Save</value></data>
+  <data name="Pages.EmptyHint" xml:space="preserve"><value>Add some in the Catalogs section</value></data>
+  <data name="Pages.Saved" xml:space="preserve"><value>Saved</value></data>
+</root>

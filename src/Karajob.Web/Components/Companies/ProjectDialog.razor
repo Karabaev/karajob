@@ -8,28 +8,28 @@
       {
         <MudAlert Severity="Severity.Error">@general</MudAlert>
       }
-      <MudTextField T="string" Label="Название" @bind-Value="_name" Required="true"
+      <MudTextField T="string" Label="@L["Project.Name"]" @bind-Value="_name" Required="true"
                     Error="HasError(nameof(ProjectInput.Name))" ErrorText="@ErrorOf(nameof(ProjectInput.Name))" />
-      <MudTextField T="string" Label="Жанр" @bind-Value="_genre" />
-      <MudSelect T="Guid?" Class="project-engine" Label="Движок" Clearable="true" @bind-Value="_engineId" ToStringFunc="EngineName">
+      <MudTextField T="string" Label="@L["Project.Genre"]" @bind-Value="_genre" />
+      <MudSelect T="Guid?" Class="project-engine" Label="@L["Project.Engine"]" Clearable="true" @bind-Value="_engineId" ToStringFunc="EngineName">
         @foreach (var engine in _engines)
         {
           <MudSelectItem T="Guid?" Value="@((Guid?)engine.Id)">@engine.Name</MudSelectItem>
         }
       </MudSelect>
-      <MudSelect T="ProjectStatus" Label="Статус" @bind-Value="_status">
+      <MudSelect T="ProjectStatus" Label="@L["Project.Status"]" @bind-Value="_status">
         @foreach (var status in Enum.GetValues<ProjectStatus>())
         {
           <MudSelectItem T="ProjectStatus" Value="status">@StatusText(status)</MudSelectItem>
         }
       </MudSelect>
-      <MudTextField T="string" Label="Ссылка" @bind-Value="_url"
+      <MudTextField T="string" Label="@L["Project.Url"]" @bind-Value="_url"
                     Error="HasError(nameof(ProjectInput.Url))" ErrorText="@ErrorOf(nameof(ProjectInput.Url))" />
     </MudStack>
   </DialogContent>
   <DialogActions>
-    <MudButton OnClick="Cancel">Отмена</MudButton>
-    <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="SaveAsync">Сохранить</MudButton>
+    <MudButton OnClick="Cancel">@L["Common.Cancel"]</MudButton>
+    <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="SaveAsync">@L["Common.Save"]</MudButton>
   </DialogActions>
 </MudDialog>
 
@@ -55,9 +55,9 @@
   {
     return status switch
     {
-      ProjectStatus.Announced => "Анонс",
-      ProjectStatus.InDevelopment => "В разработке",
-      ProjectStatus.Released => "Выпущен",
+      ProjectStatus.Announced => Localized.Get<CompanyStrings>("Status.Announced"),
+      ProjectStatus.InDevelopment => Localized.Get<CompanyStrings>("Status.InDevelopment"),
+      ProjectStatus.Released => Localized.Get<CompanyStrings>("Status.Released"),
       _ => throw new ArgumentOutOfRangeException(nameof(status), status, null)
     };
   }

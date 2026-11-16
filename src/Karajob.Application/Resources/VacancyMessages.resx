@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Error.MoveNeedsDialog" xml:space="preserve"><value>This transition requires a dialog</value></data>
+  <data name="Error.MoveInvalid" xml:space="preserve"><value>This transition is not allowed</value></data>
+  <data name="Error.HypothesisMismatch" xml:space="preserve"><value>The hypothesis does not match the vacancy</value></data>
+  <data name="Error.CvVersionNotFound" xml:space="preserve"><value>CV version not found</value></data>
+  <data name="Error.AppliedAtInFuture" xml:space="preserve"><value>The application date is in the future</value></data>
+  <data name="Error.AppliedAtBeforeStage" xml:space="preserve"><value>The application date is earlier than the last stage change</value></data>
+  <data name="Error.CannotApplyAtStage" xml:space="preserve"><value>You cannot apply to a vacancy at this stage</value></data>
+  <data name="Error.CannotCloseAtStage" xml:space="preserve"><value>A vacancy at this stage cannot be closed</value></data>
+  <data name="Error.UrlInvalid" xml:space="preserve"><value>Invalid vacancy link</value></data>
+  <data name="Error.HypothesisRequired" xml:space="preserve"><value>Choose at least one hypothesis</value></data>
+  <data name="Error.CannotDismissAtStage" xml:space="preserve"><value>A vacancy at this stage cannot be dismissed</value></data>
+  <data name="Error.EventBeforeDiscovered" xml:space="preserve"><value>The event date is earlier than the date the vacancy was found</value></data>
+  <data name="Error.TransitionDeleteForbidden" xml:space="preserve"><value>Stage transitions cannot be deleted</value></data>
+  <data name="Error.NotInInbox" xml:space="preserve"><value>The vacancy is no longer in Inbox</value></data>
+  <data name="Error.StageChanged" xml:space="preserve"><value>The vacancy stage has already changed</value></data>
+  <data name="Error.HypothesisNotFound" xml:space="preserve"><value>Hypothesis not found</value></data>
+  <data name="Error.HypothesisDisabled" xml:space="preserve"><value>The hypothesis is disabled</value></data>
+  <data name="Error.UrlExists" xml:space="preserve"><value>A vacancy with this link already exists</value></data>
+  <data name="Error.CompanyNotFound" xml:space="preserve"><value>Company not found</value></data>
+  <data name="Error.RoleNotFound" xml:space="preserve"><value>Role not found</value></data>
+  <data name="Error.LocationNotFound" xml:space="preserve"><value>Location not found</value></data>
+  <data name="Error.LanguageNotFound" xml:space="preserve"><value>Language not found</value></data>
+  <data name="Error.PlatformNotFound" xml:space="preserve"><value>Platform not found</value></data>
+  <data name="Error.EngineNotFound" xml:space="preserve"><value>Engine not found</value></data>
+  <data name="Error.SalaryInvalid" xml:space="preserve"><value>Invalid salary range: values must be non-negative, the minimum must not exceed the maximum, and the currency must be 3 letters</value></data>
+  <data name="Error.CurrencyNotFound" xml:space="preserve"><value>Currency not found</value></data>
+  <data name="Error.CannotUnmatchApplied" xml:space="preserve"><value>You cannot remove the hypothesis used for the application</value></data>
+  <data name="Error.BoardNeedsHypothesis" xml:space="preserve"><value>A vacancy on the board needs at least one hypothesis</value></data>
+</root>

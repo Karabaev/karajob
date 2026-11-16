@@ -30,7 +30,7 @@ public class VacancyPageTests : VacancyWebFixture
   {
     var cut = Context.Render<VacancyPage>(p => p.Add(c => c.Id, Guid.NewGuid()));
 
-    cut.WaitForAssertion(() => Assert.Contains("Вакансия не найдена", cut.Markup));
+    cut.WaitForAssertion(() => Assert.Contains("Vacancy not found", cut.Markup));
   }
 
   [Fact]
@@ -48,7 +48,7 @@ public class VacancyPageTests : VacancyWebFixture
     cut.WaitForAssertion(() =>
     {
       Assert.Contains("Позвонил рекрутер", cut.Find(".vacancy-timeline").TextContent);
-      Assert.Contains("Найдена", cut.Find(".vacancy-timeline .timeline-discovered").TextContent);
+      Assert.Contains("Discovered", cut.Find(".vacancy-timeline .timeline-discovered").TextContent);
       Assert.Single(cut.FindAll(".vacancy-timeline .timeline-delete"));
       Assert.True(cut.FindAll(".vacancy-timeline .timeline-item").Count >= 2);
       Assert.NotEmpty(cut.FindAll(".timeline-add"));
@@ -115,7 +115,7 @@ public class VacancyPageTests : VacancyWebFixture
     {
       var select = PlatformsSelect(cut).Instance;
       Assert.True(select.MultiSelection);
-      Assert.Equal("Платформы", select.Label);
+      Assert.Equal("Platforms", select.Label);
     });
   }
 
@@ -244,7 +244,7 @@ public class VacancyPageTests : VacancyWebFixture
     {
       var select = EnginesSelect(cut).Instance;
       Assert.True(select.MultiSelection);
-      Assert.Equal("Движки", select.Label);
+      Assert.Equal("Engines", select.Label);
     });
   }
 
@@ -342,9 +342,9 @@ public class VacancyPageTests : VacancyWebFixture
     cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindAll(".vacancy-similar")));
 
     var pending = cut.InvokeAsync(() => CompanyAutocomplete(cut).Instance.ValueChanged.InvokeAsync(
-      new CompanyListItem(Guid.Empty, "", "+ Создать «Other»", null, [], false)));
+      new CompanyListItem(Guid.Empty, "", "+ Create \"Other\"", null, [], false)));
     provider.WaitForElement(".company-name");
-    provider.FindAll("button").First(b => b.TextContent.Contains("Отмена")).Click();
+    provider.FindAll("button").First(b => b.TextContent.Contains("Cancel")).Click();
     await pending.WaitAsync(TimeSpan.FromSeconds(5));
 
     cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindAll(".vacancy-similar")));

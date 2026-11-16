@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Cv.NotFound" xml:space="preserve"><value>CV not found</value></data>
+  <data name="Cv.BackToList" xml:space="preserve"><value>To CV list</value></data>
+  <data name="Cv.New" xml:space="preserve"><value>New CV</value></data>
+  <data name="Cv.Name" xml:space="preserve"><value>Name</value></data>
+  <data name="Cv.Language" xml:space="preserve"><value>Language</value></data>
+  <data name="Cv.EmptyHint" xml:space="preserve"><value>Add in the Catalogs section</value></data>
+  <data name="Cv.Tags" xml:space="preserve"><value>Tags</value></data>
+  <data name="Cv.OnePerLine" xml:space="preserve"><value>one per line</value></data>
+  <data name="Cv.ChooseFile" xml:space="preserve"><value>Choose file</value></data>
+  <data name="Cv.VersionComment" xml:space="preserve"><value>Version comment</value></data>
+  <data name="Cv.Save" xml:space="preserve"><value>Save</value></data>
+  <data name="Cv.Delete" xml:space="preserve"><value>Delete CV</value></data>
+  <data name="Cv.Versions" xml:space="preserve"><value>Versions</value></data>
+  <data name="Cv.UploadVersion" xml:space="preserve"><value>Upload version</value></data>
+  <data name="Cv.File" xml:space="preserve"><value>File</value></data>
+  <data name="Cv.Uploaded" xml:space="preserve"><value>Uploaded</value></data>
+  <data name="Cv.Size" xml:space="preserve"><value>Size</value></data>
+  <data name="Cv.Comment" xml:space="preserve"><value>Comment</value></data>
+  <data name="Cv.Download" xml:space="preserve"><value>Download</value></data>
+  <data name="Cv.DeleteVersionLabel" xml:space="preserve"><value>Delete version</value></data>
+  <data name="Cv.SizeMb" xml:space="preserve"><value>{0} MB</value></data>
+  <data name="Cv.SizeKb" xml:space="preserve"><value>{0} KB</value></data>
+  <data name="Cv.Saved" xml:space="preserve"><value>Saved</value></data>
+  <data name="Cv.VersionUploaded" xml:space="preserve"><value>Version uploaded</value></data>
+  <data name="Cv.ReadFailed" xml:space="preserve"><value>Could not read the file — choose it again</value></data>
+  <data name="Cv.DeleteVersionTitle" xml:space="preserve"><value>Delete version?</value></data>
+  <data name="Cv.DeleteVersionMessage" xml:space="preserve"><value>File “{0}” will be deleted.</value></data>
+  <data name="Cv.DeleteTitle" xml:space="preserve"><value>Delete CV?</value></data>
+  <data name="Cv.DeleteMessage" xml:space="preserve"><value>CV “{0}” and all its versions will be deleted.</value></data>
+  <data name="Cv.DeleteConfirm" xml:space="preserve"><value>Delete</value></data>
+  <data name="Cv.Cancel" xml:space="preserve"><value>Cancel</value></data>
+</root>

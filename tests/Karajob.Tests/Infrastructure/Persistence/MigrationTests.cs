@@ -93,7 +93,7 @@ public class MigrationTests
     Assert.Equal(
       [
         (SeedData.EnglishLanguageId, "en", "English", "english"),
-        (SeedData.RussianLanguageId, "ru", "Русский", "русский"),
+        (SeedData.RussianLanguageId, "ru", "Russian", "russian"),
       ],
       languages.Select(l => (l.Id, l.Code, l.Name, l.NormalizedName)));
   }

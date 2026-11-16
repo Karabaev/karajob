@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Error.HasProjects" xml:space="preserve"><value>Cannot delete a company that has projects</value></data>
+  <data name="Error.HasVacancies" xml:space="preserve"><value>Cannot delete a company referenced by vacancies</value></data>
+  <data name="Error.SlugInvalid" xml:space="preserve"><value>Invalid slug: only Latin letters, digits and hyphens are allowed</value></data>
+  <data name="Error.NameRequired" xml:space="preserve"><value>Name is required</value></data>
+  <data name="Error.WebsiteInvalid" xml:space="preserve"><value>Invalid website URL</value></data>
+  <data name="Error.DomainInvalid" xml:space="preserve"><value>Invalid domain: {0}</value></data>
+  <data name="Error.SlugReserved" xml:space="preserve"><value>Slug '{0}' is reserved</value></data>
+  <data name="Error.SlugTaken" xml:space="preserve"><value>Slug '{0}' is already taken by company '{1}'</value></data>
+  <data name="Error.DomainTaken" xml:space="preserve"><value>Domain '{0}' is already linked to company '{1}'</value></data>
+  <data name="Error.AliasTaken" xml:space="preserve"><value>Alias '{0}' is already used by company '{1}'</value></data>
+  <data name="Error.UrlInvalid" xml:space="preserve"><value>Invalid URL</value></data>
+  <data name="Error.EngineNotFound" xml:space="preserve"><value>Engine not found</value></data>
+</root>

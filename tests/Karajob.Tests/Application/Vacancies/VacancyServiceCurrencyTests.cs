@@ -15,7 +15,7 @@ public class VacancyServiceCurrencyTests : VacancyServiceFixture
     var exception = await Assert.ThrowsAsync<ValidationFailedException>(
       () => Service.CreateAsync(Input(salaryMin: 3000, salaryMax: 5000, salaryCurrency: currency)));
 
-    Assert.Equal("Валюта не найдена", exception.Errors["Salary"]);
+    Assert.Equal("Currency not found", exception.Errors["Salary"]);
     Assert.Equal(0, await CountVacanciesAsync());
   }
 
@@ -27,7 +27,7 @@ public class VacancyServiceCurrencyTests : VacancyServiceFixture
     var exception = await Assert.ThrowsAsync<ValidationFailedException>(
       () => Service.UpdateAsync(created.Id, Input(salaryMin: 3000, salaryMax: 5000, salaryCurrency: "GBP")));
 
-    Assert.Equal("Валюта не найдена", exception.Errors["Salary"]);
+    Assert.Equal("Currency not found", exception.Errors["Salary"]);
     Assert.Equal("USD", (await Service.FindAsync(created.Id))!.SalaryCurrency);
   }
 

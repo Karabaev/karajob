@@ -1,3 +1,5 @@
+using Karajob.Application.Resources;
+using Microsoft.Extensions.Localization;
 using Karajob.Application.Common;
 using Karajob.Application.Persistence;
 using Karajob.Domain.Goals;
@@ -7,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Karajob.Application.Users;
 
-public class UserService(IKarajobDbContextFactory dbContextFactory, TimeProvider timeProvider)
+public class UserService(IKarajobDbContextFactory dbContextFactory, TimeProvider timeProvider, IStringLocalizer<UserMessages> localizer)
 {
   public async Task<IReadOnlyList<UserDto>> ListAsync(CancellationToken cancellationToken = default)
   {
@@ -52,12 +54,12 @@ public class UserService(IKarajobDbContextFactory dbContextFactory, TimeProvider
     return ToDto(user);
   }
 
-  private static void Validate(UserInput input)
+  private void Validate(UserInput input)
   {
     var errors = new Dictionary<string, string>();
     if (string.IsNullOrWhiteSpace(input.Name))
     {
-      errors[nameof(UserInput.Name)] = "Введите имя.";
+      errors[nameof(UserInput.Name)] = localizer["Error.NameRequired"];
     }
 
     try
@@ -66,7 +68,7 @@ public class UserService(IKarajobDbContextFactory dbContextFactory, TimeProvider
     }
     catch (ArgumentException)
     {
-      errors[nameof(UserInput.Color)] = "Выберите цвет.";
+      errors[nameof(UserInput.Color)] = localizer["Error.ColorInvalid"];
     }
 
     if (errors.Count > 0)

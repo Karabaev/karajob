@@ -20,7 +20,7 @@ namespace Karajob.Tests.Web.Components.Layout;
 public class MainLayoutTests : IAsyncLifetime
 {
   private const string BodyMarker = "body-marker-text";
-  private const string DialogTitle = "Новая вакансия";
+  private const string DialogTitle = "New vacancy";
 
   private readonly BunitContext _context = new();
   private SqliteTestDatabase _database = null!;
@@ -36,10 +36,10 @@ public class MainLayoutTests : IAsyncLifetime
 
   [Theory]
   [InlineData("inbox", "Inbox")]
-  [InlineData("companies", "Компании")]
-  [InlineData("hypotheses", "Гипотезы")]
+  [InlineData("companies", "Companies")]
+  [InlineData("hypotheses", "Hypotheses")]
   [InlineData("cvs", "CV")]
-  [InlineData("settings", "Настройки")]
+  [InlineData("settings", "Settings")]
   public void Render_HasNavLink(string href, string text)
   {
     var cut = RenderLayout();
@@ -54,7 +54,7 @@ public class MainLayoutTests : IAsyncLifetime
   {
     var cut = RenderLayout();
 
-    var link = FindNavLink(cut, "Доска");
+    var link = FindNavLink(cut, "Board");
 
     Assert.Equal(string.Empty, link.GetAttribute("href")!.Trim('/'));
   }
@@ -65,7 +65,7 @@ public class MainLayoutTests : IAsyncLifetime
     var cut = RenderLayout();
 
     var button = Assert.Single(cut.FindAll(".add-vacancy-button"));
-    Assert.Contains("+ Вакансия", button.TextContent);
+    Assert.Contains("+ Vacancy", button.TextContent);
   }
 
   [Fact]
@@ -81,7 +81,7 @@ public class MainLayoutTests : IAsyncLifetime
   {
     var cut = RenderLayout();
 
-    cut.WaitForAssertion(() => Assert.Single(cut.FindAll("button[aria-label='Профиль: Owner']")));
+    cut.WaitForAssertion(() => Assert.Single(cut.FindAll("button[aria-label='Profile: Owner']")));
   }
 
   [Fact]
@@ -118,7 +118,7 @@ public class MainLayoutTests : IAsyncLifetime
     var cut = RenderLayout();
     var wasOpen = IsDrawerOpen(cut);
 
-    cut.Find("button[aria-label='Меню']").Click();
+    cut.Find("button[aria-label='Menu']").Click();
 
     Assert.NotEqual(wasOpen, IsDrawerOpen(cut));
   }
@@ -211,5 +211,6 @@ public class MainLayoutTests : IAsyncLifetime
   {
     _context.JSInterop.Mode = JSRuntimeMode.Loose;
     _context.Services.AddMudServices();
+    _context.Services.AddLocalization();
   }
 }

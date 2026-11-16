@@ -54,7 +54,7 @@ public partial class VacancyService
     var kind = BoardMoves.Classify(vacancy.Stage, target);
     if (kind != BoardMoveKind.Direct)
     {
-      throw Failure(kind is BoardMoveKind.Apply or BoardMoveKind.Close ? "Для этого перехода нужен диалог" : "Такой переход недопустим");
+      throw Failure(kind is BoardMoveKind.Apply or BoardMoveKind.Close ? localizer["Error.MoveNeedsDialog"] : localizer["Error.MoveInvalid"]);
     }
 
     try
@@ -63,7 +63,7 @@ public partial class VacancyService
     }
     catch (StageTransitionException)
     {
-      throw Failure("Такой переход недопустим");
+      throw Failure(localizer["Error.MoveInvalid"]);
     }
 
     await db.SaveChangesAsync(cancellationToken);
@@ -111,12 +111,12 @@ public partial class VacancyService
     var errors = new Dictionary<string, string>();
     if (vacancy.Matches.All(m => m.HypothesisId != input.HypothesisId))
     {
-      errors[nameof(ApplyInput.HypothesisId)] = "Гипотеза не подходит к вакансии";
+      errors[nameof(ApplyInput.HypothesisId)] = localizer["Error.HypothesisMismatch"];
     }
 
     if (!await db.CvVersions.AnyAsync(v => v.Id == input.CvVersionId, cancellationToken))
     {
-      errors[nameof(ApplyInput.CvVersionId)] = "Версия CV не найдена";
+      errors[nameof(ApplyInput.CvVersionId)] = localizer["Error.CvVersionNotFound"];
     }
 
     var now = timeProvider.GetUtcNow().UtcDateTime;
@@ -124,11 +124,11 @@ public partial class VacancyService
     var last = vacancy.Events.Where(e => e.Type == ApplicationEventType.StageChanged).Max(e => e.OccurredAt);
     if (appliedAt > now)
     {
-      errors[nameof(ApplyInput.AppliedAt)] = "Дата отклика в будущем";
+      errors[nameof(ApplyInput.AppliedAt)] = localizer["Error.AppliedAtInFuture"];
     }
     else if (appliedAt.Date < last.Date)
     {
-      errors[nameof(ApplyInput.AppliedAt)] = "Дата отклика раньше последней смены стадии";
+      errors[nameof(ApplyInput.AppliedAt)] = localizer["Error.AppliedAtBeforeStage"];
     }
     else if (appliedAt < last)
     {
@@ -147,7 +147,7 @@ public partial class VacancyService
     }
     catch (StageTransitionException)
     {
-      throw Failure("Откликнуться на вакансию на этой стадии нельзя");
+      throw Failure(localizer["Error.CannotApplyAtStage"]);
     }
 
     await db.SaveChangesAsync(cancellationToken);
@@ -165,7 +165,7 @@ public partial class VacancyService
     }
     catch (StageTransitionException)
     {
-      throw Failure("Вакансию на этой стадии нельзя закрыть");
+      throw Failure(localizer["Error.CannotCloseAtStage"]);
     }
 
     await db.SaveChangesAsync(cancellationToken);

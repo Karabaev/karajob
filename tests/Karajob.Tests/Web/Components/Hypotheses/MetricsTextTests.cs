@@ -9,10 +9,10 @@ namespace Karajob.Tests.Web.Components.Hypotheses;
 public class MetricsTextTests
 {
   [Theory]
-  [InlineData(MetricVerdict.InsufficientData, "данных мало")]
-  [InlineData(MetricVerdict.BelowThreshold, "ниже порога")]
-  [InlineData(MetricVerdict.OnTrack, "в норме")]
-  public void Verdict_ReturnsRussianLabel(MetricVerdict verdict, string expected)
+  [InlineData(MetricVerdict.InsufficientData, "insufficient data")]
+  [InlineData(MetricVerdict.BelowThreshold, "below threshold")]
+  [InlineData(MetricVerdict.OnTrack, "on track")]
+  public void Verdict_ReturnsEnglishLabel(MetricVerdict verdict, string expected)
   {
     Assert.Equal(expected, MetricsText.Verdict(verdict));
   }

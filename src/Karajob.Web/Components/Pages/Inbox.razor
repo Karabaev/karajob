@@ -8,7 +8,7 @@
 
 <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
   <MudText Typo="Typo.h4" HtmlTag="h1">Inbox</MudText>
-  <MudButton Class="inbox-add" Href="/vacancies/new" Variant="Variant.Outlined" Color="Color.Primary">Добавить вручную</MudButton>
+  <MudButton Class="inbox-add" Href="/vacancies/new" Variant="Variant.Outlined" Color="Color.Primary">@L["Pages.AddManually"]</MudButton>
 </MudStack>
 
 @if (_items is null)
@@ -17,35 +17,35 @@
 }
 else if (_items.Count == 0)
 {
-  <MudText Class="inbox-empty mud-text-secondary">В Inbox пока пусто.</MudText>
+  <MudText Class="inbox-empty mud-text-secondary">@L["Pages.InboxEmpty"]</MudText>
 }
 else
 {
   <MudTable Items="_items" Breakpoint="Breakpoint.Sm" Hover="true" Dense="true">
     <HeaderContent>
-      <MudTh>Ссылка</MudTh>
-      <MudTh>Компания</MudTh>
-      <MudTh>Роль</MudTh>
-      <MudTh>Найдена</MudTh>
+      <MudTh>@L["Pages.Link"]</MudTh>
+      <MudTh>@L["Pages.Company"]</MudTh>
+      <MudTh>@L["Pages.Role"]</MudTh>
+      <MudTh>@L["Pages.Discovered"]</MudTh>
       <MudTh></MudTh>
     </HeaderContent>
     <RowTemplate>
-      <MudTd DataLabel="Ссылка">
+      <MudTd DataLabel="@L["Pages.Link"]">
         <MudLink Href="@($"/vacancies/{context.Id}")" Style="overflow-wrap: anywhere;">@context.Url</MudLink>
         @if (context.Notes is { } notes)
         {
           <MudText Class="inbox-note mud-text-secondary" Typo="Typo.caption" Style="display: block; white-space: pre-line;">@notes</MudText>
         }
       </MudTd>
-      <MudTd DataLabel="Компания">@(context.CompanyName ?? "—")</MudTd>
-      <MudTd DataLabel="Роль">@(context.RoleName ?? "—")</MudTd>
-      <MudTd DataLabel="Найдена">@VacancyText.Date(context.DiscoveredAt)</MudTd>
+      <MudTd DataLabel="@L["Pages.Company"]">@(context.CompanyName ?? "—")</MudTd>
+      <MudTd DataLabel="@L["Pages.Role"]">@(context.RoleName ?? "—")</MudTd>
+      <MudTd DataLabel="@L["Pages.Discovered"]">@VacancyText.Date(context.DiscoveredAt)</MudTd>
       <MudTd>
         <MudStack Row="true" Spacing="1" Justify="Justify.FlexEnd">
           <MudButton Class="inbox-to-board" Size="Size.Small" Variant="Variant.Filled" Color="Color.Primary"
-                     Style="white-space: nowrap;" OnClick="() => MoveToBoardAsync(context.Id)">→ На доску</MudButton>
+                     Style="white-space: nowrap;" OnClick="() => MoveToBoardAsync(context.Id)">@L["Pages.ToBoardButton"]</MudButton>
           <MudButton Class="inbox-dismiss" Size="Size.Small" Variant="Variant.Text" Color="Color.Error"
-                     Style="white-space: nowrap;" OnClick="() => DismissAsync(context.Id)">Отклонить</MudButton>
+                     Style="white-space: nowrap;" OnClick="() => DismissAsync(context.Id)">@L["Pages.Dismiss"]</MudButton>
         </MudStack>
       </MudTd>
     </RowTemplate>
@@ -88,7 +88,7 @@ else
   private Task MoveToBoardAsync(Guid vacancyId)
   {
     var parameters = new DialogParameters<MoveToBoardDialog> { { d => d.VacancyId, vacancyId } };
-    return ShowAndNotifyAsync<MoveToBoardDialog>("На доску", parameters);
+    return ShowAndNotifyAsync<MoveToBoardDialog>(L["Pages.ToBoardTitle"], parameters);
   }
 
   private Task DismissAsync(Guid vacancyId)
@@ -98,7 +98,7 @@ else
       { d => d.VacancyId, vacancyId },
       { d => d.ExpectedStage, VacancyStage.Inbox },
     };
-    return ShowAndNotifyAsync<DismissVacancyDialog>("Отклонить вакансию", parameters);
+    return ShowAndNotifyAsync<DismissVacancyDialog>(L["Pages.DismissVacancyTitle"], parameters);
   }
 
   private async Task ShowAndNotifyAsync<TDialog>(string title, DialogParameters<TDialog> parameters)

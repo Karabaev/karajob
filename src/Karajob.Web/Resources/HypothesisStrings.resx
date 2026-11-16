@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Hypothesis.Criteria" xml:space="preserve"><value>Criteria</value></data>
+  <data name="Hypothesis.MetricsUnavailable" xml:space="preserve"><value>Metrics unavailable: hypothesis not found.</value></data>
+  <data name="Hypothesis.WeekPeriod" xml:space="preserve"><value>Week {0} (UTC) · period from {1}</value></data>
+  <data name="Hypothesis.Market" xml:space="preserve"><value>Market</value></data>
+  <data name="Hypothesis.MarketCaption" xml:space="preserve"><value>vacancies this week · threshold: {0} per week</value></data>
+  <data name="Hypothesis.Conversion" xml:space="preserve"><value>Conversion</value></data>
+  <data name="Hypothesis.OfCount" xml:space="preserve"><value>{0} of {1}</value></data>
+  <data name="Hypothesis.ConfidenceInterval" xml:space="preserve"><value>95% CI {0}</value></data>
+  <data name="Hypothesis.ConversionCaption" xml:space="preserve"><value>threshold {0} · counting applications older than {1} days</value></data>
+  <data name="Hypothesis.MinSample" xml:space="preserve"><value>at least {0} matured applications are needed for a verdict</value></data>
+  <data name="Hypothesis.Activity" xml:space="preserve"><value>Activity</value></data>
+  <data name="Hypothesis.ActivityCaption" xml:space="preserve"><value>applications for the profile this week · for this hypothesis: {0}</value></data>
+  <data name="Hypothesis.NotFound" xml:space="preserve"><value>Hypothesis not found</value></data>
+  <data name="Hypothesis.BackToList" xml:space="preserve"><value>To hypotheses list</value></data>
+  <data name="Hypothesis.New" xml:space="preserve"><value>New hypothesis</value></data>
+  <data name="Hypothesis.Name" xml:space="preserve"><value>Name</value></data>
+  <data name="Hypothesis.Role" xml:space="preserve"><value>Role</value></data>
+  <data name="Hypothesis.Language" xml:space="preserve"><value>Language</value></data>
+  <data name="Hypothesis.WorkFormat" xml:space="preserve"><value>Work format</value></data>
+  <data name="Hypothesis.Locations" xml:space="preserve"><value>Locations</value></data>
+  <data name="Hypothesis.Platforms" xml:space="preserve"><value>Platforms</value></data>
+  <data name="Hypothesis.Engines" xml:space="preserve"><value>Engines</value></data>
+  <data name="Hypothesis.Industries" xml:space="preserve"><value>Industries</value></data>
+  <data name="Hypothesis.OnePerLine" xml:space="preserve"><value>one per line</value></data>
+  <data name="Hypothesis.Positioning" xml:space="preserve"><value>Positioning</value></data>
+  <data name="Hypothesis.PrimaryCv" xml:space="preserve"><value>Primary CV</value></data>
+  <data name="Hypothesis.CvHint" xml:space="preserve"><value>CVs appear after upload in the CVs section</value></data>
+  <data name="Hypothesis.NotSelected" xml:space="preserve"><value>— not selected —</value></data>
+  <data name="Hypothesis.Status" xml:space="preserve"><value>Status</value></data>
+  <data name="Hypothesis.Started" xml:space="preserve"><value>Started {0}</value></data>
+  <data name="Hypothesis.Save" xml:space="preserve"><value>Save</value></data>
+  <data name="Hypothesis.Delete" xml:space="preserve"><value>Delete hypothesis</value></data>
+  <data name="Hypothesis.EmptyHint" xml:space="preserve"><value>Add in the Catalogs section</value></data>
+  <data name="Hypothesis.Saved" xml:space="preserve"><value>Saved</value></data>
+  <data name="Hypothesis.DeleteTitle" xml:space="preserve"><value>Delete hypothesis?</value></data>
+  <data name="Hypothesis.DeleteMessage" xml:space="preserve"><value>Hypothesis “{0}” will be deleted.</value></data>
+  <data name="Hypothesis.DeleteConfirm" xml:space="preserve"><value>Delete</value></data>
+  <data name="Hypothesis.Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Status.Draft" xml:space="preserve"><value>Draft</value></data>
+  <data name="Status.Active" xml:space="preserve"><value>Active</value></data>
+  <data name="Status.Expanded" xml:space="preserve"><value>Expanded</value></data>
+  <data name="Status.Paused" xml:space="preserve"><value>Paused</value></data>
+  <data name="Status.Disabled" xml:space="preserve"><value>Disabled</value></data>
+  <data name="WorkFormat.Remote" xml:space="preserve"><value>Remote</value></data>
+  <data name="WorkFormat.Hybrid" xml:space="preserve"><value>Hybrid</value></data>
+  <data name="WorkFormat.OnSite" xml:space="preserve"><value>Office</value></data>
+  <data name="WorkFormat.Relocation" xml:space="preserve"><value>Relocation</value></data>
+  <data name="Verdict.InsufficientData" xml:space="preserve"><value>insufficient data</value></data>
+  <data name="Verdict.BelowThreshold" xml:space="preserve"><value>below threshold</value></data>
+  <data name="Verdict.OnTrack" xml:space="preserve"><value>on track</value></data>
+</root>

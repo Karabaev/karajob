@@ -1,3 +1,5 @@
+using Karajob.Application.Resources;
+using Microsoft.Extensions.Localization;
 using Karajob.Application.Common;
 using Karajob.Application.Persistence;
 using Karajob.Application.Users;
@@ -6,7 +8,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Karajob.Application.Hypotheses;
 
-public class HypothesisService(IKarajobDbContextFactory dbContextFactory, ICurrentUser currentUser, TimeProvider timeProvider)
+public class HypothesisService(
+  IKarajobDbContextFactory dbContextFactory,
+  ICurrentUser currentUser,
+  TimeProvider timeProvider,
+  IStringLocalizer<HypothesisMessages> localizer)
 {
   public async Task<IReadOnlyList<HypothesisListItem>> ListAsync(CancellationToken cancellationToken = default)
   {
@@ -72,7 +78,7 @@ public class HypothesisService(IKarajobDbContextFactory dbContextFactory, ICurre
     {
       throw new ValidationFailedException(new Dictionary<string, string>
       {
-        [string.Empty] = "Гипотеза используется в вакансиях или откликах — переведите её в статус Disabled",
+        [string.Empty] = localizer["Error.InUse"],
       });
     }
 
@@ -104,62 +110,62 @@ public class HypothesisService(IKarajobDbContextFactory dbContextFactory, ICurre
     hypothesis.ChangeStatus(input.Status, now);
   }
 
-  private static async Task<NormalizedHypothesis> ValidateAsync(IKarajobDbContext db, HypothesisInput input, CancellationToken cancellationToken)
+  private async Task<NormalizedHypothesis> ValidateAsync(IKarajobDbContext db, HypothesisInput input, CancellationToken cancellationToken)
   {
     var errors = new Dictionary<string, string>();
 
     var name = BlankToNull(input.Name);
     if (name is null)
     {
-      errors[nameof(HypothesisInput.Name)] = "Укажите название";
+      errors[nameof(HypothesisInput.Name)] = localizer["Error.NameRequired"];
     }
 
     var roleId = input.RoleId.GetValueOrDefault();
     if (input.RoleId is null)
     {
-      errors[nameof(HypothesisInput.RoleId)] = "Укажите роль";
+      errors[nameof(HypothesisInput.RoleId)] = localizer["Error.RoleRequired"];
     }
     else if (!await db.Roles.AnyAsync(r => r.Id == roleId, cancellationToken))
     {
-      errors[nameof(HypothesisInput.RoleId)] = "Роль не найдена";
+      errors[nameof(HypothesisInput.RoleId)] = localizer["Error.RoleNotFound"];
     }
 
     var languageId = input.LanguageId.GetValueOrDefault();
     if (input.LanguageId is null)
     {
-      errors[nameof(HypothesisInput.LanguageId)] = "Укажите язык";
+      errors[nameof(HypothesisInput.LanguageId)] = localizer["Error.LanguageRequired"];
     }
     else if (!await db.Languages.AnyAsync(l => l.Id == languageId, cancellationToken))
     {
-      errors[nameof(HypothesisInput.LanguageId)] = "Язык не найден";
+      errors[nameof(HypothesisInput.LanguageId)] = localizer["Error.LanguageNotFound"];
     }
 
     var locationIds = input.LocationIds.Distinct().ToList();
     if (locationIds.Count > 0 && await db.Locations.CountAsync(l => locationIds.Contains(l.Id), cancellationToken) != locationIds.Count)
     {
-      errors[nameof(HypothesisInput.LocationIds)] = "Локация не найдена";
+      errors[nameof(HypothesisInput.LocationIds)] = localizer["Error.LocationNotFound"];
     }
 
     var platformIds = input.PlatformIds.Distinct().ToList();
     if (platformIds.Count > 0 && await db.Platforms.CountAsync(p => platformIds.Contains(p.Id), cancellationToken) != platformIds.Count)
     {
-      errors[nameof(HypothesisInput.PlatformIds)] = "Платформа не найдена";
+      errors[nameof(HypothesisInput.PlatformIds)] = localizer["Error.PlatformNotFound"];
     }
 
     var engineIds = input.EngineIds.Distinct().ToList();
     if (engineIds.Count > 0 && await db.Engines.CountAsync(e => engineIds.Contains(e.Id), cancellationToken) != engineIds.Count)
     {
-      errors[nameof(HypothesisInput.EngineIds)] = "Движок не найден";
+      errors[nameof(HypothesisInput.EngineIds)] = localizer["Error.EngineNotFound"];
     }
 
     if (input.WorkFormat == WorkFormat.None)
     {
-      errors[nameof(HypothesisInput.WorkFormat)] = "Выберите хотя бы один формат";
+      errors[nameof(HypothesisInput.WorkFormat)] = localizer["Error.WorkFormatRequired"];
     }
 
     if (input.PrimaryCvDocumentId is { } cvId && !await db.CvDocuments.AnyAsync(d => d.Id == cvId, cancellationToken))
     {
-      errors[nameof(HypothesisInput.PrimaryCvDocumentId)] = "CV не найдено";
+      errors[nameof(HypothesisInput.PrimaryCvDocumentId)] = localizer["Error.CvNotFound"];
     }
 
     if (errors.Count > 0)

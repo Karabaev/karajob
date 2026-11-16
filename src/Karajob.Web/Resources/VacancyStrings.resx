@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Stage.Inbox" xml:space="preserve"><value>Inbox</value></data>
+  <data name="Stage.Targeted" xml:space="preserve"><value>Targeted</value></data>
+  <data name="Stage.Preparing" xml:space="preserve"><value>Preparing</value></data>
+  <data name="Stage.Applied" xml:space="preserve"><value>Applied</value></data>
+  <data name="Stage.Interviewing" xml:space="preserve"><value>Interviewing</value></data>
+  <data name="Stage.Closed" xml:space="preserve"><value>Closed</value></data>
+  <data name="Stage.Dismissed" xml:space="preserve"><value>Dismissed</value></data>
+  <data name="EventType.StageChanged" xml:space="preserve"><value>Stage changed</value></data>
+  <data name="EventType.Screening" xml:space="preserve"><value>Screening</value></data>
+  <data name="EventType.TechInterview" xml:space="preserve"><value>Technical interview</value></data>
+  <data name="EventType.TestTask" xml:space="preserve"><value>Test task</value></data>
+  <data name="EventType.Rejected" xml:space="preserve"><value>Rejected</value></data>
+  <data name="EventType.Offer" xml:space="preserve"><value>Offer</value></data>
+  <data name="EventType.Note" xml:space="preserve"><value>Note</value></data>
+  <data name="Dismiss.WrongRole" xml:space="preserve"><value>Wrong role</value></data>
+  <data name="Dismiss.WrongLocation" xml:space="preserve"><value>Wrong location</value></data>
+  <data name="Dismiss.WrongStack" xml:space="preserve"><value>Wrong stack</value></data>
+  <data name="Dismiss.WrongSalary" xml:space="preserve"><value>Wrong salary</value></data>
+  <data name="Dismiss.Other" xml:space="preserve"><value>Other</value></data>
+  <data name="Outcome.Offer" xml:space="preserve"><value>Offer</value></data>
+  <data name="Outcome.Rejected" xml:space="preserve"><value>Rejected</value></data>
+  <data name="Outcome.Ghosted" xml:space="preserve"><value>Ghosted</value></data>
+  <data name="Outcome.Withdrawn" xml:space="preserve"><value>Withdrawn</value></data>
+  <data name="Channel.Website" xml:space="preserve"><value>Website</value></data>
+  <data name="Channel.Referral" xml:space="preserve"><value>Referral</value></data>
+  <data name="Channel.Recruiter" xml:space="preserve"><value>Recruiter</value></data>
+  <data name="Channel.ColdEmail" xml:space="preserve"><value>Cold email</value></data>
+  <data name="Channel.Other" xml:space="preserve"><value>Other</value></data>
+  <data name="Common.Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Common.Add" xml:space="preserve"><value>Add</value></data>
+  <data name="Common.Dismiss" xml:space="preserve"><value>Dismiss</value></data>
+  <data name="Common.Save" xml:space="preserve"><value>Save</value></data>
+  <data name="Common.Delete" xml:space="preserve"><value>Delete</value></data>
+  <data name="AddVacancy.Url" xml:space="preserve"><value>Vacancy link</value></data>
+  <data name="AddVacancy.Note" xml:space="preserve"><value>Note (optional)</value></data>
+  <data name="AddVacancy.AlreadyExists" xml:space="preserve"><value>Vacancy already exists: {0}</value></data>
+  <data name="AddVacancy.Added" xml:space="preserve"><value>Added to Inbox</value></data>
+  <data name="AddVacancy.Open" xml:space="preserve"><value>Open</value></data>
+  <data name="Event.Type" xml:space="preserve"><value>Type</value></data>
+  <data name="Event.Date" xml:space="preserve"><value>Date</value></data>
+  <data name="Event.Note" xml:space="preserve"><value>Note</value></data>
+  <data name="Apply.NoHypotheses" xml:space="preserve"><value>The vacancy has no matching hypotheses. Link the vacancy to a hypothesis to apply.</value></data>
+  <data name="Apply.NoCv" xml:space="preserve"><value>No CVs uploaded. Upload a CV to apply.</value></data>
+  <data name="Apply.Hypothesis" xml:space="preserve"><value>Hypothesis</value></data>
+  <data name="Apply.Channel" xml:space="preserve"><value>Channel</value></data>
+  <data name="Apply.Date" xml:space="preserve"><value>Application date</value></data>
+  <data name="Apply.CoverLetter" xml:space="preserve"><value>Cover letter</value></data>
+  <data name="Apply.Submit" xml:space="preserve"><value>Apply</value></data>
+  <data name="BoardCard.Actions" xml:space="preserve"><value>Actions</value></data>
+  <data name="Close.Outcome" xml:space="preserve"><value>Outcome</value></data>
+  <data name="Close.Submit" xml:space="preserve"><value>Close</value></data>
+  <data name="CreateCompany.Name" xml:space="preserve"><value>Name</value></data>
+  <data name="CreateCompany.Domain" xml:space="preserve"><value>Domain</value></data>
+  <data name="CreateCompany.DomainHint" xml:space="preserve"><value>optional</value></data>
+  <data name="CreateCompany.Submit" xml:space="preserve"><value>Create</value></data>
+  <data name="DismissDialog.Reason" xml:space="preserve"><value>Reason</value></data>
+  <data name="DismissDialog.Comment" xml:space="preserve"><value>Comment (optional)</value></data>
+  <data name="MoveToBoard.Matching" xml:space="preserve"><value>Matching hypotheses</value></data>
+  <data name="MoveToBoard.NoHypotheses" xml:space="preserve"><value>Create a hypothesis first</value></data>
+  <data name="MoveToBoard.Submit" xml:space="preserve"><value>To board</value></data>
+  <data name="Timeline.Title" xml:space="preserve"><value>History</value></data>
+  <data name="Timeline.Add" xml:space="preserve"><value>Add event</value></data>
+  <data name="Timeline.Delete" xml:space="preserve"><value>Delete event</value></data>
+  <data name="Timeline.Discovered" xml:space="preserve"><value>Discovered</value></data>
+  <data name="Timeline.Stage" xml:space="preserve"><value>Stage: {0}</value></data>
+  <data name="Page.NotFound" xml:space="preserve"><value>Vacancy not found</value></data>
+  <data name="Page.ToInbox" xml:space="preserve"><value>To Inbox</value></data>
+  <data name="Page.Title" xml:space="preserve"><value>Vacancy</value></data>
+  <data name="Page.New" xml:space="preserve"><value>New vacancy</value></data>
+  <data name="Page.Similar" xml:space="preserve"><value>Similar vacancies (same company and role in the last 30 days):</value></data>
+  <data name="Page.Url" xml:space="preserve"><value>Link</value></data>
+  <data name="Page.Company" xml:space="preserve"><value>Company</value></data>
+  <data name="Page.Role" xml:space="preserve"><value>Role</value></data>
+  <data name="Page.Location" xml:space="preserve"><value>Location</value></data>
+  <data name="Page.NotSelected" xml:space="preserve"><value>— none —</value></data>
+  <data name="Page.NotSelectedLanguage" xml:space="preserve"><value>— none —</value></data>
+  <data name="Page.Platforms" xml:space="preserve"><value>Platforms</value></data>
+  <data name="Page.Engines" xml:space="preserve"><value>Engines</value></data>
+  <data name="Page.Language" xml:space="preserve"><value>Language</value></data>
+  <data name="Page.WorkFormat" xml:space="preserve"><value>Work format</value></data>
+  <data name="Page.Remote" xml:space="preserve"><value>Remote</value></data>
+  <data name="Page.Hybrid" xml:space="preserve"><value>Hybrid</value></data>
+  <data name="Page.OnSite" xml:space="preserve"><value>On-site</value></data>
+  <data name="Page.Relocation" xml:space="preserve"><value>Relocation</value></data>
+  <data name="Page.SalaryMin" xml:space="preserve"><value>Salary from</value></data>
+  <data name="Page.SalaryMax" xml:space="preserve"><value>Salary to</value></data>
+  <data name="Page.Currency" xml:space="preserve"><value>Currency</value></data>
+  <data name="Page.Hypotheses" xml:space="preserve"><value>Matching hypotheses</value></data>
+  <data name="Page.NoHypotheses" xml:space="preserve"><value>Create a hypothesis first</value></data>
+  <data name="Page.Description" xml:space="preserve"><value>Description</value></data>
+  <data name="Page.Notes" xml:space="preserve"><value>Notes</value></data>
+  <data name="Page.Saved" xml:space="preserve"><value>Saved</value></data>
+  <data name="Page.CreateCompany" xml:space="preserve"><value>+ Create "{0}"</value></data>
+  <data name="Page.NewCompany" xml:space="preserve"><value>New company</value></data>
+  <data name="Page.EmptyHint" xml:space="preserve"><value>Add them in the Catalogs section</value></data>
+  <data name="Page.NewEvent" xml:space="preserve"><value>New event</value></data>
+  <data name="Page.DeleteEventTitle" xml:space="preserve"><value>Delete event?</value></data>
+  <data name="Page.DeleteEventText" xml:space="preserve"><value>The event "{0}" will be deleted.</value></data>
+</root>

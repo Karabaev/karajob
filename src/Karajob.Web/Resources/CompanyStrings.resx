@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Common.Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Common.Save" xml:space="preserve"><value>Save</value></data>
+  <data name="Common.Delete" xml:space="preserve"><value>Delete</value></data>
+  <data name="Page.NotFound" xml:space="preserve"><value>Company not found</value></data>
+  <data name="Page.ToList" xml:space="preserve"><value>To the company list</value></data>
+  <data name="Page.New" xml:space="preserve"><value>New company</value></data>
+  <data name="Page.Name" xml:space="preserve"><value>Name</value></data>
+  <data name="Page.Website" xml:space="preserve"><value>Website</value></data>
+  <data name="Page.Domains" xml:space="preserve"><value>Domains</value></data>
+  <data name="Page.Aliases" xml:space="preserve"><value>Aliases</value></data>
+  <data name="Page.OnePerLine" xml:space="preserve"><value>one per line</value></data>
+  <data name="Page.Description" xml:space="preserve"><value>Description</value></data>
+  <data name="Page.DeleteCompany" xml:space="preserve"><value>Delete company</value></data>
+  <data name="Page.MyNote" xml:space="preserve"><value>My note</value></data>
+  <data name="Page.Note" xml:space="preserve"><value>Note</value></data>
+  <data name="Page.Blacklist" xml:space="preserve"><value>Blacklist</value></data>
+  <data name="Page.SaveNote" xml:space="preserve"><value>Save note</value></data>
+  <data name="Page.Projects" xml:space="preserve"><value>Projects</value></data>
+  <data name="Page.AddProject" xml:space="preserve"><value>+ Project</value></data>
+  <data name="Page.NoProjects" xml:space="preserve"><value>No projects yet.</value></data>
+  <data name="Page.EditProject" xml:space="preserve"><value>Edit project</value></data>
+  <data name="Page.DeleteProject" xml:space="preserve"><value>Delete project</value></data>
+  <data name="Page.Saved" xml:space="preserve"><value>Saved</value></data>
+  <data name="Page.NoteSaved" xml:space="preserve"><value>Note saved</value></data>
+  <data name="Page.DeleteCompanyTitle" xml:space="preserve"><value>Delete company?</value></data>
+  <data name="Page.DeleteCompanyText" xml:space="preserve"><value>The company "{0}" will be deleted.</value></data>
+  <data name="Page.NewProject" xml:space="preserve"><value>New project</value></data>
+  <data name="Page.ProjectTitle" xml:space="preserve"><value>Edit project</value></data>
+  <data name="Page.DeleteProjectTitle" xml:space="preserve"><value>Delete project?</value></data>
+  <data name="Page.DeleteProjectText" xml:space="preserve"><value>The project "{0}" will be deleted.</value></data>
+  <data name="Project.Name" xml:space="preserve"><value>Name</value></data>
+  <data name="Project.Genre" xml:space="preserve"><value>Genre</value></data>
+  <data name="Project.Engine" xml:space="preserve"><value>Engine</value></data>
+  <data name="Project.Status" xml:space="preserve"><value>Status</value></data>
+  <data name="Project.Url" xml:space="preserve"><value>Link</value></data>
+  <data name="Status.Announced" xml:space="preserve"><value>Announced</value></data>
+  <data name="Status.InDevelopment" xml:space="preserve"><value>In development</value></data>
+  <data name="Status.Released" xml:space="preserve"><value>Released</value></data>
+</root>

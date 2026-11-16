@@ -4,29 +4,29 @@
 Accepted. Implemented for issue #66.
 
 ## Context
-Выкат на домашний сервер был устроен как `git clone` + `docker compose up -d --build` прямо на сервере: исходники лежат на сервере, образ собирается там же, откат — `git checkout` старого коммита и ручной тег `karajob:prev`. Остальные сервисы на этом сервере ставятся из готовых образов, и хотелось той же модели: на сервере только `compose.yaml`, `.env` и `data/`.
+The rollout to the home server was a `git clone` + `docker compose up -d --build` right on the server: the sources sit on the server, the image is built there, and a rollback is a `git checkout` of an old commit plus a manual `karajob:prev` tag. The other services on this server are installed from ready-made images, and the same model was wanted: only `compose.yaml`, `.env` and `data/` on the server.
 
 ## Decisions
 
-### 1. Сервер запускает готовый образ из GitHub Container Registry
-**Decision.** CI собирает образ и публикует его в `ghcr.io/karabaev/karajob`. На сервере — [docs/deploy/compose.yaml](../deploy/compose.yaml) без `build:` и `.env` по [docs/deploy/.env.example](../deploy/.env.example). Корневой `docker-compose.yml` с `build: .` остаётся для локальной разработки и `scripts/verify-docker-persistence.sh`. Пакет публичный, поэтому серверу не нужен логин; для приватного пакета — однократный `docker login ghcr.io` с PAT только `read:packages`.
+### 1. The server runs a ready image from GitHub Container Registry
+**Decision.** CI builds the image and publishes it to `ghcr.io/karabaev/karajob`. The server has [docs/deploy/compose.yaml](../deploy/compose.yaml) without `build:` and a `.env` based on [docs/deploy/.env.example](../deploy/.env.example). The root `docker-compose.yml` with `build: .` stays for local development and `scripts/verify-docker-persistence.sh`. The package is public, so the server needs no login; for a private package, a one-time `docker login ghcr.io` with a PAT scoped to `read:packages` only.
 
 **Alternatives.**
-- Сборка на сервере — на сервере нужны исходники и git, сборка в .NET SDK идёт на слабом железе и занимает время и диск, а версионированных образов для отката нет: прежний образ приходится вручную сохранять тегом вроде `karajob:prev`.
-- `docker save | docker load` — образ переносится вручную файлом: нет истории версий и тегов в одном месте, откат — поиск старого архива, а копировать архивы на сервер нужно руками или своим скриптом.
+- Building on the server — the server needs the sources and git, the .NET SDK build runs on weak hardware and costs time and disk, and there are no versioned images for rollback: the previous image has to be saved by hand under a tag like `karajob:prev`.
+- `docker save | docker load` — the image is moved by hand as a file: there is no history of versions and tags in one place, a rollback means hunting for an old archive, and the archives must be copied to the server by hand or with a custom script.
 
-### 2. Публикация только из `master` и только проверенного
-**Decision.** Job `publish` в `.github/workflows/ci.yml` запускается только на `push` в `master` и `needs: [build-and-test, docker]`: публикуется только коммит, прошедший тесты и проверку сохранности `/data`. Образ для публикации собирается заново в этом job'е: он из того же коммита, но не байт-в-байт тот, что проверял job `docker`. Право `packages: write` выдаётся только этому job'у, push идёт через `GITHUB_TOKEN`, отдельных секретов нет. Имя образа и OCI-лейблы (в том числе `org.opencontainers.image.source`, который привязывает пакет к репозиторию) даёт `docker/metadata-action`: он же приводит имя владельца `Karabaev` к нижнему регистру, которого требует реестр. Платформа — только `linux/amd64` (сервер x86_64), кеш слоёв — `type=gha`.
+### 2. Publish only from `master` and only what has been verified
+**Decision.** The `publish` job in `.github/workflows/ci.yml` runs only on `push` to `master` and has `needs: [build-and-test, docker]`: only a commit that passed the tests and the `/data` persistence check is published. The image to publish is rebuilt in this job: it comes from the same commit but is not byte-for-byte the one the `docker` job verified. The `packages: write` permission is granted only to this job, the push goes through `GITHUB_TOKEN`, and there are no separate secrets. The image name and the OCI labels (including `org.opencontainers.image.source`, which links the package to the repository) come from `docker/metadata-action`: it also lowercases the owner name `Karabaev`, which the registry requires. The platform is `linux/amd64` only (the server is x86_64), and the layer cache is `type=gha`.
 
-Общий `concurrency` с `cancel-in-progress` остаётся: если в `master` быстро придут два push, publish первого отменится и у его коммита не будет образа. Это приемлемо — на сервер выкатывается последний.
-
-**Alternatives.**
-- Отдельный workflow на публикацию — дублирует сборку и тесты или требует `workflow_run`, который сложнее читать.
-- Публикация с feature-веток — в реестр попадают непроверенные образы, которые легко выкатить по ошибке.
-
-### 3. На сервере — явный `sha-` тег, откат — прежний тег
-**Decision.** Образ получает теги `sha-<полный sha коммита>` и `latest`. В серверном compose тег обязателен (`${KARAJOB_TAG:?...}`), дефолта `latest` нет: версия на сервере всегда явная и видна в `.env`. Обновление — сменить `KARAJOB_TAG` и `docker compose pull && docker compose up -d`; откат — вернуть прежний тег. Down-миграций нет, поэтому если новый образ применил миграцию, откат требует ещё и восстановить базу из `data/backups/<timestamp>-before-<migration>.db`, иначе старый образ упадёт на новой схеме.
+The shared `concurrency` with `cancel-in-progress` stays: if two pushes arrive in `master` quickly, the first one's publish is cancelled and its commit gets no image. This is acceptable — the latest one is what gets rolled out to the server.
 
 **Alternatives.**
-- `latest` на сервере — `docker compose pull` молча меняет версию, а прежняя версия нигде не записана, откатываться не на что.
-- Semver-теги по git-тегам — релизы пока не размечаются, а `sha-` однозначно связывает образ с коммитом.
+- A separate publishing workflow — duplicates the build and tests or needs `workflow_run`, which is harder to read.
+- Publishing from feature branches — unverified images land in the registry, and they are easy to roll out by mistake.
+
+### 3. An explicit `sha-` tag on the server, rollback is the previous tag
+**Decision.** The image gets the tags `sha-<full commit sha>` and `latest`. The tag is mandatory in the server compose (`${KARAJOB_TAG:?...}`), and there is no `latest` default: the version on the server is always explicit and visible in `.env`. Updating means changing `KARAJOB_TAG` and running `docker compose pull && docker compose up -d`; rolling back means restoring the previous tag. There are no down migrations, so if the new image applied a migration, a rollback also requires restoring the database from `data/backups/<timestamp>-before-<migration>.db`, otherwise the old image fails on the newer schema.
+
+**Alternatives.**
+- `latest` on the server — `docker compose pull` silently changes the version, and the previous version is recorded nowhere, so there is nothing to roll back to.
+- Semver tags from git tags — releases are not marked yet, and `sha-` links an image to a commit unambiguously.

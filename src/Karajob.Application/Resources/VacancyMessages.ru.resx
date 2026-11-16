@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Error.MoveNeedsDialog" xml:space="preserve"><value>Для этого перехода нужен диалог</value></data>
+  <data name="Error.MoveInvalid" xml:space="preserve"><value>Такой переход недопустим</value></data>
+  <data name="Error.HypothesisMismatch" xml:space="preserve"><value>Гипотеза не подходит к вакансии</value></data>
+  <data name="Error.CvVersionNotFound" xml:space="preserve"><value>Версия CV не найдена</value></data>
+  <data name="Error.AppliedAtInFuture" xml:space="preserve"><value>Дата отклика в будущем</value></data>
+  <data name="Error.AppliedAtBeforeStage" xml:space="preserve"><value>Дата отклика раньше последней смены стадии</value></data>
+  <data name="Error.CannotApplyAtStage" xml:space="preserve"><value>Откликнуться на вакансию на этой стадии нельзя</value></data>
+  <data name="Error.CannotCloseAtStage" xml:space="preserve"><value>Вакансию на этой стадии нельзя закрыть</value></data>
+  <data name="Error.UrlInvalid" xml:space="preserve"><value>Некорректная ссылка на вакансию</value></data>
+  <data name="Error.HypothesisRequired" xml:space="preserve"><value>Выберите хотя бы одну гипотезу</value></data>
+  <data name="Error.CannotDismissAtStage" xml:space="preserve"><value>Вакансию на этой стадии нельзя отклонить</value></data>
+  <data name="Error.EventBeforeDiscovered" xml:space="preserve"><value>Дата события раньше даты, когда вакансия найдена</value></data>
+  <data name="Error.TransitionDeleteForbidden" xml:space="preserve"><value>Переходы между стадиями удалять нельзя</value></data>
+  <data name="Error.NotInInbox" xml:space="preserve"><value>Вакансия уже не в Inbox</value></data>
+  <data name="Error.StageChanged" xml:space="preserve"><value>Стадия вакансии уже изменилась</value></data>
+  <data name="Error.HypothesisNotFound" xml:space="preserve"><value>Гипотеза не найдена</value></data>
+  <data name="Error.HypothesisDisabled" xml:space="preserve"><value>Гипотеза отключена</value></data>
+  <data name="Error.UrlExists" xml:space="preserve"><value>Вакансия с этой ссылкой уже есть</value></data>
+  <data name="Error.CompanyNotFound" xml:space="preserve"><value>Компания не найдена</value></data>
+  <data name="Error.RoleNotFound" xml:space="preserve"><value>Роль не найдена</value></data>
+  <data name="Error.LocationNotFound" xml:space="preserve"><value>Локация не найдена</value></data>
+  <data name="Error.LanguageNotFound" xml:space="preserve"><value>Язык не найден</value></data>
+  <data name="Error.PlatformNotFound" xml:space="preserve"><value>Платформа не найдена</value></data>
+  <data name="Error.EngineNotFound" xml:space="preserve"><value>Движок не найден</value></data>
+  <data name="Error.SalaryInvalid" xml:space="preserve"><value>Некорректная вилка: значения неотрицательные, минимум не больше максимума, валюта из 3 букв</value></data>
+  <data name="Error.CurrencyNotFound" xml:space="preserve"><value>Валюта не найдена</value></data>
+  <data name="Error.CannotUnmatchApplied" xml:space="preserve"><value>Нельзя снять гипотезу, по которой сделан отклик</value></data>
+  <data name="Error.BoardNeedsHypothesis" xml:space="preserve"><value>Вакансии на доске нужна хотя бы одна гипотеза</value></data>
+</root>

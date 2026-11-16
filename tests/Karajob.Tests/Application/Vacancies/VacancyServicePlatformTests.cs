@@ -40,7 +40,7 @@ public class VacancyServicePlatformTests : VacancyServiceFixture
     var exception = await Assert.ThrowsAsync<ValidationFailedException>(
       () => Service.CreateAsync(Input(platformIds: [SeedData.PcPlatformId, Guid.NewGuid()])));
 
-    Assert.Equal("Платформа не найдена", exception.Errors[nameof(VacancyInput.PlatformIds)]);
+    Assert.Equal("Platform not found", exception.Errors[nameof(VacancyInput.PlatformIds)]);
   }
 
   [Fact]

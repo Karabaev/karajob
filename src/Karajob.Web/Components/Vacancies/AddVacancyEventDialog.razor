@@ -8,22 +8,22 @@
       {
         <MudAlert Severity="Severity.Error">@general</MudAlert>
       }
-      <MudSelect T="ApplicationEventType" Class="event-type" Label="Тип" @bind-Value="_type"
+      <MudSelect T="ApplicationEventType" Class="event-type" Label="@L["Event.Type"]" @bind-Value="_type"
                  Error="HasError(nameof(VacancyEventInput.Type))" ErrorText="@ErrorOf(nameof(VacancyEventInput.Type))">
         @foreach (var type in AllowedTypes())
         {
           <MudSelectItem T="ApplicationEventType" Value="type">@VacancyText.EventType(type)</MudSelectItem>
         }
       </MudSelect>
-      <MudDatePicker Class="event-date" Label="Дата" @bind-Date="_date" Editable="true" MinDate="DiscoveredAt.Date"
+      <MudDatePicker Class="event-date" Label="@L["Event.Date"]" @bind-Date="_date" Editable="true" MinDate="DiscoveredAt.Date"
                      Error="HasError(OccurredAtKey)" ErrorText="@ErrorOf(OccurredAtKey)" />
-      <MudTextField T="string" Class="event-note" Label="Заметка" Lines="3" Sizing="InputSizing.Auto" Immediate="true" @bind-Value="_note"
+      <MudTextField T="string" Class="event-note" Label="@L["Event.Note"]" Lines="3" Sizing="InputSizing.Auto" Immediate="true" @bind-Value="_note"
                     Error="HasError(nameof(VacancyEventInput.Note))" ErrorText="@ErrorOf(nameof(VacancyEventInput.Note))" />
     </MudStack>
   </DialogContent>
   <DialogActions>
-    <MudButton OnClick="Cancel">Отмена</MudButton>
-    <MudButton Class="event-save" Color="Color.Primary" Variant="Variant.Filled" Disabled="_saving" OnClick="SaveAsync">Добавить</MudButton>
+    <MudButton OnClick="Cancel">@L["Common.Cancel"]</MudButton>
+    <MudButton Class="event-save" Color="Color.Primary" Variant="Variant.Filled" Disabled="_saving" OnClick="SaveAsync">@L["Common.Add"]</MudButton>
   </DialogActions>
 </MudDialog>
 

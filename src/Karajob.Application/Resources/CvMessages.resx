@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Error.VersionInUse" xml:space="preserve"><value>This version is used in applications and cannot be deleted</value></data>
+  <data name="Error.LastVersion" xml:space="preserve"><value>This is the only version; delete the whole CV instead</value></data>
+  <data name="Error.CvInUse" xml:space="preserve"><value>This CV is used in applications and cannot be deleted</value></data>
+  <data name="Error.CvPrimaryInHypothesis" xml:space="preserve"><value>This CV is the primary one in a hypothesis; change it there first</value></data>
+  <data name="Error.NameRequired" xml:space="preserve"><value>Name is required</value></data>
+  <data name="Error.LanguageRequired" xml:space="preserve"><value>Language is required</value></data>
+  <data name="Error.LanguageNotFound" xml:space="preserve"><value>Language not found</value></data>
+  <data name="Error.FileRequired" xml:space="preserve"><value>Choose a file</value></data>
+  <data name="Error.FileTypeInvalid" xml:space="preserve"><value>Only PDF or DOCX</value></data>
+  <data name="Error.FileEmpty" xml:space="preserve"><value>The file is empty</value></data>
+  <data name="Error.FileTooLarge" xml:space="preserve"><value>The file is larger than {0} MB</value></data>
+</root>

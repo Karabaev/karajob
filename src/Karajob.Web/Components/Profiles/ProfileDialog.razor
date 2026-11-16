@@ -3,7 +3,7 @@
 <MudDialog>
   <DialogContent>
     <MudStack Spacing="3">
-      <MudTextField T="string" Class="profile-name" Label="Имя" AutoFocus="true" Immediate="true"
+      <MudTextField T="string" Class="profile-name" Label="@L["Profile.Name"]" AutoFocus="true" Immediate="true"
                     @bind-Value="_name" @bind-Value:after="ClearNameError"
                     Error="_nameError is not null" ErrorText="@_nameError" />
       <div class="d-flex flex-wrap" style="gap:8px">
@@ -21,9 +21,9 @@
     </MudStack>
   </DialogContent>
   <DialogActions>
-    <MudButton OnClick="Cancel">Отмена</MudButton>
+    <MudButton OnClick="Cancel">@L["Profile.Cancel"]</MudButton>
     <MudButton Class="profile-save" Variant="Variant.Filled" Color="Color.Primary" Disabled="_saving" OnClick="SaveAsync">
-      Сохранить
+      @L["Profile.Save"]
     </MudButton>
   </DialogActions>
 </MudDialog>

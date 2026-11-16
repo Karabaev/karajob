@@ -23,11 +23,11 @@ public class ProjectReferenceTests
   }
 
   [Fact]
-  public void Application_ReferencesOnlyEntityFrameworkCorePackage()
+  public void Application_ReferencesOnlyEntityFrameworkCoreAndLocalizationPackages()
   {
     var project = LoadProject("Karajob.Application");
 
-    Assert.Equal(["Microsoft.EntityFrameworkCore"], project.PackageReferences);
+    Assert.Equal(["Microsoft.EntityFrameworkCore", "Microsoft.Extensions.Localization.Abstractions"], project.PackageReferences);
   }
 
   [Fact]

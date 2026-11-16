@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Common.Cancel" xml:space="preserve"><value>Отмена</value></data>
+  <data name="Common.Save" xml:space="preserve"><value>Сохранить</value></data>
+  <data name="Common.Delete" xml:space="preserve"><value>Удалить</value></data>
+  <data name="Page.NotFound" xml:space="preserve"><value>Компания не найдена</value></data>
+  <data name="Page.ToList" xml:space="preserve"><value>К списку компаний</value></data>
+  <data name="Page.New" xml:space="preserve"><value>Новая компания</value></data>
+  <data name="Page.Name" xml:space="preserve"><value>Название</value></data>
+  <data name="Page.Website" xml:space="preserve"><value>Сайт</value></data>
+  <data name="Page.Domains" xml:space="preserve"><value>Домены</value></data>
+  <data name="Page.Aliases" xml:space="preserve"><value>Алиасы</value></data>
+  <data name="Page.OnePerLine" xml:space="preserve"><value>по одному на строку</value></data>
+  <data name="Page.Description" xml:space="preserve"><value>Описание</value></data>
+  <data name="Page.DeleteCompany" xml:space="preserve"><value>Удалить компанию</value></data>
+  <data name="Page.MyNote" xml:space="preserve"><value>Моя заметка</value></data>
+  <data name="Page.Note" xml:space="preserve"><value>Заметка</value></data>
+  <data name="Page.Blacklist" xml:space="preserve"><value>Чёрный список</value></data>
+  <data name="Page.SaveNote" xml:space="preserve"><value>Сохранить заметку</value></data>
+  <data name="Page.Projects" xml:space="preserve"><value>Проекты</value></data>
+  <data name="Page.AddProject" xml:space="preserve"><value>+ Проект</value></data>
+  <data name="Page.NoProjects" xml:space="preserve"><value>Проектов пока нет.</value></data>
+  <data name="Page.EditProject" xml:space="preserve"><value>Изменить проект</value></data>
+  <data name="Page.DeleteProject" xml:space="preserve"><value>Удалить проект</value></data>
+  <data name="Page.Saved" xml:space="preserve"><value>Сохранено</value></data>
+  <data name="Page.NoteSaved" xml:space="preserve"><value>Заметка сохранена</value></data>
+  <data name="Page.DeleteCompanyTitle" xml:space="preserve"><value>Удалить компанию?</value></data>
+  <data name="Page.DeleteCompanyText" xml:space="preserve"><value>Компания «{0}» будет удалена.</value></data>
+  <data name="Page.NewProject" xml:space="preserve"><value>Новый проект</value></data>
+  <data name="Page.ProjectTitle" xml:space="preserve"><value>Проект</value></data>
+  <data name="Page.DeleteProjectTitle" xml:space="preserve"><value>Удалить проект?</value></data>
+  <data name="Page.DeleteProjectText" xml:space="preserve"><value>Проект «{0}» будет удалён.</value></data>
+  <data name="Project.Name" xml:space="preserve"><value>Название</value></data>
+  <data name="Project.Genre" xml:space="preserve"><value>Жанр</value></data>
+  <data name="Project.Engine" xml:space="preserve"><value>Движок</value></data>
+  <data name="Project.Status" xml:space="preserve"><value>Статус</value></data>
+  <data name="Project.Url" xml:space="preserve"><value>Ссылка</value></data>
+  <data name="Status.Announced" xml:space="preserve"><value>Анонс</value></data>
+  <data name="Status.InDevelopment" xml:space="preserve"><value>В разработке</value></data>
+  <data name="Status.Released" xml:space="preserve"><value>Выпущен</value></data>
+</root>

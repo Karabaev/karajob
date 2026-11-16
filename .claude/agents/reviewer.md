@@ -12,7 +12,7 @@ Check, in order of importance:
 - Blazor pitfalls: wrong render mode, `DbContext` held across the circuit instead of `IDbContextFactory`, business logic inside Razor components, missing `maxAllowedSize` on uploads.
 - Persistence: migration present for model changes, no `EnsureCreated()`, no EF InMemory provider, no raw SQL, UTC `DateTime` (not `DateTimeOffset`), money as integers, lowercase normalization before write.
 - Tests: the planned tests exist and really validate the behavior; no weakened or deleted tests.
-- `CLAUDE.md` compliance and phase scope (nothing from "Не входит в Фазу N" slipped in).
+- `CLAUDE.md` compliance and phase scope (nothing from "Not in Phase N" slipped in).
 - Secrets and personal data: no `.env`, `*.db`, `data/`, real CVs or tokens in the diff.
 - Linear history: no merge commits on the branch.
 

@@ -1,3 +1,5 @@
+using Karajob.Application.Resources;
+using Microsoft.Extensions.Localization;
 using Karajob.Application.Common;
 using Karajob.Application.Persistence;
 using Karajob.Application.Users;
@@ -7,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Karajob.Application.Companies;
 
-public class CompanyService(IKarajobDbContextFactory dbContextFactory, ICurrentUser currentUser)
+public class CompanyService(IKarajobDbContextFactory dbContextFactory, ICurrentUser currentUser, IStringLocalizer<CompanyMessages> localizer)
 {
   // Company pages live at /companies/{slug}; these slugs collide with fixed routes there.
   private static readonly HashSet<string> ReservedSlugs = ["new"];
@@ -98,12 +100,12 @@ public class CompanyService(IKarajobDbContextFactory dbContextFactory, ICurrentU
 
     if (await db.Projects.AnyAsync(p => p.CompanyId == companyId, cancellationToken))
     {
-      throw WholeEntityError("Нельзя удалить компанию, у которой есть проекты");
+      throw WholeEntityError(localizer["Error.HasProjects"]);
     }
 
     if (await db.Vacancies.IgnoreQueryFilters().AnyAsync(v => v.CompanyId == companyId, cancellationToken))
     {
-      throw WholeEntityError("Нельзя удалить компанию, на которую ссылаются вакансии");
+      throw WholeEntityError(localizer["Error.HasVacancies"]);
     }
 
     var notes = await db.UserCompanyNotes.IgnoreQueryFilters().Where(n => n.CompanyId == companyId).ToListAsync(cancellationToken);
@@ -204,7 +206,7 @@ public class CompanyService(IKarajobDbContextFactory dbContextFactory, ICurrentU
       note?.IsBlacklisted ?? false);
   }
 
-  private static async Task<NormalizedCompany> ValidateAsync(
+  private async Task<NormalizedCompany> ValidateAsync(
     IKarajobDbContext db,
     CompanyInput input,
     Guid excludedCompanyId,
@@ -212,17 +214,17 @@ public class CompanyService(IKarajobDbContextFactory dbContextFactory, ICurrentU
   {
     var errors = new Dictionary<string, string>();
 
-    var slug = Try(() => Normalize.Slug(input.Slug), errors, nameof(CompanyInput.Slug), "Некорректный slug: допустимы латинские буквы, цифры и дефис");
+    var slug = Try(() => Normalize.Slug(input.Slug), errors, nameof(CompanyInput.Slug), localizer["Error.SlugInvalid"]);
     var name = string.IsNullOrWhiteSpace(input.Name) ? null : input.Name.Trim();
     if (name is null)
     {
-      errors[nameof(CompanyInput.Name)] = "Укажите название";
+      errors[nameof(CompanyInput.Name)] = localizer["Error.NameRequired"];
     }
 
     var website = BlankToNull(input.Website);
     if (website is not null)
     {
-      website = Try(() => Normalize.WebUrl(website), errors, nameof(CompanyInput.Website), "Некорректный адрес сайта");
+      website = Try(() => Normalize.WebUrl(website), errors, nameof(CompanyInput.Website), localizer["Error.WebsiteInvalid"]);
     }
 
     var domains = new List<string>();
@@ -241,7 +243,7 @@ public class CompanyService(IKarajobDbContextFactory dbContextFactory, ICurrentU
 
     if (invalidDomains.Count > 0)
     {
-      errors[nameof(CompanyInput.Domains)] = $"Некорректный домен: {string.Join(", ", invalidDomains)}";
+      errors[nameof(CompanyInput.Domains)] = localizer["Error.DomainInvalid", string.Join(", ", invalidDomains)];
     }
 
     var aliases = input.Aliases
@@ -253,7 +255,7 @@ public class CompanyService(IKarajobDbContextFactory dbContextFactory, ICurrentU
 
     if (slug is not null && ReservedSlugs.Contains(slug))
     {
-      errors[nameof(CompanyInput.Slug)] = $"Slug «{slug}» зарезервирован";
+      errors[nameof(CompanyInput.Slug)] = localizer["Error.SlugReserved", slug];
       slug = null;
     }
 
@@ -265,7 +267,7 @@ public class CompanyService(IKarajobDbContextFactory dbContextFactory, ICurrentU
         .FirstOrDefaultAsync(cancellationToken);
       if (owner is not null)
       {
-        errors[nameof(CompanyInput.Slug)] = $"Slug «{slug}» уже занят компанией «{owner}»";
+        errors[nameof(CompanyInput.Slug)] = localizer["Error.SlugTaken", slug, owner];
       }
     }
 
@@ -280,7 +282,7 @@ public class CompanyService(IKarajobDbContextFactory dbContextFactory, ICurrentU
         .ToListAsync(cancellationToken);
       if (taken.Count > 0)
       {
-        errors[nameof(CompanyInput.Domains)] = string.Join("; ", taken.Select(t => $"Домен «{t.Value}» уже привязан к компании «{t.Name}»"));
+        errors[nameof(CompanyInput.Domains)] = string.Join("; ", taken.Select(t => localizer["Error.DomainTaken", t.Value, t.Name]));
       }
     }
 
@@ -295,7 +297,7 @@ public class CompanyService(IKarajobDbContextFactory dbContextFactory, ICurrentU
         .ToListAsync(cancellationToken);
       if (taken.Count > 0)
       {
-        errors[nameof(CompanyInput.Aliases)] = string.Join("; ", taken.Select(t => $"Алиас «{t.Value}» уже используется компанией «{t.Name}»"));
+        errors[nameof(CompanyInput.Aliases)] = string.Join("; ", taken.Select(t => localizer["Error.AliasTaken", t.Value, t.Name]));
       }
     }
 
@@ -307,25 +309,25 @@ public class CompanyService(IKarajobDbContextFactory dbContextFactory, ICurrentU
     return new NormalizedCompany(slug!, name!, website, BlankToNull(input.Description), domains, aliases);
   }
 
-  private static async Task<NormalizedProject> ValidateProjectAsync(IKarajobDbContext db, ProjectInput input, CancellationToken cancellationToken)
+  private async Task<NormalizedProject> ValidateProjectAsync(IKarajobDbContext db, ProjectInput input, CancellationToken cancellationToken)
   {
     var errors = new Dictionary<string, string>();
 
     var name = string.IsNullOrWhiteSpace(input.Name) ? null : input.Name.Trim();
     if (name is null)
     {
-      errors[nameof(ProjectInput.Name)] = "Укажите название";
+      errors[nameof(ProjectInput.Name)] = localizer["Error.NameRequired"];
     }
 
     var url = BlankToNull(input.Url);
     if (url is not null)
     {
-      url = Try(() => Normalize.WebUrl(url), errors, nameof(ProjectInput.Url), "Некорректный адрес");
+      url = Try(() => Normalize.WebUrl(url), errors, nameof(ProjectInput.Url), localizer["Error.UrlInvalid"]);
     }
 
     if (input.EngineId is { } engineId && !await db.Engines.AnyAsync(e => e.Id == engineId, cancellationToken))
     {
-      errors[nameof(ProjectInput.EngineId)] = "Движок не найден";
+      errors[nameof(ProjectInput.EngineId)] = localizer["Error.EngineNotFound"];
     }
 
     if (errors.Count > 0)

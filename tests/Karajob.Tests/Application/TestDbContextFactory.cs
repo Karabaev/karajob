@@ -6,6 +6,7 @@ using Karajob.Application.Goals;
 using Karajob.Application.Hypotheses;
 using Karajob.Application.Metrics;
 using Karajob.Application.Persistence;
+using Karajob.Application.Resources;
 using Karajob.Application.Users;
 using Karajob.Application.Vacancies;
 using Karajob.Infrastructure.Users;
@@ -18,17 +19,17 @@ internal class TestDbContextFactory(SqliteTestDatabase database, Guid userId) : 
 {
   public static CompanyService CreateCompanyService(SqliteTestDatabase database, Guid userId)
   {
-    return new CompanyService(new TestDbContextFactory(database, userId), new FixedCurrentUser(userId));
+    return new CompanyService(new TestDbContextFactory(database, userId), new FixedCurrentUser(userId), TestLocalizer.For<CompanyMessages>());
   }
 
   public static CatalogService CreateCatalogService(SqliteTestDatabase database, Guid userId)
   {
-    return new CatalogService(new TestDbContextFactory(database, userId));
+    return new CatalogService(new TestDbContextFactory(database, userId), TestLocalizer.For<CatalogMessages>());
   }
 
   public static HypothesisService CreateHypothesisService(SqliteTestDatabase database, Guid userId, TimeProvider timeProvider)
   {
-    return new HypothesisService(new TestDbContextFactory(database, userId), new FixedCurrentUser(userId), timeProvider);
+    return new HypothesisService(new TestDbContextFactory(database, userId), new FixedCurrentUser(userId), timeProvider, TestLocalizer.For<HypothesisMessages>());
   }
 
   public static CvService CreateCvService(
@@ -38,22 +39,22 @@ internal class TestDbContextFactory(SqliteTestDatabase database, Guid userId) : 
     TimeProvider timeProvider,
     CvOptions options)
   {
-    return new CvService(new TestDbContextFactory(database, userId), new FixedCurrentUser(userId), fileStorage, timeProvider, options, NullLogger<CvService>.Instance);
+    return new CvService(new TestDbContextFactory(database, userId), new FixedCurrentUser(userId), fileStorage, timeProvider, options, NullLogger<CvService>.Instance, TestLocalizer.For<CvMessages>());
   }
 
   public static VacancyService CreateVacancyService(SqliteTestDatabase database, Guid userId, TimeProvider timeProvider)
   {
-    return new VacancyService(new TestDbContextFactory(database, userId), new FixedCurrentUser(userId), timeProvider);
+    return new VacancyService(new TestDbContextFactory(database, userId), new FixedCurrentUser(userId), timeProvider, TestLocalizer.For<VacancyMessages>());
   }
 
   public static UserService CreateUserService(SqliteTestDatabase database, Guid userId, TimeProvider timeProvider)
   {
-    return new UserService(new TestDbContextFactory(database, userId), timeProvider);
+    return new UserService(new TestDbContextFactory(database, userId), timeProvider, TestLocalizer.For<UserMessages>());
   }
 
   public static SearchGoalService CreateSearchGoalService(SqliteTestDatabase database, Guid userId)
   {
-    return new SearchGoalService(new TestDbContextFactory(database, userId));
+    return new SearchGoalService(new TestDbContextFactory(database, userId), TestLocalizer.For<GoalMessages>());
   }
 
   public static HypothesisMetricsService CreateHypothesisMetricsService(SqliteTestDatabase database, Guid userId, TimeProvider timeProvider)

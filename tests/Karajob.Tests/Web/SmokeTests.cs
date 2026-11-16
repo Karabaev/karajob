@@ -7,11 +7,11 @@ namespace Karajob.Tests.Web;
 public class SmokeTests(WebApplicationFactory<Program> factory) : IClassFixture<WebApplicationFactory<Program>>
 {
   [Theory]
-  [InlineData("/", "Доска")]
+  [InlineData("/", "Board")]
   [InlineData("/inbox", "Inbox")]
-  [InlineData("/companies", "Компании")]
-  [InlineData("/companies/new", "Новая компания")]
-  [InlineData("/hypotheses", "Гипотезы")]
+  [InlineData("/companies", "Companies")]
+  [InlineData("/companies/new", "New company")]
+  [InlineData("/hypotheses", "Hypotheses")]
   [InlineData("/cvs", "CV")]
   public async Task GetPage_ReturnsSuccessAndPageTitle(string route, string title)
   {

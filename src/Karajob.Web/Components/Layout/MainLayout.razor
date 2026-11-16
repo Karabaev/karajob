@@ -9,12 +9,12 @@
 <MudLayout>
   <MudAppBar Elevation="1">
     <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start"
-                   aria-label="Меню" OnClick="ToggleDrawer" />
+                   aria-label="@L["Layout.Menu"]" OnClick="ToggleDrawer" />
     <MudText Typo="Typo.h6" Class="ml-2">Karajob</MudText>
     <MudSpacer />
     <MudButton Class="add-vacancy-button d-none d-md-flex" Variant="Variant.Filled" Color="Color.Primary"
                OnClick="OpenAddVacancyAsync">
-      + Вакансия
+      @L["Layout.AddVacancy"]
     </MudButton>
     <ProfileMenu />
   </MudAppBar>
@@ -32,7 +32,7 @@
 </MudLayout>
 
 <MudFab Class="add-vacancy-fab d-flex d-md-none" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add"
-        aria-label="Добавить вакансию" OnClick="OpenAddVacancyAsync" />
+        aria-label="@L["Layout.AddVacancyAria"]" OnClick="OpenAddVacancyAsync" />
 
 <div id="blazor-error-ui" data-nosnippet>
   An unhandled error has occurred.
@@ -50,6 +50,6 @@
 
   private Task OpenAddVacancyAsync()
   {
-    return DialogService.ShowAsync<AddVacancyDialog>("Новая вакансия", new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true });
+    return DialogService.ShowAsync<AddVacancyDialog>(L["Layout.NewVacancy"], new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true });
   }
 }

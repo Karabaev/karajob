@@ -14,10 +14,10 @@
         {
           <MudAlert Severity="Severity.Error">@_error</MudAlert>
         }
-        <MudText Typo="Typo.body2" Class="mud-text-secondary">Подходящие гипотезы</MudText>
+        <MudText Typo="Typo.body2" Class="mud-text-secondary">@L["MoveToBoard.Matching"]</MudText>
         @if (_hypotheses.Count == 0)
         {
-          <MudText Class="move-to-board-empty">Сначала создайте гипотезу</MudText>
+          <MudText Class="move-to-board-empty">@L["MoveToBoard.NoHypotheses"]</MudText>
         }
         @foreach (var hypothesis in _hypotheses)
         {
@@ -28,10 +28,10 @@
     }
   </DialogContent>
   <DialogActions>
-    <MudButton OnClick="Cancel">Отмена</MudButton>
+    <MudButton OnClick="Cancel">@L["Common.Cancel"]</MudButton>
     <MudButton Class="move-to-board-submit" Variant="Variant.Filled" Color="Color.Primary"
                Disabled="_saving || _selected.Count == 0" OnClick="SubmitAsync">
-      На доску
+      @L["MoveToBoard.Submit"]
     </MudButton>
   </DialogActions>
 </MudDialog>

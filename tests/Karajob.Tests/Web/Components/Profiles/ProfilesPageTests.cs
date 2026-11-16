@@ -81,7 +81,7 @@ public class ProfilesPageTests : ProfileWebFixture
 
     cut.WaitForElement(".add-profile-tile").Click();
 
-    cut.WaitForAssertion(() => Assert.Contains("Новый профиль", dialogs.Markup));
+    cut.WaitForAssertion(() => Assert.Contains("New profile", dialogs.Markup));
   }
 
   [Fact]
@@ -89,9 +89,9 @@ public class ProfilesPageTests : ProfileWebFixture
   {
     var (cut, dialogs) = RenderPageWithDialogs();
 
-    cut.WaitForElement("button[aria-label='Изменить профиль Owner']").Click();
+    cut.WaitForElement("button[aria-label='Edit profile Owner']").Click();
 
-    cut.WaitForAssertion(() => Assert.Contains("Изменить профиль", dialogs.Markup));
+    cut.WaitForAssertion(() => Assert.Contains("Edit profile", dialogs.Markup));
     Assert.Equal("Owner", dialogs.WaitForElement(".profile-name input").GetAttribute("value"));
   }
 
@@ -116,7 +116,7 @@ public class ProfilesPageTests : ProfileWebFixture
   public async Task EditViaDialog_RenamesTile()
   {
     var (cut, dialogs) = RenderPageWithDialogs();
-    cut.WaitForElement("button[aria-label='Изменить профиль Owner']").Click();
+    cut.WaitForElement("button[aria-label='Edit profile Owner']").Click();
     dialogs.WaitForElement(".profile-name input").Input("Boss");
 
     dialogs.Find(".profile-save").Click();

@@ -2,10 +2,10 @@
 @inject HypothesisMetricsService MetricsService
 
 <MudPaper Class="pa-4 hypothesis-criteria">
-  <MudText Typo="Typo.h6" HtmlTag="h2">Критерии</MudText>
+  <MudText Typo="Typo.h6" HtmlTag="h2">@L["Hypothesis.Criteria"]</MudText>
   @if (_notFound)
   {
-    <MudText Typo="Typo.body2" Class="mud-text-secondary criteria-unavailable">Метрики недоступны: гипотеза не найдена.</MudText>
+    <MudText Typo="Typo.body2" Class="mud-text-secondary criteria-unavailable">@L["Hypothesis.MetricsUnavailable"]</MudText>
   }
   else if (_metrics is null || _activity is null)
   {
@@ -15,41 +15,41 @@
   {
     var conversion = _metrics.Conversion;
     <MudText Typo="Typo.caption" Class="mud-text-secondary">
-      Неделя @MetricsText.Week(_metrics.Week) (UTC) · период с @_metrics.PeriodStart.ToString("dd.MM.yyyy")
+      @L["Hypothesis.WeekPeriod", MetricsText.Week(_metrics.Week), _metrics.PeriodStart.ToString("dd.MM.yyyy")]
     </MudText>
 
     <MudStack Spacing="3" Class="mt-3">
       <div class="criteria-market">
         <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Wrap="Wrap.Wrap" Spacing="1">
-          <MudText Typo="Typo.subtitle2">Рынок</MudText>
+          <MudText Typo="Typo.subtitle2">@L["Hypothesis.Market"]</MudText>
           <MudChip T="string" Class="criteria-verdict" Size="Size.Small" Color="@MetricsText.VerdictColor(_metrics.Market.Verdict)">@MetricsText.Verdict(_metrics.Market.Verdict)</MudChip>
         </MudStack>
         <MudText Typo="Typo.h5" Class="criteria-market-count">@_metrics.Market.VacanciesThisWeek</MudText>
-        <MudText Typo="Typo.caption" Class="mud-text-secondary">вакансий за неделю · порог: @_metrics.Market.ThresholdPerWeek в неделю</MudText>
+        <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["Hypothesis.MarketCaption", _metrics.Market.ThresholdPerWeek]</MudText>
       </div>
 
       <MudDivider />
 
       <div class="criteria-conversion">
         <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Wrap="Wrap.Wrap" Spacing="1">
-          <MudText Typo="Typo.subtitle2">Конверсия</MudText>
+          <MudText Typo="Typo.subtitle2">@L["Hypothesis.Conversion"]</MudText>
           <MudChip T="string" Class="criteria-verdict" Size="Size.Small" Color="@MetricsText.VerdictColor(conversion.Verdict)">@MetricsText.Verdict(conversion.Verdict)</MudChip>
         </MudStack>
         <MudStack Row="true" AlignItems="AlignItems.Baseline" Wrap="Wrap.Wrap" Spacing="2">
           <MudText Typo="Typo.h5">@(conversion.Rate is { } rate ? MetricsText.Percent(rate) : "—")</MudText>
-          <MudText Typo="Typo.body1">@conversion.Positive из @conversion.Matured</MudText>
+          <MudText Typo="Typo.body1">@L["Hypothesis.OfCount", conversion.Positive, conversion.Matured]</MudText>
           @if (conversion.Interval is { } interval)
           {
-            <MudText Typo="Typo.body2" Class="mud-text-secondary">95% ДИ @MetricsText.Interval(interval)</MudText>
+            <MudText Typo="Typo.body2" Class="mud-text-secondary">@L["Hypothesis.ConfidenceInterval", MetricsText.Interval(interval)]</MudText>
           }
         </MudStack>
         <MudText Typo="Typo.caption" Class="mud-text-secondary">
-          порог @MetricsText.ThresholdPercent(conversion.ThresholdPermille) · учитываются отклики старше @conversion.MaturationDays дн.
+          @L["Hypothesis.ConversionCaption", MetricsText.ThresholdPercent(conversion.ThresholdPermille), conversion.MaturationDays]
         </MudText>
         @if (conversion.IsInsufficientData)
         {
           <MudText Typo="Typo.caption" Class="mud-text-secondary d-block">
-            для вывода нужно не меньше @conversion.MinSampleSize созревших откликов
+            @L["Hypothesis.MinSample", conversion.MinSampleSize]
           </MudText>
         }
       </div>
@@ -58,12 +58,12 @@
 
       <div class="criteria-activity">
         <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Wrap="Wrap.Wrap" Spacing="1">
-          <MudText Typo="Typo.subtitle2">Активность</MudText>
+          <MudText Typo="Typo.subtitle2">@L["Hypothesis.Activity"]</MudText>
           <MudChip T="string" Class="criteria-verdict" Size="Size.Small" Color="@MetricsText.VerdictColor(_activity.Verdict)">@MetricsText.Verdict(_activity.Verdict)</MudChip>
         </MudStack>
-        <MudText Typo="Typo.h5">@_activity.Applications из @_activity.WeeklyTarget</MudText>
+        <MudText Typo="Typo.h5">@L["Hypothesis.OfCount", _activity.Applications, _activity.WeeklyTarget]</MudText>
         <MudText Typo="Typo.caption" Class="mud-text-secondary">
-          откликов по профилю за неделю · по этой гипотезе: @_metrics.WeeklyApplications
+          @L["Hypothesis.ActivityCaption", _metrics.WeeklyApplications]
         </MudText>
       </div>
     </MudStack>

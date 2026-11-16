@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Stage.Inbox" xml:space="preserve"><value>Inbox</value></data>
+  <data name="Stage.Targeted" xml:space="preserve"><value>Целевая</value></data>
+  <data name="Stage.Preparing" xml:space="preserve"><value>Подготовка</value></data>
+  <data name="Stage.Applied" xml:space="preserve"><value>Отклик</value></data>
+  <data name="Stage.Interviewing" xml:space="preserve"><value>Собеседования</value></data>
+  <data name="Stage.Closed" xml:space="preserve"><value>Закрыта</value></data>
+  <data name="Stage.Dismissed" xml:space="preserve"><value>Отклонена</value></data>
+  <data name="EventType.StageChanged" xml:space="preserve"><value>Смена стадии</value></data>
+  <data name="EventType.Screening" xml:space="preserve"><value>Скрининг</value></data>
+  <data name="EventType.TechInterview" xml:space="preserve"><value>Техническое собеседование</value></data>
+  <data name="EventType.TestTask" xml:space="preserve"><value>Тестовое задание</value></data>
+  <data name="EventType.Rejected" xml:space="preserve"><value>Отказ</value></data>
+  <data name="EventType.Offer" xml:space="preserve"><value>Оффер</value></data>
+  <data name="EventType.Note" xml:space="preserve"><value>Заметка</value></data>
+  <data name="Dismiss.WrongRole" xml:space="preserve"><value>Не та роль</value></data>
+  <data name="Dismiss.WrongLocation" xml:space="preserve"><value>Не та локация</value></data>
+  <data name="Dismiss.WrongStack" xml:space="preserve"><value>Не тот стек</value></data>
+  <data name="Dismiss.WrongSalary" xml:space="preserve"><value>Не та зарплата</value></data>
+  <data name="Dismiss.Other" xml:space="preserve"><value>Другое</value></data>
+  <data name="Outcome.Offer" xml:space="preserve"><value>Оффер</value></data>
+  <data name="Outcome.Rejected" xml:space="preserve"><value>Отказ</value></data>
+  <data name="Outcome.Ghosted" xml:space="preserve"><value>Без ответа</value></data>
+  <data name="Outcome.Withdrawn" xml:space="preserve"><value>Отозван</value></data>
+  <data name="Channel.Website" xml:space="preserve"><value>Сайт</value></data>
+  <data name="Channel.Referral" xml:space="preserve"><value>Реферал</value></data>
+  <data name="Channel.Recruiter" xml:space="preserve"><value>Рекрутер</value></data>
+  <data name="Channel.ColdEmail" xml:space="preserve"><value>Холодное письмо</value></data>
+  <data name="Channel.Other" xml:space="preserve"><value>Другое</value></data>
+  <data name="Common.Cancel" xml:space="preserve"><value>Отмена</value></data>
+  <data name="Common.Add" xml:space="preserve"><value>Добавить</value></data>
+  <data name="Common.Dismiss" xml:space="preserve"><value>Отклонить</value></data>
+  <data name="Common.Save" xml:space="preserve"><value>Сохранить</value></data>
+  <data name="Common.Delete" xml:space="preserve"><value>Удалить</value></data>
+  <data name="AddVacancy.Url" xml:space="preserve"><value>Ссылка на вакансию</value></data>
+  <data name="AddVacancy.Note" xml:space="preserve"><value>Заметка (необязательно)</value></data>
+  <data name="AddVacancy.AlreadyExists" xml:space="preserve"><value>Вакансия уже есть: {0}</value></data>
+  <data name="AddVacancy.Added" xml:space="preserve"><value>Добавлено в Inbox</value></data>
+  <data name="AddVacancy.Open" xml:space="preserve"><value>Открыть</value></data>
+  <data name="Event.Type" xml:space="preserve"><value>Тип</value></data>
+  <data name="Event.Date" xml:space="preserve"><value>Дата</value></data>
+  <data name="Event.Note" xml:space="preserve"><value>Заметка</value></data>
+  <data name="Apply.NoHypotheses" xml:space="preserve"><value>У вакансии нет подходящих гипотез. Привяжите вакансию к гипотезе, чтобы откликнуться.</value></data>
+  <data name="Apply.NoCv" xml:space="preserve"><value>Нет загруженных CV. Загрузите CV, чтобы откликнуться.</value></data>
+  <data name="Apply.Hypothesis" xml:space="preserve"><value>Гипотеза</value></data>
+  <data name="Apply.Channel" xml:space="preserve"><value>Канал</value></data>
+  <data name="Apply.Date" xml:space="preserve"><value>Дата отклика</value></data>
+  <data name="Apply.CoverLetter" xml:space="preserve"><value>Сопроводительное письмо</value></data>
+  <data name="Apply.Submit" xml:space="preserve"><value>Откликнуться</value></data>
+  <data name="BoardCard.Actions" xml:space="preserve"><value>Действия</value></data>
+  <data name="Close.Outcome" xml:space="preserve"><value>Исход</value></data>
+  <data name="Close.Submit" xml:space="preserve"><value>Закрыть</value></data>
+  <data name="CreateCompany.Name" xml:space="preserve"><value>Название</value></data>
+  <data name="CreateCompany.Domain" xml:space="preserve"><value>Домен</value></data>
+  <data name="CreateCompany.DomainHint" xml:space="preserve"><value>необязательно</value></data>
+  <data name="CreateCompany.Submit" xml:space="preserve"><value>Создать</value></data>
+  <data name="DismissDialog.Reason" xml:space="preserve"><value>Причина</value></data>
+  <data name="DismissDialog.Comment" xml:space="preserve"><value>Комментарий (необязательно)</value></data>
+  <data name="MoveToBoard.Matching" xml:space="preserve"><value>Подходящие гипотезы</value></data>
+  <data name="MoveToBoard.NoHypotheses" xml:space="preserve"><value>Сначала создайте гипотезу</value></data>
+  <data name="MoveToBoard.Submit" xml:space="preserve"><value>На доску</value></data>
+  <data name="Timeline.Title" xml:space="preserve"><value>История</value></data>
+  <data name="Timeline.Add" xml:space="preserve"><value>Добавить событие</value></data>
+  <data name="Timeline.Delete" xml:space="preserve"><value>Удалить событие</value></data>
+  <data name="Timeline.Discovered" xml:space="preserve"><value>Найдена</value></data>
+  <data name="Timeline.Stage" xml:space="preserve"><value>Стадия: {0}</value></data>
+  <data name="Page.NotFound" xml:space="preserve"><value>Вакансия не найдена</value></data>
+  <data name="Page.ToInbox" xml:space="preserve"><value>В Inbox</value></data>
+  <data name="Page.Title" xml:space="preserve"><value>Вакансия</value></data>
+  <data name="Page.New" xml:space="preserve"><value>Новая вакансия</value></data>
+  <data name="Page.Similar" xml:space="preserve"><value>Похожие вакансии (та же компания и роль за последние 30 дней):</value></data>
+  <data name="Page.Url" xml:space="preserve"><value>Ссылка</value></data>
+  <data name="Page.Company" xml:space="preserve"><value>Компания</value></data>
+  <data name="Page.Role" xml:space="preserve"><value>Роль</value></data>
+  <data name="Page.Location" xml:space="preserve"><value>Локация</value></data>
+  <data name="Page.NotSelected" xml:space="preserve"><value>— не выбрана —</value></data>
+  <data name="Page.NotSelectedLanguage" xml:space="preserve"><value>— не выбран —</value></data>
+  <data name="Page.Platforms" xml:space="preserve"><value>Платформы</value></data>
+  <data name="Page.Engines" xml:space="preserve"><value>Движки</value></data>
+  <data name="Page.Language" xml:space="preserve"><value>Язык</value></data>
+  <data name="Page.WorkFormat" xml:space="preserve"><value>Формат работы</value></data>
+  <data name="Page.Remote" xml:space="preserve"><value>Удалёнка</value></data>
+  <data name="Page.Hybrid" xml:space="preserve"><value>Гибрид</value></data>
+  <data name="Page.OnSite" xml:space="preserve"><value>Офис</value></data>
+  <data name="Page.Relocation" xml:space="preserve"><value>Релокация</value></data>
+  <data name="Page.SalaryMin" xml:space="preserve"><value>ЗП от</value></data>
+  <data name="Page.SalaryMax" xml:space="preserve"><value>ЗП до</value></data>
+  <data name="Page.Currency" xml:space="preserve"><value>Валюта</value></data>
+  <data name="Page.Hypotheses" xml:space="preserve"><value>Подходящие гипотезы</value></data>
+  <data name="Page.NoHypotheses" xml:space="preserve"><value>Сначала создайте гипотезу</value></data>
+  <data name="Page.Description" xml:space="preserve"><value>Описание</value></data>
+  <data name="Page.Notes" xml:space="preserve"><value>Заметки</value></data>
+  <data name="Page.Saved" xml:space="preserve"><value>Сохранено</value></data>
+  <data name="Page.CreateCompany" xml:space="preserve"><value>+ Создать «{0}»</value></data>
+  <data name="Page.NewCompany" xml:space="preserve"><value>Новая компания</value></data>
+  <data name="Page.EmptyHint" xml:space="preserve"><value>Добавьте в разделе Справочники</value></data>
+  <data name="Page.NewEvent" xml:space="preserve"><value>Новое событие</value></data>
+  <data name="Page.DeleteEventTitle" xml:space="preserve"><value>Удалить событие?</value></data>
+  <data name="Page.DeleteEventText" xml:space="preserve"><value>Событие «{0}» будет удалено.</value></data>
+</root>

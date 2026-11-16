@@ -212,10 +212,10 @@ public class EnginePersistenceTests
     var engines = await context.Engines.ToListAsync();
 
     Assert.Equal(
-      ["Cocos", "Defold", "Godot", "Unity", "Unreal Engine", "Собственный"],
+      ["Cocos", "Defold", "Godot", "Proprietary", "Unity", "Unreal Engine"],
       engines.Select(e => e.Name).Order(StringComparer.Ordinal));
     Assert.Equal(SeedData.UnityEngineId, engines.Single(e => e.Name == "Unity").Id);
-    Assert.Equal(SeedData.ProprietaryEngineId, engines.Single(e => e.Name == "Собственный").Id);
+    Assert.Equal(SeedData.ProprietaryEngineId, engines.Single(e => e.Name == "Proprietary").Id);
   }
 
   [Fact]

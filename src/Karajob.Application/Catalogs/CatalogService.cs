@@ -1,3 +1,5 @@
+using Karajob.Application.Resources;
+using Microsoft.Extensions.Localization;
 using Karajob.Application.Common;
 using Karajob.Application.Persistence;
 using Karajob.Domain.Catalogs;
@@ -6,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Karajob.Application.Catalogs;
 
-public class CatalogService(IKarajobDbContextFactory dbContextFactory)
+public class CatalogService(IKarajobDbContextFactory dbContextFactory, IStringLocalizer<CatalogMessages> localizer)
 {
   public async Task<IReadOnlyList<CatalogListItem>> ListAsync(CatalogKind kind, CancellationToken cancellationToken = default)
   {
@@ -102,7 +104,7 @@ public class CatalogService(IKarajobDbContextFactory dbContextFactory)
     {
       throw new ValidationFailedException(new Dictionary<string, string>
       {
-        [string.Empty] = "Запись уже используется — удалить нельзя",
+        [string.Empty] = localizer["Error.InUse"],
       });
     }
 
@@ -153,7 +155,7 @@ public class CatalogService(IKarajobDbContextFactory dbContextFactory)
       ?? throw new KeyNotFoundException($"{kind} {id} was not found.");
   }
 
-  private static async Task ValidateNameAsync(
+  private async Task ValidateNameAsync(
     IKarajobDbContext db,
     CatalogKind kind,
     string name,
@@ -163,18 +165,18 @@ public class CatalogService(IKarajobDbContextFactory dbContextFactory)
   {
     if (string.IsNullOrWhiteSpace(name))
     {
-      errors[nameof(CatalogInput.Name)] = "Укажите название";
+      errors[nameof(CatalogInput.Name)] = localizer["Error.NameRequired"];
       return;
     }
 
     var normalized = Normalize.Alias(name);
     if (await Entries(db, kind).AnyAsync(e => e.Id != excludedId && e.NormalizedName == normalized, cancellationToken))
     {
-      errors[nameof(CatalogInput.Name)] = "Такая запись уже есть";
+      errors[nameof(CatalogInput.Name)] = localizer["Error.NameExists"];
     }
   }
 
-  private static async Task<string?> ValidateCodeAsync(
+  private async Task<string?> ValidateCodeAsync(
     IKarajobDbContext db,
     CatalogKind kind,
     string? code,
@@ -189,7 +191,7 @@ public class CatalogService(IKarajobDbContextFactory dbContextFactory)
     }
     catch (ArgumentException)
     {
-      errors[nameof(CatalogInput.Code)] = isCurrency ? "Код — 3 латинские буквы" : "Код — 2–3 латинские буквы";
+      errors[nameof(CatalogInput.Code)] = isCurrency ? localizer["Error.CurrencyCodeInvalid"] : localizer["Error.LanguageCodeInvalid"];
       return null;
     }
 
@@ -198,7 +200,7 @@ public class CatalogService(IKarajobDbContextFactory dbContextFactory)
       : await db.Languages.AnyAsync(l => l.Code == normalized, cancellationToken);
     if (exists)
     {
-      errors[nameof(CatalogInput.Code)] = "Такой код уже есть";
+      errors[nameof(CatalogInput.Code)] = localizer["Error.CodeExists"];
     }
 
     return normalized;

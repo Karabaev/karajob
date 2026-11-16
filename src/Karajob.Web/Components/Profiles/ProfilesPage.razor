@@ -4,9 +4,9 @@
 @inject UserService Users
 @inject IDialogService DialogService
 
-<PageTitle>Профили</PageTitle>
+<PageTitle>@L["Profile.Title"]</PageTitle>
 
-<MudText Typo="Typo.h4" Align="Align.Center" Class="mb-8">Кто вы?</MudText>
+<MudText Typo="Typo.h4" Align="Align.Center" Class="mb-8">@L["Profile.WhoAreYou"]</MudText>
 
 <div class="d-flex flex-wrap justify-center" style="gap:24px">
   @foreach (var profile in _profiles)
@@ -20,7 +20,7 @@
         </button>
       </ProfileSelectForm>
       <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" ButtonType="ButtonType.Button"
-                     aria-label="@($"Изменить профиль {profile.Name}")"
+                     aria-label="@L["Profile.EditAria", profile.Name]"
                      OnClick="() => EditAsync(profile)" />
     </div>
   }
@@ -28,7 +28,7 @@
     <button type="button" class="add-profile-tile d-flex flex-column align-center"
             style="background:none; border:0; cursor:pointer; color:inherit; gap:8px" @onclick="AddAsync">
       <MudAvatar Size="Size.Large" Variant="Variant.Outlined">+</MudAvatar>
-      <MudText Typo="Typo.subtitle1">+ Профиль</MudText>
+      <MudText Typo="Typo.subtitle1">@L["Profile.Add"]</MudText>
     </button>
   </div>
 </div>
@@ -51,12 +51,12 @@
 
   private Task AddAsync()
   {
-    return ShowDialogAsync("Новый профиль", new DialogParameters<ProfileDialog>());
+    return ShowDialogAsync(L["Profile.NewTitle"], new DialogParameters<ProfileDialog>());
   }
 
   private Task EditAsync(UserDto profile)
   {
-    return ShowDialogAsync("Изменить профиль", new DialogParameters<ProfileDialog> { { d => d.Profile, profile } });
+    return ShowDialogAsync(L["Profile.EditTitle"], new DialogParameters<ProfileDialog> { { d => d.Profile, profile } });
   }
 
   private async Task ShowDialogAsync(string title, DialogParameters<ProfileDialog> parameters)

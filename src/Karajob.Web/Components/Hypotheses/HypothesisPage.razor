@@ -10,8 +10,8 @@
 
 @if (_notFound)
 {
-  <MudText Typo="Typo.h4" HtmlTag="h1" GutterBottom="true">Гипотеза не найдена</MudText>
-  <MudButton Href="/hypotheses">К списку гипотез</MudButton>
+  <MudText Typo="Typo.h4" HtmlTag="h1" GutterBottom="true">@L["Hypothesis.NotFound"]</MudText>
+  <MudButton Href="/hypotheses">@L["Hypothesis.BackToList"]</MudButton>
 }
 else if (_loaded)
 {
@@ -34,10 +34,10 @@ else if (_loaded)
             {
               <MudAlert Severity="Severity.Error">@general</MudAlert>
             }
-            <MudTextField T="string" Class="hypothesis-name" Label="Название" Immediate="true"
+            <MudTextField T="string" Class="hypothesis-name" Label="@L["Hypothesis.Name"]" Immediate="true"
                           Value="_name" ValueChanged="OnNameChanged"
                           Error="HasError(nameof(HypothesisInput.Name))" ErrorText="@ErrorOf(nameof(HypothesisInput.Name))" />
-            <MudSelect T="Guid?" Class="hypothesis-role" Label="Роль" Required="true"
+            <MudSelect T="Guid?" Class="hypothesis-role" Label="@L["Hypothesis.Role"]" Required="true"
                        Value="_roleId" ValueChanged="OnRoleChanged" ToStringFunc="RoleName"
                        HelperText="@EmptyHint(_roles)"
                        Error="HasError(nameof(HypothesisInput.RoleId))" ErrorText="@ErrorOf(nameof(HypothesisInput.RoleId))">
@@ -46,7 +46,7 @@ else if (_loaded)
                 <MudSelectItem T="Guid?" Value="@((Guid?)role.Id)">@role.Name</MudSelectItem>
               }
             </MudSelect>
-            <MudSelect T="Guid?" Class="hypothesis-language" Label="Язык"
+            <MudSelect T="Guid?" Class="hypothesis-language" Label="@L["Hypothesis.Language"]"
                        Value="_languageId" ValueChanged="OnLanguageChanged" ToStringFunc="LanguageName"
                        HelperText="@EmptyHint(_languages)"
                        Error="HasError(nameof(HypothesisInput.LanguageId))" ErrorText="@ErrorOf(nameof(HypothesisInput.LanguageId))">
@@ -57,15 +57,15 @@ else if (_loaded)
             </MudSelect>
 
             <div>
-              <MudText Typo="Typo.subtitle2">Формат работы</MudText>
+              <MudText Typo="Typo.subtitle2">@L["Hypothesis.WorkFormat"]</MudText>
               <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="2">
-                <MudCheckBox T="bool" Class="hypothesis-format-remote" Label="Удалёнка"
+                <MudCheckBox T="bool" Class="hypothesis-format-remote" Label="@L["WorkFormat.Remote"]"
                              Value="HasFormat(WorkFormat.Remote)" ValueChanged="value => SetFormat(WorkFormat.Remote, value)" />
-                <MudCheckBox T="bool" Class="hypothesis-format-hybrid" Label="Гибрид"
+                <MudCheckBox T="bool" Class="hypothesis-format-hybrid" Label="@L["WorkFormat.Hybrid"]"
                              Value="HasFormat(WorkFormat.Hybrid)" ValueChanged="value => SetFormat(WorkFormat.Hybrid, value)" />
-                <MudCheckBox T="bool" Class="hypothesis-format-onsite" Label="Офис"
+                <MudCheckBox T="bool" Class="hypothesis-format-onsite" Label="@L["WorkFormat.OnSite"]"
                              Value="HasFormat(WorkFormat.OnSite)" ValueChanged="value => SetFormat(WorkFormat.OnSite, value)" />
-                <MudCheckBox T="bool" Class="hypothesis-format-relocation" Label="Релокация"
+                <MudCheckBox T="bool" Class="hypothesis-format-relocation" Label="@L["WorkFormat.Relocation"]"
                              Value="HasFormat(WorkFormat.Relocation)" ValueChanged="value => SetFormat(WorkFormat.Relocation, value)" />
               </MudStack>
               @if (HasError(nameof(HypothesisInput.WorkFormat)))
@@ -74,7 +74,7 @@ else if (_loaded)
               }
             </div>
 
-            <MudSelect T="Guid" Class="hypothesis-locations" Label="Локации" MultiSelection="true"
+            <MudSelect T="Guid" Class="hypothesis-locations" Label="@L["Hypothesis.Locations"]" MultiSelection="true"
                        SelectedValues="_locationIds" SelectedValuesChanged="OnLocationsChanged"
                        ToStringFunc="LocationName" MultiSelectionTextFunc="JoinNames"
                        HelperText="@EmptyHint(_locationOptions)"
@@ -85,7 +85,7 @@ else if (_loaded)
               }
             </MudSelect>
 
-            <MudSelect T="Guid" Class="hypothesis-platforms" Label="Платформы" MultiSelection="true"
+            <MudSelect T="Guid" Class="hypothesis-platforms" Label="@L["Hypothesis.Platforms"]" MultiSelection="true"
                        SelectedValues="_platformIds" SelectedValuesChanged="OnPlatformsChanged"
                        ToStringFunc="PlatformName" MultiSelectionTextFunc="JoinNames"
                        HelperText="@EmptyHint(_platformOptions)"
@@ -95,7 +95,7 @@ else if (_loaded)
                 <MudSelectItem T="Guid" Value="platform.Id">@platform.Name</MudSelectItem>
               }
             </MudSelect>
-            <MudSelect T="Guid" Class="hypothesis-engines" Label="Движки" MultiSelection="true"
+            <MudSelect T="Guid" Class="hypothesis-engines" Label="@L["Hypothesis.Engines"]" MultiSelection="true"
                        SelectedValues="_engineIds" SelectedValuesChanged="OnEnginesChanged"
                        ToStringFunc="EngineName" MultiSelectionTextFunc="JoinNames"
                        HelperText="@EmptyHint(_engineOptions)"
@@ -105,22 +105,22 @@ else if (_loaded)
                 <MudSelectItem T="Guid" Value="engine.Id">@engine.Name</MudSelectItem>
               }
             </MudSelect>
-            <MudTextField T="string" Class="hypothesis-industries" Label="Индустрии" HelperText="по одной на строку"
+            <MudTextField T="string" Class="hypothesis-industries" Label="@L["Hypothesis.Industries"]" HelperText="@L["Hypothesis.OnePerLine"]"
                           Lines="3" Sizing="InputSizing.Auto" @bind-Value="_industries"
                           Error="HasError(nameof(HypothesisInput.Industries))" ErrorText="@ErrorOf(nameof(HypothesisInput.Industries))" />
-            <MudTextField T="string" Class="hypothesis-positioning" Label="Позиционирование"
+            <MudTextField T="string" Class="hypothesis-positioning" Label="@L["Hypothesis.Positioning"]"
                           Lines="3" Sizing="InputSizing.Auto" @bind-Value="_positioning"
                           Error="HasError(nameof(HypothesisInput.Positioning))" ErrorText="@ErrorOf(nameof(HypothesisInput.Positioning))" />
-            <MudSelect T="Guid?" Class="hypothesis-cv" Label="Основной CV" @bind-Value="_primaryCvId"
-                       HelperText="@(_cvOptions.Count == 0 ? "CV появятся после загрузки в разделе CV" : null)"
+            <MudSelect T="Guid?" Class="hypothesis-cv" Label="@L["Hypothesis.PrimaryCv"]" @bind-Value="_primaryCvId"
+                       HelperText="@(_cvOptions.Count == 0 ? L["Hypothesis.CvHint"].Value : null)"
                        Error="HasError(nameof(HypothesisInput.PrimaryCvDocumentId))" ErrorText="@ErrorOf(nameof(HypothesisInput.PrimaryCvDocumentId))">
-              <MudSelectItem T="Guid?" Value="@((Guid?)null)">— не выбран —</MudSelectItem>
+              <MudSelectItem T="Guid?" Value="@((Guid?)null)">@L["Hypothesis.NotSelected"]</MudSelectItem>
               @foreach (var option in _cvOptions)
               {
                 <MudSelectItem T="Guid?" Value="@((Guid?)option.Id)">@option.Name (@option.LanguageCode.ToUpperInvariant())</MudSelectItem>
               }
             </MudSelect>
-            <MudSelect T="HypothesisStatus" Class="hypothesis-status" Label="Статус" @bind-Value="_status">
+            <MudSelect T="HypothesisStatus" Class="hypothesis-status" Label="@L["Hypothesis.Status"]" @bind-Value="_status">
               @foreach (var status in Enum.GetValues<HypothesisStatus>())
               {
                 <MudSelectItem T="HypothesisStatus" Value="status">@HypothesisText.Status(status)</MudSelectItem>
@@ -128,14 +128,14 @@ else if (_loaded)
             </MudSelect>
             @if (_details?.StartedAt is { } startedAt)
             {
-              <MudText Typo="Typo.caption" Class="mud-text-secondary">Запущена @startedAt.ToString("dd.MM.yyyy")</MudText>
+              <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["Hypothesis.Started", startedAt.ToString("dd.MM.yyyy")]</MudText>
             }
 
             <MudStack Row="true" Justify="Justify.SpaceBetween">
-              <MudButton Class="hypothesis-save" Variant="Variant.Filled" Color="Color.Primary" Disabled="_saving" OnClick="SaveAsync">Сохранить</MudButton>
+              <MudButton Class="hypothesis-save" Variant="Variant.Filled" Color="Color.Primary" Disabled="_saving" OnClick="SaveAsync">@L["Hypothesis.Save"]</MudButton>
               @if (_details is not null)
               {
-                <MudButton Class="hypothesis-delete" Color="Color.Error" OnClick="DeleteAsync">Удалить гипотезу</MudButton>
+                <MudButton Class="hypothesis-delete" Color="Color.Error" OnClick="DeleteAsync">@L["Hypothesis.Delete"]</MudButton>
               }
             </MudStack>
           </MudStack>
@@ -173,7 +173,7 @@ else if (_loaded)
   [Parameter]
   public Guid? Id { get; set; }
 
-  private string Title => _details?.Name ?? (Id is null ? "Новая гипотеза" : "Гипотеза не найдена");
+  private string Title => _details?.Name ?? (Id is null ? L["Hypothesis.New"] : L["Hypothesis.NotFound"]);
 
   // The same component instance is reused when the route changes, so load here, not in OnInitialized.
   // After our own save navigates to the saved id the page already holds that hypothesis.
@@ -298,9 +298,9 @@ else if (_loaded)
     return _platformOptions.FirstOrDefault(p => p.Id == id)?.Name ?? "";
   }
 
-  private static string? EmptyHint(IReadOnlyList<CatalogListItem> items)
+  private string? EmptyHint(IReadOnlyList<CatalogListItem> items)
   {
-    return items.Count == 0 ? "Добавьте в разделе Справочники" : null;
+    return items.Count == 0 ? L["Hypothesis.EmptyHint"].Value : null;
   }
 
   private bool HasFormat(WorkFormat flag)
@@ -355,7 +355,7 @@ else if (_loaded)
       _errors = new Dictionary<string, string>();
       _details = saved;
       FillFields();
-      Snackbar.Add("Сохранено", Severity.Success);
+      Snackbar.Add(L["Hypothesis.Saved"], Severity.Success);
       if (Id != saved.Id)
       {
         Navigation.NavigateTo($"/hypotheses/{saved.Id}");
@@ -378,10 +378,10 @@ else if (_loaded)
   private async Task DeleteAsync()
   {
     var confirmed = await DialogService.ShowMessageBoxAsync(
-      "Удалить гипотезу?",
-      $"Гипотеза «{_details!.Name}» будет удалена.",
-      yesText: "Удалить",
-      cancelText: "Отмена");
+      L["Hypothesis.DeleteTitle"],
+      L["Hypothesis.DeleteMessage", _details!.Name],
+      yesText: L["Hypothesis.DeleteConfirm"],
+      cancelText: L["Hypothesis.Cancel"]);
     if (confirmed != true)
     {
       return;

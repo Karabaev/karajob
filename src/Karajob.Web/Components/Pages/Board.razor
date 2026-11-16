@@ -4,13 +4,13 @@
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 
-<PageTitle>Доска</PageTitle>
+<PageTitle>@L["Pages.Board"]</PageTitle>
 
 <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
-  <MudText Typo="Typo.h4" HtmlTag="h1">Доска</MudText>
-  <MudSelect T="Guid?" Class="board-filter" Label="Гипотеза" Variant="Variant.Outlined" Dense="true" Style="max-width: 280px;"
+  <MudText Typo="Typo.h4" HtmlTag="h1">@L["Pages.Board"]</MudText>
+  <MudSelect T="Guid?" Class="board-filter" Label="@L["Pages.Hypothesis"]" Variant="Variant.Outlined" Dense="true" Style="max-width: 280px;"
              Value="_hypothesisId" ValueChanged="OnFilterChangedAsync">
-    <MudSelectItem T="Guid?" Value="@((Guid?)null)">Все гипотезы</MudSelectItem>
+    <MudSelectItem T="Guid?" Value="@((Guid?)null)">@L["Pages.AllHypotheses"]</MudSelectItem>
     @foreach (var hypothesis in _hypotheses)
     {
       <MudSelectItem T="Guid?" Value="@((Guid?)hypothesis.Id)">@hypothesis.Name</MudSelectItem>
@@ -36,7 +36,7 @@ else
               @if (stage == VacancyStage.Closed)
               {
                 <MudButton Class="board-closed-toggle" Size="Size.Small" Variant="Variant.Text" OnClick="ToggleClosed">
-                  @(_closedExpanded ? "Свернуть" : "Показать")
+                  @(_closedExpanded ? L["Pages.Collapse"] : L["Pages.Show"])
                 </MudButton>
               }
             </div>
@@ -160,7 +160,7 @@ else
           await VacancyService.MoveAsync(card.Id, card.Stage, target);
           break;
         case BoardMoveKind.Apply:
-          await ShowDialogAsync<ApplyDialog>("Отклик", new DialogParameters<ApplyDialog>
+          await ShowDialogAsync<ApplyDialog>(L["Pages.ApplyTitle"], new DialogParameters<ApplyDialog>
           {
             { d => d.VacancyId, card.Id },
             { d => d.ExpectedStage, card.Stage },
@@ -168,7 +168,7 @@ else
           });
           break;
         case BoardMoveKind.Close:
-          await ShowDialogAsync<CloseVacancyDialog>("Закрыть вакансию", new DialogParameters<CloseVacancyDialog>
+          await ShowDialogAsync<CloseVacancyDialog>(L["Pages.CloseVacancyTitle"], new DialogParameters<CloseVacancyDialog>
           {
             { d => d.VacancyId, card.Id },
             { d => d.ExpectedStage, card.Stage },
@@ -177,7 +177,7 @@ else
         default:
           if (target != card.Stage)
           {
-            Snackbar.Add($"Недопустимый переход: {VacancyText.Stage(card.Stage)} → {VacancyText.Stage(target)}", Severity.Warning);
+            Snackbar.Add(L["Pages.InvalidTransition", VacancyText.Stage(card.Stage), VacancyText.Stage(target)], Severity.Warning);
           }
 
           break;
@@ -200,7 +200,7 @@ else
   {
     try
     {
-      await ShowDialogAsync<DismissVacancyDialog>("Отклонить вакансию", new DialogParameters<DismissVacancyDialog>
+      await ShowDialogAsync<DismissVacancyDialog>(L["Pages.DismissVacancyTitle"], new DialogParameters<DismissVacancyDialog>
       {
         { d => d.VacancyId, card.Id },
         { d => d.ExpectedStage, card.Stage },

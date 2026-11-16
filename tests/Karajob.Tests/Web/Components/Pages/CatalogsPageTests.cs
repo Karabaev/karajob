@@ -32,7 +32,7 @@ public class CatalogsPageTests : CatalogWebFixture
     cut.WaitForAssertion(() =>
     {
       Assert.Contains("English", cut.Markup);
-      Assert.Contains("Русский", cut.Markup);
+      Assert.Contains("Russian", cut.Markup);
       Assert.NotEmpty(cut.FindAll(".catalog-add-code input"));
     });
   }
@@ -83,7 +83,7 @@ public class CatalogsPageTests : CatalogWebFixture
 
     cut.Find(".catalog-add").Click();
 
-    cut.WaitForAssertion(() => Assert.Contains("Такая запись уже есть", cut.Markup));
+    cut.WaitForAssertion(() => Assert.Contains("This entry already exists", cut.Markup));
     Assert.Equal(2, (await Service.ListAsync(CatalogKind.Role)).Count);
   }
 
@@ -119,7 +119,7 @@ public class CatalogsPageTests : CatalogWebFixture
   {
     var cut = Context.Render<CatalogsPage>();
 
-    cut.WaitForAssertion(() => Assert.Contains("Платформы", cut.Markup));
+    cut.WaitForAssertion(() => Assert.Contains("Platforms", cut.Markup));
   }
 
   [Fact]
@@ -130,12 +130,12 @@ public class CatalogsPageTests : CatalogWebFixture
     cut.WaitForAssertion(() =>
     {
       var names = cut.FindAll(".catalog-row .catalog-name").Select(e => e.TextContent.Trim()).ToList();
-      Assert.Equal(["Доллар США", "Евро", "Российский рубль"], names.Order(StringComparer.OrdinalIgnoreCase));
+      Assert.Equal(["Euro", "Russian ruble", "US dollar"], names.Order(StringComparer.OrdinalIgnoreCase));
       var rows = cut.FindAll(".catalog-row").Select(r => r.TextContent).ToList();
-      Assert.Contains(rows, r => r.Contains("Доллар США") && r.Contains("USD"));
-      Assert.Contains(rows, r => r.Contains("Евро") && r.Contains("EUR"));
-      Assert.Contains(rows, r => r.Contains("Российский рубль") && r.Contains("RUB"));
-      Assert.Contains(cut.FindAll("th"), h => h.TextContent.Trim() == "Код");
+      Assert.Contains(rows, r => r.Contains("US dollar") && r.Contains("USD"));
+      Assert.Contains(rows, r => r.Contains("Euro") && r.Contains("EUR"));
+      Assert.Contains(rows, r => r.Contains("Russian ruble") && r.Contains("RUB"));
+      Assert.Contains(cut.FindAll("th"), h => h.TextContent.Trim() == "Code");
     });
     Assert.NotEmpty(cut.FindAll(".catalog-add-code input"));
   }
@@ -161,7 +161,7 @@ public class CatalogsPageTests : CatalogWebFixture
 
     cut.Find(".catalog-add").Click();
 
-    cut.WaitForAssertion(() => Assert.Contains("Код — 3 латинские буквы", cut.Markup));
+    cut.WaitForAssertion(() => Assert.Contains("Code must be 3 Latin letters", cut.Markup));
     Assert.Equal(3, (await Service.ListAsync(CatalogKind.Currency)).Count);
   }
 
@@ -173,7 +173,7 @@ public class CatalogsPageTests : CatalogWebFixture
     cut.WaitForAssertion(() =>
     {
       var names = cut.FindAll(".catalog-row .catalog-name").Select(e => e.TextContent.Trim()).ToList();
-      Assert.Equal(["Cocos", "Defold", "Godot", "Unity", "Unreal Engine", "Собственный"], names.Order(StringComparer.OrdinalIgnoreCase));
+      Assert.Equal(["Cocos", "Defold", "Godot", "Proprietary", "Unity", "Unreal Engine"], names.Order(StringComparer.OrdinalIgnoreCase));
     });
     Assert.Empty(cut.FindAll(".catalog-add-code input"));
   }
@@ -199,8 +199,8 @@ public class CatalogsPageTests : CatalogWebFixture
 
     cut.WaitForAssertion(() =>
     {
-      Assert.Contains("Валюты", cut.Markup);
-      Assert.Contains("Движки", cut.Markup);
+      Assert.Contains("Currencies", cut.Markup);
+      Assert.Contains("Engines", cut.Markup);
     });
   }
 
@@ -211,9 +211,9 @@ public class CatalogsPageTests : CatalogWebFixture
 
     cut.WaitForAssertion(() =>
     {
-      Assert.Contains("Роли", cut.Markup);
-      Assert.Contains("Локации", cut.Markup);
-      Assert.Contains("Языки", cut.Markup);
+      Assert.Contains("Roles", cut.Markup);
+      Assert.Contains("Locations", cut.Markup);
+      Assert.Contains("Languages", cut.Markup);
     });
   }
 

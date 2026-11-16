@@ -79,7 +79,7 @@ public class CompanyPageTests : CompanyWebFixture
 
     cut.WaitForAssertion(() =>
     {
-      Assert.Contains("RPG · Unity · В разработке", cut.Markup);
+      Assert.Contains("RPG · Unity · In development", cut.Markup);
     });
   }
 
@@ -91,7 +91,7 @@ public class CompanyPageTests : CompanyWebFixture
 
     var cut = Context.Render<CompanyPage>(p => p.Add(c => c.Slug, "pixel-forge"));
 
-    cut.WaitForAssertion(() => Assert.Contains("RPG · В разработке", cut.Markup));
+    cut.WaitForAssertion(() => Assert.Contains("RPG · In development", cut.Markup));
   }
 
   [Fact]

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Error.VersionInUse" xml:space="preserve"><value>Версия используется в откликах — её нельзя удалить</value></data>
+  <data name="Error.LastVersion" xml:space="preserve"><value>Это единственная версия — удалите CV целиком</value></data>
+  <data name="Error.CvInUse" xml:space="preserve"><value>CV используется в откликах — его нельзя удалить</value></data>
+  <data name="Error.CvPrimaryInHypothesis" xml:space="preserve"><value>CV выбрано основным в гипотезе — сначала смените его там</value></data>
+  <data name="Error.NameRequired" xml:space="preserve"><value>Укажите название</value></data>
+  <data name="Error.LanguageRequired" xml:space="preserve"><value>Укажите язык</value></data>
+  <data name="Error.LanguageNotFound" xml:space="preserve"><value>Язык не найден</value></data>
+  <data name="Error.FileRequired" xml:space="preserve"><value>Выберите файл</value></data>
+  <data name="Error.FileTypeInvalid" xml:space="preserve"><value>Только PDF или DOCX</value></data>
+  <data name="Error.FileEmpty" xml:space="preserve"><value>Файл пустой</value></data>
+  <data name="Error.FileTooLarge" xml:space="preserve"><value>Файл больше {0} МБ</value></data>
+</root>

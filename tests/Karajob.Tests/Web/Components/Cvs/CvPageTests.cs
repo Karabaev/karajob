@@ -48,7 +48,7 @@ public class CvPageTests : CvWebFixture
   {
     var cut = Context.Render<CvPage>(p => p.Add(c => c.Id, Guid.NewGuid()));
 
-    cut.WaitForAssertion(() => Assert.Contains("CV не найдено", cut.Markup));
+    cut.WaitForAssertion(() => Assert.Contains("CV not found", cut.Markup));
   }
 
   [Fact]

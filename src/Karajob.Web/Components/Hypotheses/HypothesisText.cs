@@ -1,4 +1,5 @@
 using Karajob.Domain.Hypotheses;
+using Karajob.Web.Resources;
 using MudBlazor;
 
 namespace Karajob.Web.Components.Hypotheses;
@@ -9,11 +10,11 @@ public static class HypothesisText
   {
     return status switch
     {
-      HypothesisStatus.Draft => "Черновик",
-      HypothesisStatus.Active => "Активна",
-      HypothesisStatus.Expanded => "Расширена",
-      HypothesisStatus.Paused => "На паузе",
-      HypothesisStatus.Disabled => "Отключена",
+      HypothesisStatus.Draft => Localized.Get<HypothesisStrings>("Status.Draft"),
+      HypothesisStatus.Active => Localized.Get<HypothesisStrings>("Status.Active"),
+      HypothesisStatus.Expanded => Localized.Get<HypothesisStrings>("Status.Expanded"),
+      HypothesisStatus.Paused => Localized.Get<HypothesisStrings>("Status.Paused"),
+      HypothesisStatus.Disabled => Localized.Get<HypothesisStrings>("Status.Disabled"),
       _ => throw new ArgumentOutOfRangeException(nameof(status), status, null)
     };
   }
@@ -36,22 +37,22 @@ public static class HypothesisText
     var labels = new List<string>();
     if (format.HasFlag(WorkFormat.Remote))
     {
-      labels.Add("Удалёнка");
+      labels.Add(Localized.Get<HypothesisStrings>("WorkFormat.Remote"));
     }
 
     if (format.HasFlag(WorkFormat.Hybrid))
     {
-      labels.Add("Гибрид");
+      labels.Add(Localized.Get<HypothesisStrings>("WorkFormat.Hybrid"));
     }
 
     if (format.HasFlag(WorkFormat.OnSite))
     {
-      labels.Add("Офис");
+      labels.Add(Localized.Get<HypothesisStrings>("WorkFormat.OnSite"));
     }
 
     if (format.HasFlag(WorkFormat.Relocation))
     {
-      labels.Add("Релокация");
+      labels.Add(Localized.Get<HypothesisStrings>("WorkFormat.Relocation"));
     }
 
     return string.Join(", ", labels);

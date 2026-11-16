@@ -1,322 +1,322 @@
-# Karajob — концепт и дизайн-документ
+# Karajob — concept and design document
 
 Nov 12, 2026 · @Maksim
 
-## 1. Цель и принципы
+## 1. Goal and principles
 
-Karajob — семейное (несколько профилей) веб-приложение в Docker, которое превращает поиск работы в управляемый эксперимент: гипотезы → вакансии → отклики → метрики → решение по гипотезе. Это прямая реализация шаблона карьерной стратегии: пункты 2 (гипотезы), 3 (каналы и учёт), 4 (критерии оценки) и 5 (решения) становятся сущностями и экранами.
+Karajob is a family (multi-profile) web application in Docker that turns a job search into a managed experiment: hypotheses → vacancies → applications → metrics → a decision on the hypothesis. It is a direct implementation of the career strategy template: items 2 (hypotheses), 3 (channels and tracking), 4 (evaluation criteria) and 5 (decisions) become entities and screens.
 
-**Принципы**
+**Principles**
 
-- **Данные ради решения.** Каждое поле должно кормить метрику или решение по гипотезе. Если поле ни на что не влияет — его нет в MVP.
-- **Несколько профилей, один контейнер.** Без паролей и ролей, без микросервисов, без очередей. Сложность — только там, где её требует ИИ.
-- **ИИ — опциональный слой.** Всё делается руками; ИИ лишь ускоряет ввод и поиск. Приложение не должно ломаться, если лимиты подписки кончились.
-- **Приложение — источник правды, ИИ — клиент.** ИИ работает через тот же API/MCP, что и UI, и не хранит состояние.
+- **Data in service of decisions.** Every field must feed a metric or a decision on a hypothesis. If a field affects nothing, it is not in the MVP.
+- **Several profiles, one container.** No passwords or roles, no microservices, no queues. Complexity only where AI requires it.
+- **AI is an optional layer.** Everything can be done by hand; AI only speeds up data entry and search. The application must not break if the subscription limits run out.
+- **The application is the source of truth, AI is a client.** AI works through the same API/MCP as the UI and stores no state.
 
-### Что я поменял в исходных требованиях и почему
+### What I changed in the original requirements and why
 
-| Исходное требование | Проблема | Решение в концепте |
+| Original requirement | Problem | Solution in the concept |
 | --- | --- | --- |
-| Канбан: Targeted, Preparing, Applied, Done | Нет стадии интервью — нельзя посчитать «конверсию в следующий позитивный шаг». «Done» смешивает оффер, отказ и тишину. | Inbox — отдельный раздел в боковом меню (входящие, ещё не разобранные), доска: Targeted → Preparing → Applied → Interviewing → Closed; у Closed обязательный исход (Offer / Rejected / Ghosted / Withdrawn). |
-| У вакансии список гипотез | Конверсия по гипотезе требует однозначной атрибуции. Если отклик относится к двум гипотезам, метрика размазывается. | Вакансия может *подходить* нескольким гипотезам, но *отклик* привязан ровно к одной гипотезе и одному CV (снимок версии). |
-| Критерий «≥10 релевантных вакансий в неделю» | Если считать только карточки на доске, метрика зависит от вашей лени, а не от рынка. | Отдельно учитываются *найденные* вакансии (Inbox, в т.ч. отклонённые — стадия Dismissed), а не только те, на которые вы откликнулись. |
-| Решение «продолжать при конверсии 3–5%» | При 20 откликах одно интервью = 5%, ноль = 0%. Это шум, а не сигнал. | Минимальная выборка перед решением (по умолчанию 30 откликов или 3 недели) и показ доверительного интервала. |
-| ИИ ходит по сайтам с вакансиями | Скрейпинг LinkedIn/Indeed нарушает их ToS, ломается от антиботов, а LLM-чтение HTML дорого. | Основной источник — публичные API ATS (Greenhouse, Lever, Ashby и т.п.) компаний из справочника, плюс RSS/API агрегаторов. ИИ только оценивает соответствие, а не скрейпит. |
-| Справочник CV | Нужен, но без версий нельзя сказать, какой текст CV реально ушёл работодателю. | CV = документ с версиями; отклик ссылается на конкретную версию. |
+| Kanban: Targeted, Preparing, Applied, Done | There is no interview stage, so "conversion to the next positive step" cannot be calculated. "Done" mixes offer, rejection and silence. | Inbox is a separate section in the side menu (incoming, not yet triaged); the board is Targeted → Preparing → Applied → Interviewing → Closed; Closed requires an outcome (Offer / Rejected / Ghosted / Withdrawn). |
+| A vacancy has a list of hypotheses | Conversion per hypothesis needs unambiguous attribution. If an application belongs to two hypotheses, the metric gets smeared. | A vacancy may *match* several hypotheses, but an *application* is tied to exactly one hypothesis and one CV (a version snapshot). |
+| Criterion "≥10 relevant vacancies per week" | If you count only cards on the board, the metric depends on your laziness, not on the market. | *Found* vacancies are counted separately (Inbox, including dismissed ones: the Dismissed stage), not only those you applied to. |
+| Decision "continue at 3–5% conversion" | With 20 applications one interview = 5%, zero = 0%. That is noise, not signal. | A minimum sample before a decision (30 applications or 3 weeks by default) and a confidence interval shown. |
+| AI browses vacancy sites | Scraping LinkedIn/Indeed violates their ToS, breaks on anti-bot measures, and having an LLM read HTML is expensive. | The main source is the public ATS APIs (Greenhouse, Lever, Ashby, etc.) of companies in the directory, plus RSS/aggregator APIs. AI only evaluates fit; it does not scrape. |
+| CV directory | Needed, but without versions you cannot say which CV text actually went to the employer. | A CV is a document with versions; an application references a specific version. |
 
-## 2. Доменная модель
+## 2. Domain model
 
-Центр модели — **отклик (Application)**, а не вакансия: именно он связывает вакансию, гипотезу и версию CV и даёт данные для конверсии. На практике карточка на доске = вакансия + её единственный отклик (1:0..1), так что для UI это одна сущность, а в БД — две. В коде отклик называется `JobApplication`: имя `Application` конфликтует с проектом `Karajob.Application`.
+The center of the model is the **application (Application)**, not the vacancy: it is what links the vacancy, the hypothesis and the CV version and provides the data for conversion. In practice a board card = a vacancy + its single application (1:0..1), so for the UI it is one entity, and in the DB it is two. In code the application is called `JobApplication`: the name `Application` conflicts with the `Karajob.Application` project.
 
-| Сущность | Ключевые поля | Связи |
+| Entity | Key fields | Relations |
 | --- | --- | --- |
-| **SearchGoal** (Цель поиска, singleton) | роль, отрасли, формат (релокация/удалёнка/гибрид), желаемый доход gross + валюта, страны, must-have условия, дедлайн поиска, недельные цели (отклики / контакты / адаптации) | — |
-| **Hypothesis** (Гипотеза) | название, роль, локации, индустрии, формат, ключевые слова для поиска / стоп-слова, позиционирование, сильные навыки, шаблон cover letter, заметка по LinkedIn, статус (Draft / Active / Expanded / Paused / Disabled), дата старта теста | N:1 CvDocument (основной CV), N:M JobSource, 1:N HypothesisCheckIn, 1:N HypothesisDecision |
-| **CvDocument** (CV) | название, язык, теги | 1:N CvVersion; один CV — во многих гипотезах |
-| **CvVersion** | исходник в Markdown, сгенерированный PDF (или загруженный файл + извлечённый текст), родительская версия, вакансия (для адаптированных), комментарий изменений, дата | N:1 CvDocument |
-| **Company** (Компания) | название, **slug-ID (ubisoft), домены и алиасы (уникальны, для сопоставления)**, вебсайт, описание, иконка, страна/офисы, размер, ATS-тип + board token, личные заметки и «чёрный список» — в отдельной таблице UserCompanyNote, у каждого свои | 1:N Project, 1:N Vacancy |
-| **Project** (Проект компании) | название, жанр/тип, движок, статус (анонс / в разработке / выпущен), ссылка | N:1 Company |
-| **Vacancy** (Вакансия) | роль, ссылка (нормализованная, для дедупликации), локация, формат, вилка ЗП, сырой текст описания, требования (список), источник (manual / ai-link / ai-scan), дата публикации, дата обнаружения, стадия (Inbox, колонки доски или Dismissed), причина отклонения | N:1 Company, N:M Hypothesis через **VacancyMatch** (score 0–100, обоснование, кто поставил: человек/ИИ), 0..1 JobApplication |
-| **JobApplication** (Отклик) | дата отклика, канал (сайт / реферал / рекрутер / холодное письмо), cover letter (текст), исход (Offer / Rejected / Ghosted / Withdrawn) | N:1 Vacancy, **N:1 Hypothesis (ровно одна)**, **N:1 CvVersion** |
-| **ApplicationEvent** | тип (StageChanged, Screening, TechInterview, TestTask, Rejected, Offer…), дата, заметка; для встреч — время начала/конца, часовой пояс, ссылка на звонок, ID события в Google Calendar | N:1 Vacancy: переходы стадий пишутся и до отклика (Inbox → Targeted → Preparing). Источник для всех метрик и таймлайна карточки. |
-| **HypothesisCheckIn** | неделя, мотивация 1–5, уверенность 1–5, заметка | N:1 Hypothesis |
-| **HypothesisDecision** | дата, решение (Continue / Expand / Disable), причина, снимок метрик на момент решения, что изменили (для Expand) | N:1 Hypothesis |
-| **JobSource** (Площадка) | название, тип (AtsBoard / Rss / Api / ManualOnly), URL/параметры, частота опроса, включена, последний скан | N:M Hypothesis |
-| **AiJob** | тип (ParseLink / ScanSource / Score), вход, статус, результат/ошибка, потраченные токены | Журнал фоновой ИИ-работы |
+| **SearchGoal** (singleton) | role, industries, format (relocation/remote/hybrid), desired gross income + currency, countries, must-have conditions, search deadline, weekly goals (applications / contacts / adaptations) | — |
+| **Hypothesis** | name, role, locations, industries, format, search keywords / stop words, positioning, strong skills, cover letter template, LinkedIn note, status (Draft / Active / Expanded / Paused / Disabled), test start date | N:1 CvDocument (primary CV), N:M JobSource, 1:N HypothesisCheckIn, 1:N HypothesisDecision |
+| **CvDocument** (CV) | name, language, tags | 1:N CvVersion; one CV is used in many hypotheses |
+| **CvVersion** | Markdown source, generated PDF (or an uploaded file + extracted text), parent version, vacancy (for adapted ones), change comment, date | N:1 CvDocument |
+| **Company** | name, **slug ID (ubisoft), domains and aliases (unique, used for matching)**, website, description, icon, country/offices, size, ATS type + board token; personal notes and the "blacklist" live in a separate UserCompanyNote table, one per user | 1:N Project, 1:N Vacancy |
+| **Project** (company project) | name, genre/type, engine, status (announced / in development / released), link | N:1 Company |
+| **Vacancy** | role, link (normalized, for deduplication), location, format, salary range, raw description text, requirements (list), source (manual / ai-link / ai-scan), publication date, discovery date, stage (Inbox, board columns or Dismissed), dismissal reason | N:1 Company, N:M Hypothesis via **VacancyMatch** (score 0–100, rationale, who set it: human/AI), 0..1 JobApplication |
+| **JobApplication** | application date, channel (site / referral / recruiter / cold email), cover letter (text), outcome (Offer / Rejected / Ghosted / Withdrawn) | N:1 Vacancy, **N:1 Hypothesis (exactly one)**, **N:1 CvVersion** |
+| **ApplicationEvent** | type (StageChanged, Screening, TechInterview, TestTask, Rejected, Offer…), date, note; for meetings: start/end time, time zone, call link, Google Calendar event ID | N:1 Vacancy: stage transitions are recorded before the application too (Inbox → Targeted → Preparing). The source for all metrics and the card timeline. |
+| **HypothesisCheckIn** | week, motivation 1–5, confidence 1–5, note | N:1 Hypothesis |
+| **HypothesisDecision** | date, decision (Continue / Expand / Disable), reason, snapshot of metrics at the time of the decision, what was changed (for Expand) | N:1 Hypothesis |
+| **JobSource** | name, type (AtsBoard / Rss / Api / ManualOnly), URL/parameters, polling frequency, enabled, last scan | N:M Hypothesis |
+| **AiJob** | type (ParseLink / ScanSource / Score), input, status, result/error, tokens spent | A log of background AI work |
 
-Таблица описывает целевую модель. В Фазе 0 реализовано подмножество полей; остальные (требования вакансии, ATS-тип компании, Markdown-исходник CV, ключевые слова гипотезы и т.п.) добавляются вместе с фичами, которым они нужны.
+The table describes the target model. Phase 0 implements a subset of the fields; the rest (vacancy requirements, company ATS type, CV Markdown source, hypothesis keywords, etc.) are added together with the features that need them.
 
-**Соглашения по значениям.** Вилка ЗП хранится всегда за месяц (gross, целые числа в минимальных единицах валюты); годовые суммы пересчитываются при вводе. URL вакансии хранится одним нормализованным полем (нижний регистр, https, без трекинг-параметров) — он же ключ дедупликации и ссылка для открытия; риск, что регистрозависимая ссылка не откроется, принят.
+**Value conventions.** The salary range is always stored per month (gross, integers in the minor units of the currency); annual amounts are converted on input. The vacancy URL is stored in a single normalized field (lowercase, https, no tracking parameters): it is both the deduplication key and the link used to open the vacancy; the risk that a case-sensitive link will not open is accepted.
 
-### Пользователи и мастер-профиль
+### Users and the master profile
 
-Система семейная: несколько пользователей, без паролей и ролей. `UserId` закладывается с первой миграции, даже если пока вы один: сейчас это одно поле, а добавлять потом — переписывать все запросы.
+The system is for a family: several users, no passwords or roles. `UserId` is introduced from the first migration even if you are the only user for now: today it is one field, while adding it later means rewriting every query.
 
-| Сущность | Ключевые поля | Связи |
+| Entity | Key fields | Relations |
 | --- | --- | --- |
-| **User** (Профиль) | имя, аватар/цвет, язык интерфейса, токен для REST/MCP, свой токен Claude для фоновых задач (необязательно), банк ответов для форм | 1:1 MasterProfile, 1:1 SearchGoal, 1:N гипотез, CV, вакансий, откликов |
-| **MasterProfile** (Мастер-профиль) | Один Markdown-документ с фиксированными разделами: контакты, опыт (все места работы и обязанности), проекты, достижения с цифрами, навыки, образование, языки, истории для интервью (STAR). История версий. | 1:1 User. Источник правды для генерации и адаптации CV, cover letter и подготовки к интервью |
+| **User** (profile) | name, avatar/color, UI language, token for REST/MCP, own Claude token for background jobs (optional), answer bank for forms | 1:1 MasterProfile, 1:1 SearchGoal, 1:N hypotheses, CVs, vacancies, applications |
+| **MasterProfile** | A single Markdown document with fixed sections: contacts, experience (all jobs and responsibilities), projects, achievements with numbers, skills, education, languages, interview stories (STAR). Version history. | 1:1 User. The source of truth for generating and adapting CVs, cover letters and interview preparation |
 
-Мастер-профиль — это всё, что правда про человека, без ограничения длины. CV — выборка из него под гипотезу на 1–2 страницы. Проверка на выдумки сверяет CV именно с ним. Первое заполнение: загрузить текущие CV и LinkedIn-экспорт, ИИ собирает черновик, дальше вы дописываете.
+The master profile is everything that is true about the person, with no length limit. A CV is a selection from it for a hypothesis, 1–2 pages long. The fabrication check compares the CV against it. First fill: upload your current CVs and a LinkedIn export, AI assembles a draft, and you complete it from there.
 
-**Что личное, что общее.** Личное (фильтр EF Core по текущему `UserId`): цель поиска, мастер-профиль, гипотезы, CV, вакансии и отклики, чек-ины, решения, метрики, а также личные заметки и «чёрный список» по компаниям. Общее для семьи: справочники компаний, проектов и площадок — нет смысла заводить Ubisoft дважды. Сканер обходит площадку один раз, а фильтрует и скорит по гипотезам каждого пользователя.
+**What is personal and what is shared.** Personal (EF Core filter by the current `UserId`): search goal, master profile, hypotheses, CVs, vacancies and applications, check-ins, decisions, metrics, and also personal notes and the "blacklist" for companies. Shared across the family: the directories of companies, projects and sources, since there is no point in creating Ubisoft twice. The scanner walks a source once and filters and scores by each user's hypotheses.
 
-**Вход.** Экран выбора профиля (как в Netflix) → cookie; переключатель — в шапке. REST и MCP определяют пользователя по персональному токену (`/mcp?u=<token>` или заголовок), иначе букмарклет и Claude не знают, чей это Inbox. Токен здесь — не защита, а адрес. Без паролей приложение допустимо только в домашней сети (в т.ч. через WireGuard на роутере), никогда — публично.
+**Sign-in.** A profile picker screen (like Netflix) → cookie; the switcher is in the header. REST and MCP identify the user by a personal token (`/mcp?u=<token>` or a header); otherwise the bookmarklet and Claude do not know whose Inbox this is. The token here is not protection but an address. Without passwords the application is acceptable only on a home network (including via WireGuard on the router), never publicly.
 
-**Дедупликация.** У компании человекочитаемый ID (slug: ubisoft, blizzard), но ИИ сопоставляет её по домену сайта и алиасам, а не по названию: «Ubisoft», «Ubisoft Entertainment» и «Ubisoft Belgrade» иначе станут тремя записями. Slug задаёте вы (или ИИ предлагает), а домен страхует от того, что ИИ заведёт «ubisoft-entertainment» рядом с уже существующим «ubisoft». Для дочерних студий — необязательное поле ParentCompany. Вакансия дедуплицируется по нормализованному URL (без utm и трекинга) и по паре «компания + роль + 30 дней» как мягкое предупреждение.
+**Deduplication.** A company has a human-readable ID (slug: ubisoft, blizzard), but AI matches it by the website domain and aliases, not by name: "Ubisoft", "Ubisoft Entertainment" and "Ubisoft Belgrade" would otherwise become three records. You set the slug (or AI suggests it), and the domain guards against AI creating "ubisoft-entertainment" next to an existing "ubisoft". For subsidiary studios there is an optional ParentCompany field. A vacancy is deduplicated by its normalized URL (without utm and tracking) and, as a soft warning, by the pair "company + role + 30 days".
 
-**Вне MVP:** контакты и нетворкинг (рекрутеры, рефералы). Шаблон стратегии требует план нетворкинга, и рефералы конвертятся лучше холодных откликов — поэтому сущность **Contact** (имя, компания, LinkedIn, статус контакта) — первое, что стоит добавить в v2. Канал отклика уже есть в MVP, чтобы сравнивать конверсию рефералов и сайтов.
+**Out of MVP:** contacts and networking (recruiters, referrals). The strategy template requires a networking plan, and referrals convert better than cold applications, so the **Contact** entity (name, company, LinkedIn, contact status) is the first thing worth adding in v2. The application channel is already in the MVP, so that referral and site conversion can be compared.
 
-## 3. Канбан, жизненный цикл и окно отклика
+## 3. Kanban, lifecycle and the apply window
 
-Inbox — не колонка доски, а отдельный раздел в боковом меню (как бэклог): список неразобранных карточек. Доска — пять колонок, Targeted → Closed. Каждое перемещение, включая выход из Inbox, пишет ApplicationEvent, поэтому метрики считаются из истории, а не из текущего состояния.
+Inbox is not a board column but a separate section in the side menu (like a backlog): a list of untriaged cards. The board has five columns, Targeted → Closed. Every move, including leaving Inbox, writes an ApplicationEvent, so metrics are computed from history, not from the current state.
 
-| Стадия | Что значит | Вход | Выход |
+| Stage | Meaning | Entry | Exit |
 | --- | --- | --- | --- |
-| **Inbox** (раздел в меню) | Найдено, но не разобрано. Сюда падает всё от ИИ. | ИИ-скан, ссылка, ручной ввод | Кнопки на карточке: «→ На доску» (в Targeted, сразу отметить подходящие гипотезы) или «Отклонить» с причиной (не та роль / локация / стек / ЗП) → стадия Dismissed |
-| **Targeted** | Хочу откликнуться. Выбрана хотя бы одна гипотеза. | Из Inbox или Preparing; переоткрытие из Dismissed | В Preparing, в Applied через окно отклика, в Dismissed |
-| **Preparing** | Адаптирую CV, пишу cover letter, ищу реферала. | Из Targeted; переоткрытие из Dismissed | В Applied через окно отклика, назад в Targeted, в Dismissed |
-| **Applied** | Отклик отправлен. Зафиксированы гипотеза (из отмеченных у вакансии), версия CV, канал, дата. | Из Targeted или Preparing; переоткрытие из Closed | Interviewing или Closed. Через N дней (по умолчанию 21) без ответа — подсказка «Ghosted?» |
-| **Interviewing** | Любой позитивный следующий шаг: скрининг, тестовое, интервью. Внутри — таймлайн этапов. | Из Applied; переоткрытие из Closed | Closed |
-| **Closed** | Закрыто с обязательным исходом отклика: Offer / Rejected / Ghosted / Withdrawn. По умолчанию скрыта, счётчики в заголовке. | Из Applied или Interviewing (исход есть только у отклика) | Переоткрыть в Applied или Interviewing: исход сбрасывается |
-| **Dismissed** (не на доске) | Отклонено с причиной — при разборе Inbox или передумал до отклика. Не отклик, поэтому не попадает в Closed и в конверсию, но считается в метрике «Рынок». | Из Inbox, Targeted или Preparing | Переоткрыть в Inbox, Targeted или Preparing: причина сбрасывается |
+| **Inbox** (menu section) | Found but not triaged. Everything from AI lands here. | AI scan, link, manual entry | Buttons on the card: "→ To board" (to Targeted, immediately marking the matching hypotheses) or "Dismiss" with a reason (wrong role / location / stack / salary) → Dismissed stage |
+| **Targeted** | I want to apply. At least one hypothesis is selected. | From Inbox or Preparing; reopened from Dismissed | To Preparing, to Applied via the apply window, to Dismissed |
+| **Preparing** | Adapting the CV, writing a cover letter, looking for a referral. | From Targeted; reopened from Dismissed | To Applied via the apply window, back to Targeted, to Dismissed |
+| **Applied** | The application is sent. The hypothesis (from those marked on the vacancy), CV version, channel and date are recorded. | From Targeted or Preparing; reopened from Closed | Interviewing or Closed. After N days (21 by default) without a reply, a "Ghosted?" hint |
+| **Interviewing** | Any positive next step: screening, test task, interview. Inside is a timeline of steps. | From Applied; reopened from Closed | Closed |
+| **Closed** | Closed with a mandatory application outcome: Offer / Rejected / Ghosted / Withdrawn. Hidden by default, with counters in the header. | From Applied or Interviewing (only an application has an outcome) | Reopen to Applied or Interviewing: the outcome is reset |
+| **Dismissed** (not on the board) | Dismissed with a reason, either while triaging Inbox or after changing your mind before applying. Not an application, so it does not go into Closed or into conversion, but it counts in the "Market" metric. | From Inbox, Targeted or Preparing | Reopen to Inbox, Targeted or Preparing: the reason is reset |
 
-Фильтры доски: гипотеза, компания, источник. Золотое правило: без выбранной гипотезы карточку нельзя перевести в Applied, иначе отклик выпадет из аналитики. Недопустимый переход — доменная ошибка, состояние не меняется; таблица допустимых переходов — `VacancyStageRules`.
+Board filters: hypothesis, company, source. The golden rule: without a selected hypothesis a card cannot be moved to Applied, otherwise the application drops out of analytics. An invalid transition is a domain error and the state does not change; the table of allowed transitions is `VacancyStageRules`.
 
-### Быстрое добавление в Inbox (Quick Add)
+### Quick Add to Inbox
 
-Добавить вакансию можно в 1–2 клика с любого устройства. Ввод — только URL (плюс необязательная заметка); карточка создаётся сразу со статусом «разбирается», а парсинг и привязка к компании идут в фоне. Если ИИ недоступен, карточка просто ждёт в Inbox со ссылкой — ничего не теряется.
+A vacancy can be added in 1–2 clicks from any device. The input is only a URL (plus an optional note); the card is created immediately with a "processing" status, while parsing and company matching run in the background. If AI is unavailable, the card simply waits in Inbox with its link, so nothing is lost.
 
-| Где вы | Как добавить |
+| Where you are | How to add |
 | --- | --- |
-| В приложении, любой экран | Кнопка «+ Вакансия» в шапке (на телефоне — плавающая кнопка) → поле URL, вставка из буфера → Enter |
-| Телефон Android | Приложение устанавливается как PWA и появляется в меню «Поделиться» (Web Share Target): из браузера или приложения LinkedIn — «Поделиться → Karajob» |
-| Телефон iPhone | У PWA на iOS нет пункта в «Поделиться», поэтому — быстрая команда (Shortcuts), которая шлёт URL в REST `POST /api/inbox` |
-| Десктопный браузер | Букмарклет «В трекер» (см. раздел 5): один клик, заодно забирает текст закрытых страниц |
-| Чат с Claude | «добавь \<url>» → MCP `ingest_vacancy` |
+| In the app, any screen | The "+ Vacancy" button in the header (a floating button on a phone) → URL field, paste from the clipboard → Enter |
+| Android phone | The app is installed as a PWA and appears in the Share menu (Web Share Target): from the browser or the LinkedIn app, "Share → Karajob" |
+| iPhone | A PWA on iOS has no Share menu entry, so use a Shortcut that sends the URL to the REST `POST /api/inbox` |
+| Desktop browser | The "To tracker" bookmarklet (see section 5): one click, and it also grabs the text of closed pages |
+| Chat with Claude | "add \<url>" → MCP `ingest_vacancy` |
 
-Предусловие: доступ к приложению с телефона вне домашней сети — через уже настроенный WireGuard на роутере (см. «Доступ» в разделе 6), и адаптивная вёрстка хотя бы у Inbox и Quick Add. Подводный камень: PWA (установка на телефон и пункт в «Поделиться») работает только по HTTPS, а по http://192.168.x.x браузер её не установит. Нужен реверс-прокси с сертификатом: либо свой домен + Let's Encrypt через DNS-проверку (порты наружу открывать не нужно), либо локальный сертификат Caddy, добавленный в доверенные на телефонах. Без HTTPS остаётся кнопка «+ Вакансия» в обычном браузере и закладка на рабочем столе — тоже 2 клика. Это входит в Фазу 0, а не в поздние фазы.
+Prerequisite: access to the app from a phone outside the home network, through the WireGuard already set up on the router (see "Access" in section 6), and responsive layout for at least Inbox and Quick Add. A pitfall: a PWA (installing on the phone and the Share menu entry) works only over HTTPS, and the browser will not install it from http://192.168.x.x. You need a reverse proxy with a certificate: either your own domain + Let's Encrypt via DNS validation (no need to open ports to the outside), or a local Caddy certificate added to the trusted ones on the phones. Without HTTPS you still have the "+ Vacancy" button in a regular browser and a desktop bookmark, also 2 clicks. This is part of Phase 0, not of the later phases.
 
-### Единое окно отклика (Apply Panel)
+### Unified apply window (Apply Panel)
 
-Полностью универсальная отправка «одной кнопкой» недостижима и вредна. Публичные API Greenhouse/Lever дают читать вакансии, а отправка отклика через них требует ключа самой компании. Формы Workday, LinkedIn Easy Apply и сайтов студий разные, часто с CAPTCHA и запретом ботов в ToS. Кроме того, автоотклики толкают к количеству вместо качества — а ваша же стратегия строится на адаптации под гипотезу.
+A fully universal "one button" submission is unattainable and harmful. The public Greenhouse/Lever APIs let you read vacancies, but submitting an application through them requires the company's own key. The forms of Workday, LinkedIn Easy Apply and studio sites differ, often with CAPTCHAs and a bot ban in the ToS. Besides, auto-applying pushes toward quantity instead of quality, while your own strategy is built on adaptation to the hypothesis.
 
-Поэтому окно отклика — это **единая точка подготовки и фиксации**, а не единый способ отправки:
+So the apply window is a **single point of preparation and recording**, not a single way of submitting:
 
-1. **Пакет.** Выбор гипотезы → подставляется её CV (можно сменить версию) и шаблон cover letter. Кнопка «Сгенерировать письмо» — ИИ пишет черновик по вакансии + позиционированию гипотезы, вы правите.
-2. **Банк ответов.** Сохранённые ответы на типовые вопросы форм (ожидания по ЗП, нотис, виза/разрешение на работу, линки на GitHub/портфолио, «Why us»). Каждое поле — с кнопкой «копировать».
-3. **Отправка по каналу:**
-   - *Email* (в вакансии указан адрес) — приложение письма не отправляет. Кнопки копируют адрес, тему и текст, CV скачивается файлом, а письмо вы отправляете из своей почты сами.
-   - *Форма на сайте* — кнопка открывает ссылку в новой вкладке, CV скачивается с правильным именем файла, поля вставляются из банка ответов. В v3 — ассистированное заполнение формы агентом в браузере (Claude с браузером или Playwright) с остановкой перед «Submit» — нажимаете вы.
-   - *Реферал / рекрутер* — текст сообщения для LinkedIn/Telegram с кнопкой копирования.
-4. **«Откликнулся».** Одна кнопка фиксирует JobApplication (гипотеза, версия CV, текст письма, канал, дата) и переносит карточку в Applied.
+1. **Package.** Choose a hypothesis → its CV (the version can be changed) and cover letter template are filled in. The "Generate letter" button: AI writes a draft from the vacancy + the hypothesis positioning, and you edit it.
+2. **Answer bank.** Saved answers to typical form questions (salary expectations, notice period, visa/work permit, GitHub/portfolio links, "Why us"). Each field has a "copy" button.
+3. **Submission by channel:**
+   - *Email* (an address is given in the vacancy): the app does not send the email. Buttons copy the address, subject and text, the CV downloads as a file, and you send the email yourself from your own mail.
+   - *Form on a website*: the button opens the link in a new tab, the CV downloads with the correct file name, and the fields are pasted from the answer bank. In v3, assisted form filling by an agent in the browser (Claude with a browser or Playwright), stopping before "Submit", which you press.
+   - *Referral / recruiter*: the message text for LinkedIn/Telegram with a copy button.
+4. **"Applied".** One button records the JobApplication (hypothesis, CV version, letter text, channel, date) and moves the card to Applied.
 
-### Адаптация и генерация CV
+### CV adaptation and generation
 
-Кнопок две, и живут они в разных местах, потому что решают разные задачи:
+There are two buttons, and they live in different places because they solve different problems:
 
-- **«Адаптировать CV под вакансию» — в окне отклика**, рядом с выбором CV (шаг 1 «Пакет»). ИИ берёт CV гипотезы и текст вакансии, переставляет акценты (summary, порядок пунктов, ключевые слова для ATS) и создаёт дочернюю версию, привязанную к вакансии. Вы видите diff относительно исходника, правите и подтверждаете — PDF собирается сразу.
-- **«Новый CV для гипотезы» — в справочнике CV и на карточке гипотезы.** ИИ собирает черновик из мастер-профиля (полный список опыта, проектов и достижений) под роль и позиционирование гипотезы. Это редкая операция — раз на гипотезу.
+- **"Adapt CV to the vacancy" is in the apply window**, next to the CV picker (step 1, "Package"). AI takes the hypothesis CV and the vacancy text, shifts the emphasis (summary, order of items, keywords for ATS) and creates a child version tied to the vacancy. You see a diff against the original, edit and confirm, and the PDF is built right away.
+- **"New CV for a hypothesis" is in the CV directory and on the hypothesis card.** AI assembles a draft from the master profile (the full list of experience, projects and achievements) for the role and positioning of the hypothesis. This is a rare operation, once per hypothesis.
 
-Два требования, без которых это не заработает:
+Two requirements without which this will not work:
 
-- **Исходник CV — текст, а не PDF.** ИИ не может аккуратно править готовый PDF. Поэтому CV хранится в Markdown и рендерится в PDF по шаблону (QuestPDF или HTML → PDF через Playwright). Загруженные PDF остаются как «ручные» версии без адаптации. Перенос вашего текущего CV в Markdown — одноразовая работа.
-- **Защита от выдумок.** Адаптация может переформулировать и переставлять, но не добавлять навыки, цифры и проекты, которых нет в мастер-профиле. После генерации код подсвечивает числа и технологии, которых нет в исходнике. Выдуманный пункт в CV всплывёт на интервью.
+- **The CV source is text, not PDF.** AI cannot cleanly edit a finished PDF. So the CV is stored in Markdown and rendered to PDF from a template (QuestPDF or HTML → PDF via Playwright). Uploaded PDFs remain as "manual" versions without adaptation. Moving your current CV to Markdown is a one-time job.
+- **Protection against fabrication.** Adaptation may rephrase and reorder, but not add skills, numbers and projects that are not in the master profile. After generation the code highlights numbers and technologies that are absent from the source. A made-up item in a CV will surface at the interview.
 
-Для метрик адаптированные версии считаются по их родительскому CV — иначе каждый отклик окажется со «своим CV» и сравнивать станет нечего. Адаптация — Фаза 1 (через скил `karajob-apply`), кнопка в UI — Фаза 2.
+For metrics, adapted versions are counted under their parent CV; otherwise every application would end up with "its own CV" and there would be nothing to compare. Adaptation is Phase 1 (via the `karajob-apply` skill), the UI button is Phase 2.
 
-Для сайтов это забирает большую часть рутины без хрупких интеграций: вы не ищете файлы и тексты, а фиксация для метрик не зависит от дисциплины.
+For websites this takes over most of the routine without fragile integrations: you do not hunt for files and texts, and recording for metrics does not depend on discipline.
 
-## 4. Метрики и решения по гипотезам
+## 4. Metrics and decisions on hypotheses
 
-У каждой гипотезы есть карточка-дашборд с тремя критериями из шаблона и подсказкой по решению. Решение принимаете вы; приложение лишь не даёт принять его на слишком малой выборке без предупреждения.
+Each hypothesis has a dashboard card with the three criteria from the template and a decision hint. You make the decision; the application only keeps you from making it on too small a sample without a warning.
 
-| Критерий | Как считается | Порог (настраиваемый) |
+| Criterion | How it is calculated | Threshold (configurable) |
 | --- | --- | --- |
-| Рынок | Вакансии с VacancyMatch ≥ порога релевантности, найденные за неделю (по дате обнаружения, включая отклонённые из Inbox) | < 10/нед → «слишком узкая» |
-| Конверсия | Отклики с хотя бы одним позитивным событием (скрининг, тестовое, интервью) / все отклики гипотезы. Отклики младше 14 дней не считаются — им ещё рано отвечать. | ≥ 3–5% → продолжать |
-| Самочувствие | Среднее мотивации и уверенности из еженедельных чек-инов (1–5) + тренд | ≤ 2 две недели подряд → сигнал «не подходит лично» |
-| Активность | Отклики, контакты и адаптации CV за неделю против целей из SearchGoal | пункт 3 шаблона |
+| Market | Vacancies with VacancyMatch ≥ the relevance threshold, found during the week (by discovery date, including those dismissed from Inbox) | < 10/week → "too narrow" |
+| Conversion | Applications with at least one positive event (screening, test task, interview) / all applications of the hypothesis. Applications younger than 14 days are not counted: it is too early for them to get a reply. | ≥ 3–5% → continue |
+| Well-being | The average of motivation and confidence from the weekly check-ins (1–5) + trend | ≤ 2 for two weeks in a row → a "not a personal fit" signal |
+| Activity | Applications, contacts and CV adaptations for the week against the goals from SearchGoal | item 3 of the template |
 
-### Честность конверсии
+### Honest conversion
 
-Порог 3–5% на малых числах почти ничего не доказывает. Одно интервью из 30 откликов — это 3,3%, но 95%-й интервал Уилсона — от 0,6% до 16,7%. Ноль из 30 при реальной конверсии 5% случается с вероятностью около 21% (0,95^30), ноль из 50 — около 8%. Отсюда три правила для UI:
+A 3–5% threshold on small numbers proves almost nothing. One interview out of 30 applications is 3.3%, but the 95% Wilson interval is 0.6% to 16.7%. Zero out of 30 at a real conversion of 5% happens with a probability of about 21% (0.95^30), zero out of 50 about 8%. Hence three rules for the UI:
 
-- Рядом с процентом всегда показывать «k из n» и интервал.
-- До минимальной выборки (по умолчанию 30 созревших откликов) статус — «данных мало», а не «не работает».
-- Быстрее всего сигнал дают критерии «рынок» и «самочувствие» — их стоит проверять с первой недели, а конверсию оценивать не раньше 3–4 недели.
+- Always show "k of n" and the interval next to the percentage.
+- Before the minimum sample (30 matured applications by default) the status is "not enough data", not "does not work".
+- The "market" and "well-being" criteria give a signal fastest, so check them from the first week, and evaluate conversion no earlier than week 3–4.
 
-### Дерево решений
+### Decision tree
 
-1. Мало данных → продолжать без решения.
-2. Рынок < 10/нед → **Expand**: расширить индустрии/локации/формат без смены CV. В решении фиксируется, что именно расширено, и начинается новый период метрик, чтобы не смешивать «до» и «после».
-3. Конверсия ≥ 3–5% → **Continue**.
-4. Конверсия ниже порога при нормальном рынке → сначала сменить CV/позиционирование (это новая версия гипотезы), повторная неудача → **Disable**. Этого шага нет в шаблоне, но без него вы выбросите рабочее направление из-за плохого резюме.
-5. Самочувствие стабильно низкое → **Disable** с причиной «не подходит лично», независимо от цифр.
+1. Not enough data → continue without a decision.
+2. Market < 10/week → **Expand**: widen industries/locations/format without changing the CV. The decision records exactly what was expanded and a new metrics period begins, so that "before" and "after" are not mixed.
+3. Conversion ≥ 3–5% → **Continue**.
+4. Conversion below the threshold with a normal market → first change the CV/positioning (this is a new version of the hypothesis); a repeated failure → **Disable**. This step is not in the template, but without it you would throw away a working direction because of a bad résumé.
+5. Well-being consistently low → **Disable** with the reason "not a personal fit", regardless of the numbers.
 
-При отключении приложение предлагает активировать следующую гипотезу из Draft и предупреждает, если активных гипотез больше 3 или меньше 2 (правило шаблона).
+On disabling, the application offers to activate the next hypothesis from Draft and warns if there are more than 3 or fewer than 2 active hypotheses (a template rule).
 
-**Еженедельный обзор (Weekly Review)** — один экран: метрики по всем активным гипотезам, чек-ин самочувствия, зависшие отклики (Ghosted?), факт против недельных целей и кнопки решений. Это главный ритуал, вокруг которого строится инструмент.
+**Weekly Review** is a single screen: metrics for all active hypotheses, the well-being check-in, stalled applications (Ghosted?), actual vs weekly goals, and the decision buttons. This is the main ritual the tool is built around.
 
-## 5. ИИ-интеграция
+## 5. AI integration
 
-Вашу подписку Claude Pro можно использовать двумя способами, и стоит взять оба: **MCP** — для интерактивной работы из чата, **`claude -p` (Claude Code CLI)** — для фоновой автоматизации. Прямого доступа к API подписка не даёт; API-ключ — отдельная потокенная оплата.
+Your Claude Pro subscription can be used in two ways, and both are worth taking: **MCP** for interactive work from chat, and **`claude -p` (Claude Code CLI)** for background automation. The subscription does not give direct API access; an API key is separate pay-per-token billing.
 
-| Вариант | Как работает | Чем платите | Для чего |
+| Option | How it works | What you pay with | What for |
 | --- | --- | --- | --- |
-| **A. MCP-сервер в приложении** | Claude (Desktop / Code / claude.ai) — клиент. Вы пишете «добавь вакансию \<url>», Claude сам читает страницу и вызывает инструменты `upsert_company`, `create_vacancy`. | Обычные лимиты подписки | MVP. Ни строки LLM-кода в бэкенде. Разовые задачи: разобрать ссылку, написать cover letter, провести weekly review. |
-| **B. `claude -p` в контейнере-воркере** | Бэкенд запускает CLI в неинтерактивном режиме с `--output-format json` и токеном из `claude setup-token` (переменная `CLAUDE_CODE_OAUTH_TOKEN`). | Лимиты подписки | Фон: парсинг ссылок из UI, скоринг вакансий от сканера. |
+| **A. MCP server in the application** | Claude (Desktop / Code / claude.ai) is the client. You write "add vacancy \<url>", Claude reads the page itself and calls the `upsert_company` and `create_vacancy` tools. | Regular subscription limits | MVP. Not a line of LLM code in the backend. One-off tasks: parse a link, write a cover letter, run a weekly review. |
+| **B. `claude -p` in a worker container** | The backend runs the CLI in non-interactive mode with `--output-format json` and a token from `claude setup-token` (the `CLAUDE_CODE_OAUTH_TOKEN` variable). | Subscription limits | Background: parsing links from the UI, scoring vacancies from the scanner. |
 
-**Риск варианта B.** Правила Anthropic по программному использованию подписки менялись в 2026 году минимум три раза ([The Register](https://www.theregister.com/2026/02/20/anthropic_clarifies_ban_third_party_claude_access), [The Register, май](https://www.theregister.com/ai-ml/2026/05/14/anthropic-tosses-agents-into-the-api-billing-pool/5240748)). Сейчас справка Anthropic говорит, что при входе с подпиской Agent SDK и `claude -p` расходуют лимиты подписки ([Help Center](https://support.claude.com/en/articles/15036540-use-the-claude-agent-sdk-with-your-claude-plan)). Подписка личная, и лимиты рассчитаны на индивидуальное использование. Поэтому в семейном режиме фоновые задачи каждого профиля идут на его собственном токене Claude, а профиль без токена работает в ручном режиме и через MCP из своего Claude. Вывод: все вызовы — через интерфейс `ILlmClient` (пока одна реализация — B; если правила изменятся, провайдер меняется в одном месте), дневной лимит вызовов. И перед реализацией перепроверить актуальные условия.
+**Risk of option B.** Anthropic's rules on programmatic use of the subscription changed at least three times in 2026 ([The Register](https://www.theregister.com/2026/02/20/anthropic_clarifies_ban_third_party_claude_access), [The Register, May](https://www.theregister.com/ai-ml/2026/05/14/anthropic-tosses-agents-into-the-api-billing-pool/5240748)). Currently the Anthropic help center says that when signed in with a subscription, the Agent SDK and `claude -p` consume subscription limits ([Help Center](https://support.claude.com/en/articles/15036540-use-the-claude-agent-sdk-with-your-claude-plan)). The subscription is personal, and the limits are designed for individual use. So in family mode each profile's background tasks run on its own Claude token, and a profile without a token works in manual mode and through MCP from its own Claude. Conclusion: all calls go through the `ILlmClient` interface (for now there is one implementation, B; if the rules change, the provider is swapped in one place), with a daily call limit. And re-check the current terms before implementing.
 
-### Сценарий 1: ссылка → карточка
+### Scenario 1: link → card
 
-1. **Получить текст.** Если URL — известный ATS (Greenhouse, Lever, Ashby, Workable, SmartRecruiters), берём JSON из их публичного API — структура без LLM. Иначе — HttpClient + извлечение читаемого текста (SmartReader / AngleSharp).
-2. **Если страница закрыта** (LinkedIn требует логин, часть сайтов рендерится JS) — **букмарклет «В трекер»**: нажимаете его на открытой вакансии, он отправляет URL и текст страницы из вашего браузера, где вы уже залогинены. Это надёжнее любого серверного скрейпинга. Последний резерв — вставить текст руками.
-3. **Извлечь поля.** LLM с JSON-схемой: компания, домен, роль, сеньорность, локация, формат, вилка, требования, email для отклика (если есть).
-4. **Компания.** Поиск по домену; если нет — создать с иконкой (favicon домена) и пометкой «не проверено». Описание и проекты — отдельной задачей обогащения с сайта компании.
-5. **Матчинг.** Оценка соответствия активным гипотезам → VacancyMatch с обоснованием.
-6. **В Inbox** с бейджем «AI». Вы проверяете и переносите в Targeted. ИИ никогда не кладёт карточки сразу в рабочие колонки.
+1. **Get the text.** If the URL is a known ATS (Greenhouse, Lever, Ashby, Workable, SmartRecruiters), we take JSON from its public API, a structure without an LLM. Otherwise HttpClient + readable text extraction (SmartReader / AngleSharp).
+2. **If the page is closed** (LinkedIn requires a login, some sites are rendered with JS), use the **"To tracker" bookmarklet**: you press it on an open vacancy, and it sends the URL and the page text from your browser, where you are already logged in. This is more reliable than any server-side scraping. The last resort is pasting the text by hand.
+3. **Extract fields.** An LLM with a JSON schema: company, domain, role, seniority, location, format, salary range, requirements, application email (if any).
+4. **Company.** Look up by domain; if absent, create it with an icon (the domain favicon) and an "unverified" mark. The description and projects are a separate enrichment task from the company website.
+5. **Matching.** Evaluate fit against the active hypotheses → VacancyMatch with a rationale.
+6. **Into Inbox** with an "AI" badge. You review it and move it to Targeted. AI never puts cards straight into the working columns.
 
-### Сценарий 2: автопоиск по гипотезам
+### Scenario 2: auto-search by hypotheses
 
-Обход «сайтов с вакансиями» агентом — дорого, медленно и хрупко. Вместо этого — **конвейер, где LLM вызывается только на последнем шаге**:
+Having an agent walk "vacancy sites" is expensive, slow and fragile. Instead there is a **pipeline where the LLM is called only at the last step**:
 
-1. **Сбор** (без ИИ, по расписанию). Источники по приоритету: (а) ATS-доски компаний из справочника — вы один раз добавляете студию, и все её новые вакансии приходят сами; (б) RSS/API агрегаторов, которые их отдают (для русскоязычных гипотез — API hh.ru, его текущие условия доступа нужно проверить; геймдев-каналы в Telegram — через пересылку боту или Quick Add); (в) LinkedIn и подобные — только через букмарклет или email-алерты, без скрейпинга.
-2. **Дедупликация** по нормализованному URL и внешнему ID.
-3. **Дешёвый предфильтр** по полям гипотезы: ключевые слова в заголовке, стоп-слова (Senior Manager, QA, Artist…), локация/формат. Отсекает подавляющую часть мусора бесплатно.
-4. **LLM-скоринг** выживших: вход — вакансия + описание гипотезы + текст её CV, выход — score, короткое обоснование, красные флаги (нужен паспорт ЕС, только on-site и т.п.).
-5. **Результат.** Score ≥ порога → Inbox. Все прошедшие предфильтр считаются в метрике «Рынок» — это и есть честный ответ на «10 вакансий в неделю».
+1. **Collection** (no AI, on a schedule). Sources by priority: (a) the ATS boards of companies from the directory: you add a studio once, and all its new vacancies arrive on their own; (b) RSS/APIs of aggregators that provide them (for Russian-language hypotheses, the hh.ru API, whose current access terms need to be checked; game-dev channels in Telegram via forwarding to a bot or Quick Add); (c) LinkedIn and similar only via the bookmarklet or email alerts, with no scraping.
+2. **Deduplication** by normalized URL and external ID.
+3. **Cheap prefilter** on the hypothesis fields: keywords in the title, stop words (Senior Manager, QA, Artist…), location/format. It cuts off the overwhelming part of the junk for free.
+4. **LLM scoring** of the survivors: input is the vacancy + the hypothesis description + the text of its CV, output is a score, a short rationale and red flags (an EU passport is needed, on-site only, etc.).
+5. **Result.** Score ≥ threshold → Inbox. Everything that passed the prefilter counts in the "Market" metric, which is the honest answer to "10 vacancies a week".
 
-**Переиспользуем [career-ops](https://github.com/career-ops-hq/career-ops) (MIT).** Сканер и оценку вакансий с нуля не пишем, берём из него в два шага:
+**We reuse [career-ops](https://github.com/career-ops-hq/career-ops) (MIT).** We do not write the scanner and vacancy evaluation from scratch; we take them from it in two steps:
 
-1. **Данные и промпты (дёшево, надёжно).** Импорт `portals.yml` (компании + их ATS) как стартового наполнения справочника компаний. Их режимы оценки и CV — основа для наших скилов `karajob-ingest` и `karajob-apply`, адаптированные под гипотезы.
-2. **Сканер как сайдкар (если шага 1 мало).** Отдельный Node-контейнер с career-ops по расписанию запускает `npm run scan` на общем volume. Наш импортер забирает новое из `data/pipeline.md` в Inbox, а дальше идут наши предфильтр и скоринг по гипотезам.
+1. **Data and prompts (cheap, reliable).** Import `portals.yml` (companies + their ATS) as the starting contents of the company directory. Its evaluation and CV modes are the basis for our `karajob-ingest` and `karajob-apply` skills, adapted to hypotheses.
+2. **The scanner as a sidecar (if step 1 is not enough).** A separate Node container with career-ops runs `npm run scan` on a schedule on a shared volume. Our importer picks up the new items from `data/pipeline.md` into Inbox, and from there our prefilter and scoring by hypotheses take over.
 
-Риски: формат `pipeline.md` не документирован как контракт — фиксируем версию career-ops и покрываем парсер тестом. Провайдеры там в основном про международный рынок, так что для русскоязычных гипотез hh.ru и Telegram остаются на нас. Автозаполнение форм из Фазы 3 тоже можно взять из их режима `apply` (Playwright, остановка перед Submit).
+Risks: the `pipeline.md` format is not documented as a contract, so we pin the career-ops version and cover the parser with a test. Its providers are mostly about the international market, so for Russian-language hypotheses hh.ru and Telegram remain on us. The form auto-filling from Phase 3 can also be taken from its `apply` mode (Playwright, stopping before Submit).
 
-Самая ценная автоматизация для геймдева — пункт (а). Рынок студий конечен: список из 100–200 интересных компаний с их ATS-досками даст полноту без агрегаторов, а справочник компаний перестаёт быть просто справочником.
+The most valuable automation for game dev is item (a). The studio market is finite: a list of 100–200 interesting companies with their ATS boards gives completeness without aggregators, and the company directory stops being just a directory.
 
-### Другие места для ИИ
+### Other places for AI
 
-- Черновик cover letter в окне отклика.
-- Gap-анализ «вакансия vs CV»: чего не хватает, что подчеркнуть.
-- Анализ отказов по гипотезе: общие требования у вакансий, где вас не позвали.
-- Подготовка к интервью по карточке в Interviewing: проекты компании + требования → вероятные вопросы.
+- A cover letter draft in the apply window.
+- Gap analysis "vacancy vs CV": what is missing, what to emphasize.
+- Rejection analysis by hypothesis: requirements shared by the vacancies where you were not invited.
+- Interview preparation from a card in Interviewing: company projects + requirements → likely questions.
 
-## 6. Архитектура и стек
+## 6. Architecture and stack
 
-Один ASP.NET Core-процесс отдаёт UI, REST API и MCP-эндпоинт, а все три вызывают один и тот же слой прикладных сервисов. Без этого правила бизнес-логика (дедупликация, запрет Applied без гипотезы) разъедется между UI и ИИ-инструментами.
+A single ASP.NET Core process serves the UI, the REST API and the MCP endpoint, and all three call the same layer of application services. Without this rule the business logic (deduplication, no Applied without a hypothesis) would drift apart between the UI and the AI tools.
 
 ```mermaid
 flowchart LR
-  Browser[Браузер] --> UI[Blazor UI]
-  Bookmarklet[Букмарклет] --> REST[REST API]
+  Browser[Browser] --> UI[Blazor UI]
+  Bookmarklet[Bookmarklet] --> REST[REST API]
   Claude[Claude Desktop/Code] --> MCP[MCP /mcp]
-  subgraph Docker[Docker-контейнер karajob]
-    UI --> S[Сервисы: Vacancy/Application/Hypothesis/Ingest]
+  subgraph Docker[Docker container karajob]
+    UI --> S[Services: Vacancy/Application/Hypothesis/Ingest]
     REST --> S
     MCP --> S
-    S --> DB[(SQLite + файлы, volume /data)]
-    W[Фоновые воркеры] --> S
+    S --> DB[(SQLite + files, volume /data)]
+    W[Background workers] --> S
   end
-  W --> Src[ATS-доски, RSS]
+  W --> Src[ATS boards, RSS]
   W --> LLM[ILlmClient: claude -p]
 ```
 
-ИИ входит дважды: снаружи — как клиент MCP, изнутри — через фоновые воркеры; и тот, и другой пишут данные только через сервисы.
+AI enters twice: from outside as an MCP client, and from inside through background workers; both write data only through the services.
 
-| Слой | Выбор | Почему / альтернатива |
+| Layer | Choice | Why / alternative |
 | --- | --- | --- |
-| Рантайм | .NET 10 (LTS), ASP.NET Core | Текущая LTS-версия. |
-| Фронтенд | **Blazor (Interactive Server) + MudBlazor** | Весь UI на C#, без npm и сборки JS. В MudBlazor есть drag-and-drop (`MudDropContainer`) — канбан собирается из готовых компонентов. Минус Server-режима (постоянное SignalR-соединение) для одного пользователя не важен. Альтернатива: Razor Pages + htmx + SortableJS — проще в дебаге, но всё равно немного JS. |
-| БД | **SQLite + EF Core** | Несколько членов семьи, тысячи записей. Один файл на volume, бэкап = копирование. PostgreSQL — лишний контейнер без выигрыша; Смена СУБД — настройкой, см. «Независимость от СУБД» ниже. |
-| Файлы | CV и иконки на volume `/data/files`, путь в БД | Текст CV извлекается при загрузке (PdfPig для PDF, OpenXML для DOCX) и хранится для ИИ. |
-| Фоновые задачи | `BackgroundService` + таблица AiJob как очередь | Для MVP достаточно. Hangfire/Quartz — если понадобятся сложные расписания и дашборд ретраев. |
-| MCP | Официальный C# SDK (`ModelContextProtocol.AspNetCore`), Streamable HTTP на `/mcp` | В том же процессе, что и UI. Инструменты — тонкие обёртки над прикладными сервисами. |
-| LLM | `ILlmClient`: ClaudeCli | См. раздел 5. Все вызовы — с JSON-схемой ответа и валидацией. |
-| Доступ | Выбор профиля без пароля (cookie) + персональный токен для REST/MCP | Наружу не выставлять; удалённый доступ — через WireGuard-VPN на домашнем роутере. В БД лежат CV и персональные данные. |
+| Runtime | .NET 10 (LTS), ASP.NET Core | The current LTS version. |
+| Frontend | **Blazor (Interactive Server) + MudBlazor** | The whole UI in C#, with no npm and no JS build. MudBlazor has drag-and-drop (`MudDropContainer`), so the kanban is assembled from ready-made components. The downside of Server mode (a constant SignalR connection) does not matter for a single user. Alternative: Razor Pages + htmx + SortableJS, which is easier to debug but still involves a bit of JS. |
+| DB | **SQLite + EF Core** | A few family members, thousands of records. One file on a volume, backup = copying. PostgreSQL is an extra container with no gain; switching the DBMS is a setting, see "DBMS independence" below. |
+| Files | CVs and icons on the volume `/data/files`, path in the DB | CV text is extracted on upload (PdfPig for PDF, OpenXML for DOCX) and stored for AI. |
+| Background jobs | `BackgroundService` + the AiJob table as a queue | Enough for the MVP. Hangfire/Quartz if complex schedules and a retry dashboard become necessary. |
+| MCP | The official C# SDK (`ModelContextProtocol.AspNetCore`), Streamable HTTP at `/mcp` | In the same process as the UI. The tools are thin wrappers over the application services. |
+| LLM | `ILlmClient`: ClaudeCli | See section 5. All calls use a JSON response schema and validation. |
+| Access | Profile selection without a password (cookie) + a personal token for REST/MCP | Do not expose externally; remote access via a WireGuard VPN on the home router. The DB holds CVs and personal data. |
 
-### Независимость от СУБД
+### DBMS independence
 
-СУБД выбирается параметром `Database:Provider` (`Sqlite` | `Postgres`) без изменения кода. EF Core уже и есть абстракция над СУБД; свой слой репозиториев поверх него не добавит переносимости, только код. Ломается переносимость на деталях, поэтому правила такие:
+The DBMS is chosen by the `Database:Provider` parameter (`Sqlite` | `Postgres`) with no code changes. EF Core already is an abstraction over the DBMS; our own repository layer on top of it would add no portability, only code. Portability breaks on details, so the rules are:
 
-- **Миграции — отдельный проект на каждого провайдера** (`Karajob.Migrations.Sqlite`, `Karajob.Migrations.Postgres`). Миграции EF Core привязаны к провайдеру, один набор на оба не работает. Каждое изменение модели — две миграции, одним скриптом.
-- **Только то, что умеют оба провайдера.** Никакого сырого SQL и специфичных функций в запросах. Время хранится как UTC `DateTime`, а не `DateTimeOffset`: SQLite-провайдер EF Core не сортирует и не сравнивает его на стороне БД. Деньги (вилки ЗП) — целые числа в минимальных единицах вместо `decimal`, с которым у SQLite те же ограничения.
-- **Нормализация в приложении, а не в БД.** Slug, домены, алиасы и URL приводятся к нижнему регистру до записи. Иначе уникальные индексы и поиск ведут себя по-разному: у СУБД разные правила сравнения строк.
-- **Тесты на обеих СУБД.** Интеграционные тесты сервисов гоняются на SQLite и на PostgreSQL (Testcontainers). Без этого вторая СУБД тихо сломается через пару месяцев.
-- **Перенос данных.** Команда экспорта/импорта всей базы в JSON (через тот же EF Core): смена СУБД = экспорт → смена параметра → импорт. Заодно это человекочитаемый бэкап.
+- **Migrations are a separate project per provider** (`Karajob.Migrations.Sqlite`, `Karajob.Migrations.Postgres`). EF Core migrations are tied to a provider, and a single set does not work for both. Every model change means two migrations, made by one script.
+- **Only what both providers support.** No raw SQL and no provider-specific functions in queries. Time is stored as a UTC `DateTime`, not `DateTimeOffset`: the EF Core SQLite provider cannot sort or compare it on the DB side. Money (salary ranges) is integers in minor units instead of `decimal`, which has the same limitations in SQLite.
+- **Normalization in the application, not in the DB.** Slugs, domains, aliases and URLs are lowercased before writing. Otherwise unique indexes and search behave differently: different DBMSs have different string comparison rules.
+- **Tests on both DBMSs.** Service integration tests run on SQLite and on PostgreSQL (Testcontainers). Without this the second DBMS will quietly break within a couple of months.
+- **Data transfer.** A command to export/import the whole database as JSON (through the same EF Core): switching the DBMS = export → change the parameter → import. As a bonus it is a human-readable backup.
 
-**Режим для отладки и тестов — SQLite in-memory, а не EF Core InMemory.** Провайдер InMemory не реляционный: в нём не срабатывают уникальные индексы, внешние ключи и транзакции, а Microsoft не рекомендует его для тестов. У нас часть логики держится на уникальности (slug, домены, URL вакансий), и с InMemory тесты будут зелёными ровно там, где прод падает. Вместо этого — третье значение `Database:Provider=SqliteInMemory`: тот же SQLite с теми же миграциями, база живёт в памяти, пока открыто соединение, и при старте заполняется сид-данными (пара профилей, гипотезы, десяток карточек в разных колонках). Для юнит-тестов `Karajob.Domain` БД не нужна вообще.
+**The mode for debugging and tests is SQLite in-memory, not EF Core InMemory.** The InMemory provider is not relational: unique indexes, foreign keys and transactions do not work in it, and Microsoft does not recommend it for tests. Part of our logic relies on uniqueness (slug, domains, vacancy URLs), and with InMemory the tests will be green exactly where production fails. Instead there is a third value, `Database:Provider=SqliteInMemory`: the same SQLite with the same migrations, the database lives in memory while the connection is open, and at startup it is filled with seed data (a couple of profiles, hypotheses, a dozen cards in different columns). `Karajob.Domain` unit tests need no DB at all.
 
-### Миграции схемы
+### Schema migrations
 
-Схема меняется только миграциями EF Core, а применяются они автоматически при старте контейнера, с бэкапом перед каждым применением. Для одного экземпляра приложения это проще отдельного шага деплоя.
+The schema changes only through EF Core migrations, and they are applied automatically at container startup, with a backup before each application. For a single application instance this is simpler than a separate deployment step.
 
-1. **Создание.** Скрипт `scripts/add-migration <Name>` вызывает `dotnet ef migrations add` для каждого провайдера (сейчас — только SQLite). Одна команда, чтобы наборы не разъехались. Миграции коммитятся и ревьюятся как код.
-2. **Проверка тестом.** Обычный xUnit-тест (запускается локально: \`dotnet test\` перед сборкой образа, можно прямо в скрипте сборки; тот же dotnet test запускается в GitHub Actions на каждый push — один YAML-файл в .github/workflows) падает, если модель изменена, а миграция не создана (pending model changes), и прогоняет все миграции на пустой БД и на копии базы предыдущей версии.
-3. **Применение.** На старте, до приёма запросов: если есть неприменённые миграции, сначала делается копия базы в `/data/backups/<дата>-before-<миграция>.db`, потом `Database.MigrateAsync()`. Если миграция упала, приложение не стартует, а в логе есть путь к бэкапу. `EnsureCreated()` не используется нигде: он несовместим с миграциями.
-4. **Откат = восстановление бэкапа + предыдущий образ.** Down-миграции не поддерживаем: для SQLite EF Core пересобирает таблицы, и дауны часто теряют данные. Будут давать ложное чувство безопасности.
-5. **Миграции данных** (например, заполнить `UserId` у старых записей) — не сырым SQL внутри миграции, а C#-классами `IDataPatch` с номером. Они выполняются после схемных миграций один раз, учёт ведётся в таблице `__DataPatches`. Так они работают на любой СУБД и покрываются тестами.
+1. **Creation.** The script `scripts/add-migration <Name>` calls `dotnet ef migrations add` for each provider (for now only SQLite). One command, so that the sets do not drift apart. Migrations are committed and reviewed like code.
+2. **Test check.** A regular xUnit test (run locally: \`dotnet test\` before building the image, possibly right in the build script; the same dotnet test runs in GitHub Actions on every push, a single YAML file in .github/workflows) fails if the model has changed and no migration was created (pending model changes), and runs all migrations on an empty DB and on a copy of the previous version's database.
+3. **Applying.** At startup, before accepting requests: if there are unapplied migrations, a copy of the database is first made at `/data/backups/<date>-before-<migration>.db`, then `Database.MigrateAsync()`. If a migration fails, the application does not start, and the log contains the path to the backup. `EnsureCreated()` is not used anywhere: it is incompatible with migrations.
+4. **Rollback = restoring the backup + the previous image.** We do not support down migrations: for SQLite, EF Core rebuilds tables, and downs often lose data. They would give a false sense of safety.
+5. **Data migrations** (for example, filling `UserId` on old records) are not raw SQL inside a migration but C# `IDataPatch` classes with a number. They run after the schema migrations exactly once, tracked in the `__DataPatches` table. This way they work on any DBMS and are covered by tests.
 
-Цена: двойные миграции и дольше прогон тестов. До реальной нужды в PostgreSQL можно соблюдать правила 2–3 и экспорт/импорт, а второй набор миграций с тестами добавить в день переезда.
+The cost: double migrations and a longer test run. Until there is a real need for PostgreSQL you can follow rules 2–3 and export/import, and add the second set of migrations with tests on the day of the move.
 
-**Решение про Docker.** Один образ `karajob` (ASP.NET + установленный Claude Code CLI для варианта B) и один volume `/data` (SQLite + файлы). `docker compose up` — и всё. Секреты (`CLAUDE_CODE_OAUTH_TOKEN`) — через `.env`, не в образе и не в гите.
+**Docker decision.** One image `karajob` (ASP.NET + the Claude Code CLI installed for option B) and one volume `/data` (SQLite + files). `docker compose up` and that is all. Secrets (`CLAUDE_CODE_OAUTH_TOKEN`) go through `.env`, not in the image and not in git.
 
-**Структура решения:**
+**Solution structure:**
 
-- `Karajob.Domain` — сущности, правила переходов стадий, расчёт метрик (чистый C#, покрыт юнит-тестами).
-- `Karajob.Application` — сервисы сценариев: `VacancyService`, `ApplicationService`, `HypothesisService`, `IngestService`.
-- `Karajob.Infrastructure` — EF Core, клиенты ATS, извлечение текста, LLM-клиенты.
-- `Karajob.Web` — Blazor-страницы, Minimal API, MCP-инструменты, фоновые воркеры.
+- `Karajob.Domain` — entities, stage transition rules, metric calculation (pure C#, covered by unit tests).
+- `Karajob.Application` — scenario services: `VacancyService`, `ApplicationService`, `HypothesisService`, `IngestService`.
+- `Karajob.Infrastructure` — EF Core, ATS clients, text extraction, LLM clients.
+- `Karajob.Web` — Blazor pages, Minimal API, MCP tools, background workers.
 
-Экраны MVP: Доска · Карточка вакансии + окно отклика · Гипотезы (список + дашборд) · Компании · CV · Площадки · Weekly Review · Настройки (цель поиска, пороги, ИИ-провайдер, банк ответов).
+MVP screens: Board · Vacancy card + apply window · Hypotheses (list + dashboard) · Companies · CVs · Sources · Weekly Review · Settings (search goal, thresholds, AI provider, answer bank).
 
-## 7. API, MCP-инструменты и скилы
+## 7. API, MCP tools and skills
 
-MCP-инструменты проектируются под сценарии, а не как зеркало CRUD: чем меньше инструментов и чем больше логики в них, тем реже модель ошибается и тем меньше тратится лимитов на промежуточные вызовы. REST API покрывает то же самое для букмарклета и скриптов, OpenAPI — из коробки.
+MCP tools are designed around scenarios, not as a mirror of CRUD: the fewer tools and the more logic in them, the less often the model makes mistakes and the fewer limits are spent on intermediate calls. The REST API covers the same for the bookmarklet and scripts, with OpenAPI out of the box.
 
-| MCP-инструмент | Что делает |
+| MCP tool | What it does |
 | --- | --- |
-| `get_search_context` | Цель поиска + активные гипотезы (кратко) + список CV. Первый вызов любого сценария. |
-| `ingest_vacancy` | Принимает URL и/или уже извлечённые поля. Сам делает дедупликацию, upsert компании по домену, создаёт карточку в Inbox. Возвращает ID и предупреждения («похожая вакансия уже есть»). |
-| `search_vacancies` | Поиск по доске: стадия, гипотеза, компания, текст. |
-| `get_vacancy` | Полная карточка: описание, матчи, отклик, таймлайн, компания с проектами. |
-| `set_match` | Записать оценку соответствия вакансии гипотезе (score + обоснование). |
-| `move_vacancy` | Перевод по стадиям с теми же правилами, что в UI. ИИ не может перевести в Applied — это только через окно отклика. |
-| `add_event` | Добавить событие к отклику («пришло приглашение на скрининг»). |
-| `save_cover_letter_draft` | Сохранить черновик письма в карточку. |
-| `upsert_company` / `add_company_project` | Обогащение справочника компаний. |
-| `get_hypothesis_report` | Метрики гипотезы за период + подсказка по дереву решений. |
-| `record_checkin` / `record_decision` | Чек-ин самочувствия и решение по гипотезе — только с вашими словами, ИИ не решает за вас. |
-| `get_cv_text` | Текст конкретной версии CV для gap-анализа и писем. |
+| `get_search_context` | Search goal + active hypotheses (brief) + the list of CVs. The first call of any scenario. |
+| `ingest_vacancy` | Accepts a URL and/or already extracted fields. Does deduplication itself, upserts the company by domain, creates a card in Inbox. Returns the ID and warnings ("a similar vacancy already exists"). |
+| `search_vacancies` | Search the board: stage, hypothesis, company, text. |
+| `get_vacancy` | The full card: description, matches, application, timeline, company with projects. |
+| `set_match` | Record the fit score of a vacancy for a hypothesis (score + rationale). |
+| `move_vacancy` | Move between stages with the same rules as in the UI. AI cannot move to Applied; that is possible only through the apply window. |
+| `add_event` | Add an event to an application ("a screening invitation arrived"). |
+| `save_cover_letter_draft` | Save a letter draft into the card. |
+| `upsert_company` / `add_company_project` | Enrich the company directory. |
+| `get_hypothesis_report` | Hypothesis metrics for a period + a decision tree hint. |
+| `record_checkin` / `record_decision` | A well-being check-in and a decision on a hypothesis, only with your own words; AI does not decide for you. |
+| `get_cv_text` | The text of a specific CV version for gap analysis and letters. |
 
-**Подключение.** Для Claude Code — `claude mcp add --transport http karajob http://localhost:8080/mcp` с заголовком авторизации. Для Claude Desktop — локальный конфиг. Custom connector в веб-версии и мобильном приложении Claude требует публичного HTTPS-адреса (например, Cloudflare Tunnel) и полноценной авторизации. Это удобно («добавить вакансию с телефона»), но выставляет базу с CV в интернет — переносим в v2 и делаем только с OAuth.
+**Connecting.** For Claude Code: `claude mcp add --transport http karajob http://localhost:8080/mcp` with an authorization header. For Claude Desktop: the local config. A custom connector in the web version and the mobile Claude app requires a public HTTPS address (for example, Cloudflare Tunnel) and full authorization. This is convenient ("add a vacancy from the phone"), but it exposes a database with CVs to the internet, so it is deferred to v2 and done only with OAuth.
 
-### Скилы
+### Skills
 
-Инструменты дают ИИ *возможности*, скилы — *процедуру*. Хранятся в репозитории (`.claude/skills/*/SKILL.md`) для Claude Code, те же файлы загружаются в claude.ai. Воркер варианта B использует их же как промпты — одна истина для интерактива и фона.
+Tools give AI *capabilities*, skills give a *procedure*. They are stored in the repository (`.claude/skills/*/SKILL.md`) for Claude Code, and the same files are uploaded to claude.ai. The option B worker uses them as prompts too: one truth for interactive use and for background work.
 
-| Скил | Сценарий |
+| Skill | Scenario |
 | --- | --- |
-| `karajob-ingest` | Ссылка → прочитать → извлечь поля → `ingest_vacancy` → оценить по активным гипотезам → `set_match`. Правила: не выдумывать вилку, домен — с сайта компании, а не джобборда. |
-| `karajob-apply` | Gap-анализ + cover letter по позиционированию гипотезы и проектам компании, длина и тон из настроек. |
-| `karajob-weekly-review` | Собрать отчёты по гипотезам, спросить мотивацию/уверенность, пройти дерево решений, записать чек-ин и решение после вашего подтверждения. |
-| `karajob-company-research` | Изучить сайт студии → описание, проекты, ATS-доска → `upsert_company`. |
-| `karajob-interview-prep` | По карточке в Interviewing: вероятные вопросы, истории из опыта под требования, вопросы к работодателю. |
+| `karajob-ingest` | Link → read → extract fields → `ingest_vacancy` → evaluate against the active hypotheses → `set_match`. Rules: do not invent the salary range, take the domain from the company website, not from the job board. |
+| `karajob-apply` | Gap analysis + a cover letter based on the hypothesis positioning and the company projects, with length and tone from settings. |
+| `karajob-weekly-review` | Collect the hypothesis reports, ask for motivation/confidence, go through the decision tree, record the check-in and decision after your confirmation. |
+| `karajob-company-research` | Study the studio website → description, projects, ATS board → `upsert_company`. |
+| `karajob-interview-prep` | For a card in Interviewing: likely questions, stories from experience matched to requirements, questions for the employer. |
 
-## 8. Роадмап, риски
+## 8. Roadmap, risks
 
-Главный риск проекта не технический: строительство инструмента легко подменяет сам поиск. Поэтому первая фаза должна быть готова к реальному использованию за 2–3 дня, а до тех пор отклики ведутся в таблице с теми же колонками (гипотеза, CV, канал, дата, исход) и потом импортируются. И ещё: для целевой роли UE5-разработчика этот проект почти не добавляет веса портфолио, так что его ценность — только в сэкономленном времени и лучших решениях.
+The main risk of the project is not technical: building a tool easily replaces the search itself. So the first phase must be ready for real use within 2–3 days, and until then applications are tracked in a spreadsheet with the same columns (hypothesis, CV, channel, date, outcome) and imported later. And one more thing: for the target role of UE5 developer this project adds almost no weight to the portfolio, so its value is only in the time saved and better decisions.
 
-Фазы и подробный план Фазы 0 по дням — в [roadmap.md](roadmap.md).
+The phases and the detailed Phase 0 plan by day are in [roadmap.md](roadmap.md).
 
-| Риск | Вероятность | Мера |
+| Risk | Likelihood | Mitigation |
 | --- | --- | --- |
-| Проект затягивается и съедает время поиска | Высокая | Жёсткий скоуп Фазы 0; таблица до её готовности; ничего из Фазы 2, пока инструмент не используется ежедневно |
-| Anthropic снова меняет правила `claude -p` на подписке | Средняя | `ILlmClient` + ручной режим: карточки ждут в Inbox, поля заполняются вручную; MCP-путь не затронут |
-| ИИ ошибается при парсинге (выдуманная вилка, не та компания) | Средняя | Всё от ИИ — в Inbox с бейджем; JSON-схема; сырой текст вакансии сохраняется для проверки |
-| Сайты блокируют сбор / бан аккаунта LinkedIn | Высокая при скрейпинге | Не скрейпить: ATS-API, RSS, букмарклет |
-| Потеря данных | Низкая | Ежедневная копия `/data` (SQLite backup API) |
+| The project drags on and eats the search time | High | A hard scope for Phase 0; a spreadsheet until it is ready; nothing from Phase 2 until the tool is used daily |
+| Anthropic changes the `claude -p` rules on the subscription again | Medium | `ILlmClient` + manual mode: cards wait in Inbox, fields are filled in by hand; the MCP path is unaffected |
+| AI makes mistakes when parsing (an invented salary range, the wrong company) | Medium | Everything from AI goes to Inbox with a badge; JSON schema; the raw vacancy text is kept for verification |
+| Sites block collection / LinkedIn account ban | High when scraping | Do not scrape: ATS APIs, RSS, bookmarklet |
+| Data loss | Low | A daily copy of `/data` (SQLite backup API) |
 
-**Источники:** шаблон «Шаблон карьерной стратегии поиска на международке» (Obsidian); [Use the Claude Agent SDK with your Claude plan](https://support.claude.com/en/articles/15036540-use-the-claude-agent-sdk-with-your-claude-plan); [Claude Code: authentication](https://code.claude.com/docs/en/authentication); [The Register, 20.02.2026](https://www.theregister.com/2026/02/20/anthropic_clarifies_ban_third_party_claude_access); [The Register, 14.05.2026](https://www.theregister.com/ai-ml/2026/05/14/anthropic-tosses-agents-into-the-api-billing-pool/5240748).
+**Sources:** the template "Career strategy template for an international job search" (Obsidian); [Use the Claude Agent SDK with your Claude plan](https://support.claude.com/en/articles/15036540-use-the-claude-agent-sdk-with-your-claude-plan); [Claude Code: authentication](https://code.claude.com/docs/en/authentication); [The Register, 20.02.2026](https://www.theregister.com/2026/02/20/anthropic_clarifies_ban_third_party_claude_access); [The Register, 14.05.2026](https://www.theregister.com/ai-ml/2026/05/14/anthropic-tosses-agents-into-the-api-billing-pool/5240748).

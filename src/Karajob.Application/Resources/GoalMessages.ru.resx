@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Error.RoleNotFound" xml:space="preserve"><value>Роль не найдена</value></data>
+  <data name="Error.LocationNotFound" xml:space="preserve"><value>Локация не найдена</value></data>
+  <data name="Error.PlatformNotFound" xml:space="preserve"><value>Платформа не найдена</value></data>
+  <data name="Error.EngineNotFound" xml:space="preserve"><value>Движок не найден</value></data>
+  <data name="Error.WeeklyTargetNegative" xml:space="preserve"><value>Цель по откликам не может быть отрицательной</value></data>
+  <data name="Error.MarketThresholdNegative" xml:space="preserve"><value>Порог рынка не может быть отрицательным</value></data>
+  <data name="Error.ConversionThresholdRange" xml:space="preserve"><value>Порог конверсии — от 0 до 100%</value></data>
+  <data name="Error.MinSampleSize" xml:space="preserve"><value>Минимальная выборка — не меньше {0}</value></data>
+  <data name="Error.MaturationDays" xml:space="preserve"><value>Срок созревания — от 0 до {0} дней</value></data>
+  <data name="Error.IncomeNotPositive" xml:space="preserve"><value>Доход должен быть больше нуля</value></data>
+  <data name="Error.CurrencyRequired" xml:space="preserve"><value>Укажите валюту</value></data>
+  <data name="Error.IncomeRequired" xml:space="preserve"><value>Укажите желаемый доход</value></data>
+  <data name="Error.CurrencyCodeInvalid" xml:space="preserve"><value>Валюта — 3 латинские буквы</value></data>
+  <data name="Error.CurrencyNotFound" xml:space="preserve"><value>Валюта не найдена</value></data>
+</root>
