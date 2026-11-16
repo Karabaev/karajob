@@ -33,6 +33,7 @@ public partial class VacancyService
       .Select(v => new BoardCard(
         v.Id,
         v.Url,
+        v.Title,
         v.CompanyId is { } companyId ? companyNames[companyId] : null,
         v.RoleId is { } roleId ? roleNames[roleId] : null,
         v.Stage,

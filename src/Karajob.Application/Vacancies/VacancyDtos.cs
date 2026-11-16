@@ -6,6 +6,7 @@ namespace Karajob.Application.Vacancies;
 
 public record VacancyInput(
   string Url,
+  string? Title,
   Guid? CompanyId,
   Guid? RoleId,
   Guid? LocationId,
@@ -23,6 +24,7 @@ public record VacancyInput(
 public record VacancyListItem(
   Guid Id,
   string Url,
+  string? Title,
   string? CompanyName,
   string? RoleName,
   VacancyStage Stage,
@@ -32,6 +34,7 @@ public record VacancyListItem(
 public record VacancyDetails(
   Guid Id,
   string Url,
+  string? Title,
   Guid? CompanyId,
   string? CompanyName,
   Guid? RoleId,
@@ -79,6 +82,7 @@ public record DismissInput(DismissReason Reason, string? Comment);
 public record BoardCard(
   Guid Id,
   string Url,
+  string? Title,
   string? CompanyName,
   string? RoleName,
   VacancyStage Stage,

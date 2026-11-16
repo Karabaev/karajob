@@ -16,6 +16,7 @@ public partial class VacancyService(
   IKarajobDbContextFactory dbContextFactory,
   ICurrentUser currentUser,
   TimeProvider timeProvider,
+  IPageTitleReader titleReader,
   IStringLocalizer<VacancyMessages> localizer)
 {
   private static readonly TimeSpan SimilarWindow = TimeSpan.FromDays(30);
@@ -38,6 +39,7 @@ public partial class VacancyService(
       .Select(v => new VacancyListItem(
         v.Id,
         v.Url,
+        v.Title,
         v.CompanyId is { } companyId ? companyNames[companyId] : null,
         v.RoleId is { } roleId ? roleNames[roleId] : null,
         v.Stage,
@@ -93,6 +95,11 @@ public partial class VacancyService(
     await using var retryDb = await dbContextFactory.CreateDbContextAsync(cancellationToken);
     return await FindByUrlAsync(retryDb, url, cancellationToken)
       ?? throw new InvalidOperationException($"Saving vacancy {url} failed, and no existing vacancy has this URL.", saveError);
+  }
+
+  public Task<string?> FetchTitleAsync(string url, CancellationToken cancellationToken = default)
+  {
+    throw new NotImplementedException();
   }
 
   public async Task MoveToBoardAsync(Guid vacancyId, IReadOnlyList<Guid> hypothesisIds, CancellationToken cancellationToken = default)
@@ -264,6 +271,7 @@ public partial class VacancyService(
 
   private static void Apply(Vacancy vacancy, NormalizedVacancy normalized)
   {
+    vacancy.Title = normalized.Title;
     vacancy.CompanyId = normalized.CompanyId;
     vacancy.RoleId = normalized.RoleId;
     vacancy.LocationId = normalized.LocationId;
@@ -430,6 +438,7 @@ public partial class VacancyService(
 
     return new NormalizedVacancy(
       url!,
+      BlankToNull(input.Title),
       input.CompanyId,
       input.RoleId,
       input.LocationId,
@@ -480,6 +489,7 @@ public partial class VacancyService(
     return new VacancyDetails(
       vacancy.Id,
       vacancy.Url,
+      vacancy.Title,
       vacancy.CompanyId,
       companyName,
       vacancy.RoleId,
@@ -537,6 +547,7 @@ public partial class VacancyService(
 
   private record NormalizedVacancy(
     string Url,
+    string? Title,
     Guid? CompanyId,
     Guid? RoleId,
     Guid? LocationId,

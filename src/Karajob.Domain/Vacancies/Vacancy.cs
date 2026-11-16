@@ -7,6 +7,8 @@ namespace Karajob.Domain.Vacancies;
 
 public class Vacancy : IUserOwned
 {
+  public const int TitleMaxLength = 300;
+
   private readonly List<VacancyMatch> matches = [];
   private readonly List<VacancyPlatform> platforms = [];
   private readonly List<VacancyEngine> engines = [];
@@ -18,6 +20,7 @@ public class Vacancy : IUserOwned
   public Guid? CompanyId { get; set; }
   public Guid? RoleId { get; set; }
   public string Url { get; private set; }
+  public string? Title { get; set; }
   public Guid? LocationId { get; set; }
   public IReadOnlyCollection<VacancyPlatform> Platforms => platforms;
   public IReadOnlyCollection<VacancyEngine> Engines => engines;

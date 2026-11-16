@@ -11,6 +11,7 @@ using Karajob.Application.Resources;
 using Karajob.Application.Users;
 using Karajob.Application.Vacancies;
 using Karajob.Infrastructure.Users;
+using Karajob.Tests.Application.Vacancies;
 using Karajob.Tests.Infrastructure.Persistence;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -48,9 +49,13 @@ internal class TestDbContextFactory(SqliteTestDatabase database, Guid userId) : 
     return new MasterProfileService(new TestDbContextFactory(database, userId), new FixedCurrentUser(userId), timeProvider, TestLocalizer.For<MasterProfileMessages>());
   }
 
-  public static VacancyService CreateVacancyService(SqliteTestDatabase database, Guid userId, TimeProvider timeProvider)
+  public static VacancyService CreateVacancyService(
+    SqliteTestDatabase database,
+    Guid userId,
+    TimeProvider timeProvider,
+    IPageTitleReader? titleReader = null)
   {
-    return new VacancyService(new TestDbContextFactory(database, userId), new FixedCurrentUser(userId), timeProvider, TestLocalizer.For<VacancyMessages>());
+    return new VacancyService(new TestDbContextFactory(database, userId), new FixedCurrentUser(userId), timeProvider, titleReader ?? new StubPageTitleReader(), TestLocalizer.For<VacancyMessages>());
   }
 
   public static UserService CreateUserService(SqliteTestDatabase database, Guid userId, TimeProvider timeProvider)

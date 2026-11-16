@@ -41,10 +41,12 @@ public abstract class VacancyServiceFixture : IAsyncLifetime
     string? description = null,
     string? notes = null,
     IReadOnlyList<Guid>? platformIds = null,
-    IReadOnlyList<Guid>? engineIds = null)
+    IReadOnlyList<Guid>? engineIds = null,
+    string? title = null)
   {
     return new VacancyInput(
       url,
+      title,
       companyId,
       roleId,
       locationId,
