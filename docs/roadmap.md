@@ -108,6 +108,10 @@ Order: block A → block B; blocks C, D, E are independent after #41.
 - [x] #62 English UI: resx localization (en by default, ru kept), reference data seeds and documentation in English.
 
 
+### G. Vacancy title
+
+- [x] #73 Vacancy title: filled from the page behind the link (og:title / `<title>`, a plain GET without AI) when a vacancy is added, editable with a "fetch from link" button, shown on Board cards and in Inbox.
+
 ### Not in Phase 0.5
 
 Any AI and MCP, building the master profile from a CV with AI, CV adaptation and generation, the Contact entity and "Activity" goals for contacts and CV adaptations, job boards and a scanner, calendar, public access and OAuth. If you feel like adding something from this list along the way, write it into the backlog and move on.
