@@ -451,6 +451,52 @@ public class VacancyPageTests : VacancyWebFixture
     Assert.Contains(saved, v => v.CompanyName == "Pixel Forge");
   }
 
+  [Fact]
+  public async Task CreateCompany_Submitted_ShowsSnackbarWithLinkToCompanyPage()
+  {
+    Context.Render<MudPopoverProvider>();
+    var snackbars = Context.Render<MudSnackbarProvider>();
+    var provider = Context.Render<MudDialogProvider>();
+    var cut = Context.Render<VacancyPage>();
+    cut.WaitForElement(".vacancy-url");
+
+    var pending = cut.InvokeAsync(() => CompanyAutocomplete(cut).Instance.ValueChanged.InvokeAsync(
+      new CompanyListItem(Guid.Empty, "", "+ Create \"Other\"", null, [], false, [])));
+    provider.WaitForElement(".company-name input").Input("Other Co");
+    provider.WaitForElement(".company-slug input").Input("other-co");
+    provider.Find(".company-save").Click();
+    await pending.WaitAsync(TimeSpan.FromSeconds(5));
+
+    var snackbar = Assert.Single(Context.Services.GetRequiredService<ISnackbar>().ShownSnackbars);
+    Assert.Equal(Severity.Success, snackbar.Severity);
+    snackbars.WaitForAssertion(() =>
+    {
+      Assert.Contains("Company “Other Co” created", snackbars.Markup);
+      Assert.Single(snackbars.FindAll("a[href='/companies/other-co']"));
+    });
+    var link = snackbars.Find("a[href='/companies/other-co']");
+    Assert.Equal("_blank", link.GetAttribute("target"));
+    Assert.Contains("noopener", link.GetAttribute("rel"));
+    Assert.Equal("Open company page", link.TextContent.Trim());
+  }
+
+  [Fact]
+  public async Task CreateCompany_DialogCanceled_ShowsNoSnackbar()
+  {
+    Context.Render<MudPopoverProvider>();
+    var provider = Context.Render<MudDialogProvider>();
+    var cut = Context.Render<VacancyPage>();
+    cut.WaitForElement(".vacancy-url");
+
+    var pending = cut.InvokeAsync(() => CompanyAutocomplete(cut).Instance.ValueChanged.InvokeAsync(
+      new CompanyListItem(Guid.Empty, "", "+ Create \"Other\"", null, [], false, [])));
+    provider.WaitForElement(".company-name");
+    provider.FindAll("button").First(b => b.TextContent.Contains("Cancel")).Click();
+    await pending.WaitAsync(TimeSpan.FromSeconds(5));
+
+    Assert.Empty(Context.Services.GetRequiredService<ISnackbar>().ShownSnackbars);
+  }
+
   [Theory]
   [InlineData(VacancyStage.Applied, ApplicationOutcome.Rejected)]
   [InlineData(VacancyStage.Interviewing, ApplicationOutcome.Rejected)]
