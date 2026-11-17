@@ -1,0 +1,25 @@
+<MudDialog>
+  <DialogContent>
+    <iframe class="cv-preview-frame" src="@Url" title="@FileName" style="width: 100%; height: 70vh; border: 0;"></iframe>
+  </DialogContent>
+  <DialogActions>
+    <a class="cv-preview-open mud-link mud-link-underline-hover" href="@Url" target="_blank" rel="noopener">@L["Cv.OpenInNewTab"]</a>
+    <MudButton OnClick="Close">@L["Cv.Close"]</MudButton>
+  </DialogActions>
+</MudDialog>
+
+@code {
+  [CascadingParameter]
+  private IMudDialogInstance MudDialog { get; set; } = null!;
+
+  [Parameter, EditorRequired]
+  public string Url { get; set; } = null!;
+
+  [Parameter, EditorRequired]
+  public string FileName { get; set; } = null!;
+
+  private void Close()
+  {
+    MudDialog.Close();
+  }
+}

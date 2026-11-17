@@ -126,6 +126,10 @@ Order: block A → block B; blocks C, D, E, G are independent after #41.
 
 - [x] #101 Quick company creation on the vacancy page shows a toast with a link (new tab) to the company page, to fill in the rest of the card.
 
+### CV preview
+
+- [x] #96 CV PDF preview: a "Preview" button on PDF versions opens a dialog with the file in an `<iframe>` (the version file endpoint serves PDFs inline with `?inline=true`) and an "Open in new tab" link for phone browsers; DOCX versions keep only "Download".
+
 ### H. Branding
 
 - [x] #82 Logo and favicon: transparent logo and icon, the favicon, the logo in the app bar instead of the text.
