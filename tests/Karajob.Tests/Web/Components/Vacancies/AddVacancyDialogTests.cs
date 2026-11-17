@@ -211,6 +211,58 @@ public class AddVacancyDialogTests : VacancyWebFixture
     Assert.Empty(TitleReader.RequestedUrls);
   }
 
+  [Fact]
+  public async Task Open_FocusesUrlInputExplicitly()
+  {
+    var (provider, _) = await ShowDialogAsync(new DialogParameters<AddVacancyDialog>());
+    provider.WaitForElement(".quick-add-url input");
+
+    var focused = ExplicitFocusTargets();
+
+    Assert.Contains(ElementReferenceId(provider, ".quick-add-url input"), focused);
+  }
+
+  [Fact]
+  public async Task Open_DoesNotFocusTitleOrNoteInputs()
+  {
+    var (provider, _) = await ShowDialogAsync(new DialogParameters<AddVacancyDialog>());
+    provider.WaitForElement(".quick-add-url input");
+
+    var focused = ExplicitFocusTargets();
+
+    Assert.DoesNotContain(ElementReferenceId(provider, ".quick-add-title input"), focused);
+    Assert.DoesNotContain(ElementReferenceId(provider, ".quick-add-note textarea"), focused);
+  }
+
+  [Fact]
+  public async Task Open_SecondTime_FocusesUrlInputAgain()
+  {
+    var (provider, firstReference) = await ShowDialogAsync(new DialogParameters<AddVacancyDialog>());
+    provider.WaitForElement(".quick-add-url input");
+    await provider.InvokeAsync(() => firstReference.Close());
+    provider.WaitForState(() => provider.FindAll(".quick-add-url input").Count == 0);
+    var dialogs = Context.Services.GetRequiredService<IDialogService>();
+
+    await provider.InvokeAsync(() => dialogs.ShowAsync<AddVacancyDialog>("Dialog"));
+    provider.WaitForElement(".quick-add-url input");
+
+    Assert.Contains(ElementReferenceId(provider, ".quick-add-url input"), ExplicitFocusTargets());
+  }
+
+  // AutoFocus focuses with preventScroll=true; an explicit FocusAsync() call focuses with preventScroll=false.
+  private HashSet<string> ExplicitFocusTargets()
+  {
+    return Context.JSInterop.Invocations
+      .Where(i => i.Identifier == "Blazor._internal.domWrapper.focus" && i.Arguments[1] is false)
+      .Select(i => ((ElementReference)i.Arguments[0]!).Id)
+      .ToHashSet();
+  }
+
+  private static string ElementReferenceId(IRenderedComponent<MudDialogProvider> provider, string selector)
+  {
+    return provider.Find(selector).GetAttribute("blazor:elementreference")!;
+  }
+
   // Find and trigger run on the renderer's dispatcher together: the title fetch re-renders the dialog
   // in the background, and a handler ID read from a stale element no longer exists.
   private static Task InputAsync(IRenderedComponent<MudDialogProvider> provider, string selector, string value)
