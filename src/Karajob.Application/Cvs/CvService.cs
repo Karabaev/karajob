@@ -36,7 +36,7 @@ public class CvService(
         d.Id,
         d.Name,
         languageCodes[d.LanguageId],
-        d.Tags.ToList(),
+        ToTagItems(d.Tags),
         d.Versions.Count,
         d.Versions.Max(v => v.CreatedAt)))
       .ToList();
@@ -60,7 +60,7 @@ public class CvService(
 
     var now = timeProvider.GetUtcNow().UtcDateTime;
     var document = new CvDocument(currentUser.UserId, input.Name.Trim(), input.LanguageId!.Value, now);
-    document.Tags.AddRange(CleanList(input.Tags));
+    ApplyTags(document, input.Tags);
 
     var storagePath = await StoreAsync(upload!, file!, cancellationToken);
     document.AddVersion(file!.FileName, storagePath, file.ContentType, upload!.SizeBytes, BlankToNull(upload.Comment), now);
@@ -78,8 +78,7 @@ public class CvService(
 
     document.Name = input.Name.Trim();
     document.LanguageId = input.LanguageId!.Value;
-    document.Tags.Clear();
-    document.Tags.AddRange(CleanList(input.Tags));
+    ApplyTags(document, input.Tags);
 
     await db.SaveChangesAsync(cancellationToken);
     return ToDetails(document);
@@ -268,12 +267,27 @@ public class CvService(
       document.Id,
       document.Name,
       document.LanguageId,
-      document.Tags.ToList(),
+      ToTagItems(document.Tags),
       document.Versions
         .OrderByDescending(v => v.CreatedAt)
         .ThenByDescending(v => v.Id)
         .Select(v => new CvVersionItem(v.Id, v.FileName, v.SizeBytes, v.Comment, v.CreatedAt))
         .ToList());
+  }
+
+  private static IReadOnlyList<TagItem> ToTagItems(IEnumerable<CvDocumentTag> tags)
+  {
+    return tags.Any() ? throw new NotImplementedException() : [];
+  }
+
+  private static void ApplyTags(CvDocument document, IReadOnlyList<string> names)
+  {
+    if (CleanList(names).Count > 0)
+    {
+      throw new NotImplementedException();
+    }
+
+    document.SetTags([]);
   }
 
   private static List<string> CleanList(IEnumerable<string> values)

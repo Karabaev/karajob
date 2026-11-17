@@ -5,14 +5,25 @@ namespace Karajob.Domain.Cvs;
 public class CvDocument : IUserOwned
 {
   private readonly List<CvVersion> versions = [];
+  private readonly List<CvDocumentTag> tags = [];
 
   public Guid Id { get; private set; }
   public Guid UserId { get; private set; }
   public string Name { get; set => field = Require.NotBlank(value); }
   public Guid LanguageId { get; set => field = Require.NotEmpty(value); }
-  public List<string> Tags { get; private set; } = [];
+  public IReadOnlyCollection<CvDocumentTag> Tags => tags;
   public DateTime CreatedAt { get; private set; }
   public IReadOnlyCollection<CvVersion> Versions => versions;
+
+  public void SetTags(IEnumerable<Guid> tagIds)
+  {
+    var wanted = tagIds.Select(id => Require.NotEmpty(id, nameof(tagIds))).Distinct().ToList();
+    tags.RemoveAll(t => !wanted.Contains(t.TagId));
+    foreach (var tagId in wanted.Where(id => tags.All(t => t.TagId != id)))
+    {
+      tags.Add(new CvDocumentTag(UserId, Id, tagId));
+    }
+  }
 
   public CvVersion AddVersion(
     string fileName,

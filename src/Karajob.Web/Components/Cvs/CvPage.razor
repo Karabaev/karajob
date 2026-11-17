@@ -182,7 +182,7 @@ else if (_loaded)
   {
     _name = _details?.Name;
     _languageId = _details?.LanguageId ?? _languages.FirstOrDefault(l => l.Code == "ru")?.Id;
-    _tags = _details is null ? null : string.Join('\n', _details.Tags);
+    _tags = _details is null ? null : string.Join('\n', _details.Tags.Select(t => t.Name));
   }
 
   private void OnFileChanged(IBrowserFile? file)

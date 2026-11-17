@@ -34,6 +34,8 @@ public interface IKarajobDbContext : IAsyncDisposable
   DbSet<TrackDecision> TrackDecisions { get; }
   DbSet<CvDocument> CvDocuments { get; }
   DbSet<CvVersion> CvVersions { get; }
+  DbSet<Tag> Tags { get; }
+  DbSet<CvDocumentTag> CvDocumentTags { get; }
   DbSet<Vacancy> Vacancies { get; }
   DbSet<VacancyMatch> VacancyMatches { get; }
   DbSet<VacancyPlatform> VacancyPlatforms { get; }

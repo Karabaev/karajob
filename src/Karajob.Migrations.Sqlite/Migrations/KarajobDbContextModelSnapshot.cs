@@ -552,10 +552,6 @@ namespace Karajob.Migrations.Sqlite.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.PrimitiveCollection<string>("Tags")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
                     b.Property<Guid>("UserId")
                         .HasColumnType("TEXT");
 
@@ -566,6 +562,32 @@ namespace Karajob.Migrations.Sqlite.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("CvDocuments");
+                });
+
+            modelBuilder.Entity("Karajob.Domain.Cvs.CvDocumentTag", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("CvDocumentId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("TagId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TagId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("CvDocumentId", "TagId")
+                        .IsUnique();
+
+                    b.ToTable("CvDocumentTags");
                 });
 
             modelBuilder.Entity("Karajob.Domain.Cvs.CvVersion", b =>
@@ -607,6 +629,31 @@ namespace Karajob.Migrations.Sqlite.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("CvVersions");
+                });
+
+            modelBuilder.Entity("Karajob.Domain.Cvs.Tag", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Color")
+                        .HasMaxLength(7)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "Name")
+                        .IsUnique();
+
+                    b.ToTable("Tags");
                 });
 
             modelBuilder.Entity("Karajob.Domain.Goals.SearchGoal", b =>
@@ -1370,6 +1417,27 @@ namespace Karajob.Migrations.Sqlite.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Karajob.Domain.Cvs.CvDocumentTag", b =>
+                {
+                    b.HasOne("Karajob.Domain.Cvs.CvDocument", null)
+                        .WithMany("Tags")
+                        .HasForeignKey("CvDocumentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Karajob.Domain.Cvs.Tag", null)
+                        .WithMany()
+                        .HasForeignKey("TagId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Karajob.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Karajob.Domain.Cvs.CvVersion", b =>
                 {
                     b.HasOne("Karajob.Domain.Cvs.CvDocument", null)
@@ -1378,6 +1446,15 @@ namespace Karajob.Migrations.Sqlite.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Karajob.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Karajob.Domain.Cvs.Tag", b =>
+                {
                     b.HasOne("Karajob.Domain.Users.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
@@ -1719,6 +1796,8 @@ namespace Karajob.Migrations.Sqlite.Migrations
 
             modelBuilder.Entity("Karajob.Domain.Cvs.CvDocument", b =>
                 {
+                    b.Navigation("Tags");
+
                     b.Navigation("Versions");
                 });
 
