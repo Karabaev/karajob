@@ -28,6 +28,7 @@
         </MudRadioGroup>
         <MudTextField T="string" Class="decision-reason" Label="@L["Decision.Reason"]" Lines="2" Sizing="InputSizing.Auto"
                       Required="@(_kind == HypothesisDecisionKind.Disable)" @bind-Value="_reason"
+                      ShrinkLabel="@(!string.IsNullOrEmpty(_reason))"
                       Error="HasError(nameof(DecisionInput.Reason))" ErrorText="@ErrorOf(nameof(DecisionInput.Reason))" />
         @if (_kind == HypothesisDecisionKind.Expand)
         {
@@ -86,19 +87,19 @@
   protected override async Task OnInitializedAsync()
   {
     _review = await DecisionService.GetReviewAsync(HypothesisId);
-    if (_review.Hint == DecisionHint.Disable)
-    {
-      _reason = L["Decision.NotPersonalFit"];
-    }
   }
 
   private async Task OnKindChangedAsync(HypothesisDecisionKind kind)
   {
     _kind = kind;
-    if (kind == HypothesisDecisionKind.Disable)
+    if (kind != HypothesisDecisionKind.Disable) return;
+
+    if (_review?.Hint == DecisionHint.Disable && string.IsNullOrWhiteSpace(_reason))
     {
-      _options ??= await DecisionService.GetDisableOptionsAsync(HypothesisId);
+      _reason = L["Decision.NotPersonalFit"];
     }
+
+    _options ??= await DecisionService.GetDisableOptionsAsync(HypothesisId);
   }
 
   private string DraftName(Guid? id)
