@@ -3,6 +3,8 @@ param(
   [string]$Name
 )
 
+# Deployed databases already contain the existing migrations: only ever ADD new ones.
+# Never delete, rename, squash or regenerate an existing migration (not even Initial).
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 
