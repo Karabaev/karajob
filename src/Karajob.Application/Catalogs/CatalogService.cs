@@ -95,6 +95,11 @@ public class CatalogService(IKarajobDbContextFactory dbContextFactory, IStringLo
     return ToItem(entry);
   }
 
+  public Task<CatalogListItem> UpdateLocationAsync(Guid id, string name, string? timeZoneId, CancellationToken cancellationToken = default)
+  {
+    throw new NotImplementedException();
+  }
+
   public async Task DeleteAsync(CatalogKind kind, Guid id, CancellationToken cancellationToken = default)
   {
     await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);

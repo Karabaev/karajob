@@ -8,6 +8,7 @@ public class LocationConfiguration : IEntityTypeConfiguration<Location>
 {
   public void Configure(EntityTypeBuilder<Location> builder)
   {
+    builder.Ignore(l => l.TimeZoneId);
     builder.HasIndex(l => l.NormalizedName).IsUnique();
     builder.HasData(
       new { Id = SeedData.EuLocationId, Name = "EU", NormalizedName = "eu" },
