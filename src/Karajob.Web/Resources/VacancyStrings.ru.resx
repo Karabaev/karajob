@@ -104,6 +104,8 @@
   <data name="Page.Saved" xml:space="preserve"><value>Сохранено</value></data>
   <data name="Page.CreateCompany" xml:space="preserve"><value>+ Создать «{0}»</value></data>
   <data name="Page.NewCompany" xml:space="preserve"><value>Новая компания</value></data>
+  <data name="Page.CompanyCreated" xml:space="preserve"><value>Компания «{0}» создана</value></data>
+  <data name="Page.OpenCompany" xml:space="preserve"><value>Открыть карточку компании</value></data>
   <data name="Page.EmptyHint" xml:space="preserve"><value>Добавьте в разделе Справочники</value></data>
   <data name="Page.NewEvent" xml:space="preserve"><value>Новое событие</value></data>
   <data name="Page.DeleteEventTitle" xml:space="preserve"><value>Удалить событие?</value></data>
