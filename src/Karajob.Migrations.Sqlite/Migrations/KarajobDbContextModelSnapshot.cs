@@ -451,6 +451,27 @@ namespace Karajob.Migrations.Sqlite.Migrations
                     b.ToTable("CompanyDomains");
                 });
 
+            modelBuilder.Entity("Karajob.Domain.Companies.CompanyLocation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("LocationId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LocationId");
+
+                    b.HasIndex("CompanyId", "LocationId")
+                        .IsUnique();
+
+                    b.ToTable("CompanyLocations");
+                });
+
             modelBuilder.Entity("Karajob.Domain.Companies.Project", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1285,6 +1306,21 @@ namespace Karajob.Migrations.Sqlite.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Karajob.Domain.Companies.CompanyLocation", b =>
+                {
+                    b.HasOne("Karajob.Domain.Companies.Company", null)
+                        .WithMany("Locations")
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Karajob.Domain.Catalogs.Location", null)
+                        .WithMany()
+                        .HasForeignKey("LocationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Karajob.Domain.Companies.Project", b =>
                 {
                     b.HasOne("Karajob.Domain.Companies.Company", null)
@@ -1672,6 +1708,8 @@ namespace Karajob.Migrations.Sqlite.Migrations
                     b.Navigation("Aliases");
 
                     b.Navigation("Domains");
+
+                    b.Navigation("Locations");
                 });
 
             modelBuilder.Entity("Karajob.Domain.Cvs.CvDocument", b =>

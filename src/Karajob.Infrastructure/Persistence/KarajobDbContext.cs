@@ -30,6 +30,7 @@ public class KarajobDbContext(DbContextOptions<KarajobDbContext> options, ICurre
   public DbSet<Company> Companies => Set<Company>();
   public DbSet<CompanyDomain> CompanyDomains => Set<CompanyDomain>();
   public DbSet<CompanyAlias> CompanyAliases => Set<CompanyAlias>();
+  public DbSet<CompanyLocation> CompanyLocations => Set<CompanyLocation>();
   public DbSet<Project> Projects => Set<Project>();
   public DbSet<UserCompanyNote> UserCompanyNotes => Set<UserCompanyNote>();
   public DbSet<Role> Roles => Set<Role>();

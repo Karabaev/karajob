@@ -17,6 +17,7 @@ public interface IKarajobDbContext : IAsyncDisposable
   DbSet<Company> Companies { get; }
   DbSet<CompanyDomain> CompanyDomains { get; }
   DbSet<CompanyAlias> CompanyAliases { get; }
+  DbSet<CompanyLocation> CompanyLocations { get; }
   DbSet<Project> Projects { get; }
   DbSet<UserCompanyNote> UserCompanyNotes { get; }
   DbSet<Role> Roles { get; }
