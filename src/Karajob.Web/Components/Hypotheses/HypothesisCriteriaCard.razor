@@ -112,6 +112,9 @@
   [Parameter]
   public int Version { get; set; }
 
+  [Parameter]
+  public bool ShowActivity { get; set; } = true;
+
   // Every parent re-render sets parameters again; reload only when the hypothesis or the version actually changed.
   protected override async Task OnParametersSetAsync()
   {

@@ -8,6 +8,7 @@ using Karajob.Application.MasterProfiles;
 using Karajob.Application.Metrics;
 using Karajob.Application.Users;
 using Karajob.Application.Vacancies;
+using Karajob.Application.WeeklyReviews;
 using Karajob.Infrastructure.Files;
 using Karajob.Infrastructure.Persistence;
 using Karajob.Infrastructure.Vacancies;
@@ -72,6 +73,7 @@ builder.Services.AddHttpClient<IPageTitleReader, HttpPageTitleReader>(client =>
 });
 builder.Services.AddScoped<HypothesisMetricsService>();
 builder.Services.AddScoped<HypothesisDecisionService>();
+builder.Services.AddScoped<WeeklyReviewService>();
 builder.Services.AddScoped<UserDates>();
 builder.Services.AddScoped<InboxNotifier>();
 
