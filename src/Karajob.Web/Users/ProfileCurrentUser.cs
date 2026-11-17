@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Karajob.Application.Users;
+using Karajob.Domain.Common;
 
 namespace Karajob.Web.Users;
 
@@ -24,7 +25,8 @@ public class ProfileCurrentUser : ICurrentUser
 
   public void NotifyProfileUpdated(UserDto profile)
   {
-    throw new NotImplementedException();
+    SetTimeZone(UserTime.Find(profile.TimeZoneId));
+    ProfileUpdated?.Invoke();
   }
 
   public bool IsCurrent(Guid userId)

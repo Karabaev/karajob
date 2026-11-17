@@ -1,7 +1,120 @@
+@inject UserService Users
+@inject TimeProvider TimeProvider
+
+<MudStack Spacing="3">
+  <MudTextField T="string" Class="profile-name" Label="@L["Profile.Name"]" AutoFocus="true" Immediate="true"
+                @bind-Value="_name" @bind-Value:after="ClearNameError"
+                Error="_nameError is not null" ErrorText="@_nameError" />
+  <div class="d-flex flex-wrap" style="gap:8px">
+    @foreach (var color in _colors)
+    {
+      var selected = color == _color;
+      <button type="button" class="profile-color" aria-label="@color" aria-pressed="@(selected ? "true" : "false")"
+              style="@SwatchStyle(color, selected)" @onclick="() => SelectColor(color)"></button>
+    }
+  </div>
+  @if (_colorError is not null)
+  {
+    <MudText Typo="Typo.caption" Color="Color.Error">@_colorError</MudText>
+  }
+  <MudAutocomplete T="string" Class="profile-time-zone" Label="@L["Profile.TimeZone"]"
+                   @bind-Value="_timeZoneId" @bind-Value:after="ClearTimeZoneError"
+                   SearchFunc="SearchTimeZones" ToStringFunc="TimeZoneLabel" MaxItems="null"
+                   Error="_timeZoneError is not null" ErrorText="@_timeZoneError" />
+  <div class="d-flex justify-end">
+    <MudButton Class="profile-save" Variant="Variant.Filled" Color="Color.Primary" Disabled="_saving" OnClick="SaveAsync">
+      @L["Profile.Save"]
+    </MudButton>
+  </div>
+</MudStack>
+
 @code {
+  private string _name = string.Empty;
+  private string _color = ProfilePalette.Colors[0];
+  private IReadOnlyList<string> _colors = ProfilePalette.Colors;
+  private string? _nameError;
+  private string? _colorError;
+  private string _timeZoneId = UserTime.DefaultTimeZoneId;
+  private string? _timeZoneError;
+  private IReadOnlyList<TimeZoneOption> _timeZones = [];
+  private bool _saving;
+
   [Parameter]
   public UserDto? Profile { get; set; }
 
   [Parameter]
   public EventCallback<UserDto> OnSaved { get; set; }
+
+  protected override void OnInitialized()
+  {
+    _timeZones = TimeZoneOption.All(TimeProvider.GetUtcNow().UtcDateTime);
+    if (Profile is null) return;
+
+    _name = Profile.Name;
+    _color = Profile.Color;
+    _timeZoneId = Profile.TimeZoneId;
+    if (!ProfilePalette.Colors.Contains(Profile.Color))
+    {
+      _colors = [Profile.Color, .. ProfilePalette.Colors];
+    }
+  }
+
+  private static string SwatchStyle(string color, bool selected)
+  {
+    var outline = selected ? "3px solid #fff" : "3px solid transparent";
+    return $"background-color:{color}; width:36px; height:36px; border-radius:50%; border:0; cursor:pointer; outline:{outline}; outline-offset:2px";
+  }
+
+  private void ClearNameError()
+  {
+    _nameError = null;
+  }
+
+  private void ClearTimeZoneError()
+  {
+    _timeZoneError = null;
+  }
+
+  private Task<IEnumerable<string>> SearchTimeZones(string? text, CancellationToken cancellationToken)
+  {
+    var found = string.IsNullOrWhiteSpace(text)
+      ? _timeZones
+      : _timeZones.Where(zone => zone.Label.Contains(text.Trim(), StringComparison.OrdinalIgnoreCase));
+    return Task.FromResult(found.Select(zone => zone.Id));
+  }
+
+  private string TimeZoneLabel(string? id)
+  {
+    return _timeZones.FirstOrDefault(zone => zone.Id == id)?.Label ?? id ?? string.Empty;
+  }
+
+  private void SelectColor(string color)
+  {
+    _color = color;
+  }
+
+  private async Task SaveAsync()
+  {
+    if (_saving) return;
+
+    _saving = true;
+    try
+    {
+      var input = new UserInput(_name, _color, _timeZoneId);
+      var dto = Profile is null
+        ? await Users.CreateAsync(input)
+        : await Users.UpdateAsync(Profile.Id, input);
+      await OnSaved.InvokeAsync(dto);
+    }
+    catch (ValidationFailedException ex)
+    {
+      _nameError = ex.Errors.GetValueOrDefault(nameof(UserInput.Name));
+      _colorError = ex.Errors.GetValueOrDefault(nameof(UserInput.Color));
+      _timeZoneError = ex.Errors.GetValueOrDefault(nameof(UserInput.TimeZoneId));
+    }
+    finally
+    {
+      _saving = false;
+    }
+  }
 }

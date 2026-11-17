@@ -3,7 +3,6 @@
 @attribute [Microsoft.AspNetCore.Authorization.AllowAnonymous]
 @inject UserService Users
 @inject IDialogService DialogService
-@inject ProfileCurrentUser CurrentUser
 
 <AppTitle Text="@L["Profile.Title"]" />
 
@@ -20,9 +19,6 @@
           <MudText Typo="Typo.subtitle1">@profile.Name</MudText>
         </button>
       </ProfileSelectForm>
-      <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" ButtonType="ButtonType.Button"
-                     aria-label="@L["Profile.EditAria", profile.Name]"
-                     OnClick="() => EditAsync(profile)" />
     </div>
   }
   <div class="d-flex flex-column align-center" style="width:140px">
@@ -50,28 +46,12 @@
     _profiles = await Users.ListAsync();
   }
 
-  private Task AddAsync()
+  private async Task AddAsync()
   {
-    return ShowDialogAsync(L["Profile.NewTitle"], new DialogParameters<ProfileDialog>());
-  }
-
-  private Task EditAsync(UserDto profile)
-  {
-    return ShowDialogAsync(L["Profile.EditTitle"], new DialogParameters<ProfileDialog> { { d => d.Profile, profile } });
-  }
-
-  private async Task ShowDialogAsync(string title, DialogParameters<ProfileDialog> parameters)
-  {
-    var dialog = await DialogService.ShowAsync<ProfileDialog>(title, parameters, new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true });
+    var dialog = await DialogService.ShowAsync<ProfileDialog>(L["Profile.NewTitle"], new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true });
     var result = await dialog.Result;
     if (result is { Canceled: false })
     {
-      // The circuit keeps the time zone it opened with; editing the active profile updates it in place.
-      if (result.Data is UserDto saved && CurrentUser.IsCurrent(saved.Id))
-      {
-        CurrentUser.SetTimeZone(UserTime.Find(saved.TimeZoneId));
-      }
-
       await LoadAsync();
     }
   }

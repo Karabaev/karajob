@@ -1,1 +1,34 @@
 @page "/profile-settings"
+@using Karajob.Web.Components.Profiles
+@using Karajob.Web.Users
+@inject UserService Users
+@inject ProfileCurrentUser CurrentUser
+@inject ISnackbar Snackbar
+@inject IStringLocalizer<ProfileStrings> ProfileL
+
+<AppTitle Text="@ProfileL["Profile.SettingsTitle"]" />
+
+<MudText Typo="Typo.h4" HtmlTag="h1" Class="mb-4">@ProfileL["Profile.SettingsTitle"]</MudText>
+
+@if (_profile is not null)
+{
+  <MudPaper Class="pa-4" MaxWidth="600px">
+    <ProfileForm Profile="_profile" OnSaved="OnSaved" />
+  </MudPaper>
+}
+
+@code {
+  private UserDto? _profile;
+
+  protected override async Task OnInitializedAsync()
+  {
+    var profiles = await Users.ListAsync();
+    _profile = profiles.Single(p => p.Id == CurrentUser.UserId);
+  }
+
+  private void OnSaved(UserDto saved)
+  {
+    CurrentUser.NotifyProfileUpdated(saved);
+    Snackbar.Add(ProfileL["Profile.Saved"], Severity.Success);
+  }
+}

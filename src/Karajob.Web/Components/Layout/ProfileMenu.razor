@@ -1,6 +1,7 @@
 @inject UserService Users
-@inject ICurrentUser CurrentUser
+@inject ProfileCurrentUser CurrentUser
 @inject NavigationManager Navigation
+@implements IDisposable
 
 @if (_current is not null)
 {
@@ -22,6 +23,7 @@
         </ProfileSelectForm>
       }
       <MudDivider />
+      <MudMenuItem Href="profile-settings" Icon="@Icons.Material.Filled.ManageAccounts">@L["Layout.ProfileSettings"]</MudMenuItem>
       <MudMenuItem Href="master-profile" Icon="@Icons.Material.Filled.Badge">@L["Layout.MasterProfile"]</MudMenuItem>
       <MudMenuItem Href="settings" Icon="@Icons.Material.Filled.Settings">@L["Layout.Settings"]</MudMenuItem>
       <MudMenuItem Href="@ProfileEndpoints.ProfilesPath" ForceLoad="true">@L["Layout.AllProfiles"]</MudMenuItem>
@@ -36,9 +38,29 @@
 
   protected override async Task OnInitializedAsync()
   {
+    CurrentUser.ProfileUpdated += OnProfileUpdated;
+    await LoadAsync();
+  }
+
+  public void Dispose()
+  {
+    CurrentUser.ProfileUpdated -= OnProfileUpdated;
+  }
+
+  private async Task LoadAsync()
+  {
     var profiles = await Users.ListAsync();
     _current = profiles.Single(p => p.Id == CurrentUser.UserId);
     _others = profiles.Where(p => p.Id != _current.Id).ToList();
+  }
+
+  private void OnProfileUpdated()
+  {
+    _ = InvokeAsync(async () =>
+    {
+      await LoadAsync();
+      StateHasChanged();
+    });
   }
 
   private void ToggleMenu()
