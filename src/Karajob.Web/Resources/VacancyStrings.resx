@@ -78,6 +78,7 @@
   <data name="Page.Url" xml:space="preserve"><value>Link</value></data>
   <data name="Page.VacancyTitle" xml:space="preserve"><value>Title</value></data>
   <data name="Page.FetchTitle" xml:space="preserve"><value>Fetch the title from the link</value></data>
+  <data name="Page.OpenLink" xml:space="preserve"><value>Open the link</value></data>
   <data name="Page.TitleNotFound" xml:space="preserve"><value>Could not read the title from the link</value></data>
   <data name="Page.Company" xml:space="preserve"><value>Company</value></data>
   <data name="Page.Role" xml:space="preserve"><value>Role</value></data>
