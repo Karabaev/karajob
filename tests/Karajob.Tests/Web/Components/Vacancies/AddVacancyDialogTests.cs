@@ -81,4 +81,82 @@ public class AddVacancyDialogTests : VacancyWebFixture
     Assert.EndsWith($"/vacancies/{existing.Id}", navigation.Uri, StringComparison.OrdinalIgnoreCase);
     Assert.Single(await Vacancies.ListAsync(VacancyStage.Inbox));
   }
+
+  [Fact]
+  public async Task UrlEntered_FetchesTitleIntoField()
+  {
+    TitleReader.Title = "Senior Unity Dev";
+    var (provider, _) = await ShowDialogAsync(new DialogParameters<AddVacancyDialog>());
+
+    provider.WaitForElement(".quick-add-url input").Input("https://example.com/jobs/7");
+
+    provider.WaitForAssertion(
+      () => Assert.Equal("Senior Unity Dev", provider.Find(".quick-add-title input").GetAttribute("value")),
+      TimeSpan.FromSeconds(3));
+  }
+
+  [Fact]
+  public async Task TitleEditedByHand_UrlChanged_KeepsTypedTitle()
+  {
+    TitleReader.Title = "First";
+    var (provider, _) = await ShowDialogAsync(new DialogParameters<AddVacancyDialog>());
+    provider.WaitForElement(".quick-add-url input").Input("https://example.com/jobs/1");
+    provider.WaitForAssertion(
+      () => Assert.Equal("First", provider.Find(".quick-add-title input").GetAttribute("value")),
+      TimeSpan.FromSeconds(3));
+    provider.Find(".quick-add-title input").Input("Mine");
+    TitleReader.Title = "Second";
+
+    provider.Find(".quick-add-url input").Input("https://example.com/jobs/2");
+
+    provider.WaitForAssertion(() => Assert.Contains("https://example.com/jobs/2", TitleReader.RequestedUrls), TimeSpan.FromSeconds(3));
+    await Task.Delay(300);
+    Assert.Equal("Mine", provider.Find(".quick-add-title input").GetAttribute("value"));
+  }
+
+  [Fact]
+  public async Task Submit_EditedTitle_StoresTypedTitle()
+  {
+    TitleReader.Title = "From page";
+    var (provider, reference) = await ShowDialogAsync(new DialogParameters<AddVacancyDialog>());
+    provider.WaitForElement(".quick-add-url input").Input("https://example.com/jobs/7");
+    provider.WaitForAssertion(
+      () => Assert.Equal("From page", provider.Find(".quick-add-title input").GetAttribute("value")),
+      TimeSpan.FromSeconds(3));
+    provider.Find(".quick-add-title input").Input("Edited");
+
+    provider.Find(".quick-add-submit").Click();
+
+    await reference.Result!.WaitAsync(TimeSpan.FromSeconds(5));
+    var item = Assert.Single(await Vacancies.ListAsync(VacancyStage.Inbox));
+    Assert.Equal("Edited", item.Title);
+  }
+
+  [Fact]
+  public async Task Submit_EmptyTitle_StoresReaderTitle()
+  {
+    TitleReader.Title = "From page";
+    var (provider, reference) = await ShowDialogAsync(new DialogParameters<AddVacancyDialog>());
+    provider.WaitForElement(".quick-add-url input").Input("https://example.com/jobs/7");
+    provider.Find(".quick-add-title input").Input(string.Empty);
+
+    provider.Find(".quick-add-submit").Click();
+
+    await reference.Result!.WaitAsync(TimeSpan.FromSeconds(5));
+    var item = Assert.Single(await Vacancies.ListAsync(VacancyStage.Inbox));
+    Assert.Equal("From page", item.Title);
+  }
+
+  [Fact]
+  public async Task UrlInvalid_NoErrorUntilSubmit()
+  {
+    var (provider, _) = await ShowDialogAsync(new DialogParameters<AddVacancyDialog>());
+    provider.WaitForElement(".quick-add-url input").Input("not a url");
+
+    await Task.Delay(800);
+
+    provider.Render();
+    Assert.Empty(provider.FindAll(".quick-add-url .mud-input-error"));
+    Assert.Empty(TitleReader.RequestedUrls);
+  }
 }

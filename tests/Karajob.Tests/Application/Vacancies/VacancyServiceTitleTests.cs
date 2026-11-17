@@ -38,6 +38,42 @@ public class VacancyServiceTitleTests : VacancyServiceFixture
   }
 
   [Fact]
+  public async Task QuickAddAsync_ExplicitTitle_StoresTrimmedTitleWithoutCallingReader()
+  {
+    _reader.Title = "From page";
+
+    var result = await TitledService().QuickAddAsync(new QuickAddInput(DefaultUrl, null, "  Senior Unity Dev  "));
+
+    var stored = await LoadAsync(result.VacancyId);
+    Assert.Equal("Senior Unity Dev", stored.Title);
+    Assert.Empty(_reader.RequestedUrls);
+  }
+
+  [Theory]
+  [InlineData(null)]
+  [InlineData("")]
+  [InlineData("   ")]
+  public async Task QuickAddAsync_BlankTitle_StoresReaderTitle(string? title)
+  {
+    _reader.Title = "From page";
+
+    var result = await TitledService().QuickAddAsync(new QuickAddInput(DefaultUrl, null, title));
+
+    var stored = await LoadAsync(result.VacancyId);
+    Assert.Equal("From page", stored.Title);
+    Assert.Single(_reader.RequestedUrls);
+  }
+
+  [Fact]
+  public async Task QuickAddAsync_ExplicitTitleTooLong_ClampsToMaxLength()
+  {
+    var result = await TitledService().QuickAddAsync(new QuickAddInput(DefaultUrl, null, new string('d', Vacancy.TitleMaxLength + 50)));
+
+    var stored = await LoadAsync(result.VacancyId);
+    Assert.Equal(Vacancy.TitleMaxLength, stored.Title!.Length);
+  }
+
+  [Fact]
   public async Task QuickAddAsync_ExistingUrl_DoesNotCallReader()
   {
     var service = TitledService();
