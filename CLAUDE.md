@@ -58,6 +58,7 @@ Domain  →  nothing (BCL only)
 - `DbContext` is obtained via `IDbContextFactory`, with a short-lived context per operation.
 - Do not use the EF Core InMemory provider; for debugging and tests use SQLite in-memory.
 - Do not use `EnsureCreated()`; migrations only.
+- The app is deployed with real data, so existing migrations (including `Initial`) are immutable: never edit, delete, rename, squash or regenerate them, and never change their IDs. Every schema change is a new migration via `scripts/add-migration.ps1`. A changed migration ID makes EF re-apply it to a live database and fail with `table already exists`.
 - Secrets only via `.env`, which is not committed. `.env`, `*.db`, `data/` and real CVs never go into the repository.
 - Documentation and the UI are in English. Localization is via resx: `Resources/*.resx` (default culture `en`) plus `*.ru.resx` Russian satellites; the default culture comes from the `Localization:DefaultCulture` config key.
 - All user-facing text goes through resx (`IStringLocalizer`); no Cyrillic literals in `src` outside `Normalize.cs` and resx.

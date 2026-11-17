@@ -14,7 +14,8 @@ public record SearchGoalInput(
   int MarketThresholdPerWeek,
   int ConversionThresholdPermille,
   int MinSampleSize,
-  int MaturationDays);
+  int MaturationDays,
+  int WellBeingThreshold);
 
 public record SearchGoalDetails(
   Guid? RoleId,
@@ -30,4 +31,5 @@ public record SearchGoalDetails(
   int MarketThresholdPerWeek,
   int ConversionThresholdPermille,
   int MinSampleSize,
-  int MaturationDays);
+  int MaturationDays,
+  int WellBeingThreshold);

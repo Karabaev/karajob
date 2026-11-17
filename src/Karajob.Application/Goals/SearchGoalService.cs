@@ -36,6 +36,7 @@ public class SearchGoalService(IKarajobDbContextFactory dbContextFactory, IStrin
     goal.ConversionThresholdPermille = input.ConversionThresholdPermille;
     goal.MinSampleSize = input.MinSampleSize;
     goal.MaturationDays = input.MaturationDays;
+    goal.WellBeingThreshold = input.WellBeingThreshold;
 
     await db.SaveChangesAsync(cancellationToken);
     return ToDetails(goal);
@@ -91,6 +92,11 @@ public class SearchGoalService(IKarajobDbContextFactory dbContextFactory, IStrin
     if (input.MaturationDays is < 0 or > SearchGoal.MaxMaturationDays)
     {
       errors[nameof(SearchGoalInput.MaturationDays)] = localizer["Error.MaturationDays", SearchGoal.MaxMaturationDays];
+    }
+
+    if (input.WellBeingThreshold is < SearchGoal.MinWellBeingThreshold or > SearchGoal.MaxWellBeingThreshold)
+    {
+      errors[nameof(SearchGoalInput.WellBeingThreshold)] = localizer["Error.WellBeingThresholdRange", SearchGoal.MinWellBeingThreshold, SearchGoal.MaxWellBeingThreshold];
     }
 
     var currency = string.IsNullOrWhiteSpace(input.IncomeCurrency) ? null : input.IncomeCurrency;
@@ -153,6 +159,7 @@ public class SearchGoalService(IKarajobDbContextFactory dbContextFactory, IStrin
       goal.MarketThresholdPerWeek,
       goal.ConversionThresholdPermille,
       goal.MinSampleSize,
-      goal.MaturationDays);
+      goal.MaturationDays,
+      goal.WellBeingThreshold);
   }
 }

@@ -244,9 +244,11 @@ public class HypothesisServiceCrudTests : HypothesisServiceFixture
     var created = await Service.CreateAsync(Input());
     Clock.UtcNow = Now.AddDays(2);
     await Service.UpdateAsync(created.Id, Input(status: HypothesisStatus.Active));
+    Clock.UtcNow = Now.AddDays(4);
+    await Service.UpdateAsync(created.Id, Input(status: HypothesisStatus.Paused));
     Clock.UtcNow = Now.AddDays(5);
 
-    var updated = await Service.UpdateAsync(created.Id, Input(status: HypothesisStatus.Expanded));
+    var updated = await Service.UpdateAsync(created.Id, Input(status: HypothesisStatus.Active));
 
     Assert.Equal(Now.AddDays(2), updated.StartedAt);
   }

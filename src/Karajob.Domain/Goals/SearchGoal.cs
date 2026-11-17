@@ -8,6 +8,8 @@ public class SearchGoal : IUserOwned
   public const int MaxConversionThresholdPermille = 1000;
   public const int LowestMinSampleSize = 1;
   public const int MaxMaturationDays = 365;
+  public const int MinWellBeingThreshold = 1;
+  public const int MaxWellBeingThreshold = 5;
 
   private readonly List<SearchGoalLocation> locations = [];
   private readonly List<SearchGoalPlatform> platforms = [];
@@ -78,6 +80,17 @@ public class SearchGoal : IUserOwned
     }
   }
 
+  public int WellBeingThreshold
+  {
+    get;
+    set
+    {
+      ArgumentOutOfRangeException.ThrowIfLessThan(value, MinWellBeingThreshold);
+      ArgumentOutOfRangeException.ThrowIfGreaterThan(value, MaxWellBeingThreshold);
+      field = value;
+    }
+  }
+
   public void SetLocations(IEnumerable<Guid> locationIds)
   {
     var wanted = locationIds.Select(id => Require.NotEmpty(id, nameof(locationIds))).Distinct().ToList();
@@ -138,5 +151,6 @@ public class SearchGoal : IUserOwned
     ConversionThresholdPermille = SearchGoalDefaults.ConversionThresholdPermille;
     MinSampleSize = SearchGoalDefaults.MinSampleSize;
     MaturationDays = SearchGoalDefaults.MaturationDays;
+    WellBeingThreshold = SearchGoalDefaults.WellBeingThreshold;
   }
 }

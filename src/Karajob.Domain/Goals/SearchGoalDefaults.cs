@@ -7,4 +7,5 @@ public static class SearchGoalDefaults
   public const int ConversionThresholdPermille = 30;
   public const int MinSampleSize = 30;
   public const int MaturationDays = 14;
+  public const int WellBeingThreshold = 2;
 }

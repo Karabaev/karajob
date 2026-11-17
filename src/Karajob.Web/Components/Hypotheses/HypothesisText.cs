@@ -32,6 +32,54 @@ public static class HypothesisText
     };
   }
 
+  public static string DecisionKind(HypothesisDecisionKind kind)
+  {
+    return kind switch
+    {
+      HypothesisDecisionKind.Continue => Localized.Get<HypothesisStrings>("Decision.Continue"),
+      HypothesisDecisionKind.Expand => Localized.Get<HypothesisStrings>("Decision.Expand"),
+      HypothesisDecisionKind.Disable => Localized.Get<HypothesisStrings>("Decision.Disable"),
+      _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null)
+    };
+  }
+
+  public static Color DecisionKindColor(HypothesisDecisionKind kind)
+  {
+    return kind switch
+    {
+      HypothesisDecisionKind.Continue => Color.Success,
+      HypothesisDecisionKind.Expand => Color.Info,
+      HypothesisDecisionKind.Disable => Color.Error,
+      _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null)
+    };
+  }
+
+  public static string Hint(DecisionHint hint)
+  {
+    return hint switch
+    {
+      DecisionHint.NotEnoughData => Localized.Get<HypothesisStrings>("Hint.NotEnoughData"),
+      DecisionHint.Expand => Localized.Get<HypothesisStrings>("Hint.Expand"),
+      DecisionHint.Continue => Localized.Get<HypothesisStrings>("Hint.Continue"),
+      DecisionHint.ReviseCv => Localized.Get<HypothesisStrings>("Hint.ReviseCv"),
+      DecisionHint.Disable => Localized.Get<HypothesisStrings>("Hint.Disable"),
+      _ => throw new ArgumentOutOfRangeException(nameof(hint), hint, null)
+    };
+  }
+
+  public static Color HintColor(DecisionHint hint)
+  {
+    return hint switch
+    {
+      DecisionHint.NotEnoughData => Color.Default,
+      DecisionHint.Expand => Color.Info,
+      DecisionHint.Continue => Color.Success,
+      DecisionHint.ReviseCv => Color.Warning,
+      DecisionHint.Disable => Color.Error,
+      _ => throw new ArgumentOutOfRangeException(nameof(hint), hint, null)
+    };
+  }
+
   public static string Format(WorkFormat format)
   {
     var labels = new List<string>();

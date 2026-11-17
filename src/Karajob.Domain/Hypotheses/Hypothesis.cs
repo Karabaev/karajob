@@ -8,6 +8,7 @@ public class Hypothesis : IUserOwned
   private readonly List<HypothesisPlatform> platforms = [];
   private readonly List<HypothesisEngine> engines = [];
   private DateTime? startedAt;
+  private DateTime? periodStartedAt;
 
   public Guid Id { get; private set; }
   public Guid UserId { get; private set; }
@@ -28,6 +29,12 @@ public class Hypothesis : IUserOwned
   {
     get => startedAt;
     set => startedAt = UtcGuard.Ensure(value);
+  }
+
+  public DateTime? PeriodStartedAt
+  {
+    get => periodStartedAt;
+    private set => periodStartedAt = UtcGuard.Ensure(value);
   }
 
   public void SetLocations(IEnumerable<Guid> locationIds)
@@ -66,6 +73,28 @@ public class Hypothesis : IUserOwned
     if (status is HypothesisStatus.Active or HypothesisStatus.Expanded && StartedAt is null)
     {
       StartedAt = utcNow;
+      PeriodStartedAt = utcNow;
+    }
+  }
+
+  public void ApplyDecision(HypothesisDecisionKind kind, DateTime utcNow)
+  {
+    if (!ActiveHypothesesRule.IsActive(Status)) throw new InvalidOperationException($"A decision cannot be applied to a {Status} hypothesis.");
+    UtcGuard.Ensure(utcNow);
+
+    switch (kind)
+    {
+      case HypothesisDecisionKind.Expand:
+        Status = HypothesisStatus.Expanded;
+        PeriodStartedAt = utcNow;
+        break;
+      case HypothesisDecisionKind.Disable:
+        Status = HypothesisStatus.Disabled;
+        break;
+      case HypothesisDecisionKind.Continue:
+        break;
+      default:
+        throw new ArgumentOutOfRangeException(nameof(kind), kind, null);
     }
   }
 

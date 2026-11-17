@@ -38,7 +38,7 @@ public class HypothesisService(
   public async Task<HypothesisDetails> CreateAsync(HypothesisInput input, CancellationToken cancellationToken = default)
   {
     await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-    var normalized = await ValidateAsync(db, input, cancellationToken);
+    var normalized = await ValidateAsync(db, input, null, cancellationToken);
     var now = timeProvider.GetUtcNow().UtcDateTime;
 
     var hypothesis = new Hypothesis(currentUser.UserId, normalized.Name, normalized.RoleId, normalized.LanguageId, now);
@@ -54,7 +54,7 @@ public class HypothesisService(
     await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
     var hypothesis = await db.Hypotheses.FirstOrDefaultAsync(h => h.Id == hypothesisId, cancellationToken)
       ?? throw new KeyNotFoundException($"Hypothesis {hypothesisId} was not found.");
-    var normalized = await ValidateAsync(db, input, cancellationToken);
+    var normalized = await ValidateAsync(db, input, hypothesis.Status, cancellationToken);
     var now = timeProvider.GetUtcNow().UtcDateTime;
 
     hypothesis.Name = normalized.Name;
@@ -73,7 +73,9 @@ public class HypothesisService(
       ?? throw new KeyNotFoundException($"Hypothesis {hypothesisId} was not found.");
 
     var used = await db.VacancyMatches.AnyAsync(m => m.HypothesisId == hypothesisId, cancellationToken)
-      || await db.JobApplications.AnyAsync(a => a.HypothesisId == hypothesisId, cancellationToken);
+      || await db.JobApplications.AnyAsync(a => a.HypothesisId == hypothesisId, cancellationToken)
+      || await db.HypothesisCheckIns.AnyAsync(c => c.HypothesisId == hypothesisId, cancellationToken)
+      || await db.HypothesisDecisions.AnyAsync(d => d.HypothesisId == hypothesisId, cancellationToken);
     if (used)
     {
       throw new ValidationFailedException(new Dictionary<string, string>
@@ -110,7 +112,7 @@ public class HypothesisService(
     hypothesis.ChangeStatus(input.Status, now);
   }
 
-  private async Task<NormalizedHypothesis> ValidateAsync(IKarajobDbContext db, HypothesisInput input, CancellationToken cancellationToken)
+  private async Task<NormalizedHypothesis> ValidateAsync(IKarajobDbContext db, HypothesisInput input, HypothesisStatus? storedStatus, CancellationToken cancellationToken)
   {
     var errors = new Dictionary<string, string>();
 
@@ -168,6 +170,11 @@ public class HypothesisService(
       errors[nameof(HypothesisInput.PrimaryCvDocumentId)] = localizer["Error.CvNotFound"];
     }
 
+    if (input.Status is HypothesisStatus.Expanded or HypothesisStatus.Disabled && input.Status != storedStatus)
+    {
+      errors[nameof(HypothesisInput.Status)] = localizer["Error.StatusViaDecision"];
+    }
+
     if (errors.Count > 0)
     {
       throw new ValidationFailedException(errors);
@@ -213,7 +220,8 @@ public class HypothesisService(
       h.Positioning,
       h.PrimaryCvDocumentId,
       h.Status,
-      h.StartedAt);
+      h.StartedAt,
+      h.PeriodStartedAt);
   }
 
   private static string? BlankToNull(string? value)

@@ -30,13 +30,13 @@ public class HypothesisMetricsService(IKarajobDbContextFactory dbContextFactory,
     await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
     var hypothesis = await db.Hypotheses.AsNoTracking()
       .Where(h => h.Id == hypothesisId)
-      .Select(h => new { h.StartedAt, h.CreatedAt })
+      .Select(h => new { h.PeriodStartedAt, h.StartedAt, h.CreatedAt })
       .SingleOrDefaultAsync(cancellationToken)
       ?? throw new KeyNotFoundException($"Hypothesis {hypothesisId} was not found.");
-    var start = periodStart ?? hypothesis.StartedAt ?? hypothesis.CreatedAt;
+    var start = periodStart ?? hypothesis.PeriodStartedAt ?? hypothesis.StartedAt ?? hypothesis.CreatedAt;
     if (start > now)
     {
-      var source = periodStart is null ? "The hypothesis period (StartedAt or CreatedAt)" : "The period";
+      var source = periodStart is null ? "The hypothesis period (PeriodStartedAt, StartedAt or CreatedAt)" : "The period";
       throw new ArgumentException($"{source} starts after the metrics date.", periodStart is null ? nameof(asOf) : nameof(periodStart));
     }
 

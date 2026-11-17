@@ -4,16 +4,18 @@ using Karajob.Infrastructure.Persistence;
 using Karajob.Infrastructure.Users;
 using Karajob.Web.Components.Common;
 using Karajob.Domain.Applications;
-using Karajob.Tests.Application.Metrics;
+using Karajob.Domain.Hypotheses;
+using Karajob.Tests.Application.Hypotheses;
 using Karajob.Web.Components.Hypotheses;
 using Microsoft.Extensions.DependencyInjection;
 using MudBlazor.Services;
 
 namespace Karajob.Tests.Web.Components.Hypotheses;
 
-public class HypothesisCriteriaCardTests : HypothesisMetricsServiceFixture, IAsyncLifetime
+public class HypothesisCriteriaCardTests : HypothesisDecisionServiceFixture, IAsyncLifetime
 {
   private static readonly DateTime MaturedAt = Now.AddDays(-20);
+  private bool servicesRegistered;
 
   private BunitContext Context { get; } = new();
 
@@ -210,6 +212,111 @@ public class HypothesisCriteriaCardTests : HypothesisMetricsServiceFixture, IAsy
     cut.WaitForAssertion(() => Assert.Equal("0", cut.Find(".criteria-market-count").TextContent.Trim()));
   }
 
+  [Fact]
+  public async Task Render_NoCheckIns_ShowsDashAndNoLowSignal()
+  {
+    var hypothesisId = await CreateActiveAsync();
+
+    var cut = RenderCard(hypothesisId);
+
+    cut.WaitForAssertion(() =>
+    {
+      Assert.Contains("—", cut.Find(".criteria-wellbeing").TextContent);
+      Assert.Empty(cut.FindAll(".criteria-wellbeing-low"));
+    });
+  }
+
+  [Fact]
+  public async Task Render_CheckIns_ShowsLatestAverageWithOneDecimal()
+  {
+    var hypothesisId = await CreateActiveAsync();
+    await Decisions.SaveCheckInAsync(hypothesisId, CheckIn(PreviousWeek, 2, 2));
+    await Decisions.SaveCheckInAsync(hypothesisId, CheckIn(CurrentWeek, 2, 3));
+
+    var cut = RenderCard(hypothesisId);
+
+    cut.WaitForAssertion(() =>
+    {
+      Assert.Matches(@"2[.,]5", cut.Find(".criteria-wellbeing").TextContent);
+      Assert.DoesNotContain("—", cut.Find(".criteria-wellbeing").TextContent);
+      Assert.Empty(cut.FindAll(".criteria-wellbeing-low"));
+    });
+  }
+
+  [Fact]
+  public async Task Render_TwoLowConsecutiveCheckIns_ShowsLowSignal()
+  {
+    var hypothesisId = await CreateActiveAsync();
+    await Decisions.SaveCheckInAsync(hypothesisId, CheckIn(PreviousWeek, 1, 2));
+    await Decisions.SaveCheckInAsync(hypothesisId, CheckIn(CurrentWeek, 2, 1));
+
+    var cut = RenderCard(hypothesisId);
+
+    cut.WaitForAssertion(() =>
+    {
+      Assert.Single(cut.FindAll(".criteria-wellbeing-low"));
+      Assert.Matches(@"1[.,]5", cut.Find(".criteria-wellbeing").TextContent);
+    });
+  }
+
+  [Fact]
+  public async Task Render_NarrowMarket_ShowsExpandHintChip()
+  {
+    var hypothesisId = await CreateActiveAsync();
+
+    var cut = RenderCard(hypothesisId);
+
+    cut.WaitForAssertion(() =>
+    {
+      var chip = cut.Find(".criteria-hint");
+      Assert.Equal(nameof(DecisionHint.Expand), chip.GetAttribute("data-hint"));
+      Assert.False(string.IsNullOrWhiteSpace(chip.TextContent));
+    });
+  }
+
+  [Fact]
+  public async Task Render_LowWellBeing_ShowsDisableHintChipDifferentFromExpand()
+  {
+    var expandId = await CreateActiveAsync("Narrow market");
+    var disableId = await CreateActiveAsync("Burnout");
+    await Decisions.SaveCheckInAsync(disableId, CheckIn(PreviousWeek, 1, 1));
+    await Decisions.SaveCheckInAsync(disableId, CheckIn(CurrentWeek, 1, 1));
+    var expandCut = RenderCard(expandId);
+    expandCut.WaitForAssertion(() => Assert.NotNull(expandCut.Find(".criteria-hint")));
+    var expandText = expandCut.Find(".criteria-hint").TextContent.Trim();
+
+    var disableCut = RenderCard(disableId);
+
+    disableCut.WaitForAssertion(() =>
+    {
+      var chip = disableCut.Find(".criteria-hint");
+      Assert.Equal(nameof(DecisionHint.Disable), chip.GetAttribute("data-hint"));
+      Assert.NotEqual(expandText, chip.TextContent.Trim());
+    });
+  }
+
+  [Fact]
+  public async Task Render_BroadMarketWithoutMaturedApplications_ShowsNotEnoughDataHintChip()
+  {
+    await UpdateGoalAsync(marketThresholdPerWeek: 1, minSampleSize: 4);
+    var hypothesisId = await CreateActiveAsync();
+    await CreateVacanciesAsync(hypothesisId, 1);
+
+    var cut = RenderCard(hypothesisId);
+
+    cut.WaitForAssertion(() => Assert.Equal(nameof(DecisionHint.NotEnoughData), cut.Find(".criteria-hint").GetAttribute("data-hint")));
+  }
+
+  [Fact]
+  public async Task Render_ActiveHypothesis_ShowsExactlyOneHintChip()
+  {
+    var hypothesisId = await CreateActiveAsync();
+
+    var cut = RenderCard(hypothesisId);
+
+    cut.WaitForAssertion(() => Assert.Single(cut.FindAll(".criteria-hint")));
+  }
+
   async Task IAsyncLifetime.InitializeAsync()
   {
     await InitializeAsync();
@@ -223,7 +330,14 @@ public class HypothesisCriteriaCardTests : HypothesisMetricsServiceFixture, IAsy
 
   private IRenderedComponent<HypothesisCriteriaCard> RenderCard(Guid hypothesisId)
   {
-    Context.Services.AddSingleton(Metrics);
+    // bUnit forbids registrations after the first render, and some tests render two cards.
+    if (!servicesRegistered)
+    {
+      Context.Services.AddSingleton(Metrics);
+      Context.Services.AddSingleton(Decisions);
+      servicesRegistered = true;
+    }
+
     return Context.Render<HypothesisCriteriaCard>(p => p.Add(c => c.HypothesisId, hypothesisId));
   }
 

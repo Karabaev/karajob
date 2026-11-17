@@ -91,4 +91,6 @@
   <data name="Pages.Reopen" xml:space="preserve"><value>Reopen</value></data>
   <data name="Pages.ReopenTitle" xml:space="preserve"><value>Reopen vacancy</value></data>
   <data name="Pages.NoApplications" xml:space="preserve"><value>No applications found</value></data>
+  <data name="Pages.WellBeingThreshold" xml:space="preserve"><value>Well-being threshold</value></data>
+  <data name="Pages.WellBeingThresholdHelp" xml:space="preserve"><value>From 1 to 5. Two consecutive check-ins at or below this average signal that the hypothesis is not a personal fit</value></data>
 </root>

@@ -54,4 +54,46 @@
   <data name="Verdict.InsufficientData" xml:space="preserve"><value>insufficient data</value></data>
   <data name="Verdict.BelowThreshold" xml:space="preserve"><value>below threshold</value></data>
   <data name="Verdict.OnTrack" xml:space="preserve"><value>on track</value></data>
+  <data name="Hypothesis.WellBeing" xml:space="preserve"><value>Well-being</value></data>
+  <data name="Hypothesis.WellBeingCaption" xml:space="preserve"><value>average of motivation and confidence · low at {0} or below</value></data>
+  <data name="Hypothesis.WellBeingLow" xml:space="preserve"><value>Not a personal fit: two low check-ins in a row</value></data>
+  <data name="Hypothesis.WellBeingTrend" xml:space="preserve"><value>{0} vs previous check-in</value></data>
+  <data name="Hint.NotEnoughData" xml:space="preserve"><value>Hint: not enough data yet</value></data>
+  <data name="Hint.Expand" xml:space="preserve"><value>Hint: the market is narrow, consider expanding</value></data>
+  <data name="Hint.Continue" xml:space="preserve"><value>Hint: continue as is</value></data>
+  <data name="Hint.ReviseCv" xml:space="preserve"><value>Hint: revise the CV and positioning</value></data>
+  <data name="Hint.Disable" xml:space="preserve"><value>Hint: consider disabling</value></data>
+  <data name="Hypothesis.CheckInButton" xml:space="preserve"><value>Check-in</value></data>
+  <data name="Hypothesis.DecisionButton" xml:space="preserve"><value>Decision</value></data>
+  <data name="Hypothesis.Decisions" xml:space="preserve"><value>Decisions</value></data>
+  <data name="Hypothesis.NoDecisions" xml:space="preserve"><value>No decisions yet</value></data>
+  <data name="Hypothesis.CheckIns" xml:space="preserve"><value>Recent check-ins</value></data>
+  <data name="Hypothesis.NoCheckIns" xml:space="preserve"><value>No check-ins yet</value></data>
+  <data name="Decision.Continue" xml:space="preserve"><value>Continue</value></data>
+  <data name="Decision.Expand" xml:space="preserve"><value>Expand</value></data>
+  <data name="Decision.Disable" xml:space="preserve"><value>Disable</value></data>
+  <data name="Decision.Conversion" xml:space="preserve"><value>conversion {0} of {1}</value></data>
+  <data name="Decision.Market" xml:space="preserve"><value>market {0} (threshold {1})</value></data>
+  <data name="Decision.WellBeing" xml:space="preserve"><value>well-being {0}</value></data>
+  <data name="Decision.ChangesLabel" xml:space="preserve"><value>Changes: {0}</value></data>
+  <data name="Decision.ReasonLabel" xml:space="preserve"><value>Reason: {0}</value></data>
+  <data name="Decision.Title" xml:space="preserve"><value>Decision on the hypothesis</value></data>
+  <data name="Decision.Reason" xml:space="preserve"><value>Reason</value></data>
+  <data name="Decision.Changes" xml:space="preserve"><value>What was changed</value></data>
+  <data name="Decision.NotPersonalFit" xml:space="preserve"><value>Not a personal fit</value></data>
+  <data name="Decision.InsufficientData" xml:space="preserve"><value>There are not enough matured applications for a reliable conversion verdict. You can still record a decision.</value></data>
+  <data name="Decision.ActivateDraft" xml:space="preserve"><value>Activate a draft instead</value></data>
+  <data name="Decision.NoDraft" xml:space="preserve"><value>Do not activate a draft</value></data>
+  <data name="Decision.TooFew" xml:space="preserve"><value>After this, {0} active hypotheses will remain; at least 2 are recommended.</value></data>
+  <data name="Decision.TooMany" xml:space="preserve"><value>After this, {0} active hypotheses will remain; at most 3 are recommended.</value></data>
+  <data name="Decision.ActiveWarning" xml:space="preserve"><value>The number of active hypotheses is outside the recommended 2 to 3.</value></data>
+  <data name="Decision.Saved" xml:space="preserve"><value>Decision recorded</value></data>
+  <data name="Decision.Save" xml:space="preserve"><value>Record</value></data>
+  <data name="CheckIn.Title" xml:space="preserve"><value>Weekly check-in</value></data>
+  <data name="CheckIn.Date" xml:space="preserve"><value>Any day of the week</value></data>
+  <data name="CheckIn.Week" xml:space="preserve"><value>Week {0}</value></data>
+  <data name="CheckIn.Motivation" xml:space="preserve"><value>Motivation</value></data>
+  <data name="CheckIn.Confidence" xml:space="preserve"><value>Confidence</value></data>
+  <data name="CheckIn.Note" xml:space="preserve"><value>Note</value></data>
+  <data name="CheckIn.Saved" xml:space="preserve"><value>Check-in saved</value></data>
 </root>

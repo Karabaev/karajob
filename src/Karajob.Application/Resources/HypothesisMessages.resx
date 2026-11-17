@@ -4,7 +4,7 @@
   <resheader name="version"><value>2.0</value></resheader>
   <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
-  <data name="Error.InUse" xml:space="preserve"><value>This hypothesis is used in vacancies or applications; set its status to Disabled instead</value></data>
+  <data name="Error.InUse" xml:space="preserve"><value>This hypothesis has vacancies, applications, check-ins or decisions; record a Disable decision instead</value></data>
   <data name="Error.NameRequired" xml:space="preserve"><value>Name is required</value></data>
   <data name="Error.RoleRequired" xml:space="preserve"><value>Role is required</value></data>
   <data name="Error.RoleNotFound" xml:space="preserve"><value>Role not found</value></data>
@@ -15,4 +15,13 @@
   <data name="Error.EngineNotFound" xml:space="preserve"><value>Engine not found</value></data>
   <data name="Error.WorkFormatRequired" xml:space="preserve"><value>Choose at least one work format</value></data>
   <data name="Error.CvNotFound" xml:space="preserve"><value>CV not found</value></data>
+  <data name="Error.StatusViaDecision" xml:space="preserve"><value>Expanded and Disabled are set only by recording a decision</value></data>
+  <data name="Error.StatusNotAllowed" xml:space="preserve"><value>This is only possible for an Active or Expanded hypothesis</value></data>
+  <data name="Error.CheckInFuture" xml:space="preserve"><value>A check-in cannot be for a future week</value></data>
+  <data name="Error.MotivationRange" xml:space="preserve"><value>Motivation must be between {0} and {1}</value></data>
+  <data name="Error.ConfidenceRange" xml:space="preserve"><value>Confidence must be between {0} and {1}</value></data>
+  <data name="Error.ChangesRequired" xml:space="preserve"><value>Describe what was changed</value></data>
+  <data name="Error.ReasonRequired" xml:space="preserve"><value>A reason is required to disable a hypothesis</value></data>
+  <data name="Error.DraftNotFound" xml:space="preserve"><value>Choose an existing Draft hypothesis to activate</value></data>
+  <data name="Error.DraftOnlyOnDisable" xml:space="preserve"><value>A Draft can be activated only together with disabling</value></data>
 </root>

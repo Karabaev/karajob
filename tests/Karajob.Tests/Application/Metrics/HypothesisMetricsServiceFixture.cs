@@ -2,6 +2,7 @@ using Karajob.Application.Goals;
 using Karajob.Application.Metrics;
 using Karajob.Application.Users;
 using Karajob.Domain.Applications;
+using Karajob.Domain.Goals;
 using Karajob.Domain.Hypotheses;
 using Karajob.Domain.Vacancies;
 using Karajob.Infrastructure.Persistence;
@@ -127,7 +128,8 @@ public abstract class HypothesisMetricsServiceFixture : VacancyServiceFixture
       marketThresholdPerWeek,
       conversionThresholdPermille,
       minSampleSize,
-      maturationDays));
+      maturationDays,
+      SearchGoalDefaults.WellBeingThreshold));
   }
 
   private async Task<Guid> GetCvVersionIdAsync(Guid userId)

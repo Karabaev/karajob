@@ -54,6 +54,26 @@ public static class MetricsText
     return $"{week.FirstDay:dd.MM}–{week.FirstDay.AddDays(6):dd.MM}";
   }
 
+  public static string WeekOf(DateOnly firstDay)
+  {
+    return $"{firstDay:dd.MM}–{firstDay.AddDays(6):dd.MM}";
+  }
+
+  public static string Tenths(int tenths)
+  {
+    return (tenths / 10.0).ToString("0.0", Numbers);
+  }
+
+  public static string Trend(int tenths)
+  {
+    return tenths switch
+    {
+      > 0 => $"▲ {Tenths(tenths)}",
+      < 0 => $"▼ {Tenths(-tenths)}",
+      _ => "= 0"
+    };
+  }
+
   private static string PercentNumber(double rate)
   {
     return (rate * 100).ToString("0.0", Numbers);

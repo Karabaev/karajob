@@ -2,6 +2,7 @@ using Karajob.Application.Hypotheses;
 using Karajob.Domain.Hypotheses;
 using Karajob.Infrastructure.Persistence;
 using Karajob.Tests.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 
 namespace Karajob.Tests.Application.Hypotheses;
 
@@ -38,6 +39,16 @@ public abstract class HypothesisServiceFixture : IAsyncLifetime
       positioning,
       primaryCvDocumentId,
       status);
+  }
+
+  protected async Task<Guid> CreateWithStatusAsync(string name, HypothesisStatus status)
+  {
+    var created = await Service.CreateAsync(Input(name: name));
+    await using var context = Database.CreateContext(SeedData.OwnerId);
+    var stored = await context.Hypotheses.SingleAsync(h => h.Id == created.Id);
+    stored.Status = status;
+    await context.SaveChangesAsync();
+    return created.Id;
   }
 
   protected HypothesisService ServiceFor(Guid userId)
