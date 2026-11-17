@@ -2,6 +2,7 @@ using Karajob.Domain.Cvs;
 using Karajob.Domain.Hypotheses;
 using Karajob.Infrastructure.Persistence;
 using Karajob.Tests.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 
 namespace Karajob.Tests.Application.Hypotheses;
 
@@ -62,11 +63,18 @@ public class HypothesisServiceListTests : HypothesisServiceFixture
   [Fact]
   public async Task ListAsync_ReturnsPlatformNamesSortedCaseInsensitively()
   {
+    await using (var context = Database.CreateContext(SeedData.OwnerId))
+    {
+      var mobile = await context.Platforms.SingleAsync(p => p.Id == SeedData.MobilePlatformId);
+      mobile.Rename("mobile");
+      await context.SaveChangesAsync();
+    }
+
     await Service.CreateAsync(Input(platformIds: [SeedData.WebPlatformId, SeedData.PcPlatformId, SeedData.MobilePlatformId, SeedData.VrPlatformId]));
 
     var item = Assert.Single(await Service.ListAsync());
 
-    Assert.Equal(["Mobile", "PC", "VR", "Web"], item.PlatformNames);
+    Assert.Equal(["mobile", "PC", "VR", "Web"], item.PlatformNames);
   }
 
   [Fact]
