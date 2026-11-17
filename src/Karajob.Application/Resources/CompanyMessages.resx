@@ -16,4 +16,5 @@
   <data name="Error.AliasTaken" xml:space="preserve"><value>Alias '{0}' is already used by company '{1}'</value></data>
   <data name="Error.UrlInvalid" xml:space="preserve"><value>Invalid URL</value></data>
   <data name="Error.EngineNotFound" xml:space="preserve"><value>Engine not found</value></data>
+  <data name="Error.LocationNotFound" xml:space="preserve"><value>Location not found</value></data>
 </root>

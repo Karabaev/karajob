@@ -56,7 +56,7 @@ public class VacancyServiceTests : VacancyServiceFixture
   [Fact]
   public async Task CreateAsync_WithCompany_ReturnsCompanyName()
   {
-    var company = await Companies.CreateAsync(new CompanyInput("pixel-forge", "Pixel Forge", null, null, [], []));
+    var company = await Companies.CreateAsync(new CompanyInput("pixel-forge", "Pixel Forge", null, null, [], [], []));
 
     var details = await Service.CreateAsync(Input(companyId: company.Id));
 
@@ -372,7 +372,7 @@ public class VacancyServiceTests : VacancyServiceFixture
   [Fact]
   public async Task ListAsync_ReturnsOnlyRequestedStageNewestFirstWithNames()
   {
-    var company = await Companies.CreateAsync(new CompanyInput("pixel-forge", "Pixel Forge", null, null, [], []));
+    var company = await Companies.CreateAsync(new CompanyInput("pixel-forge", "Pixel Forge", null, null, [], [], []));
     var old = await Service.CreateAsync(Input("https://example.com/jobs/old", companyId: company.Id, roleId: SeedData.UnityDeveloperRoleId));
     Clock.UtcNow = Now.AddDays(1);
     var recent = await Service.CreateAsync(Input("https://example.com/jobs/recent"));

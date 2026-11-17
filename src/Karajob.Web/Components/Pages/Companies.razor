@@ -34,6 +34,7 @@ else
       <MudTh>@L["Pages.Company"]</MudTh>
       <MudTh>Slug</MudTh>
       <MudTh>@L["Pages.Domains"]</MudTh>
+      <MudTh>@L["Pages.Locations"]</MudTh>
       <MudTh></MudTh>
     </HeaderContent>
     <RowTemplate>
@@ -45,6 +46,12 @@ else
       </MudTd>
       <MudTd DataLabel="Slug">@context.Slug</MudTd>
       <MudTd DataLabel="@L["Pages.Domains"]">@string.Join(", ", context.Domains)</MudTd>
+      <MudTd DataLabel="@L["Pages.Locations"]">
+        @foreach (var name in context.LocationNames)
+        {
+          <MudChip T="string" Size="Size.Small">@name</MudChip>
+        }
+      </MudTd>
       <MudTd>
         @if (context.IsBlacklisted)
         {

@@ -18,7 +18,7 @@ public abstract class CompanyServiceFixture : IAsyncLifetime
     IReadOnlyList<string>? domains = null,
     IReadOnlyList<string>? aliases = null)
   {
-    return new CompanyInput(slug, name, website, description, domains ?? [], aliases ?? []);
+    return new CompanyInput(slug, name, website, description, domains ?? [], aliases ?? [], []);
   }
 
   protected static ProjectInput NewProject(

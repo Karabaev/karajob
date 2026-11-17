@@ -258,6 +258,7 @@ public class CatalogService(IKarajobDbContextFactory dbContextFactory, IStringLo
       case CatalogKind.Location:
         return await db.HypothesisLocations.IgnoreQueryFilters().AnyAsync(l => l.LocationId == id, cancellationToken)
           || await db.SearchGoalLocations.IgnoreQueryFilters().AnyAsync(l => l.LocationId == id, cancellationToken)
+          || await db.CompanyLocations.AnyAsync(l => l.LocationId == id, cancellationToken)
           || await db.Vacancies.IgnoreQueryFilters().AnyAsync(v => v.LocationId == id, cancellationToken);
       case CatalogKind.Language:
         return await db.Hypotheses.IgnoreQueryFilters().AnyAsync(h => h.LanguageId == id, cancellationToken)

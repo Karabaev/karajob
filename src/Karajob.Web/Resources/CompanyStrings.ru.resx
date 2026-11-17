@@ -14,6 +14,8 @@
   <data name="Page.Website" xml:space="preserve"><value>Сайт</value></data>
   <data name="Page.Domains" xml:space="preserve"><value>Домены</value></data>
   <data name="Page.Aliases" xml:space="preserve"><value>Алиасы</value></data>
+  <data name="Page.Locations" xml:space="preserve"><value>Локации</value></data>
+  <data name="Page.EmptyHint" xml:space="preserve"><value>Добавьте в разделе Справочники</value></data>
   <data name="Page.OnePerLine" xml:space="preserve"><value>по одному на строку</value></data>
   <data name="Page.Description" xml:space="preserve"><value>Описание</value></data>
   <data name="Page.DeleteCompany" xml:space="preserve"><value>Удалить компанию</value></data>

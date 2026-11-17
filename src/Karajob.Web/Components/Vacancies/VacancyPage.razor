@@ -297,7 +297,7 @@ else if (_loaded)
     _url = _details?.Url;
     _title = _details?.Title;
     _company = _details?.CompanyId is { } companyId
-      ? new CompanyListItem(companyId, "", _details.CompanyName ?? "", null, [], false)
+      ? new CompanyListItem(companyId, "", _details.CompanyName ?? "", null, [], false, [])
       : null;
     _companyKey++;
     _roleId = _details?.RoleId;
@@ -331,7 +331,7 @@ else if (_loaded)
   // The autocomplete has no "create new" slot when nothing matches, so the offer is a sentinel list entry with an empty id.
   private CompanyListItem CreateEntry(string name)
   {
-    return new CompanyListItem(Guid.Empty, "", L["Page.CreateCompany", name].Value, null, [], false);
+    return new CompanyListItem(Guid.Empty, "", L["Page.CreateCompany", name].Value, null, [], false, []);
   }
 
   private static string CompanyText(CompanyListItem? company)
@@ -370,7 +370,7 @@ else if (_loaded)
       return null;
     }
 
-    return new CompanyListItem(details.Id, details.Slug, details.Name, details.IconUrl, details.Domains, details.IsBlacklisted);
+    return new CompanyListItem(details.Id, details.Slug, details.Name, details.IconUrl, details.Domains, details.IsBlacklisted, []);
   }
 
   private async Task OnRoleChangedAsync(Guid? roleId)

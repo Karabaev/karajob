@@ -22,7 +22,7 @@ public abstract class CompanyWebFixture : IAsyncLifetime
 
   protected static CompanyInput Input(string slug, string name)
   {
-    return new CompanyInput(slug, name, null, null, [], []);
+    return new CompanyInput(slug, name, null, null, [], [], []);
   }
 
   public async Task InitializeAsync()

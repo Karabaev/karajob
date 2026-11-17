@@ -143,7 +143,7 @@ public class ProfileIsolationTests : IAsyncLifetime
 
   private static CompanyInput NewCompany(string slug, string name)
   {
-    return new CompanyInput(slug, name, null, null, [], []);
+    return new CompanyInput(slug, name, null, null, [], [], []);
   }
 
   private static CvUpload Upload()

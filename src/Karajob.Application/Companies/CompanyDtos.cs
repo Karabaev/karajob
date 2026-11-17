@@ -8,7 +8,8 @@ public record CompanyInput(
   string? Website,
   string? Description,
   IReadOnlyList<string> Domains,
-  IReadOnlyList<string> Aliases);
+  IReadOnlyList<string> Aliases,
+  IReadOnlyList<Guid> LocationIds);
 
 public record CompanyListItem(
   Guid Id,
@@ -16,7 +17,8 @@ public record CompanyListItem(
   string Name,
   string? IconUrl,
   IReadOnlyList<string> Domains,
-  bool IsBlacklisted);
+  bool IsBlacklisted,
+  IReadOnlyList<string> LocationNames);
 
 public record CompanyDetails(
   Guid Id,
@@ -27,6 +29,7 @@ public record CompanyDetails(
   string? IconUrl,
   IReadOnlyList<string> Domains,
   IReadOnlyList<string> Aliases,
+  IReadOnlyList<Guid> LocationIds,
   IReadOnlyList<ProjectItem> Projects,
   string? Note,
   bool IsBlacklisted);

@@ -156,7 +156,7 @@ public class VacancyPageTests : VacancyWebFixture
   [Fact]
   public async Task Render_ExistingVacancyWithSimilarOne_ShowsWarningWithLink()
   {
-    var company = await Companies.CreateAsync(new CompanyInput("pixel-forge", "Pixel Forge", null, null, [], []));
+    var company = await Companies.CreateAsync(new CompanyInput("pixel-forge", "Pixel Forge", null, null, [], [], []));
     var first = await Vacancies.CreateAsync(Input("https://example.com/jobs/1", company.Id, SeedData.UnityDeveloperRoleId));
     var second = await Vacancies.CreateAsync(Input("https://example.com/jobs/2", company.Id, SeedData.UnityDeveloperRoleId));
 
@@ -397,7 +397,7 @@ public class VacancyPageTests : VacancyWebFixture
   [Fact]
   public async Task Select_CompanyAndRoleMatchingExistingVacancyOnNewPage_ShowsSimilarWarning()
   {
-    var company = await Companies.CreateAsync(new CompanyInput("pixel-forge", "Pixel Forge", null, null, [], []));
+    var company = await Companies.CreateAsync(new CompanyInput("pixel-forge", "Pixel Forge", null, null, [], [], []));
     await Vacancies.CreateAsync(Input("https://example.com/jobs/1", company.Id, SeedData.UnityDeveloperRoleId));
     var cut = Context.Render<VacancyPage>();
     cut.WaitForElement(".vacancy-url");
@@ -429,7 +429,7 @@ public class VacancyPageTests : VacancyWebFixture
   [Fact]
   public async Task Select_CreateEntryAndCancelDialog_KeepsPreviousCompany()
   {
-    var company = await Companies.CreateAsync(new CompanyInput("pixel-forge", "Pixel Forge", null, null, [], []));
+    var company = await Companies.CreateAsync(new CompanyInput("pixel-forge", "Pixel Forge", null, null, [], [], []));
     await Vacancies.CreateAsync(Input("https://example.com/jobs/1", company.Id, SeedData.UnityDeveloperRoleId));
     Context.Render<MudPopoverProvider>();
     var provider = Context.Render<MudDialogProvider>();
@@ -440,7 +440,7 @@ public class VacancyPageTests : VacancyWebFixture
     cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindAll(".vacancy-similar")));
 
     var pending = cut.InvokeAsync(() => CompanyAutocomplete(cut).Instance.ValueChanged.InvokeAsync(
-      new CompanyListItem(Guid.Empty, "", "+ Create \"Other\"", null, [], false)));
+      new CompanyListItem(Guid.Empty, "", "+ Create \"Other\"", null, [], false, [])));
     provider.WaitForElement(".company-name");
     provider.FindAll("button").First(b => b.TextContent.Contains("Cancel")).Click();
     await pending.WaitAsync(TimeSpan.FromSeconds(5));
@@ -619,7 +619,7 @@ public class VacancyPageTests : VacancyWebFixture
 
   private static CompanyListItem ToItem(CompanyDetails company)
   {
-    return new CompanyListItem(company.Id, company.Slug, company.Name, company.IconUrl, company.Domains, company.IsBlacklisted);
+    return new CompanyListItem(company.Id, company.Slug, company.Name, company.IconUrl, company.Domains, company.IsBlacklisted, []);
   }
 
   private static IRenderedComponent<MudAutocomplete<CompanyListItem>> CompanyAutocomplete(IRenderedComponent<VacancyPage> cut)
