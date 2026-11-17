@@ -60,6 +60,40 @@ public class HypothesisServiceListTests : HypothesisServiceFixture
   }
 
   [Fact]
+  public async Task ListAsync_ReturnsPlatformNamesSortedCaseInsensitively()
+  {
+    await Service.CreateAsync(Input(platformIds: [SeedData.WebPlatformId, SeedData.PcPlatformId, SeedData.MobilePlatformId, SeedData.VrPlatformId]));
+
+    var item = Assert.Single(await Service.ListAsync());
+
+    Assert.Equal(["Mobile", "PC", "VR", "Web"], item.PlatformNames);
+  }
+
+  [Fact]
+  public async Task ListAsync_HypothesisWithoutPlatforms_ReturnsEmptyPlatformNames()
+  {
+    await Service.CreateAsync(Input(platformIds: []));
+
+    var item = Assert.Single(await Service.ListAsync());
+
+    Assert.Empty(item.PlatformNames);
+  }
+
+  [Fact]
+  public async Task ListAsync_EachHypothesisGetsOnlyItsOwnPlatforms()
+  {
+    await Service.CreateAsync(Input(name: "A", platformIds: [SeedData.PcPlatformId, SeedData.WebPlatformId]));
+    await Service.CreateAsync(Input(name: "B", platformIds: [SeedData.MobilePlatformId]));
+    await Service.CreateAsync(Input(name: "C", platformIds: []));
+
+    var items = (await Service.ListAsync()).ToDictionary(h => h.Name);
+
+    Assert.Equal(["PC", "Web"], items["A"].PlatformNames);
+    Assert.Equal(["Mobile"], items["B"].PlatformNames);
+    Assert.Empty(items["C"].PlatformNames);
+  }
+
+  [Fact]
   public async Task ListCvOptionsAsync_ReturnsOwnCvsOrderedByName()
   {
     var other = await PersistenceFixtures.AddUserAsync(Database);

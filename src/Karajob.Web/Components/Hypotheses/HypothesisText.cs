@@ -1,3 +1,4 @@
+using Karajob.Application.Hypotheses;
 using Karajob.Domain.Hypotheses;
 using Karajob.Web.Resources;
 using MudBlazor;
@@ -78,6 +79,11 @@ public static class HypothesisText
       DecisionHint.Disable => Color.Error,
       _ => throw new ArgumentOutOfRangeException(nameof(hint), hint, null)
     };
+  }
+
+  public static string Summary(HypothesisListItem item)
+  {
+    throw new NotImplementedException();
   }
 
   public static string Format(WorkFormat format)
