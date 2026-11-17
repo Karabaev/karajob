@@ -4,7 +4,7 @@
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
 
-<MudDialog>
+<MudDialog DefaultFocus="DefaultFocus.None">
   <DialogContent>
     <MudStack Spacing="2">
       <MudTextField T="string" Class="quick-add-url" Label="@L["AddVacancy.Url"]" Placeholder="https://…" @ref="_urlField"
@@ -61,7 +61,7 @@
   {
     if (!firstRender) return;
 
-    // MudTextField.AutoFocus fires from the input's own first render, before the dialog is in the DOM and focusable.
+    // The dialog's focus trap focuses itself by default (DefaultFocus.Element), after the input's AutoFocus, so it takes the focus away.
     await _urlField.FocusAsync();
   }
 
