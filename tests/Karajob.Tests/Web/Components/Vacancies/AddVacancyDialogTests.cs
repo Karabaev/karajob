@@ -109,9 +109,10 @@ public class AddVacancyDialogTests : VacancyWebFixture
 
     provider.Find(".quick-add-url input").Input("https://example.com/jobs/2");
 
-    provider.WaitForAssertion(() => Assert.Contains("https://example.com/jobs/2", TitleReader.RequestedUrls), TimeSpan.FromSeconds(3));
-    await Task.Delay(300);
+    await Task.Delay(1000);
+    provider.Render();
     Assert.Equal("Mine", provider.Find(".quick-add-title input").GetAttribute("value"));
+    Assert.DoesNotContain("https://example.com/jobs/2", TitleReader.RequestedUrls);
   }
 
   [Fact]

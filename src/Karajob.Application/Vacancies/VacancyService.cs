@@ -62,7 +62,7 @@ public partial class VacancyService(
       if (await FindByUrlAsync(lookupDb, url, cancellationToken) is { } existing) return existing;
     }
 
-    var title = await ReadTitleAsync(url, cancellationToken);
+    var title = CleanTitle(input.Title) ?? await ReadTitleAsync(url, cancellationToken);
     DbUpdateException saveError;
     await using (var db = await dbContextFactory.CreateDbContextAsync(cancellationToken))
     {

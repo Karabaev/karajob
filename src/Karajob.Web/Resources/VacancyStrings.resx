@@ -38,6 +38,7 @@
   <data name="Common.Save" xml:space="preserve"><value>Save</value></data>
   <data name="Common.Delete" xml:space="preserve"><value>Delete</value></data>
   <data name="AddVacancy.Url" xml:space="preserve"><value>Vacancy link</value></data>
+  <data name="AddVacancy.Title" xml:space="preserve"><value>Title (optional)</value></data>
   <data name="AddVacancy.Note" xml:space="preserve"><value>Note (optional)</value></data>
   <data name="AddVacancy.AlreadyExists" xml:space="preserve"><value>Vacancy already exists: {0}</value></data>
   <data name="AddVacancy.Added" xml:space="preserve"><value>Added to Inbox</value></data>
