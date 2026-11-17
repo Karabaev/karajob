@@ -32,7 +32,7 @@ public class ProfileSelectionTests(WebApplicationFactory<Program> factory) : ICl
 
     Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     var html = WebUtility.HtmlDecode(await response.Content.ReadAsStringAsync());
-    Assert.Contains("<title>Profiles</title>", html);
+    Assert.Contains("<title>Karajob | Profiles</title>", html);
     Assert.Contains("Owner", html);
   }
 
@@ -92,7 +92,7 @@ public class ProfileSelectionTests(WebApplicationFactory<Program> factory) : ICl
 
     Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     var html = WebUtility.HtmlDecode(await response.Content.ReadAsStringAsync());
-    Assert.Contains("<title>Not found</title>", html);
+    Assert.Contains("<title>Karajob | Not found</title>", html);
   }
 
   [Fact]
@@ -140,7 +140,7 @@ public class ProfileSelectionTests(WebApplicationFactory<Program> factory) : ICl
 
     Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     var html = WebUtility.HtmlDecode(await response.Content.ReadAsStringAsync());
-    Assert.Contains("<title>Inbox</title>", html);
+    Assert.Contains("<title>Karajob | Inbox</title>", html);
   }
 
   [Fact]

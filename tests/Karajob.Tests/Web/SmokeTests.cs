@@ -21,7 +21,7 @@ public class SmokeTests(WebApplicationFactory<Program> factory) : IClassFixture<
 
     response.EnsureSuccessStatusCode();
     var html = WebUtility.HtmlDecode(await response.Content.ReadAsStringAsync());
-    Assert.Contains($"<title>{title}</title>", html);
+    Assert.Contains($"<title>Karajob | {title}</title>", html);
   }
 
   [Fact]

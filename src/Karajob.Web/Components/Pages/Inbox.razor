@@ -5,10 +5,10 @@
 @inject IDialogService DialogService
 @inject UserDates Dates
 
-<PageTitle>Inbox</PageTitle>
+<AppTitle Text="@L["Pages.Inbox"]" />
 
 <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
-  <MudText Typo="Typo.h4" HtmlTag="h1">Inbox</MudText>
+  <MudText Typo="Typo.h4" HtmlTag="h1">@L["Pages.Inbox"]</MudText>
   <MudButton Class="inbox-add" Href="/vacancies/new" Variant="Variant.Outlined" Color="Color.Primary">@L["Pages.AddManually"]</MudButton>
 </MudStack>
 
