@@ -22,7 +22,8 @@ public record HypothesisListItem(
   string Role,
   WorkFormat WorkFormat,
   string LanguageCode,
-  HypothesisStatus Status);
+  HypothesisStatus Status,
+  IReadOnlyList<string> PlatformNames);
 
 public record HypothesisDetails(
   Guid Id,

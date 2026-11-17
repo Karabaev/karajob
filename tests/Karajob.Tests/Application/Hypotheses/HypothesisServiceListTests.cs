@@ -2,6 +2,7 @@ using Karajob.Domain.Cvs;
 using Karajob.Domain.Hypotheses;
 using Karajob.Infrastructure.Persistence;
 using Karajob.Tests.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 
 namespace Karajob.Tests.Application.Hypotheses;
 
@@ -57,6 +58,47 @@ public class HypothesisServiceListTests : HypothesisServiceFixture
     var item = Assert.Single(await Service.ListAsync());
 
     Assert.Equal(SeedData.UnrealDeveloperRoleId, item.RoleId);
+  }
+
+  [Fact]
+  public async Task ListAsync_ReturnsPlatformNamesSortedCaseInsensitively()
+  {
+    await using (var context = Database.CreateContext(SeedData.OwnerId))
+    {
+      var mobile = await context.Platforms.SingleAsync(p => p.Id == SeedData.MobilePlatformId);
+      mobile.Rename("mobile");
+      await context.SaveChangesAsync();
+    }
+
+    await Service.CreateAsync(Input(platformIds: [SeedData.WebPlatformId, SeedData.PcPlatformId, SeedData.MobilePlatformId, SeedData.VrPlatformId]));
+
+    var item = Assert.Single(await Service.ListAsync());
+
+    Assert.Equal(["mobile", "PC", "VR", "Web"], item.PlatformNames);
+  }
+
+  [Fact]
+  public async Task ListAsync_HypothesisWithoutPlatforms_ReturnsEmptyPlatformNames()
+  {
+    await Service.CreateAsync(Input(platformIds: []));
+
+    var item = Assert.Single(await Service.ListAsync());
+
+    Assert.Empty(item.PlatformNames);
+  }
+
+  [Fact]
+  public async Task ListAsync_EachHypothesisGetsOnlyItsOwnPlatforms()
+  {
+    await Service.CreateAsync(Input(name: "A", platformIds: [SeedData.PcPlatformId, SeedData.WebPlatformId]));
+    await Service.CreateAsync(Input(name: "B", platformIds: [SeedData.MobilePlatformId]));
+    await Service.CreateAsync(Input(name: "C", platformIds: []));
+
+    var items = (await Service.ListAsync()).ToDictionary(h => h.Name);
+
+    Assert.Equal(["PC", "Web"], items["A"].PlatformNames);
+    Assert.Equal(["Mobile"], items["B"].PlatformNames);
+    Assert.Empty(items["C"].PlatformNames);
   }
 
   [Fact]

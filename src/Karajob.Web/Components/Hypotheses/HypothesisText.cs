@@ -1,3 +1,4 @@
+using Karajob.Application.Hypotheses;
 using Karajob.Domain.Hypotheses;
 using Karajob.Web.Resources;
 using MudBlazor;
@@ -78,6 +79,23 @@ public static class HypothesisText
       DecisionHint.Disable => Color.Error,
       _ => throw new ArgumentOutOfRangeException(nameof(hint), hint, null)
     };
+  }
+
+  public static string Summary(HypothesisListItem item)
+  {
+    var parts = new List<string> { item.LanguageCode.ToUpperInvariant() };
+    if (item.PlatformNames.Count > 0)
+    {
+      parts.Add(string.Join(", ", item.PlatformNames));
+    }
+
+    var format = Format(item.WorkFormat);
+    if (format.Length > 0)
+    {
+      parts.Add(format);
+    }
+
+    return string.Join(" · ", parts);
   }
 
   public static string Format(WorkFormat format)

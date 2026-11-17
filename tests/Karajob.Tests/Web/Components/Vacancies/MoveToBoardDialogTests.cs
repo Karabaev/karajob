@@ -29,6 +29,23 @@ public class MoveToBoardDialogTests : VacancyWebFixture
   }
 
   [Fact]
+  public async Task Render_Hypothesis_ShowsLanguagePlatformsAndWorkFormat()
+  {
+    await CreateHypothesisAsync(
+      "Detailed one",
+      platformIds: [SeedData.PcPlatformId, SeedData.MobilePlatformId],
+      workFormat: WorkFormat.Hybrid,
+      languageId: SeedData.EnglishLanguageId);
+    var vacancy = await Vacancies.CreateAsync(Input("https://example.com/jobs/1"));
+
+    var (provider, _) = await ShowAsync(vacancy.Id);
+
+    var item = Assert.Single(provider.WaitForElements(".move-to-board-hypothesis"));
+    Assert.Contains("Detailed one", item.TextContent);
+    Assert.Contains("EN · Mobile, PC · Hybrid", item.TextContent);
+  }
+
+  [Fact]
   public async Task Render_VacancyWithRole_ListsOnlyHypothesesOfThatRole()
   {
     await CreateHypothesisAsync("Unity one");

@@ -21,10 +21,19 @@ public class HypothesisService(
     var roleNames = await db.Roles.AsNoTracking().ToDictionaryAsync(r => r.Id, r => r.Name, cancellationToken);
     var languageCodes = await db.Languages.AsNoTracking().ToDictionaryAsync(l => l.Id, l => l.Code, cancellationToken);
 
+    var platformNames = await db.Platforms.AsNoTracking().ToDictionaryAsync(p => p.Id, p => p.Name, cancellationToken);
+    var platformsByHypothesis = (await db.HypothesisPlatforms.AsNoTracking().ToListAsync(cancellationToken))
+      .GroupBy(hp => hp.HypothesisId)
+      .ToDictionary(
+        g => g.Key,
+        g => (IReadOnlyList<string>)g.Select(hp => platformNames[hp.PlatformId]).Order(StringComparer.OrdinalIgnoreCase).ToList());
+
     return hypotheses
       .OrderBy(h => StatusRank(h.Status))
       .ThenBy(h => h.Name, StringComparer.OrdinalIgnoreCase)
-      .Select(h => new HypothesisListItem(h.Id, h.Name, h.RoleId, roleNames[h.RoleId], h.WorkFormat, languageCodes[h.LanguageId], h.Status))
+      .Select(h => new HypothesisListItem(
+        h.Id, h.Name, h.RoleId, roleNames[h.RoleId], h.WorkFormat, languageCodes[h.LanguageId], h.Status,
+        platformsByHypothesis.GetValueOrDefault(h.Id, [])))
       .ToList();
   }
 

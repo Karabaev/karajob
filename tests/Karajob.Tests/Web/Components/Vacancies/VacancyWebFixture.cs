@@ -49,17 +49,22 @@ public abstract class VacancyWebFixture : IAsyncLifetime
     return new VacancyInput(url, title, companyId, roleId, null, [], [], null, null, null, null, null, hypothesisIds ?? [], null, null);
   }
 
-  protected async Task<Guid> CreateHypothesisAsync(string name = "Unity Developer RU", Guid? roleId = null)
+  protected async Task<Guid> CreateHypothesisAsync(
+    string name = "Unity Developer RU",
+    Guid? roleId = null,
+    IReadOnlyList<Guid>? platformIds = null,
+    WorkFormat workFormat = WorkFormat.Remote,
+    Guid? languageId = null)
   {
     var hypothesis = await Hypotheses.CreateAsync(new HypothesisInput(
       name,
       roleId ?? SeedData.UnityDeveloperRoleId,
       [],
+      platformIds ?? [],
       [],
       [],
-      [],
-      WorkFormat.Remote,
-      SeedData.RussianLanguageId,
+      workFormat,
+      languageId ?? SeedData.RussianLanguageId,
       null,
       null,
       HypothesisStatus.Draft));

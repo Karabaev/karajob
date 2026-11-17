@@ -21,8 +21,13 @@
         }
         @foreach (var hypothesis in _hypotheses)
         {
-          <MudCheckBox T="bool" Class="move-to-board-hypothesis" Label="@hypothesis.Name" Color="Color.Primary"
-                       Value="_selected.Contains(hypothesis.Id)" ValueChanged="checkedNow => Toggle(hypothesis.Id, checkedNow)" />
+          <MudCheckBox T="bool" Class="move-to-board-hypothesis" Color="Color.Primary"
+                       Value="_selected.Contains(hypothesis.Id)" ValueChanged="checkedNow => Toggle(hypothesis.Id, checkedNow)">
+            <MudStack Spacing="0">
+              <MudText Typo="Typo.body1">@hypothesis.Name</MudText>
+              <MudText Typo="Typo.caption" Class="mud-text-secondary">@HypothesisText.Summary(hypothesis)</MudText>
+            </MudStack>
+          </MudCheckBox>
         }
       </MudStack>
     }
