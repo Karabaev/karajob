@@ -1,13 +1,13 @@
 using Karajob.Application.Companies;
 using Karajob.Application.Cvs;
-using Karajob.Application.Hypotheses;
+using Karajob.Application.Tracks;
 using Karajob.Application.Vacancies;
 using Karajob.Domain.Applications;
-using Karajob.Domain.Hypotheses;
+using Karajob.Domain.Tracks;
 using Karajob.Domain.Vacancies;
 using Karajob.Infrastructure.Persistence;
 using Karajob.Tests.Application.Cvs;
-using Karajob.Tests.Application.Hypotheses;
+using Karajob.Tests.Application.Tracks;
 using Karajob.Tests.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -24,7 +24,7 @@ public abstract class VacancyServiceFixture : IAsyncLifetime
   protected SqliteTestDatabase Database { get; private set; } = null!;
   protected VacancyService Service { get; private set; } = null!;
   protected CompanyService Companies { get; private set; } = null!;
-  protected HypothesisService Hypotheses { get; private set; } = null!;
+  protected TrackService Tracks { get; private set; } = null!;
   protected CvService Cvs { get; private set; } = null!;
 
   protected static VacancyInput Input(
@@ -37,7 +37,7 @@ public abstract class VacancyServiceFixture : IAsyncLifetime
     long? salaryMin = null,
     long? salaryMax = null,
     string? salaryCurrency = null,
-    IReadOnlyList<Guid>? hypothesisIds = null,
+    IReadOnlyList<Guid>? trackIds = null,
     string? description = null,
     string? notes = null,
     IReadOnlyList<Guid>? platformIds = null,
@@ -57,7 +57,7 @@ public abstract class VacancyServiceFixture : IAsyncLifetime
       salaryMin,
       salaryMax,
       salaryCurrency,
-      hypothesisIds ?? [],
+      trackIds ?? [],
       description,
       notes);
   }
@@ -73,16 +73,16 @@ public abstract class VacancyServiceFixture : IAsyncLifetime
     return company.Id;
   }
 
-  protected async Task<Guid> CreateHypothesisAsync(
+  protected async Task<Guid> CreateTrackAsync(
     string name = "Unity Developer RU",
     Guid? userId = null,
-    HypothesisStatus status = HypothesisStatus.Draft,
+    TrackStatus status = TrackStatus.Draft,
     Guid? roleId = null)
   {
     var service = userId is null
-      ? Hypotheses
-      : TestDbContextFactory.CreateHypothesisService(Database, userId.Value, Clock);
-    var hypothesis = await service.CreateAsync(new HypothesisInput(
+      ? Tracks
+      : TestDbContextFactory.CreateTrackService(Database, userId.Value, Clock);
+    var track = await service.CreateAsync(new TrackInput(
       name,
       roleId ?? SeedData.UnityDeveloperRoleId,
       [],
@@ -93,23 +93,23 @@ public abstract class VacancyServiceFixture : IAsyncLifetime
       SeedData.RussianLanguageId,
       null,
       null,
-      status is HypothesisStatus.Expanded or HypothesisStatus.Disabled ? HypothesisStatus.Draft : status));
-    if (status is HypothesisStatus.Expanded or HypothesisStatus.Disabled)
+      status is TrackStatus.Expanded or TrackStatus.Disabled ? TrackStatus.Draft : status));
+    if (status is TrackStatus.Expanded or TrackStatus.Disabled)
     {
       await using var context = Database.CreateContext(userId ?? SeedData.OwnerId);
-      var stored = await context.Hypotheses.SingleAsync(h => h.Id == hypothesis.Id);
+      var stored = await context.Tracks.SingleAsync(h => h.Id == track.Id);
       stored.Status = status;
       await context.SaveChangesAsync();
     }
 
-    return hypothesis.Id;
+    return track.Id;
   }
 
-  protected async Task MutateHypothesisAsync(Guid hypothesisId, Action<Hypothesis> mutate)
+  protected async Task MutateTrackAsync(Guid trackId, Action<Track> mutate)
   {
     await using var context = Database.CreateContext(SeedData.OwnerId);
-    var hypothesis = await context.Hypotheses.SingleAsync(h => h.Id == hypothesisId);
-    mutate(hypothesis);
+    var track = await context.Tracks.SingleAsync(h => h.Id == trackId);
+    mutate(track);
     await context.SaveChangesAsync();
   }
 
@@ -158,11 +158,11 @@ public abstract class VacancyServiceFixture : IAsyncLifetime
 
   protected async Task<Guid> CreateOnBoardAsync(
     VacancyStage stage,
-    Guid hypothesisId,
+    Guid trackId,
     string url = DefaultUrl,
     ApplicationOutcome outcome = ApplicationOutcome.Rejected)
   {
-    var vacancy = await Service.CreateAsync(Input(url, hypothesisIds: [hypothesisId]));
+    var vacancy = await Service.CreateAsync(Input(url, trackIds: [trackId]));
     var at = vacancy.DiscoveredAt.AddHours(1);
     Guid? cvVersionId = stage is VacancyStage.Applied or VacancyStage.Interviewing or VacancyStage.Closed
       ? (await CreateCvAsync($"CV for {url}", "board.pdf")).VersionId
@@ -180,7 +180,7 @@ public abstract class VacancyServiceFixture : IAsyncLifetime
         return;
       }
 
-      v.Apply(hypothesisId, cvVersionId!.Value, ApplicationChannel.Website, at, null);
+      v.Apply(trackId, cvVersionId!.Value, ApplicationChannel.Website, at, null);
       if (stage == VacancyStage.Interviewing)
       {
         v.MoveTo(VacancyStage.Interviewing, at);
@@ -210,7 +210,7 @@ public abstract class VacancyServiceFixture : IAsyncLifetime
     Database = await SqliteTestDatabase.CreateAsync();
     Service = ServiceFor(SeedData.OwnerId);
     Companies = TestDbContextFactory.CreateCompanyService(Database, SeedData.OwnerId);
-    Hypotheses = TestDbContextFactory.CreateHypothesisService(Database, SeedData.OwnerId, Clock);
+    Tracks = TestDbContextFactory.CreateTrackService(Database, SeedData.OwnerId, Clock);
     Cvs = CvsFor(SeedData.OwnerId);
   }
 

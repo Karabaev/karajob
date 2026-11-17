@@ -4,7 +4,7 @@ using Karajob.Application.Companies;
 using Karajob.Application.Cvs;
 using Karajob.Application.Files;
 using Karajob.Application.Goals;
-using Karajob.Application.Hypotheses;
+using Karajob.Application.Tracks;
 using Karajob.Application.MasterProfiles;
 using Karajob.Application.Metrics;
 using Karajob.Application.Persistence;
@@ -31,9 +31,9 @@ internal class TestDbContextFactory(SqliteTestDatabase database, Guid userId) : 
     return new CatalogService(new TestDbContextFactory(database, userId), TestLocalizer.For<CatalogMessages>());
   }
 
-  public static HypothesisService CreateHypothesisService(SqliteTestDatabase database, Guid userId, TimeProvider timeProvider)
+  public static TrackService CreateTrackService(SqliteTestDatabase database, Guid userId, TimeProvider timeProvider)
   {
-    return new HypothesisService(new TestDbContextFactory(database, userId), new FixedCurrentUser(userId), timeProvider, TestLocalizer.For<HypothesisMessages>());
+    return new TrackService(new TestDbContextFactory(database, userId), new FixedCurrentUser(userId), timeProvider, TestLocalizer.For<TrackMessages>());
   }
 
   public static CvService CreateCvService(
@@ -81,18 +81,18 @@ internal class TestDbContextFactory(SqliteTestDatabase database, Guid userId) : 
     return new SearchGoalService(new TestDbContextFactory(database, userId), TestLocalizer.For<GoalMessages>());
   }
 
-  public static HypothesisDecisionService CreateHypothesisDecisionService(
+  public static TrackDecisionService CreateTrackDecisionService(
     SqliteTestDatabase database,
     Guid userId,
     TimeProvider timeProvider,
     TimeZoneInfo? timeZone = null)
   {
-    return new HypothesisDecisionService(
+    return new TrackDecisionService(
       new TestDbContextFactory(database, userId),
       new FixedCurrentUser(userId, timeZone),
       timeProvider,
-      CreateHypothesisMetricsService(database, userId, timeProvider, timeZone),
-      TestLocalizer.For<HypothesisMessages>());
+      CreateTrackMetricsService(database, userId, timeProvider, timeZone),
+      TestLocalizer.For<TrackMessages>());
   }
 
   public static WeeklyReviewService CreateWeeklyReviewService(
@@ -105,12 +105,12 @@ internal class TestDbContextFactory(SqliteTestDatabase database, Guid userId) : 
       new TestDbContextFactory(database, userId),
       new FixedCurrentUser(userId, timeZone),
       timeProvider,
-      CreateHypothesisMetricsService(database, userId, timeProvider, timeZone));
+      CreateTrackMetricsService(database, userId, timeProvider, timeZone));
   }
 
-  public static HypothesisMetricsService CreateHypothesisMetricsService(SqliteTestDatabase database, Guid userId, TimeProvider timeProvider, TimeZoneInfo? timeZone = null)
+  public static TrackMetricsService CreateTrackMetricsService(SqliteTestDatabase database, Guid userId, TimeProvider timeProvider, TimeZoneInfo? timeZone = null)
   {
-    return new HypothesisMetricsService(new TestDbContextFactory(database, userId), new FixedCurrentUser(userId, timeZone), timeProvider);
+    return new TrackMetricsService(new TestDbContextFactory(database, userId), new FixedCurrentUser(userId, timeZone), timeProvider);
   }
 
   public Task<IKarajobDbContext> CreateDbContextAsync(CancellationToken cancellationToken = default)

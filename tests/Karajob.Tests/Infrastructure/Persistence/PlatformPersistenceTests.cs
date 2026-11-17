@@ -1,5 +1,5 @@
 using Karajob.Domain.Goals;
-using Karajob.Domain.Hypotheses;
+using Karajob.Domain.Tracks;
 using Karajob.Domain.Vacancies;
 using Karajob.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -11,15 +11,15 @@ public class PlatformPersistenceTests
   private static DateTime Moment => PersistenceFixtures.Moment;
 
   [Fact]
-  public async Task Hypothesis_WithPlatforms_ReloadsPlatformLinks()
+  public async Task Track_WithPlatforms_ReloadsPlatformLinks()
   {
     await using var database = await SqliteTestDatabase.CreateAsync();
-    var hypothesis = PersistenceFixtures.NewHypothesis(SeedData.OwnerId);
-    hypothesis.SetPlatforms([SeedData.PcPlatformId, SeedData.VrPlatformId]);
-    await SaveAsync(database, SeedData.OwnerId, c => c.Hypotheses.Add(hypothesis));
+    var track = PersistenceFixtures.NewTrack(SeedData.OwnerId);
+    track.SetPlatforms([SeedData.PcPlatformId, SeedData.VrPlatformId]);
+    await SaveAsync(database, SeedData.OwnerId, c => c.Tracks.Add(track));
 
     await using var fresh = database.CreateContext(SeedData.OwnerId);
-    var loaded = await fresh.Hypotheses.SingleAsync(h => h.Id == hypothesis.Id);
+    var loaded = await fresh.Tracks.SingleAsync(h => h.Id == track.Id);
 
     Assert.Equal(
       new[] { SeedData.PcPlatformId, SeedData.VrPlatformId }.Order(),
@@ -63,43 +63,43 @@ public class PlatformPersistenceTests
   }
 
   [Fact]
-  public async Task Hypothesis_WithoutPlatforms_ReloadsEmptyPlatforms()
+  public async Task Track_WithoutPlatforms_ReloadsEmptyPlatforms()
   {
     await using var database = await SqliteTestDatabase.CreateAsync();
-    var hypothesis = await PersistenceFixtures.AddHypothesisAsync(database, SeedData.OwnerId);
+    var track = await PersistenceFixtures.AddTrackAsync(database, SeedData.OwnerId);
 
     await using var fresh = database.CreateContext(SeedData.OwnerId);
-    var loaded = await fresh.Hypotheses.SingleAsync(h => h.Id == hypothesis.Id);
+    var loaded = await fresh.Tracks.SingleAsync(h => h.Id == track.Id);
 
     Assert.Empty(loaded.Platforms);
   }
 
   [Fact]
-  public async Task Hypothesis_RemovingPlatformFromSet_DeletesLinkRow()
+  public async Task Track_RemovingPlatformFromSet_DeletesLinkRow()
   {
     await using var database = await SqliteTestDatabase.CreateAsync();
-    var hypothesis = PersistenceFixtures.NewHypothesis(SeedData.OwnerId);
-    hypothesis.SetPlatforms([SeedData.PcPlatformId, SeedData.VrPlatformId]);
-    await SaveAsync(database, SeedData.OwnerId, c => c.Hypotheses.Add(hypothesis));
+    var track = PersistenceFixtures.NewTrack(SeedData.OwnerId);
+    track.SetPlatforms([SeedData.PcPlatformId, SeedData.VrPlatformId]);
+    await SaveAsync(database, SeedData.OwnerId, c => c.Tracks.Add(track));
 
     await using (var context = database.CreateContext(SeedData.OwnerId))
     {
-      var loaded = await context.Hypotheses.SingleAsync(h => h.Id == hypothesis.Id);
+      var loaded = await context.Tracks.SingleAsync(h => h.Id == track.Id);
       loaded.SetPlatforms([SeedData.PcPlatformId]);
       await context.SaveChangesAsync();
     }
 
     await using var fresh = database.CreateContext(SeedData.OwnerId);
-    Assert.Equal(SeedData.PcPlatformId, Assert.Single(await fresh.HypothesisPlatforms.ToListAsync()).PlatformId);
+    Assert.Equal(SeedData.PcPlatformId, Assert.Single(await fresh.TrackPlatforms.ToListAsync()).PlatformId);
   }
 
   [Fact]
-  public async Task SaveChanges_DeletingPlatformReferencedByHypothesis_ThrowsDbUpdateException()
+  public async Task SaveChanges_DeletingPlatformReferencedByTrack_ThrowsDbUpdateException()
   {
     await using var database = await SqliteTestDatabase.CreateAsync();
-    var hypothesis = PersistenceFixtures.NewHypothesis(SeedData.OwnerId);
-    hypothesis.SetPlatforms([SeedData.PcPlatformId]);
-    await SaveAsync(database, SeedData.OwnerId, c => c.Hypotheses.Add(hypothesis));
+    var track = PersistenceFixtures.NewTrack(SeedData.OwnerId);
+    track.SetPlatforms([SeedData.PcPlatformId]);
+    await SaveAsync(database, SeedData.OwnerId, c => c.Tracks.Add(track));
 
     await AssertDeletingPlatformFailsAsync(database, SeedData.PcPlatformId);
   }
@@ -142,25 +142,25 @@ public class PlatformPersistenceTests
   }
 
   [Fact]
-  public async Task SaveChanges_DeletingHypothesisWithPlatforms_CascadesToLinks()
+  public async Task SaveChanges_DeletingTrackWithPlatforms_CascadesToLinks()
   {
     await using var database = await SqliteTestDatabase.CreateAsync();
-    var hypothesis = PersistenceFixtures.NewHypothesis(SeedData.OwnerId);
-    hypothesis.SetPlatforms([SeedData.PcPlatformId]);
-    await SaveAsync(database, SeedData.OwnerId, c => c.Hypotheses.Add(hypothesis));
+    var track = PersistenceFixtures.NewTrack(SeedData.OwnerId);
+    track.SetPlatforms([SeedData.PcPlatformId]);
+    await SaveAsync(database, SeedData.OwnerId, c => c.Tracks.Add(track));
 
     await using (var context = database.CreateContext(SeedData.OwnerId))
     {
-      context.Hypotheses.Remove(await context.Hypotheses.SingleAsync(h => h.Id == hypothesis.Id));
+      context.Tracks.Remove(await context.Tracks.SingleAsync(h => h.Id == track.Id));
       await context.SaveChangesAsync();
     }
 
     await using var fresh = database.CreateContext(SeedData.OwnerId);
-    Assert.Empty(await fresh.HypothesisPlatforms.ToListAsync());
+    Assert.Empty(await fresh.TrackPlatforms.ToListAsync());
   }
 
   [Theory]
-  [InlineData(typeof(HypothesisPlatform), nameof(HypothesisPlatform.HypothesisId))]
+  [InlineData(typeof(TrackPlatform), nameof(TrackPlatform.TrackId))]
   [InlineData(typeof(VacancyPlatform), nameof(VacancyPlatform.VacancyId))]
   [InlineData(typeof(SearchGoalPlatform), nameof(SearchGoalPlatform.SearchGoalId))]
   public async Task Model_PlatformLink_HasUniqueIndexOnOwnerAndPlatform(Type linkType, string ownerProperty)
@@ -180,9 +180,9 @@ public class PlatformPersistenceTests
   {
     await using var database = await SqliteTestDatabase.CreateAsync();
     var other = await PersistenceFixtures.AddUserAsync(database);
-    var hypothesis = PersistenceFixtures.NewHypothesis(other.Id);
-    hypothesis.SetPlatforms([SeedData.PcPlatformId]);
-    await SaveAsync(database, other.Id, c => c.Hypotheses.Add(hypothesis));
+    var track = PersistenceFixtures.NewTrack(other.Id);
+    track.SetPlatforms([SeedData.PcPlatformId]);
+    await SaveAsync(database, other.Id, c => c.Tracks.Add(track));
     var vacancy = new Vacancy(other.Id, "https://example.com/jobs/isolation", VacancySource.Manual, Moment);
     vacancy.SetPlatforms([SeedData.WebPlatformId]);
     await SaveAsync(database, other.Id, c => c.Vacancies.Add(vacancy));
@@ -193,10 +193,10 @@ public class PlatformPersistenceTests
     await using var owner = database.CreateContext(SeedData.OwnerId);
     await using var otherContext = database.CreateContext(other.Id);
 
-    Assert.Empty(await owner.HypothesisPlatforms.ToListAsync());
+    Assert.Empty(await owner.TrackPlatforms.ToListAsync());
     Assert.Empty(await owner.VacancyPlatforms.ToListAsync());
     Assert.Empty(await owner.SearchGoalPlatforms.ToListAsync());
-    Assert.Single(await otherContext.HypothesisPlatforms.ToListAsync());
+    Assert.Single(await otherContext.TrackPlatforms.ToListAsync());
     Assert.Single(await otherContext.VacancyPlatforms.ToListAsync());
     Assert.Single(await otherContext.SearchGoalPlatforms.ToListAsync());
     Assert.Equal(5, await owner.Platforms.CountAsync());

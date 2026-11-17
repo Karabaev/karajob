@@ -35,11 +35,11 @@ public class RelativeRedirectTests(WebApplicationFactory<Program> factory) : ICl
   {
     var client = ProfileClient.CreateClient(factory);
 
-    var response = await SendAsync(client, HttpMethod.Get, "/hypotheses?a=1&b=2", ForeignHost);
+    var response = await SendAsync(client, HttpMethod.Get, "/tracks?a=1&b=2", ForeignHost);
 
     Assert.Equal(HttpStatusCode.Found, response.StatusCode);
     Assert.Equal(
-      "/profiles?returnUrl=" + Uri.EscapeDataString("/hypotheses?a=1&b=2"),
+      "/profiles?returnUrl=" + Uri.EscapeDataString("/tracks?a=1&b=2"),
       RawLocationOf(response));
   }
 
@@ -47,7 +47,7 @@ public class RelativeRedirectTests(WebApplicationFactory<Program> factory) : ICl
   public async Task PostSelect_WithReturnUrlFromRedirect_RedirectsBackToOriginalPathAndQuery()
   {
     var client = ProfileClient.CreateClient(factory);
-    var redirect = await SendAsync(client, HttpMethod.Get, "/hypotheses?a=1&b=2", ForeignHost);
+    var redirect = await SendAsync(client, HttpMethod.Get, "/tracks?a=1&b=2", ForeignHost);
     var location = RawLocationOf(redirect);
     Assert.StartsWith("/profiles?returnUrl=", location);
     var returnUrl = Uri.UnescapeDataString(location[(location.IndexOf("returnUrl=", StringComparison.Ordinal) + "returnUrl=".Length)..]);
@@ -56,7 +56,7 @@ public class RelativeRedirectTests(WebApplicationFactory<Program> factory) : ICl
     var response = await SelectWithHostAsync(client, token, SeedData.OwnerId.ToString(), returnUrl, ForeignHost);
 
     Assert.Equal(HttpStatusCode.Found, response.StatusCode);
-    Assert.Equal("/hypotheses?a=1&b=2", RawLocationOf(response));
+    Assert.Equal("/tracks?a=1&b=2", RawLocationOf(response));
   }
 
   [Fact]
@@ -78,7 +78,7 @@ public class RelativeRedirectTests(WebApplicationFactory<Program> factory) : ICl
     var client = ProfileClient.CreateClient(factory);
     var token = await ProfileClient.FetchAntiforgeryTokenAsync(client);
 
-    var response = await SelectWithHostAsync(client, token, Guid.NewGuid().ToString(), "/hypotheses", ForeignHost);
+    var response = await SelectWithHostAsync(client, token, Guid.NewGuid().ToString(), "/tracks", ForeignHost);
 
     Assert.Equal(HttpStatusCode.Found, response.StatusCode);
     AssertRelative(RawLocationOf(response));

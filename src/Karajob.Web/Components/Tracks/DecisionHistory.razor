@@ -1,0 +1,73 @@
+@inject UserDates Dates
+
+<MudPaper Class="pa-4 track-decisions">
+  <MudStack Spacing="2">
+    <MudText Typo="Typo.h6" HtmlTag="h2">@L["Track.Decisions"]</MudText>
+    @if (Decisions.Count == 0)
+    {
+      <MudText Typo="Typo.body2" Class="mud-text-secondary">@L["Track.NoDecisions"]</MudText>
+    }
+    @foreach (var decision in Decisions)
+    {
+      <div class="track-decision-item">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Wrap="Wrap.Wrap" Spacing="2">
+          <MudChip T="string" Size="Size.Small" Color="@TrackText.DecisionKindColor(decision.Kind)">@TrackText.DecisionKind(decision.Kind)</MudChip>
+          <MudText Typo="Typo.caption" Class="mud-text-secondary">@Dates.FormatDateTime(decision.DecidedAt)</MudText>
+        </MudStack>
+        @if (!string.IsNullOrWhiteSpace(decision.Reason))
+        {
+          <MudText Typo="Typo.body2">@L["Decision.ReasonLabel", decision.Reason]</MudText>
+        }
+        @if (!string.IsNullOrWhiteSpace(decision.Changes))
+        {
+          <MudText Typo="Typo.body2">@L["Decision.ChangesLabel", decision.Changes]</MudText>
+        }
+        <MudText Typo="Typo.caption" Class="mud-text-secondary">@Snapshot(decision)</MudText>
+      </div>
+      <MudDivider />
+    }
+
+    <MudText Typo="Typo.subtitle2" HtmlTag="h3">@L["Track.CheckIns"]</MudText>
+    @if (CheckIns.Count == 0)
+    {
+      <MudText Typo="Typo.body2" Class="mud-text-secondary">@L["Track.NoCheckIns"]</MudText>
+    }
+    @foreach (var checkIn in CheckIns.Take(RecentCheckIns))
+    {
+      <div class="track-checkin-item">
+        <MudText Typo="Typo.body2">
+          @MetricsText.WeekOf(checkIn.Week) · @L["CheckIn.Motivation"] @checkIn.Motivation · @L["CheckIn.Confidence"] @checkIn.Confidence · @MetricsText.Tenths(checkIn.AverageTenths)
+        </MudText>
+        @if (!string.IsNullOrWhiteSpace(checkIn.Note))
+        {
+          <MudText Typo="Typo.caption" Class="mud-text-secondary">@checkIn.Note</MudText>
+        }
+      </div>
+    }
+  </MudStack>
+</MudPaper>
+
+@code {
+  private const int RecentCheckIns = 8;
+
+  [Parameter, EditorRequired]
+  public IReadOnlyList<DecisionDetails> Decisions { get; set; } = null!;
+
+  [Parameter, EditorRequired]
+  public IReadOnlyList<CheckInDetails> CheckIns { get; set; } = null!;
+
+  private string Snapshot(DecisionDetails decision)
+  {
+    var parts = new List<string>
+    {
+      L["Decision.Conversion", decision.PositiveApplications, decision.MaturedApplications],
+      L["Decision.Market", decision.MarketVacancies, decision.MarketThreshold]
+    };
+    if (decision.WellBeingTenths is { } tenths)
+    {
+      parts.Add(L["Decision.WellBeing", MetricsText.Tenths(tenths)]);
+    }
+
+    return string.Join(" · ", parts);
+  }
+}

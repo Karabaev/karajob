@@ -1,14 +1,14 @@
 using Karajob.Application.WeeklyReviews;
 using Karajob.Domain.Applications;
 using Karajob.Domain.Goals;
-using Karajob.Domain.Hypotheses;
+using Karajob.Domain.Tracks;
 using Karajob.Domain.Vacancies;
 using Karajob.Infrastructure.Persistence;
-using Karajob.Tests.Application.Hypotheses;
+using Karajob.Tests.Application.Tracks;
 
 namespace Karajob.Tests.Application.WeeklyReviews;
 
-public class WeeklyReviewServiceTests : HypothesisDecisionServiceFixture
+public class WeeklyReviewServiceTests : TrackDecisionServiceFixture
 {
   private WeeklyReviewService Review => ReviewFor(SeedData.OwnerId);
 
@@ -22,7 +22,7 @@ public class WeeklyReviewServiceTests : HypothesisDecisionServiceFixture
   {
     var summary = await Review.GetAsync();
 
-    Assert.Empty(summary.Hypotheses);
+    Assert.Empty(summary.Tracks);
     Assert.Empty(summary.StaleApplications);
     Assert.Equal(SearchGoalDefaults.MaturationDays, summary.StaleAfterDays);
   }
@@ -53,9 +53,9 @@ public class WeeklyReviewServiceTests : HypothesisDecisionServiceFixture
   public async Task GetAsync_WithApplications_ActivityMatchesMetricsService()
   {
     await UpdateGoalAsync(weeklyApplicationTarget: 7);
-    var hypothesisId = await CreateActiveAsync();
-    await ApplyAsync(hypothesisId, Utc(11, 10, 12));
-    await ApplyAsync(hypothesisId, Utc(11, 11, 12));
+    var trackId = await CreateActiveAsync();
+    await ApplyAsync(trackId, Utc(11, 10, 12));
+    await ApplyAsync(trackId, Utc(11, 11, 12));
 
     var summary = await Review.GetAsync();
 
@@ -68,20 +68,20 @@ public class WeeklyReviewServiceTests : HypothesisDecisionServiceFixture
   public async Task GetAsync_MixedStatuses_ListsOnlyActiveAndExpanded()
   {
     var active = await CreateActiveAsync("Active one");
-    var expanded = await CreateActiveAsync("Expanded one", status: HypothesisStatus.Expanded);
-    await CreateActiveAsync("Paused one", status: HypothesisStatus.Paused);
-    await CreateActiveAsync("Disabled one", status: HypothesisStatus.Disabled);
-    await CreateHypothesisAsync("Draft one");
+    var expanded = await CreateActiveAsync("Expanded one", status: TrackStatus.Expanded);
+    await CreateActiveAsync("Paused one", status: TrackStatus.Paused);
+    await CreateActiveAsync("Disabled one", status: TrackStatus.Disabled);
+    await CreateTrackAsync("Draft one");
 
     var summary = await Review.GetAsync();
 
-    Assert.Equal(2, summary.Hypotheses.Count);
-    Assert.Contains(summary.Hypotheses, h => h.Id == active && h.Status == HypothesisStatus.Active);
-    Assert.Contains(summary.Hypotheses, h => h.Id == expanded && h.Status == HypothesisStatus.Expanded);
+    Assert.Equal(2, summary.Tracks.Count);
+    Assert.Contains(summary.Tracks, h => h.Id == active && h.Status == TrackStatus.Active);
+    Assert.Contains(summary.Tracks, h => h.Id == expanded && h.Status == TrackStatus.Expanded);
   }
 
   [Fact]
-  public async Task GetAsync_Hypotheses_AreSortedByNameIgnoringCase()
+  public async Task GetAsync_Tracks_AreSortedByNameIgnoringCase()
   {
     await CreateActiveAsync("beta");
     await CreateActiveAsync("Charlie");
@@ -89,44 +89,44 @@ public class WeeklyReviewServiceTests : HypothesisDecisionServiceFixture
 
     var summary = await Review.GetAsync();
 
-    Assert.Equal(["Alpha", "beta", "Charlie"], summary.Hypotheses.Select(h => h.Name).ToArray());
+    Assert.Equal(["Alpha", "beta", "Charlie"], summary.Tracks.Select(h => h.Name).ToArray());
   }
 
   [Fact]
   public async Task GetAsync_CheckInThisWeek_MarksCheckedIn()
   {
-    var hypothesisId = await CreateActiveAsync();
-    await Decisions.SaveCheckInAsync(hypothesisId, CheckIn(CurrentWeek));
+    var trackId = await CreateActiveAsync();
+    await Decisions.SaveCheckInAsync(trackId, CheckIn(CurrentWeek));
 
     var summary = await Review.GetAsync();
 
-    Assert.True(Assert.Single(summary.Hypotheses).CheckedInThisWeek);
+    Assert.True(Assert.Single(summary.Tracks).CheckedInThisWeek);
   }
 
   [Fact]
   public async Task GetAsync_CheckInSavedMidWeek_MarksCheckedIn()
   {
-    var hypothesisId = await CreateActiveAsync();
-    await Decisions.SaveCheckInAsync(hypothesisId, CheckIn(new DateOnly(2026, 11, 12)));
+    var trackId = await CreateActiveAsync();
+    await Decisions.SaveCheckInAsync(trackId, CheckIn(new DateOnly(2026, 11, 12)));
 
     var summary = await Review.GetAsync();
 
-    Assert.True(Assert.Single(summary.Hypotheses).CheckedInThisWeek);
+    Assert.True(Assert.Single(summary.Tracks).CheckedInThisWeek);
   }
 
   [Fact]
   public async Task GetAsync_CheckInOnlyLastWeek_IsNotCheckedIn()
   {
-    var hypothesisId = await CreateActiveAsync();
-    await Decisions.SaveCheckInAsync(hypothesisId, CheckIn(PreviousWeek));
+    var trackId = await CreateActiveAsync();
+    await Decisions.SaveCheckInAsync(trackId, CheckIn(PreviousWeek));
 
     var summary = await Review.GetAsync();
 
-    Assert.False(Assert.Single(summary.Hypotheses).CheckedInThisWeek);
+    Assert.False(Assert.Single(summary.Tracks).CheckedInThisWeek);
   }
 
   [Fact]
-  public async Task GetAsync_CheckInOfAnotherHypothesis_DoesNotMarkThisOne()
+  public async Task GetAsync_CheckInOfAnotherTrack_DoesNotMarkThisOne()
   {
     var first = await CreateActiveAsync("First");
     await CreateActiveAsync("Second");
@@ -134,17 +134,17 @@ public class WeeklyReviewServiceTests : HypothesisDecisionServiceFixture
 
     var summary = await Review.GetAsync();
 
-    Assert.True(summary.Hypotheses.Single(h => h.Name == "First").CheckedInThisWeek);
-    Assert.False(summary.Hypotheses.Single(h => h.Name == "Second").CheckedInThisWeek);
+    Assert.True(summary.Tracks.Single(h => h.Name == "First").CheckedInThisWeek);
+    Assert.False(summary.Tracks.Single(h => h.Name == "Second").CheckedInThisWeek);
   }
 
   [Fact]
   public async Task GetAsync_AppliedBeyondThreshold_ListsStaleApplicationWithDetails()
   {
-    var hypothesisId = await CreateActiveAsync("Gamedev EU");
+    var trackId = await CreateActiveAsync("Gamedev EU");
     var companyId = await CreateCompanyAsync("pixel-forge");
     var appliedAt = Now.AddDays(-20);
-    var vacancyId = await ApplyAsync(hypothesisId, appliedAt);
+    var vacancyId = await ApplyAsync(trackId, appliedAt);
     await MutateAsync(vacancyId, v =>
     {
       v.CompanyId = companyId;
@@ -159,8 +159,8 @@ public class WeeklyReviewServiceTests : HypothesisDecisionServiceFixture
     Assert.Equal("Senior Unity", stale.Title);
     Assert.Equal("pixel-forge", stale.CompanyName);
     Assert.Equal("Unity Developer", stale.RoleName);
-    Assert.Equal(hypothesisId, stale.HypothesisId);
-    Assert.Equal("Gamedev EU", stale.HypothesisName);
+    Assert.Equal(trackId, stale.TrackId);
+    Assert.Equal("Gamedev EU", stale.TrackName);
     Assert.Equal(appliedAt, stale.AppliedAt);
     Assert.Equal(appliedAt, stale.LastActivityAt);
     Assert.Equal(20, stale.IdleDays);
@@ -170,8 +170,8 @@ public class WeeklyReviewServiceTests : HypothesisDecisionServiceFixture
   [Fact]
   public async Task GetAsync_VacancyWithoutCompanyAndRole_HasNullNames()
   {
-    var hypothesisId = await CreateActiveAsync();
-    await ApplyAsync(hypothesisId, Now.AddDays(-20));
+    var trackId = await CreateActiveAsync();
+    await ApplyAsync(trackId, Now.AddDays(-20));
 
     var stale = Assert.Single((await Review.GetAsync()).StaleApplications);
 
@@ -182,8 +182,8 @@ public class WeeklyReviewServiceTests : HypothesisDecisionServiceFixture
   [Fact]
   public async Task GetAsync_ExactlyAtThreshold_IsListed()
   {
-    var hypothesisId = await CreateActiveAsync();
-    await ApplyAsync(hypothesisId, Now.AddDays(-14));
+    var trackId = await CreateActiveAsync();
+    await ApplyAsync(trackId, Now.AddDays(-14));
 
     var stale = Assert.Single((await Review.GetAsync()).StaleApplications);
 
@@ -193,8 +193,8 @@ public class WeeklyReviewServiceTests : HypothesisDecisionServiceFixture
   [Fact]
   public async Task GetAsync_OneDayBelowThreshold_IsNotListed()
   {
-    var hypothesisId = await CreateActiveAsync();
-    await ApplyAsync(hypothesisId, Now.AddDays(-13));
+    var trackId = await CreateActiveAsync();
+    await ApplyAsync(trackId, Now.AddDays(-13));
 
     var summary = await Review.GetAsync();
 
@@ -204,8 +204,8 @@ public class WeeklyReviewServiceTests : HypothesisDecisionServiceFixture
   [Fact]
   public async Task GetAsync_RecentNote_ResetsIdleTime()
   {
-    var hypothesisId = await CreateActiveAsync();
-    var vacancyId = await ApplyAsync(hypothesisId, Now.AddDays(-30));
+    var trackId = await CreateActiveAsync();
+    var vacancyId = await ApplyAsync(trackId, Now.AddDays(-30));
     await AddEventAsync(vacancyId, ApplicationEventType.Note, Now.AddDays(-2));
 
     var summary = await Review.GetAsync();
@@ -216,8 +216,8 @@ public class WeeklyReviewServiceTests : HypothesisDecisionServiceFixture
   [Fact]
   public async Task GetAsync_RecentScreening_ResetsIdleTime()
   {
-    var hypothesisId = await CreateActiveAsync();
-    var vacancyId = await ApplyAsync(hypothesisId, Now.AddDays(-30));
+    var trackId = await CreateActiveAsync();
+    var vacancyId = await ApplyAsync(trackId, Now.AddDays(-30));
     await AddEventAsync(vacancyId, ApplicationEventType.Screening, Now.AddDays(-3));
 
     var summary = await Review.GetAsync();
@@ -228,8 +228,8 @@ public class WeeklyReviewServiceTests : HypothesisDecisionServiceFixture
   [Fact]
   public async Task GetAsync_OldNoteAfterApply_LastActivityIsLatestEvent()
   {
-    var hypothesisId = await CreateActiveAsync();
-    var vacancyId = await ApplyAsync(hypothesisId, Now.AddDays(-40));
+    var trackId = await CreateActiveAsync();
+    var vacancyId = await ApplyAsync(trackId, Now.AddDays(-40));
     var noteAt = Now.AddDays(-20);
     await AddEventAsync(vacancyId, ApplicationEventType.Note, noteAt);
 
@@ -243,9 +243,9 @@ public class WeeklyReviewServiceTests : HypothesisDecisionServiceFixture
   [Fact]
   public async Task GetAsync_InterviewingVacancy_IsNotListed()
   {
-    var hypothesisId = await CreateActiveAsync();
+    var trackId = await CreateActiveAsync();
     var appliedAt = Now.AddDays(-30);
-    await ApplyAsync(hypothesisId, appliedAt, afterApply: v => v.MoveTo(VacancyStage.Interviewing, appliedAt));
+    await ApplyAsync(trackId, appliedAt, afterApply: v => v.MoveTo(VacancyStage.Interviewing, appliedAt));
 
     var summary = await Review.GetAsync();
 
@@ -255,9 +255,9 @@ public class WeeklyReviewServiceTests : HypothesisDecisionServiceFixture
   [Fact]
   public async Task GetAsync_ClosedVacancy_IsNotListed()
   {
-    var hypothesisId = await CreateActiveAsync();
+    var trackId = await CreateActiveAsync();
     var appliedAt = Now.AddDays(-30);
-    await ApplyAsync(hypothesisId, appliedAt, afterApply: v => v.Close(ApplicationOutcome.Ghosted, appliedAt));
+    await ApplyAsync(trackId, appliedAt, afterApply: v => v.Close(ApplicationOutcome.Ghosted, appliedAt));
 
     var summary = await Review.GetAsync();
 
@@ -267,8 +267,8 @@ public class WeeklyReviewServiceTests : HypothesisDecisionServiceFixture
   [Fact]
   public async Task GetAsync_VacancyNotApplied_IsNotListed()
   {
-    var hypothesisId = await CreateActiveAsync();
-    await CreateVacancyAsync(hypothesisId, Now.AddDays(-30));
+    var trackId = await CreateActiveAsync();
+    await CreateVacancyAsync(trackId, Now.AddDays(-30));
 
     var summary = await Review.GetAsync();
 
@@ -276,25 +276,25 @@ public class WeeklyReviewServiceTests : HypothesisDecisionServiceFixture
   }
 
   [Fact]
-  public async Task GetAsync_StaleVacancyOfPausedHypothesis_IsStillListed()
+  public async Task GetAsync_StaleVacancyOfPausedTrack_IsStillListed()
   {
-    var hypothesisId = await CreateActiveAsync("Paused one", status: HypothesisStatus.Paused);
-    await ApplyAsync(hypothesisId, Now.AddDays(-20));
+    var trackId = await CreateActiveAsync("Paused one", status: TrackStatus.Paused);
+    await ApplyAsync(trackId, Now.AddDays(-20));
 
     var summary = await Review.GetAsync();
 
-    Assert.Empty(summary.Hypotheses);
+    Assert.Empty(summary.Tracks);
     var stale = Assert.Single(summary.StaleApplications);
-    Assert.Equal("Paused one", stale.HypothesisName);
+    Assert.Equal("Paused one", stale.TrackName);
   }
 
   [Fact]
   public async Task GetAsync_StaleApplications_AreSortedByIdleDaysDescending()
   {
-    var hypothesisId = await CreateActiveAsync();
-    await ApplyAsync(hypothesisId, Now.AddDays(-20));
-    await ApplyAsync(hypothesisId, Now.AddDays(-45));
-    await ApplyAsync(hypothesisId, Now.AddDays(-30));
+    var trackId = await CreateActiveAsync();
+    await ApplyAsync(trackId, Now.AddDays(-20));
+    await ApplyAsync(trackId, Now.AddDays(-45));
+    await ApplyAsync(trackId, Now.AddDays(-30));
 
     var summary = await Review.GetAsync();
 
@@ -304,8 +304,8 @@ public class WeeklyReviewServiceTests : HypothesisDecisionServiceFixture
   [Fact]
   public async Task GetAsync_ChangedMaturationDays_ThresholdFollowsGoal()
   {
-    var hypothesisId = await CreateActiveAsync();
-    await ApplyAsync(hypothesisId, Now.AddDays(-8));
+    var trackId = await CreateActiveAsync();
+    await ApplyAsync(trackId, Now.AddDays(-8));
     Assert.Empty((await Review.GetAsync()).StaleApplications);
 
     await UpdateGoalAsync(maturationDays: 7);
@@ -319,12 +319,12 @@ public class WeeklyReviewServiceTests : HypothesisDecisionServiceFixture
   public async Task GetAsync_AnotherProfileData_IsInvisible()
   {
     var otherId = await CreateProfileAsync();
-    var otherHypothesisId = await CreateActiveAsync("Other profile hypothesis", otherId);
-    await ApplyAsync(otherHypothesisId, Now.AddDays(-30), otherId);
+    var otherTrackId = await CreateActiveAsync("Other profile track", otherId);
+    await ApplyAsync(otherTrackId, Now.AddDays(-30), otherId);
 
     var summary = await Review.GetAsync();
 
-    Assert.Empty(summary.Hypotheses);
+    Assert.Empty(summary.Tracks);
     Assert.Empty(summary.StaleApplications);
   }
 
@@ -332,12 +332,12 @@ public class WeeklyReviewServiceTests : HypothesisDecisionServiceFixture
   public async Task GetAsync_OwnerData_IsInvisibleToAnotherProfile()
   {
     var otherId = await CreateProfileAsync();
-    var hypothesisId = await CreateActiveAsync();
-    await ApplyAsync(hypothesisId, Now.AddDays(-30));
+    var trackId = await CreateActiveAsync();
+    await ApplyAsync(trackId, Now.AddDays(-30));
 
     var summary = await ReviewFor(otherId).GetAsync();
 
-    Assert.Empty(summary.Hypotheses);
+    Assert.Empty(summary.Tracks);
     Assert.Empty(summary.StaleApplications);
   }
 }

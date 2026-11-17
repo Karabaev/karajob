@@ -105,10 +105,10 @@ public class UniqueIndexTests
   public async Task SaveChanges_DuplicateVacancyMatchRow_ThrowsDbUpdateException()
   {
     await using var database = await SqliteTestDatabase.CreateAsync();
-    var hypothesis = await PersistenceFixtures.AddHypothesisAsync(database, SeedData.OwnerId);
-    var vacancy = await PersistenceFixtures.AddMatchedVacancyAsync(database, SeedData.OwnerId, hypothesis.Id);
+    var track = await PersistenceFixtures.AddTrackAsync(database, SeedData.OwnerId);
+    var vacancy = await PersistenceFixtures.AddMatchedVacancyAsync(database, SeedData.OwnerId, track.Id);
     var twin = new Vacancy(SeedData.OwnerId, "https://example.com/jobs/twin", VacancySource.Manual, PersistenceFixtures.Moment);
-    var duplicate = twin.SetMatch(hypothesis.Id, 10, null, MatchAuthor.Human);
+    var duplicate = twin.SetMatch(track.Id, 10, null, MatchAuthor.Human);
     await using var context = database.CreateContext(SeedData.OwnerId);
     context.Vacancies.Add(twin);
     context.Entry(duplicate).Property(m => m.VacancyId).CurrentValue = vacancy.Id;

@@ -1,5 +1,5 @@
 using Karajob.Application.Cvs;
-using Karajob.Tests.Application.Hypotheses;
+using Karajob.Tests.Application.Tracks;
 using Karajob.Domain.Applications;
 using Karajob.Domain.Vacancies;
 using Karajob.Infrastructure.Persistence;
@@ -58,24 +58,24 @@ public abstract class CvServiceFixture : IAsyncLifetime
 
   protected async Task<Guid> AddApplicationAsync(Guid userId, Guid cvVersionId)
   {
-    var hypothesis = await PersistenceFixtures.AddHypothesisAsync(Database, userId);
+    var track = await PersistenceFixtures.AddTrackAsync(Database, userId);
     var vacancy = new Vacancy(userId, "https://example.com/jobs/cv-ref", VacancySource.Manual, Now);
-    vacancy.SetMatch(hypothesis.Id, 80, "fits", MatchAuthor.Human);
+    vacancy.SetMatch(track.Id, 80, "fits", MatchAuthor.Human);
     vacancy.MoveTo(VacancyStage.Targeted, Now);
     vacancy.MoveTo(VacancyStage.Preparing, Now);
-    vacancy.Apply(hypothesis.Id, cvVersionId, ApplicationChannel.Website, Now, "letter");
+    vacancy.Apply(track.Id, cvVersionId, ApplicationChannel.Website, Now, "letter");
     await using var context = Database.CreateContext(userId);
     context.Vacancies.Add(vacancy);
     await context.SaveChangesAsync();
     return vacancy.Id;
   }
 
-  protected async Task AddHypothesisWithPrimaryCvAsync(Guid userId, Guid cvDocumentId)
+  protected async Task AddTrackWithPrimaryCvAsync(Guid userId, Guid cvDocumentId)
   {
-    var hypothesis = PersistenceFixtures.NewHypothesis(userId);
-    hypothesis.PrimaryCvDocumentId = cvDocumentId;
+    var track = PersistenceFixtures.NewTrack(userId);
+    track.PrimaryCvDocumentId = cvDocumentId;
     await using var context = Database.CreateContext(userId);
-    context.Hypotheses.Add(hypothesis);
+    context.Tracks.Add(track);
     await context.SaveChangesAsync();
   }
 

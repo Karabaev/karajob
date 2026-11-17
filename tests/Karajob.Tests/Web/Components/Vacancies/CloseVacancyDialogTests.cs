@@ -13,8 +13,8 @@ public class CloseVacancyDialogTests : VacancyWebFixture
   [Fact]
   public async Task Submit_WithChosenOutcome_ClosesVacancyWithThatOutcomeAndDialog()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var vacancyId = await CreateOnBoardAsync(VacancyStage.Interviewing, hypothesisId, "https://example.com/jobs/1");
+    var trackId = await CreateTrackAsync();
+    var vacancyId = await CreateOnBoardAsync(VacancyStage.Interviewing, trackId, "https://example.com/jobs/1");
     var (provider, reference) = await ShowAsync(vacancyId, VacancyStage.Interviewing);
     provider.WaitForElement(".close-outcome");
     var select = provider.FindComponents<MudSelect<ApplicationOutcome>>().Single(c => c.Instance.Class!.Contains("close-outcome"));
@@ -32,8 +32,8 @@ public class CloseVacancyDialogTests : VacancyWebFixture
   [Fact]
   public async Task Submit_WithDefaultOutcome_ClosesVacancyWithSomeOutcome()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var vacancyId = await CreateOnBoardAsync(VacancyStage.Applied, hypothesisId, "https://example.com/jobs/1");
+    var trackId = await CreateTrackAsync();
+    var vacancyId = await CreateOnBoardAsync(VacancyStage.Applied, trackId, "https://example.com/jobs/1");
     var (provider, reference) = await ShowAsync(vacancyId, VacancyStage.Applied);
 
     provider.WaitForElement(".close-submit").Click();
@@ -47,8 +47,8 @@ public class CloseVacancyDialogTests : VacancyWebFixture
   [Fact]
   public async Task Submit_VacancyMovedMeanwhile_ShowsErrorAndStaysOpen()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var vacancyId = await CreateOnBoardAsync(VacancyStage.Applied, hypothesisId, "https://example.com/jobs/1");
+    var trackId = await CreateTrackAsync();
+    var vacancyId = await CreateOnBoardAsync(VacancyStage.Applied, trackId, "https://example.com/jobs/1");
     var (provider, reference) = await ShowAsync(vacancyId, VacancyStage.Applied);
     provider.WaitForElement(".close-submit");
     await Vacancies.MoveAsync(vacancyId, VacancyStage.Applied, VacancyStage.Interviewing);
@@ -63,8 +63,8 @@ public class CloseVacancyDialogTests : VacancyWebFixture
   [Fact]
   public async Task Cancel_ClosesDialogAsCanceledAndLeavesStage()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var vacancyId = await CreateOnBoardAsync(VacancyStage.Interviewing, hypothesisId, "https://example.com/jobs/1");
+    var trackId = await CreateTrackAsync();
+    var vacancyId = await CreateOnBoardAsync(VacancyStage.Interviewing, trackId, "https://example.com/jobs/1");
     var (provider, reference) = await ShowAsync(vacancyId, VacancyStage.Interviewing);
     provider.WaitForElement(".close-cancel").Click();
 

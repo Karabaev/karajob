@@ -1,6 +1,6 @@
 using Karajob.Application.Common;
 using Karajob.Application.Companies;
-using Karajob.Domain.Hypotheses;
+using Karajob.Domain.Tracks;
 using Karajob.Domain.Normalization;
 using Karajob.Domain.Vacancies;
 using Karajob.Infrastructure.Persistence;
@@ -20,7 +20,7 @@ public class VacancyServiceTests : VacancyServiceFixture
     Assert.Equal(VacancySource.Manual, details.Source);
     Assert.Equal(Now, details.DiscoveredAt);
     Assert.Null(details.DismissReason);
-    Assert.Null(details.ApplicationHypothesisId);
+    Assert.Null(details.ApplicationTrackId);
     Assert.Empty(details.Timeline);
     Assert.Empty(details.Similar);
   }
@@ -68,7 +68,7 @@ public class VacancyServiceTests : VacancyServiceFixture
   public async Task FindAsync_AfterCreateWithAllFields_RoundTripsEverything()
   {
     var companyId = await CreateCompanyAsync();
-    var hypothesisId = await CreateHypothesisAsync();
+    var trackId = await CreateTrackAsync();
     var created = await Service.CreateAsync(Input(
       companyId: companyId,
       roleId: SeedData.UnityDeveloperRoleId,
@@ -78,7 +78,7 @@ public class VacancyServiceTests : VacancyServiceFixture
       salaryMin: 3000,
       salaryMax: 5000,
       salaryCurrency: "usd",
-      hypothesisIds: [hypothesisId],
+      trackIds: [trackId],
       description: "desc",
       notes: "notes"));
 
@@ -95,7 +95,7 @@ public class VacancyServiceTests : VacancyServiceFixture
     Assert.Equal(3000, found.SalaryMin);
     Assert.Equal(5000, found.SalaryMax);
     Assert.Equal("USD", found.SalaryCurrency);
-    Assert.Equal([hypothesisId], found.HypothesisIds);
+    Assert.Equal([trackId], found.TrackIds);
     Assert.Equal("desc", found.Description);
     Assert.Equal("notes", found.Notes);
   }
@@ -194,22 +194,22 @@ public class VacancyServiceTests : VacancyServiceFixture
   }
 
   [Fact]
-  public async Task CreateAsync_UnknownHypothesis_FailsWithHypothesisIdsError()
+  public async Task CreateAsync_UnknownTrack_FailsWithTrackIdsError()
   {
-    var ex = await Assert.ThrowsAsync<ValidationFailedException>(() => Service.CreateAsync(Input(hypothesisIds: [Guid.NewGuid()])));
+    var ex = await Assert.ThrowsAsync<ValidationFailedException>(() => Service.CreateAsync(Input(trackIds: [Guid.NewGuid()])));
 
-    Assert.Contains("HypothesisIds", ex.Errors.Keys);
+    Assert.Contains("TrackIds", ex.Errors.Keys);
   }
 
   [Fact]
-  public async Task CreateAsync_AnotherUsersHypothesis_FailsWithHypothesisIdsError()
+  public async Task CreateAsync_AnotherUsersTrack_FailsWithTrackIdsError()
   {
     var other = await PersistenceFixtures.AddUserAsync(Database);
-    var foreign = await CreateHypothesisAsync("Foreign", other.Id);
+    var foreign = await CreateTrackAsync("Foreign", other.Id);
 
-    var ex = await Assert.ThrowsAsync<ValidationFailedException>(() => Service.CreateAsync(Input(hypothesisIds: [foreign])));
+    var ex = await Assert.ThrowsAsync<ValidationFailedException>(() => Service.CreateAsync(Input(trackIds: [foreign])));
 
-    Assert.Contains("HypothesisIds", ex.Errors.Keys);
+    Assert.Contains("TrackIds", ex.Errors.Keys);
     Assert.Equal(0, await CountVacanciesAsync());
   }
 
@@ -377,7 +377,7 @@ public class VacancyServiceTests : VacancyServiceFixture
     Clock.UtcNow = Now.AddDays(1);
     var recent = await Service.CreateAsync(Input("https://example.com/jobs/recent"));
     Clock.UtcNow = Now.AddDays(2);
-    var targeted = await Service.CreateAsync(Input("https://example.com/jobs/targeted", hypothesisIds: [await CreateHypothesisAsync()]));
+    var targeted = await Service.CreateAsync(Input("https://example.com/jobs/targeted", trackIds: [await CreateTrackAsync()]));
     await MutateAsync(targeted.Id, v => v.MoveTo(VacancyStage.Targeted, Now.AddDays(2)));
 
     var items = await Service.ListAsync(VacancyStage.Inbox);
@@ -397,8 +397,8 @@ public class VacancyServiceTests : VacancyServiceFixture
   [Fact]
   public async Task ListAsync_OtherStage_ReturnsThatStage()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var created = await Service.CreateAsync(Input(hypothesisIds: [hypothesisId]));
+    var trackId = await CreateTrackAsync();
+    var created = await Service.CreateAsync(Input(trackIds: [trackId]));
     await MutateAsync(created.Id, v => v.MoveTo(VacancyStage.Targeted, Now));
 
     var items = await Service.ListAsync(VacancyStage.Targeted);

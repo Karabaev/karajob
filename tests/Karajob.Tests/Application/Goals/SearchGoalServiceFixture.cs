@@ -2,7 +2,7 @@ using Karajob.Application.Goals;
 using Karajob.Application.Users;
 using Karajob.Domain.Goals;
 using Karajob.Infrastructure.Persistence;
-using Karajob.Tests.Application.Hypotheses;
+using Karajob.Tests.Application.Tracks;
 using Karajob.Tests.Infrastructure.Persistence;
 
 namespace Karajob.Tests.Application.Goals;

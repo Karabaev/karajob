@@ -6,10 +6,10 @@ namespace Karajob.Tests.Localization;
 public partial class ResourceFilesTests
 {
   private static readonly string[] ApplicationMarkers =
-    ["VacancyMessages", "CvMessages", "CompanyMessages", "HypothesisMessages", "GoalMessages", "CatalogMessages", "UserMessages"];
+    ["VacancyMessages", "CvMessages", "CompanyMessages", "TrackMessages", "GoalMessages", "CatalogMessages", "UserMessages"];
 
   private static readonly string[] WebMarkers =
-    ["LayoutStrings", "PagesStrings", "VacancyStrings", "CompanyStrings", "HypothesisStrings", "CvStrings", "CatalogStrings", "ProfileStrings"];
+    ["LayoutStrings", "PagesStrings", "VacancyStrings", "CompanyStrings", "TrackStrings", "CvStrings", "CatalogStrings", "ProfileStrings"];
 
   public static TheoryData<string> Markers
   {

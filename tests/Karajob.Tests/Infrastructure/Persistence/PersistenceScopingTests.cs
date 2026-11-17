@@ -84,7 +84,7 @@ public class PersistenceScopingTests
 
     await provider.InitializeKarajobDatabaseAsync();
 
-    Assert.Equal(3, await CountHypothesesInScopeAsync(provider, SeedData.OwnerId));
+    Assert.Equal(3, await CountTracksInScopeAsync(provider, SeedData.OwnerId));
   }
 
   [Fact]
@@ -101,7 +101,7 @@ public class PersistenceScopingTests
     var factory = scope.ServiceProvider.GetRequiredService<IKarajobDbContextFactory>();
     await using var context = await factory.CreateDbContextAsync();
 
-    Assert.Equal(3, await context.Hypotheses.CountAsync());
+    Assert.Equal(3, await context.Tracks.CountAsync());
   }
 
   private static ServiceProvider BuildProvider()
@@ -145,13 +145,13 @@ public class PersistenceScopingTests
     return await context.Vacancies.Select(v => v.Url).ToListAsync();
   }
 
-  private static async Task<int> CountHypothesesInScopeAsync(ServiceProvider provider, Guid userId)
+  private static async Task<int> CountTracksInScopeAsync(ServiceProvider provider, Guid userId)
   {
     using var scope = provider.CreateScope();
     scope.ServiceProvider.GetRequiredService<ScopedCurrentUser>().Id = userId;
     var factory = scope.ServiceProvider.GetRequiredService<IKarajobDbContextFactory>();
     await using var context = await factory.CreateDbContextAsync();
-    return await context.Hypotheses.CountAsync();
+    return await context.Tracks.CountAsync();
   }
 
   private class ScopedCurrentUser : ICurrentUser

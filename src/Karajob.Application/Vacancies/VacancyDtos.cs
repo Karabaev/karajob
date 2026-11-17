@@ -1,5 +1,5 @@
 using Karajob.Domain.Applications;
-using Karajob.Domain.Hypotheses;
+using Karajob.Domain.Tracks;
 using Karajob.Domain.Vacancies;
 
 namespace Karajob.Application.Vacancies;
@@ -17,7 +17,7 @@ public record VacancyInput(
   long? SalaryMin,
   long? SalaryMax,
   string? SalaryCurrency,
-  IReadOnlyList<Guid> HypothesisIds,
+  IReadOnlyList<Guid> TrackIds,
   string? Description,
   string? Notes);
 
@@ -46,21 +46,21 @@ public record VacancyDetails(
   long? SalaryMin,
   long? SalaryMax,
   string? SalaryCurrency,
-  IReadOnlyList<Guid> HypothesisIds,
+  IReadOnlyList<Guid> TrackIds,
   string? Description,
   string? Notes,
   VacancySource Source,
   VacancyStage Stage,
   DismissReason? DismissReason,
   DateTime DiscoveredAt,
-  Guid? ApplicationHypothesisId,
+  Guid? ApplicationTrackId,
   string? CoverLetter,
   IReadOnlyList<TimelineItem> Timeline,
   IReadOnlyList<SimilarVacancy> Similar,
   VacancyStage? ClosedFromStage,
   VacancyStage? ReopenTarget)
 {
-  public bool HasApplication => ApplicationHypothesisId is not null;
+  public bool HasApplication => ApplicationTrackId is not null;
 }
 
 public record TimelineItem(
@@ -93,10 +93,10 @@ public record BoardCard(
 
 public record BoardView(IReadOnlyList<BoardCard> Cards, IReadOnlyDictionary<ApplicationOutcome, int> ClosedOutcomes);
 
-public record ApplyInput(Guid HypothesisId, Guid CvVersionId, ApplicationChannel Channel, DateTime AppliedAt, string? CoverLetter);
+public record ApplyInput(Guid TrackId, Guid CvVersionId, ApplicationChannel Channel, DateTime AppliedAt, string? CoverLetter);
 
-public record ApplyOptions(IReadOnlyList<ApplyHypothesisOption> Hypotheses, IReadOnlyList<CvVersionOption> CvVersions);
+public record ApplyOptions(IReadOnlyList<ApplyTrackOption> Tracks, IReadOnlyList<CvVersionOption> CvVersions);
 
-public record ApplyHypothesisOption(Guid Id, string Name, Guid? DefaultCvVersionId);
+public record ApplyTrackOption(Guid Id, string Name, Guid? DefaultCvVersionId);
 
 public record CvVersionOption(Guid Id, string CvName, string FileName, DateTime CreatedAt);

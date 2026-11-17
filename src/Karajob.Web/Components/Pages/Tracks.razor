@@ -1,0 +1,48 @@
+@page "/tracks"
+@inject TrackService TrackService
+
+<AppTitle Text="@L["Pages.Tracks"]" />
+
+<MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
+  <MudText Typo="Typo.h4" HtmlTag="h1">@L["Pages.Tracks"]</MudText>
+  <MudButton Href="/tracks/new" Variant="Variant.Filled" Color="Color.Primary">@L["Pages.AddTrack"]</MudButton>
+</MudStack>
+
+@if (_items is null)
+{
+  <MudProgressLinear Indeterminate="true" />
+}
+else if (_items.Count == 0)
+{
+  <MudText Class="mud-text-secondary">@L["Pages.NoTracks"]</MudText>
+}
+else
+{
+  <MudTable Items="_items" Breakpoint="Breakpoint.Sm" Hover="true" Dense="true">
+    <HeaderContent>
+      <MudTh>@L["Pages.Name"]</MudTh>
+      <MudTh>@L["Pages.Role"]</MudTh>
+      <MudTh>@L["Pages.Format"]</MudTh>
+      <MudTh>@L["Pages.Language"]</MudTh>
+      <MudTh>@L["Pages.Status"]</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+      <MudTd DataLabel="@L["Pages.Name"]"><MudLink Href="@($"/tracks/{context.Id}")">@context.Name</MudLink></MudTd>
+      <MudTd DataLabel="@L["Pages.Role"]">@context.Role</MudTd>
+      <MudTd DataLabel="@L["Pages.Format"]">@TrackText.Format(context.WorkFormat)</MudTd>
+      <MudTd DataLabel="@L["Pages.Language"]">@context.LanguageCode.ToUpperInvariant()</MudTd>
+      <MudTd DataLabel="@L["Pages.Status"]">
+        <MudChip T="string" Size="Size.Small" Color="@TrackText.StatusColor(context.Status)">@TrackText.Status(context.Status)</MudChip>
+      </MudTd>
+    </RowTemplate>
+  </MudTable>
+}
+
+@code {
+  private IReadOnlyList<TrackListItem>? _items;
+
+  protected override async Task OnInitializedAsync()
+  {
+    _items = await TrackService.ListAsync();
+  }
+}

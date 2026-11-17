@@ -39,15 +39,15 @@ public class VacancyStageTransitionTests
 
   private static Guid AddMatch(Vacancy vacancy)
   {
-    var hypothesisId = Guid.NewGuid();
-    vacancy.SetMatch(hypothesisId, 80, null, MatchAuthor.Human);
-    return hypothesisId;
+    var trackId = Guid.NewGuid();
+    vacancy.SetMatch(trackId, 80, null, MatchAuthor.Human);
+    return trackId;
   }
 
   private static Vacancy InStage(VacancyStage stage, bool withMatch = true)
   {
     var vacancy = Create();
-    var hypothesisId = withMatch ? AddMatch(vacancy) : Guid.Empty;
+    var trackId = withMatch ? AddMatch(vacancy) : Guid.Empty;
     switch (stage)
     {
       case VacancyStage.Inbox:
@@ -61,16 +61,16 @@ public class VacancyStageTransitionTests
         break;
       case VacancyStage.Applied:
         vacancy.MoveTo(VacancyStage.Targeted, Now);
-        vacancy.Apply(hypothesisId, CvId, ApplicationChannel.Website, Now, null);
+        vacancy.Apply(trackId, CvId, ApplicationChannel.Website, Now, null);
         break;
       case VacancyStage.Interviewing:
         vacancy.MoveTo(VacancyStage.Targeted, Now);
-        vacancy.Apply(hypothesisId, CvId, ApplicationChannel.Website, Now, null);
+        vacancy.Apply(trackId, CvId, ApplicationChannel.Website, Now, null);
         vacancy.MoveTo(VacancyStage.Interviewing, Now);
         break;
       case VacancyStage.Closed:
         vacancy.MoveTo(VacancyStage.Targeted, Now);
-        vacancy.Apply(hypothesisId, CvId, ApplicationChannel.Website, Now, null);
+        vacancy.Apply(trackId, CvId, ApplicationChannel.Website, Now, null);
         vacancy.Close(ApplicationOutcome.Rejected, Now);
         break;
       case VacancyStage.Dismissed:
@@ -82,14 +82,14 @@ public class VacancyStageTransitionTests
     return vacancy;
   }
 
-  private static Guid HypothesisOf(Vacancy vacancy) => vacancy.Matches.First().HypothesisId;
+  private static Guid TrackOf(Vacancy vacancy) => vacancy.Matches.First().TrackId;
 
   private static ApplicationEvent Perform(Vacancy vacancy, VacancyStage target)
   {
     return target switch
     {
       VacancyStage.Applied when vacancy.Stage is VacancyStage.Targeted or VacancyStage.Preparing =>
-        vacancy.Apply(HypothesisOf(vacancy), CvId, ApplicationChannel.Website, Later, null),
+        vacancy.Apply(TrackOf(vacancy), CvId, ApplicationChannel.Website, Later, null),
       VacancyStage.Closed => vacancy.Close(ApplicationOutcome.Offer, Later),
       VacancyStage.Dismissed => vacancy.Dismiss(DismissReason.WrongRole, null, Later),
       _ => vacancy.MoveTo(target, Later),
@@ -169,7 +169,7 @@ public class VacancyStageTransitionTests
     var vacancy = InStage(from);
 
     AssertThrowsTransition(vacancy, VacancyStage.Applied, () =>
-      vacancy.Apply(HypothesisOf(vacancy), CvId, ApplicationChannel.Website, Later, null));
+      vacancy.Apply(TrackOf(vacancy), CvId, ApplicationChannel.Website, Later, null));
   }
 
   [Theory]
@@ -213,14 +213,14 @@ public class VacancyStageTransitionTests
   public void MoveTo_TargetedAfterAllMatchesRemoved_Throws()
   {
     var vacancy = Create();
-    var hypothesisId = AddMatch(vacancy);
-    vacancy.RemoveMatch(hypothesisId);
+    var trackId = AddMatch(vacancy);
+    vacancy.RemoveMatch(trackId);
 
     AssertThrowsTransition(vacancy, VacancyStage.Targeted, () => vacancy.MoveTo(VacancyStage.Targeted, Later));
   }
 
   [Fact]
-  public void Apply_HypothesisNotAmongMatches_ThrowsAndChangesNothing()
+  public void Apply_TrackNotAmongMatches_ThrowsAndChangesNothing()
   {
     var vacancy = InStage(VacancyStage.Targeted);
 
@@ -233,17 +233,17 @@ public class VacancyStageTransitionTests
   public void Apply_Valid_CreatesApplicationWithAllFields()
   {
     var vacancy = InStage(VacancyStage.Preparing);
-    var hypothesisId = HypothesisOf(vacancy);
+    var trackId = TrackOf(vacancy);
     var cvVersionId = Guid.NewGuid();
 
-    var evt = vacancy.Apply(hypothesisId, cvVersionId, ApplicationChannel.Referral, Later, "Hello");
+    var evt = vacancy.Apply(trackId, cvVersionId, ApplicationChannel.Referral, Later, "Hello");
 
     var application = vacancy.Application;
     Assert.NotNull(application);
     Assert.NotEqual(Guid.Empty, application.Id);
     Assert.Equal(vacancy.UserId, application.UserId);
     Assert.Equal(vacancy.Id, application.VacancyId);
-    Assert.Equal(hypothesisId, application.HypothesisId);
+    Assert.Equal(trackId, application.TrackId);
     Assert.Equal(cvVersionId, application.CvVersionId);
     Assert.Equal(ApplicationChannel.Referral, application.Channel);
     Assert.Equal(Later, application.AppliedAt);
@@ -258,11 +258,11 @@ public class VacancyStageTransitionTests
     var vacancy = InStage(VacancyStage.Targeted);
 
     Assert.ThrowsAny<ArgumentException>(() =>
-      vacancy.Apply(HypothesisOf(vacancy), Guid.Empty, ApplicationChannel.Website, Later, null));
+      vacancy.Apply(TrackOf(vacancy), Guid.Empty, ApplicationChannel.Website, Later, null));
   }
 
   [Fact]
-  public void Apply_EmptyHypothesisId_Throws()
+  public void Apply_EmptyTrackId_Throws()
   {
     var vacancy = InStage(VacancyStage.Targeted);
 
@@ -350,7 +350,7 @@ public class VacancyStageTransitionTests
 
     Assert.ThrowsAny<ArgumentException>(() =>
       vacancy.Apply(
-        HypothesisOf(vacancy), CvId, ApplicationChannel.Website, new DateTime(2026, 11, 12, 10, 0, 0, kind), null));
+        TrackOf(vacancy), CvId, ApplicationChannel.Website, new DateTime(2026, 11, 12, 10, 0, 0, kind), null));
   }
 
   [Theory]
@@ -367,11 +367,11 @@ public class VacancyStageTransitionTests
   public void FullHappyPath_InboxToClosed_ProducesFiveOrderedEvents()
   {
     var vacancy = Create();
-    var hypothesisId = AddMatch(vacancy);
+    var trackId = AddMatch(vacancy);
 
     vacancy.MoveTo(VacancyStage.Targeted, Now);
     vacancy.MoveTo(VacancyStage.Preparing, Now.AddHours(1));
-    vacancy.Apply(hypothesisId, CvId, ApplicationChannel.Website, Now.AddHours(2), null);
+    vacancy.Apply(trackId, CvId, ApplicationChannel.Website, Now.AddHours(2), null);
     vacancy.MoveTo(VacancyStage.Interviewing, Now.AddHours(3));
     vacancy.Close(ApplicationOutcome.Offer, Now.AddHours(4));
 

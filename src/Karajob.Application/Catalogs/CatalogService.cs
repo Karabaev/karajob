@@ -252,20 +252,20 @@ public class CatalogService(IKarajobDbContextFactory dbContextFactory, IStringLo
     switch (kind)
     {
       case CatalogKind.Role:
-        return await db.Hypotheses.IgnoreQueryFilters().AnyAsync(h => h.RoleId == id, cancellationToken)
+        return await db.Tracks.IgnoreQueryFilters().AnyAsync(h => h.RoleId == id, cancellationToken)
           || await db.SearchGoals.IgnoreQueryFilters().AnyAsync(g => g.RoleId == id, cancellationToken)
           || await db.Vacancies.IgnoreQueryFilters().AnyAsync(v => v.RoleId == id, cancellationToken);
       case CatalogKind.Location:
-        return await db.HypothesisLocations.IgnoreQueryFilters().AnyAsync(l => l.LocationId == id, cancellationToken)
+        return await db.TrackLocations.IgnoreQueryFilters().AnyAsync(l => l.LocationId == id, cancellationToken)
           || await db.SearchGoalLocations.IgnoreQueryFilters().AnyAsync(l => l.LocationId == id, cancellationToken)
           || await db.CompanyLocations.AnyAsync(l => l.LocationId == id, cancellationToken)
           || await db.Vacancies.IgnoreQueryFilters().AnyAsync(v => v.LocationId == id, cancellationToken);
       case CatalogKind.Language:
-        return await db.Hypotheses.IgnoreQueryFilters().AnyAsync(h => h.LanguageId == id, cancellationToken)
+        return await db.Tracks.IgnoreQueryFilters().AnyAsync(h => h.LanguageId == id, cancellationToken)
           || await db.Vacancies.IgnoreQueryFilters().AnyAsync(v => v.LanguageId == id, cancellationToken)
           || await db.CvDocuments.IgnoreQueryFilters().AnyAsync(d => d.LanguageId == id, cancellationToken);
       case CatalogKind.Platform:
-        return await db.HypothesisPlatforms.IgnoreQueryFilters().AnyAsync(p => p.PlatformId == id, cancellationToken)
+        return await db.TrackPlatforms.IgnoreQueryFilters().AnyAsync(p => p.PlatformId == id, cancellationToken)
           || await db.SearchGoalPlatforms.IgnoreQueryFilters().AnyAsync(p => p.PlatformId == id, cancellationToken)
           || await db.VacancyPlatforms.IgnoreQueryFilters().AnyAsync(p => p.PlatformId == id, cancellationToken);
       case CatalogKind.Currency:
@@ -274,7 +274,7 @@ public class CatalogService(IKarajobDbContextFactory dbContextFactory, IStringLo
           || await db.Vacancies.IgnoreQueryFilters().AnyAsync(v => v.Salary != null && v.Salary.Currency == code, cancellationToken);
       case CatalogKind.Engine:
         return await db.Projects.IgnoreQueryFilters().AnyAsync(p => p.EngineId == id, cancellationToken)
-          || await db.HypothesisEngines.IgnoreQueryFilters().AnyAsync(e => e.EngineId == id, cancellationToken)
+          || await db.TrackEngines.IgnoreQueryFilters().AnyAsync(e => e.EngineId == id, cancellationToken)
           || await db.SearchGoalEngines.IgnoreQueryFilters().AnyAsync(e => e.EngineId == id, cancellationToken)
           || await db.VacancyEngines.IgnoreQueryFilters().AnyAsync(e => e.EngineId == id, cancellationToken);
       default:

@@ -5,8 +5,8 @@
   <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <data name="Pages.Board" xml:space="preserve"><value>Доска</value></data>
-  <data name="Pages.Hypothesis" xml:space="preserve"><value>Гипотеза</value></data>
-  <data name="Pages.AllHypotheses" xml:space="preserve"><value>Все гипотезы</value></data>
+  <data name="Pages.Track" xml:space="preserve"><value>Трек</value></data>
+  <data name="Pages.AllTracks" xml:space="preserve"><value>Все треки</value></data>
   <data name="Pages.Collapse" xml:space="preserve"><value>Свернуть</value></data>
   <data name="Pages.Show" xml:space="preserve"><value>Показать</value></data>
   <data name="Pages.ApplyTitle" xml:space="preserve"><value>Отклик</value></data>
@@ -33,9 +33,9 @@
   <data name="Pages.Tags" xml:space="preserve"><value>Теги</value></data>
   <data name="Pages.Versions" xml:space="preserve"><value>Версий</value></data>
   <data name="Pages.Updated" xml:space="preserve"><value>Обновлено</value></data>
-  <data name="Pages.Hypotheses" xml:space="preserve"><value>Гипотезы</value></data>
-  <data name="Pages.AddHypothesis" xml:space="preserve"><value>+ Гипотеза</value></data>
-  <data name="Pages.NoHypotheses" xml:space="preserve"><value>Гипотез пока нет.</value></data>
+  <data name="Pages.Tracks" xml:space="preserve"><value>Треки</value></data>
+  <data name="Pages.AddTrack" xml:space="preserve"><value>+ Трек</value></data>
+  <data name="Pages.NoTracks" xml:space="preserve"><value>Треков пока нет.</value></data>
   <data name="Pages.Role" xml:space="preserve"><value>Роль</value></data>
   <data name="Pages.Format" xml:space="preserve"><value>Формат</value></data>
   <data name="Pages.Status" xml:space="preserve"><value>Статус</value></data>
@@ -68,7 +68,7 @@
   <data name="Pages.ConversionThreshold" xml:space="preserve"><value>Порог конверсии, %</value></data>
   <data name="Pages.ConversionThresholdHelp" xml:space="preserve"><value>Какая доля откликов с ответом считается хорошей</value></data>
   <data name="Pages.MinSample" xml:space="preserve"><value>Минимальная выборка откликов</value></data>
-  <data name="Pages.MinSampleHelp" xml:space="preserve"><value>Пока откликов меньше, вывод по гипотезе делать рано</value></data>
+  <data name="Pages.MinSampleHelp" xml:space="preserve"><value>Пока откликов меньше, вывод по треку делать рано</value></data>
   <data name="Pages.MaturationDays" xml:space="preserve"><value>Созревание отклика, дней</value></data>
   <data name="Pages.MaturationDaysHelp" xml:space="preserve"><value>Через сколько дней без ответа отклик считается созревшим</value></data>
   <data name="Pages.Save" xml:space="preserve"><value>Сохранить</value></data>
@@ -82,7 +82,7 @@
   <data name="Pages.Search" xml:space="preserve"><value>Поиск</value></data>
   <data name="Pages.ColVacancy" xml:space="preserve"><value>Вакансия</value></data>
   <data name="Pages.ColStatus" xml:space="preserve"><value>Статус</value></data>
-  <data name="Pages.ColHypothesis" xml:space="preserve"><value>Гипотеза</value></data>
+  <data name="Pages.ColTrack" xml:space="preserve"><value>Трек</value></data>
   <data name="Pages.ColCv" xml:space="preserve"><value>Резюме</value></data>
   <data name="Pages.ColChannel" xml:space="preserve"><value>Канал</value></data>
   <data name="Pages.ColApplied" xml:space="preserve"><value>Отклик</value></data>
@@ -92,10 +92,10 @@
   <data name="Pages.ReopenTitle" xml:space="preserve"><value>Вернуть вакансию в работу</value></data>
   <data name="Pages.NoApplications" xml:space="preserve"><value>Откликов не найдено</value></data>
   <data name="Pages.WellBeingThreshold" xml:space="preserve"><value>Порог самочувствия</value></data>
-  <data name="Pages.WellBeingThresholdHelp" xml:space="preserve"><value>От 1 до 5. Два чекина подряд со средней оценкой не выше порога — сигнал, что гипотеза не подходит лично</value></data>
+  <data name="Pages.WellBeingThresholdHelp" xml:space="preserve"><value>От 1 до 5. Два чекина подряд со средней оценкой не выше порога — сигнал, что трек не подходит лично</value></data>
   <data name="WeeklyReview.Title" xml:space="preserve"><value>Недельный обзор</value></data>
   <data name="WeeklyReview.Goal" xml:space="preserve"><value>Отклики за неделю</value></data>
-  <data name="WeeklyReview.GoalCaption" xml:space="preserve"><value>По всем гипотезам, относительно недельной цели</value></data>
+  <data name="WeeklyReview.GoalCaption" xml:space="preserve"><value>По всем трекам, относительно недельной цели</value></data>
   <data name="WeeklyReview.OfCount" xml:space="preserve"><value>{0} из {1}</value></data>
   <data name="WeeklyReview.Stale" xml:space="preserve"><value>Зависшие отклики</value></data>
   <data name="WeeklyReview.StaleCaption" xml:space="preserve"><value>Нет событий {0} дн. и более</value></data>
@@ -105,11 +105,11 @@
   <data name="WeeklyReview.Ghosted" xml:space="preserve"><value>Игнор</value></data>
   <data name="WeeklyReview.GhostedDone" xml:space="preserve"><value>Отклик закрыт как проигнорированный</value></data>
   <data name="WeeklyReview.VacancyGone" xml:space="preserve"><value>Вакансия больше не существует</value></data>
-  <data name="WeeklyReview.Hypotheses" xml:space="preserve"><value>Гипотезы</value></data>
-  <data name="WeeklyReview.HypothesesEmpty" xml:space="preserve"><value>Активных гипотез нет</value></data>
+  <data name="WeeklyReview.Tracks" xml:space="preserve"><value>Треки</value></data>
+  <data name="WeeklyReview.TracksEmpty" xml:space="preserve"><value>Активных треков нет</value></data>
   <data name="WeeklyReview.CheckedIn" xml:space="preserve"><value>Чекин сделан</value></data>
   <data name="WeeklyReview.CheckIn" xml:space="preserve"><value>Чекин</value></data>
   <data name="WeeklyReview.CheckInTitle" xml:space="preserve"><value>Еженедельный чекин</value></data>
   <data name="WeeklyReview.Decision" xml:space="preserve"><value>Решение</value></data>
-  <data name="WeeklyReview.DecisionTitle" xml:space="preserve"><value>Решение по гипотезе</value></data>
+  <data name="WeeklyReview.DecisionTitle" xml:space="preserve"><value>Решение по треку</value></data>
 </root>

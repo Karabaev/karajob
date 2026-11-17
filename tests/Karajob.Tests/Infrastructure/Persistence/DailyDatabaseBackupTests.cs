@@ -1,7 +1,7 @@
 using Karajob.Application.Users;
 using Karajob.Infrastructure.Persistence;
 using Karajob.Infrastructure.Users;
-using Karajob.Tests.Application.Hypotheses;
+using Karajob.Tests.Application.Tracks;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.DependencyInjection;
 

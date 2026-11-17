@@ -2,7 +2,7 @@ using Karajob.Application.Metrics;
 using Karajob.Application.Persistence;
 using Karajob.Application.Users;
 using Karajob.Domain.Applications;
-using Karajob.Domain.Hypotheses;
+using Karajob.Domain.Tracks;
 using Karajob.Domain.Metrics;
 using Karajob.Domain.Vacancies;
 using Microsoft.EntityFrameworkCore;
@@ -13,7 +13,7 @@ public class WeeklyReviewService(
   IKarajobDbContextFactory dbContextFactory,
   ICurrentUser currentUser,
   TimeProvider timeProvider,
-  HypothesisMetricsService metricsService)
+  TrackMetricsService metricsService)
 {
   public async Task<WeeklyReviewSummary> GetAsync(CancellationToken cancellationToken = default)
   {
@@ -25,18 +25,18 @@ public class WeeklyReviewService(
     await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
     var maturationDays = await db.SearchGoals.AsNoTracking().Select(g => g.MaturationDays).SingleAsync(cancellationToken);
 
-    var hypotheses = await db.Hypotheses.AsNoTracking()
-      .Where(h => h.Status == HypothesisStatus.Active || h.Status == HypothesisStatus.Expanded)
+    var tracks = await db.Tracks.AsNoTracking()
+      .Where(h => h.Status == TrackStatus.Active || h.Status == TrackStatus.Expanded)
       .Select(h => new { h.Id, h.Name, h.Status })
       .ToListAsync(cancellationToken);
-    var checkedInIds = await db.HypothesisCheckIns.AsNoTracking()
+    var checkedInIds = await db.TrackCheckIns.AsNoTracking()
       .Where(c => c.Week == week.FirstDay)
-      .Select(c => c.HypothesisId)
+      .Select(c => c.TrackId)
       .ToListAsync(cancellationToken);
     var checkedIn = checkedInIds.ToHashSet();
-    var reviewHypotheses = hypotheses
+    var reviewTracks = tracks
       .OrderBy(h => h.Name, StringComparer.OrdinalIgnoreCase)
-      .Select(h => new WeeklyReviewHypothesis(h.Id, h.Name, h.Status, checkedIn.Contains(h.Id)))
+      .Select(h => new WeeklyReviewTrack(h.Id, h.Name, h.Status, checkedIn.Contains(h.Id)))
       .ToList();
 
     var vacancies = await db.Vacancies.AsNoTracking()
@@ -51,7 +51,7 @@ public class WeeklyReviewService(
 
     var companyIds = stale.Where(x => x.Vacancy.CompanyId is not null).Select(x => x.Vacancy.CompanyId!.Value).Distinct().ToList();
     var roleIds = stale.Where(x => x.Vacancy.RoleId is not null).Select(x => x.Vacancy.RoleId!.Value).Distinct().ToList();
-    var hypothesisIds = stale.Select(x => x.Vacancy.Application!.HypothesisId).Distinct().ToList();
+    var trackIds = stale.Select(x => x.Vacancy.Application!.TrackId).Distinct().ToList();
 
     var companyNames = await db.Companies.AsNoTracking()
       .Where(c => companyIds.Contains(c.Id))
@@ -59,8 +59,8 @@ public class WeeklyReviewService(
     var roleNames = await db.Roles.AsNoTracking()
       .Where(r => roleIds.Contains(r.Id))
       .ToDictionaryAsync(r => r.Id, r => r.Name, cancellationToken);
-    var hypothesisNames = await db.Hypotheses.AsNoTracking()
-      .Where(h => hypothesisIds.Contains(h.Id))
+    var trackNames = await db.Tracks.AsNoTracking()
+      .Where(h => trackIds.Contains(h.Id))
       .ToDictionaryAsync(h => h.Id, h => h.Name, cancellationToken);
 
     var staleApplications = stale
@@ -74,8 +74,8 @@ public class WeeklyReviewService(
           v.Title,
           v.CompanyId is { } companyId ? companyNames[companyId] : null,
           v.RoleId is { } roleId ? roleNames[roleId] : null,
-          application.HypothesisId,
-          hypothesisNames[application.HypothesisId],
+          application.TrackId,
+          trackNames[application.TrackId],
           application.AppliedAt,
           x.LastActivity,
           StaleApplicationRule.IdleDays(x.LastActivity, now, zone));
@@ -84,6 +84,6 @@ public class WeeklyReviewService(
       .ThenBy(s => s.AppliedAt)
       .ToList();
 
-    return new WeeklyReviewSummary(week, activity, maturationDays, reviewHypotheses, staleApplications);
+    return new WeeklyReviewSummary(week, activity, maturationDays, reviewTracks, staleApplications);
   }
 }

@@ -1,7 +1,7 @@
 using Karajob.Domain.Applications;
 using Karajob.Domain.Companies;
 using Karajob.Domain.Cvs;
-using Karajob.Domain.Hypotheses;
+using Karajob.Domain.Tracks;
 using Karajob.Domain.Users;
 using Karajob.Domain.Vacancies;
 using Karajob.Infrastructure.Persistence;
@@ -30,18 +30,18 @@ internal static class PersistenceFixtures
     return company;
   }
 
-  public static Hypothesis NewHypothesis(Guid userId, string name = "Hypo")
+  public static Track NewTrack(Guid userId, string name = "Hypo")
   {
-    return new Hypothesis(userId, name, SeedData.UnityDeveloperRoleId, SeedData.EnglishLanguageId, Moment);
+    return new Track(userId, name, SeedData.UnityDeveloperRoleId, SeedData.EnglishLanguageId, Moment);
   }
 
-  public static async Task<Hypothesis> AddHypothesisAsync(SqliteTestDatabase database, Guid userId, string name = "Hypo")
+  public static async Task<Track> AddTrackAsync(SqliteTestDatabase database, Guid userId, string name = "Hypo")
   {
-    var hypothesis = NewHypothesis(userId, name);
+    var track = NewTrack(userId, name);
     await using var context = database.CreateContext(userId);
-    context.Hypotheses.Add(hypothesis);
+    context.Tracks.Add(track);
     await context.SaveChangesAsync();
-    return hypothesis;
+    return track;
   }
 
   public static async Task<(CvDocument Document, CvVersion Version)> AddCvAsync(SqliteTestDatabase database, Guid userId)
@@ -66,32 +66,32 @@ internal static class PersistenceFixtures
   public static async Task<Vacancy> AddMatchedVacancyAsync(
     SqliteTestDatabase database,
     Guid userId,
-    Guid hypothesisId,
+    Guid trackId,
     string url = "https://example.com/jobs/matched")
   {
     var vacancy = new Vacancy(userId, url, VacancySource.Manual, Moment);
-    vacancy.SetMatch(hypothesisId, 80, "fits", MatchAuthor.Human);
+    vacancy.SetMatch(trackId, 80, "fits", MatchAuthor.Human);
     await using var context = database.CreateContext(userId);
     context.Vacancies.Add(vacancy);
     await context.SaveChangesAsync();
     return vacancy;
   }
 
-  public static async Task<(Vacancy Vacancy, Hypothesis Hypothesis, CvVersion CvVersion)> AddAppliedVacancyAsync(
+  public static async Task<(Vacancy Vacancy, Track Track, CvVersion CvVersion)> AddAppliedVacancyAsync(
     SqliteTestDatabase database,
     Guid userId,
     string url = "https://example.com/jobs/applied")
   {
-    var hypothesis = await AddHypothesisAsync(database, userId);
+    var track = await AddTrackAsync(database, userId);
     var (_, cvVersion) = await AddCvAsync(database, userId);
     var vacancy = new Vacancy(userId, url, VacancySource.Manual, Moment);
-    vacancy.SetMatch(hypothesis.Id, 80, "fits", MatchAuthor.Human);
+    vacancy.SetMatch(track.Id, 80, "fits", MatchAuthor.Human);
     vacancy.MoveTo(VacancyStage.Targeted, Moment);
     vacancy.MoveTo(VacancyStage.Preparing, Moment);
-    vacancy.Apply(hypothesis.Id, cvVersion.Id, ApplicationChannel.Website, Moment, "letter");
+    vacancy.Apply(track.Id, cvVersion.Id, ApplicationChannel.Website, Moment, "letter");
     await using var context = database.CreateContext(userId);
     context.Vacancies.Add(vacancy);
     await context.SaveChangesAsync();
-    return (vacancy, hypothesis, cvVersion);
+    return (vacancy, track, cvVersion);
   }
 }

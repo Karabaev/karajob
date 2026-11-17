@@ -11,7 +11,7 @@ public class SmokeTests(WebApplicationFactory<Program> factory) : IClassFixture<
   [InlineData("/inbox", "Inbox")]
   [InlineData("/companies", "Companies")]
   [InlineData("/companies/new", "New company")]
-  [InlineData("/hypotheses", "Hypotheses")]
+  [InlineData("/tracks", "Tracks")]
   [InlineData("/cvs", "CV")]
   public async Task GetPage_ReturnsSuccessAndPageTitle(string route, string title)
   {

@@ -3,7 +3,7 @@ using Karajob.Domain.Catalogs;
 using Karajob.Domain.Companies;
 using Karajob.Domain.Cvs;
 using Karajob.Domain.Goals;
-using Karajob.Domain.Hypotheses;
+using Karajob.Domain.Tracks;
 using Karajob.Domain.MasterProfiles;
 using Karajob.Domain.Users;
 using Karajob.Domain.Vacancies;
@@ -26,12 +26,12 @@ public interface IKarajobDbContext : IAsyncDisposable
   DbSet<Platform> Platforms { get; }
   DbSet<Currency> Currencies { get; }
   DbSet<Engine> Engines { get; }
-  DbSet<Hypothesis> Hypotheses { get; }
-  DbSet<HypothesisLocation> HypothesisLocations { get; }
-  DbSet<HypothesisPlatform> HypothesisPlatforms { get; }
-  DbSet<HypothesisEngine> HypothesisEngines { get; }
-  DbSet<HypothesisCheckIn> HypothesisCheckIns { get; }
-  DbSet<HypothesisDecision> HypothesisDecisions { get; }
+  DbSet<Track> Tracks { get; }
+  DbSet<TrackLocation> TrackLocations { get; }
+  DbSet<TrackPlatform> TrackPlatforms { get; }
+  DbSet<TrackEngine> TrackEngines { get; }
+  DbSet<TrackCheckIn> TrackCheckIns { get; }
+  DbSet<TrackDecision> TrackDecisions { get; }
   DbSet<CvDocument> CvDocuments { get; }
   DbSet<CvVersion> CvVersions { get; }
   DbSet<Vacancy> Vacancies { get; }

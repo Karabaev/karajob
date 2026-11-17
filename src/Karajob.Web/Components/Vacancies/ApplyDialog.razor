@@ -14,19 +14,19 @@
         {
           <MudAlert Severity="Severity.Error">@general</MudAlert>
         }
-        @if (_options.Hypotheses.Count == 0)
+        @if (_options.Tracks.Count == 0)
         {
-          <MudAlert Severity="Severity.Warning">@L["Apply.NoHypotheses"]</MudAlert>
+          <MudAlert Severity="Severity.Warning">@L["Apply.NoTracks"]</MudAlert>
         }
         @if (_options.CvVersions.Count == 0)
         {
           <MudAlert Severity="Severity.Warning">@L["Apply.NoCv"]</MudAlert>
         }
-        <MudSelect T="Guid" Class="apply-hypothesis" Label="@L["Apply.Hypothesis"]" Value="_hypothesisId" ValueChanged="OnHypothesisChanged"
-                   Error="HasError(nameof(ApplyInput.HypothesisId))" ErrorText="@ErrorOf(nameof(ApplyInput.HypothesisId))">
-          @foreach (var hypothesis in _options.Hypotheses)
+        <MudSelect T="Guid" Class="apply-track" Label="@L["Apply.Track"]" Value="_trackId" ValueChanged="OnTrackChanged"
+                   Error="HasError(nameof(ApplyInput.TrackId))" ErrorText="@ErrorOf(nameof(ApplyInput.TrackId))">
+          @foreach (var track in _options.Tracks)
           {
-            <MudSelectItem T="Guid" Value="hypothesis.Id">@hypothesis.Name</MudSelectItem>
+            <MudSelectItem T="Guid" Value="track.Id">@track.Name</MudSelectItem>
           }
         </MudSelect>
         <MudSelect T="Guid?" Class="apply-cv" Label="CV" @bind-Value="_cvVersionId"
@@ -63,7 +63,7 @@
 @code {
   private static readonly string[] FieldKeys =
   [
-    nameof(ApplyInput.HypothesisId),
+    nameof(ApplyInput.TrackId),
     nameof(ApplyInput.CvVersionId),
     nameof(ApplyInput.Channel),
     nameof(ApplyInput.AppliedAt),
@@ -72,7 +72,7 @@
 
   private ApplyOptions? _options;
   private IReadOnlyDictionary<string, string> _errors = new Dictionary<string, string>();
-  private Guid _hypothesisId;
+  private Guid _trackId;
   private Guid? _cvVersionId;
   private ApplicationChannel _channel = ApplicationChannel.Website;
   private DateTime? _date;
@@ -89,25 +89,25 @@
   public VacancyStage ExpectedStage { get; set; }
 
   [Parameter]
-  public Guid? PreferredHypothesisId { get; set; }
+  public Guid? PreferredTrackId { get; set; }
 
-  private bool CanSubmit => _options is { Hypotheses.Count: > 0, CvVersions.Count: > 0 } && _cvVersionId is not null;
+  private bool CanSubmit => _options is { Tracks.Count: > 0, CvVersions.Count: > 0 } && _cvVersionId is not null;
 
   protected override async Task OnInitializedAsync()
   {
     _date = Dates.Today();
     _options = await VacancyService.GetApplyOptionsAsync(VacancyId);
-    if (_options.Hypotheses.Count > 0)
+    if (_options.Tracks.Count > 0)
     {
-      var preferred = _options.Hypotheses.FirstOrDefault(h => h.Id == PreferredHypothesisId) ?? _options.Hypotheses[0];
-      OnHypothesisChanged(preferred.Id);
+      var preferred = _options.Tracks.FirstOrDefault(h => h.Id == PreferredTrackId) ?? _options.Tracks[0];
+      OnTrackChanged(preferred.Id);
     }
   }
 
-  private void OnHypothesisChanged(Guid hypothesisId)
+  private void OnTrackChanged(Guid trackId)
   {
-    _hypothesisId = hypothesisId;
-    _cvVersionId = _options!.Hypotheses.Single(h => h.Id == hypothesisId).DefaultCvVersionId;
+    _trackId = trackId;
+    _cvVersionId = _options!.Tracks.Single(h => h.Id == trackId).DefaultCvVersionId;
   }
 
   private bool HasError(string key)
@@ -135,7 +135,7 @@
     _saving = true;
     try
     {
-      var input = new ApplyInput(_hypothesisId, _cvVersionId!.Value, _channel, appliedAt, _coverLetter);
+      var input = new ApplyInput(_trackId, _cvVersionId!.Value, _channel, appliedAt, _coverLetter);
       await VacancyService.ApplyAsync(VacancyId, ExpectedStage, input);
       MudDialog.Close(DialogResult.Ok(true));
     }

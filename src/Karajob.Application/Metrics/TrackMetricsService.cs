@@ -1,0 +1,117 @@
+using Karajob.Application.Persistence;
+using Karajob.Application.Users;
+using Karajob.Domain.Applications;
+using Karajob.Domain.Common;
+using Karajob.Domain.Metrics;
+using Karajob.Domain.Vacancies;
+using Microsoft.EntityFrameworkCore;
+
+namespace Karajob.Application.Metrics;
+
+public class TrackMetricsService(IKarajobDbContextFactory dbContextFactory, ICurrentUser currentUser, TimeProvider timeProvider)
+{
+  private static readonly ApplicationEventType[] PositiveEventTypes =
+  [
+    ApplicationEventType.Screening,
+    ApplicationEventType.TechInterview,
+    ApplicationEventType.TestTask,
+    ApplicationEventType.Offer,
+  ];
+
+  public async Task<TrackMetrics> GetAsync(
+    Guid trackId,
+    DateTime? periodStart = null,
+    DateTime? asOf = null,
+    CancellationToken cancellationToken = default)
+  {
+    UtcGuard.Ensure(periodStart);
+    var now = ResolveAsOf(asOf);
+
+    await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+    var track = await db.Tracks.AsNoTracking()
+      .Where(h => h.Id == trackId)
+      .Select(h => new { h.PeriodStartedAt, h.StartedAt, h.CreatedAt })
+      .SingleOrDefaultAsync(cancellationToken)
+      ?? throw new KeyNotFoundException($"Track {trackId} was not found.");
+    var start = periodStart ?? track.PeriodStartedAt ?? track.StartedAt ?? track.CreatedAt;
+    if (start > now)
+    {
+      var source = periodStart is null ? "The track period (PeriodStartedAt, StartedAt or CreatedAt)" : "The period";
+      throw new ArgumentException($"{source} starts after the metrics date.", periodStart is null ? nameof(asOf) : nameof(periodStart));
+    }
+
+    var goal = await db.SearchGoals.AsNoTracking().SingleAsync(cancellationToken);
+    var week = CalendarWeek.Containing(now, currentUser.TimeZone);
+    var weekFrom = start > week.Start ? start : week.Start;
+
+    var market = await db.VacancyMatches.AsNoTracking()
+      .Where(m => m.TrackId == trackId)
+      .Join(db.Vacancies, m => m.VacancyId, v => v.Id, (m, v) => v.DiscoveredAt)
+      .CountAsync(at => at >= weekFrom && at < week.End && at <= now, cancellationToken);
+
+    var applications = await db.JobApplications.AsNoTracking()
+      .Where(a => a.TrackId == trackId && a.AppliedAt >= start && a.AppliedAt <= now)
+      .Select(a => new { a.VacancyId, a.AppliedAt, a.Outcome })
+      .ToListAsync(cancellationToken);
+
+    var weeklyApplications = applications.Count(a => a.AppliedAt >= weekFrom && a.AppliedAt < week.End);
+
+    var maturedBefore = now.AddDays(-goal.MaturationDays);
+    var matured = applications.Where(a => a.AppliedAt <= maturedBefore).ToList();
+    var maturedVacancyIds = matured.Select(a => a.VacancyId).ToList();
+    var events = await db.ApplicationEvents.AsNoTracking()
+      .Where(e => maturedVacancyIds.Contains(e.VacancyId)
+        && (PositiveEventTypes.Contains(e.Type) || e.Type == ApplicationEventType.StageChanged && e.ToStage == VacancyStage.Closed))
+      .Select(e => new { e.VacancyId, e.Type, e.OccurredAt })
+      .ToListAsync(cancellationToken);
+    // The outcome is current state; it belongs to the latest close, which must not be after asOf.
+    var lastClosedAt = events
+      .Where(e => e.Type == ApplicationEventType.StageChanged)
+      .GroupBy(e => e.VacancyId)
+      .ToDictionary(g => g.Key, g => g.Max(e => e.OccurredAt));
+
+    // Compared by the profile's local day: the event dialog stores a past day as local midnight, while the application keeps its time.
+    var positive = matured.Count(a =>
+      a.Outcome == ApplicationOutcome.Offer && lastClosedAt.TryGetValue(a.VacancyId, out var closedAt) && closedAt <= now
+      || events.Any(e => e.VacancyId == a.VacancyId
+        && e.Type != ApplicationEventType.StageChanged
+        && e.OccurredAt <= now
+        && UserTime.LocalDate(e.OccurredAt, currentUser.TimeZone) >= UserTime.LocalDate(a.AppliedAt, currentUser.TimeZone)));
+
+    var conversion = new ConversionMetric(
+      positive,
+      matured.Count,
+      matured.Count == 0 ? null : positive / (double)matured.Count,
+      matured.Count == 0 ? null : WilsonInterval.Compute(positive, matured.Count),
+      goal.ConversionThresholdPermille,
+      goal.MinSampleSize,
+      goal.MaturationDays,
+      matured.Count < goal.MinSampleSize);
+
+    return new TrackMetrics(
+      trackId,
+      start,
+      now,
+      week,
+      new MarketMetric(market, goal.MarketThresholdPerWeek),
+      conversion,
+      weeklyApplications);
+  }
+
+  public async Task<ProfileActivity> GetActivityAsync(DateTime? asOf = null, CancellationToken cancellationToken = default)
+  {
+    var now = ResolveAsOf(asOf);
+    var week = CalendarWeek.Containing(now, currentUser.TimeZone);
+
+    await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+    var goal = await db.SearchGoals.AsNoTracking().SingleAsync(cancellationToken);
+    var applications = await db.JobApplications.AsNoTracking()
+      .CountAsync(a => a.AppliedAt >= week.Start && a.AppliedAt < week.End && a.AppliedAt <= now, cancellationToken);
+    return new ProfileActivity(week, applications, goal.WeeklyApplicationTarget);
+  }
+
+  private DateTime ResolveAsOf(DateTime? asOf)
+  {
+    return UtcGuard.Ensure(asOf) ?? timeProvider.GetUtcNow().UtcDateTime;
+  }
+}

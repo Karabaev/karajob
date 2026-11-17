@@ -12,13 +12,13 @@ namespace Karajob.Tests.Web.Components.Vacancies;
 public class ApplyDialogTests : VacancyWebFixture
 {
   [Fact]
-  public async Task Submit_WithPrimaryCvOfHypothesis_AppliesWithNewestVersionAndCloses()
+  public async Task Submit_WithPrimaryCvOfTrack_AppliesWithNewestVersionAndCloses()
   {
-    var hypothesisId = await CreateHypothesisAsync();
+    var trackId = await CreateTrackAsync();
     var (documentId, _) = await CreateCvAsync("Primary", "v1.pdf");
     var newestVersionId = await AddVersionAsync(documentId, "v2.pdf");
-    await SetPrimaryCvAsync(hypothesisId, documentId);
-    var vacancyId = await CreateOnBoardAsync(VacancyStage.Preparing, hypothesisId, "https://example.com/jobs/1");
+    await SetPrimaryCvAsync(trackId, documentId);
+    var vacancyId = await CreateOnBoardAsync(VacancyStage.Preparing, trackId, "https://example.com/jobs/1");
     var (provider, reference) = await ShowAsync(vacancyId, VacancyStage.Preparing);
     provider.WaitForElement(".apply-submit");
 
@@ -28,17 +28,17 @@ public class ApplyDialogTests : VacancyWebFixture
     Assert.False(result!.Canceled);
     var vacancy = await FindWithApplicationAsync(vacancyId);
     Assert.Equal(VacancyStage.Applied, vacancy.Stage);
-    Assert.Equal(hypothesisId, vacancy.Application!.HypothesisId);
+    Assert.Equal(trackId, vacancy.Application!.TrackId);
     Assert.Equal(newestVersionId, vacancy.Application.CvVersionId);
   }
 
   [Fact]
   public async Task Submit_WithFutureDate_ShowsErrorAndStaysOpenWithoutApplying()
   {
-    var hypothesisId = await CreateHypothesisAsync();
+    var trackId = await CreateTrackAsync();
     var (documentId, _) = await CreateCvAsync();
-    await SetPrimaryCvAsync(hypothesisId, documentId);
-    var vacancyId = await CreateOnBoardAsync(VacancyStage.Preparing, hypothesisId, "https://example.com/jobs/1");
+    await SetPrimaryCvAsync(trackId, documentId);
+    var vacancyId = await CreateOnBoardAsync(VacancyStage.Preparing, trackId, "https://example.com/jobs/1");
     var (provider, reference) = await ShowAsync(vacancyId, VacancyStage.Preparing);
     provider.WaitForElement(".apply-date");
     var picker = provider.FindComponents<MudDatePicker>().Single(c => c.Instance.Class!.Contains("apply-date"));
@@ -54,10 +54,10 @@ public class ApplyDialogTests : VacancyWebFixture
   [Fact]
   public async Task Submit_VacancyMovedMeanwhile_ShowsErrorAndStaysOpen()
   {
-    var hypothesisId = await CreateHypothesisAsync();
+    var trackId = await CreateTrackAsync();
     var (documentId, _) = await CreateCvAsync();
-    await SetPrimaryCvAsync(hypothesisId, documentId);
-    var vacancyId = await CreateOnBoardAsync(VacancyStage.Preparing, hypothesisId, "https://example.com/jobs/1");
+    await SetPrimaryCvAsync(trackId, documentId);
+    var vacancyId = await CreateOnBoardAsync(VacancyStage.Preparing, trackId, "https://example.com/jobs/1");
     var (provider, reference) = await ShowAsync(vacancyId, VacancyStage.Preparing);
     provider.WaitForElement(".apply-submit");
     await Vacancies.MoveAsync(vacancyId, VacancyStage.Preparing, VacancyStage.Targeted);
@@ -72,8 +72,8 @@ public class ApplyDialogTests : VacancyWebFixture
   [Fact]
   public async Task Cancel_ClosesDialogAsCanceledAndLeavesStage()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var vacancyId = await CreateOnBoardAsync(VacancyStage.Preparing, hypothesisId, "https://example.com/jobs/1");
+    var trackId = await CreateTrackAsync();
+    var vacancyId = await CreateOnBoardAsync(VacancyStage.Preparing, trackId, "https://example.com/jobs/1");
     var (provider, reference) = await ShowAsync(vacancyId, VacancyStage.Preparing);
     provider.WaitForElement(".apply-cancel").Click();
 
@@ -84,20 +84,20 @@ public class ApplyDialogTests : VacancyWebFixture
   }
 
   [Fact]
-  public async Task Render_WithPreferredHypothesis_PreselectsItAndAppliesWithIt()
+  public async Task Render_WithPreferredTrack_PreselectsItAndAppliesWithIt()
   {
-    var alpha = await CreateHypothesisAsync("Alpha");
-    var beta = await CreateHypothesisAsync("Beta");
+    var alpha = await CreateTrackAsync("Alpha");
+    var beta = await CreateTrackAsync("Beta");
     var (documentId, versionId) = await CreateCvAsync();
     await SetPrimaryCvAsync(beta, documentId);
-    var vacancy = await Vacancies.CreateAsync(Input("https://example.com/jobs/1", hypothesisIds: [alpha, beta]));
+    var vacancy = await Vacancies.CreateAsync(Input("https://example.com/jobs/1", trackIds: [alpha, beta]));
     await Vacancies.MoveToBoardAsync(vacancy.Id, [alpha, beta]);
     await Vacancies.MoveAsync(vacancy.Id, VacancyStage.Targeted, VacancyStage.Preparing);
     var (provider, reference) = await ShowDialogAsync(new DialogParameters<ApplyDialog>
     {
       { d => d.VacancyId, vacancy.Id },
       { d => d.ExpectedStage, VacancyStage.Preparing },
-      { d => d.PreferredHypothesisId, beta },
+      { d => d.PreferredTrackId, beta },
     });
     provider.WaitForElement(".apply-submit");
 
@@ -106,7 +106,7 @@ public class ApplyDialogTests : VacancyWebFixture
 
     await reference.Result!.WaitAsync(TimeSpan.FromSeconds(5));
     var applied = await FindWithApplicationAsync(vacancy.Id);
-    Assert.Equal(beta, applied.Application!.HypothesisId);
+    Assert.Equal(beta, applied.Application!.TrackId);
     Assert.Equal(versionId, applied.Application.CvVersionId);
   }
 

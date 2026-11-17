@@ -23,17 +23,17 @@ public class UserFilterTests
   }
 
   [Fact]
-  public async Task Hypotheses_SavedForOtherUser_AreHiddenFromCurrentUser()
+  public async Task Tracks_SavedForOtherUser_AreHiddenFromCurrentUser()
   {
     await using var database = await SqliteTestDatabase.CreateAsync();
     var other = await PersistenceFixtures.AddUserAsync(database);
-    await PersistenceFixtures.AddHypothesisAsync(database, other.Id);
+    await PersistenceFixtures.AddTrackAsync(database, other.Id);
 
     await using var owner = database.CreateContext(SeedData.OwnerId);
     await using var otherContext = database.CreateContext(other.Id);
 
-    Assert.Empty(await owner.Hypotheses.ToListAsync());
-    Assert.Single(await otherContext.Hypotheses.ToListAsync());
+    Assert.Empty(await owner.Tracks.ToListAsync());
+    Assert.Single(await otherContext.Tracks.ToListAsync());
   }
 
   [Fact]

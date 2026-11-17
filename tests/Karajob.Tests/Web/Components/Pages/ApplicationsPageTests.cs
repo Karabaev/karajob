@@ -23,12 +23,12 @@ public class ApplicationsPageTests : VacancyWebFixture
   [Fact]
   public async Task Render_MixedStages_ShowsRowsOnlyForAppliedVacancies()
   {
-    var hypothesisId = await CreateHypothesisAsync();
+    var trackId = await CreateTrackAsync();
     await Vacancies.CreateAsync(Input("https://example.com/jobs/inbox"));
-    var targeted = await CreateOnBoardAsync(VacancyStage.Targeted, hypothesisId, "https://example.com/jobs/targeted");
-    var applied = await CreateOnBoardAsync(VacancyStage.Applied, hypothesisId, "https://example.com/jobs/applied");
-    var interviewing = await CreateOnBoardAsync(VacancyStage.Interviewing, hypothesisId, "https://example.com/jobs/interviewing");
-    var closed = await CreateOnBoardAsync(VacancyStage.Closed, hypothesisId, "https://example.com/jobs/closed");
+    var targeted = await CreateOnBoardAsync(VacancyStage.Targeted, trackId, "https://example.com/jobs/targeted");
+    var applied = await CreateOnBoardAsync(VacancyStage.Applied, trackId, "https://example.com/jobs/applied");
+    var interviewing = await CreateOnBoardAsync(VacancyStage.Interviewing, trackId, "https://example.com/jobs/interviewing");
+    var closed = await CreateOnBoardAsync(VacancyStage.Closed, trackId, "https://example.com/jobs/closed");
 
     var cut = Context.Render<ApplicationsPage>();
 
@@ -42,8 +42,8 @@ public class ApplicationsPageTests : VacancyWebFixture
   [Fact]
   public async Task Render_Row_LinksToVacancyCard()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var id = await CreateOnBoardAsync(VacancyStage.Applied, hypothesisId, "https://example.com/jobs/1");
+    var trackId = await CreateTrackAsync();
+    var id = await CreateOnBoardAsync(VacancyStage.Applied, trackId, "https://example.com/jobs/1");
 
     var cut = Context.Render<ApplicationsPage>();
 
@@ -51,11 +51,11 @@ public class ApplicationsPageTests : VacancyWebFixture
   }
 
   [Fact]
-  public async Task Render_Row_ShowsCompanyAndHypothesis()
+  public async Task Render_Row_ShowsCompanyAndTrack()
   {
-    var hypothesisId = await CreateHypothesisAsync("Unity Developer RU");
+    var trackId = await CreateTrackAsync("Unity Developer RU");
     var company = await Companies.CreateAsync(new CompanyInput("pixel-forge", "Pixel Forge", null, null, [], [], []));
-    var id = await CreateOnBoardAsync(VacancyStage.Applied, hypothesisId, "https://example.com/jobs/1");
+    var id = await CreateOnBoardAsync(VacancyStage.Applied, trackId, "https://example.com/jobs/1");
     await MutateAsync(id, v => v.CompanyId = company.Id);
 
     var cut = Context.Render<ApplicationsPage>();
@@ -71,10 +71,10 @@ public class ApplicationsPageTests : VacancyWebFixture
   [Fact]
   public async Task Render_ReopenButton_ExistsOnlyOnClosedRows()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var applied = await CreateOnBoardAsync(VacancyStage.Applied, hypothesisId, "https://example.com/jobs/1");
-    var interviewing = await CreateOnBoardAsync(VacancyStage.Interviewing, hypothesisId, "https://example.com/jobs/2");
-    var closed = await CreateOnBoardAsync(VacancyStage.Closed, hypothesisId, "https://example.com/jobs/3");
+    var trackId = await CreateTrackAsync();
+    var applied = await CreateOnBoardAsync(VacancyStage.Applied, trackId, "https://example.com/jobs/1");
+    var interviewing = await CreateOnBoardAsync(VacancyStage.Interviewing, trackId, "https://example.com/jobs/2");
+    var closed = await CreateOnBoardAsync(VacancyStage.Closed, trackId, "https://example.com/jobs/3");
 
     var cut = Context.Render<ApplicationsPage>();
 
@@ -87,9 +87,9 @@ public class ApplicationsPageTests : VacancyWebFixture
   [Fact]
   public async Task FilterByStage_NarrowsRows()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    await CreateOnBoardAsync(VacancyStage.Applied, hypothesisId, "https://example.com/jobs/1");
-    var interviewing = await CreateOnBoardAsync(VacancyStage.Interviewing, hypothesisId, "https://example.com/jobs/2");
+    var trackId = await CreateTrackAsync();
+    await CreateOnBoardAsync(VacancyStage.Applied, trackId, "https://example.com/jobs/1");
+    var interviewing = await CreateOnBoardAsync(VacancyStage.Interviewing, trackId, "https://example.com/jobs/2");
     var cut = Context.Render<ApplicationsPage>();
     cut.WaitForAssertion(() => Assert.Equal(2, cut.FindAll(".application-row").Count));
 
@@ -105,10 +105,10 @@ public class ApplicationsPageTests : VacancyWebFixture
   [Fact]
   public async Task FilterByOutcome_NarrowsRows()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    await CreateOnBoardAsync(VacancyStage.Applied, hypothesisId, "https://example.com/jobs/1");
-    var offer = await CreateOnBoardAsync(VacancyStage.Closed, hypothesisId, "https://example.com/jobs/2", ApplicationOutcome.Offer);
-    await CreateOnBoardAsync(VacancyStage.Closed, hypothesisId, "https://example.com/jobs/3", ApplicationOutcome.Rejected);
+    var trackId = await CreateTrackAsync();
+    await CreateOnBoardAsync(VacancyStage.Applied, trackId, "https://example.com/jobs/1");
+    var offer = await CreateOnBoardAsync(VacancyStage.Closed, trackId, "https://example.com/jobs/2", ApplicationOutcome.Offer);
+    await CreateOnBoardAsync(VacancyStage.Closed, trackId, "https://example.com/jobs/3", ApplicationOutcome.Rejected);
     var cut = Context.Render<ApplicationsPage>();
     cut.WaitForAssertion(() => Assert.Equal(3, cut.FindAll(".application-row").Count));
 
@@ -124,11 +124,11 @@ public class ApplicationsPageTests : VacancyWebFixture
   [Fact]
   public async Task Search_ByCompanyName_NarrowsRows()
   {
-    var hypothesisId = await CreateHypothesisAsync();
+    var trackId = await CreateTrackAsync();
     var pixel = await Companies.CreateAsync(new CompanyInput("pixel-forge", "Pixel Forge", null, null, [], [], []));
     var acme = await Companies.CreateAsync(new CompanyInput("acme", "Acme Corp", null, null, [], [], []));
-    var pixelVacancy = await CreateOnBoardAsync(VacancyStage.Applied, hypothesisId, "https://example.com/jobs/1");
-    var acmeVacancy = await CreateOnBoardAsync(VacancyStage.Applied, hypothesisId, "https://example.com/jobs/2");
+    var pixelVacancy = await CreateOnBoardAsync(VacancyStage.Applied, trackId, "https://example.com/jobs/1");
+    var acmeVacancy = await CreateOnBoardAsync(VacancyStage.Applied, trackId, "https://example.com/jobs/2");
     await MutateAsync(pixelVacancy, v => v.CompanyId = pixel.Id);
     await MutateAsync(acmeVacancy, v => v.CompanyId = acme.Id);
     var cut = Context.Render<ApplicationsPage>();
@@ -146,8 +146,8 @@ public class ApplicationsPageTests : VacancyWebFixture
   [Fact]
   public async Task CoverLetterToggle_RevealsLetterTextInChildRow()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var id = await CreateOnBoardAsync(VacancyStage.Applied, hypothesisId, "https://example.com/jobs/1");
+    var trackId = await CreateTrackAsync();
+    var id = await CreateOnBoardAsync(VacancyStage.Applied, trackId, "https://example.com/jobs/1");
     await MutateAsync(id, v => v.Application!.CoverLetter = "I would love to join your team");
     var cut = Context.Render<ApplicationsPage>();
     cut.WaitForAssertion(() => Assert.NotNull(RowFor(cut, id)));
@@ -163,8 +163,8 @@ public class ApplicationsPageTests : VacancyWebFixture
   [Fact]
   public async Task CoverLetterToggle_ClickedTwice_HidesLetterAgain()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var id = await CreateOnBoardAsync(VacancyStage.Applied, hypothesisId, "https://example.com/jobs/1");
+    var trackId = await CreateTrackAsync();
+    var id = await CreateOnBoardAsync(VacancyStage.Applied, trackId, "https://example.com/jobs/1");
     await MutateAsync(id, v => v.Application!.CoverLetter = "I would love to join your team");
     var cut = Context.Render<ApplicationsPage>();
     cut.WaitForAssertion(() => Assert.NotNull(RowFor(cut, id)));
@@ -179,8 +179,8 @@ public class ApplicationsPageTests : VacancyWebFixture
   [Fact]
   public async Task Render_RowWithoutCoverLetter_HasNoToggle()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var id = await CreateOnBoardAsync(VacancyStage.Applied, hypothesisId, "https://example.com/jobs/1");
+    var trackId = await CreateTrackAsync();
+    var id = await CreateOnBoardAsync(VacancyStage.Applied, trackId, "https://example.com/jobs/1");
 
     var cut = Context.Render<ApplicationsPage>();
 
@@ -191,8 +191,8 @@ public class ApplicationsPageTests : VacancyWebFixture
   [Fact]
   public async Task ClickReopen_OpensDialogWithClosedFromStageAsDefaultTarget()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var id = await CreateOnBoardAsync(VacancyStage.Interviewing, hypothesisId, "https://example.com/jobs/1");
+    var trackId = await CreateTrackAsync();
+    var id = await CreateOnBoardAsync(VacancyStage.Interviewing, trackId, "https://example.com/jobs/1");
     await MutateAsync(id, v => v.Close(ApplicationOutcome.Rejected, DateTime.UtcNow));
     Context.Render<MudPopoverProvider>();
     var provider = Context.Render<MudDialogProvider>();
@@ -209,8 +209,8 @@ public class ApplicationsPageTests : VacancyWebFixture
   [Fact]
   public async Task ReopenViaDialog_ReopensVacancyAndRefreshesRow()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var id = await CreateOnBoardAsync(VacancyStage.Closed, hypothesisId, "https://example.com/jobs/1");
+    var trackId = await CreateTrackAsync();
+    var id = await CreateOnBoardAsync(VacancyStage.Closed, trackId, "https://example.com/jobs/1");
     Context.Render<MudPopoverProvider>();
     var provider = Context.Render<MudDialogProvider>();
     var cut = Context.Render<ApplicationsPage>();

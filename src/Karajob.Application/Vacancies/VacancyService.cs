@@ -5,7 +5,7 @@ using Karajob.Application.Persistence;
 using Karajob.Application.Users;
 using Karajob.Domain.Applications;
 using Karajob.Domain.Common;
-using Karajob.Domain.Hypotheses;
+using Karajob.Domain.Tracks;
 using Karajob.Domain.Normalization;
 using Karajob.Domain.Vacancies;
 using Microsoft.EntityFrameworkCore;
@@ -95,19 +95,19 @@ public partial class VacancyService(
     return await ReadTitleAsync(NormalizeUrlOrFail(url), cancellationToken);
   }
 
-  public async Task MoveToBoardAsync(Guid vacancyId, IReadOnlyList<Guid> hypothesisIds, CancellationToken cancellationToken = default)
+  public async Task MoveToBoardAsync(Guid vacancyId, IReadOnlyList<Guid> trackIds, CancellationToken cancellationToken = default)
   {
     await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
     var vacancy = await FindVacancyAsync(db, vacancyId, cancellationToken);
     EnsureStage(vacancy, VacancyStage.Inbox);
 
-    var ids = hypothesisIds.Distinct().ToList();
+    var ids = trackIds.Distinct().ToList();
     var error = ids.Count == 0
-      ? localizer["Error.HypothesisRequired"]
-      : await FindHypothesesErrorAsync(db, ids, vacancy, vacancy.RoleId, cancellationToken);
+      ? localizer["Error.TrackRequired"]
+      : await FindTracksErrorAsync(db, ids, vacancy, vacancy.RoleId, cancellationToken);
     if (error is not null)
     {
-      throw new ValidationFailedException(new Dictionary<string, string> { [nameof(VacancyInput.HypothesisIds)] = error });
+      throw new ValidationFailedException(new Dictionary<string, string> { [nameof(VacancyInput.TrackIds)] = error });
     }
 
     ReplaceMatches(vacancy, ids);
@@ -299,7 +299,7 @@ public partial class VacancyService(
     vacancy.Salary = normalized.Salary;
     vacancy.Description = normalized.Description;
     vacancy.Notes = normalized.Notes;
-    ReplaceMatches(vacancy, normalized.HypothesisIds);
+    ReplaceMatches(vacancy, normalized.TrackIds);
   }
 
   // The UI acts on a list that may be stale (another tab or device moved the vacancy meanwhile).
@@ -313,16 +313,16 @@ public partial class VacancyService(
     });
   }
 
-  private static void ReplaceMatches(Vacancy vacancy, List<Guid> hypothesisIds)
+  private static void ReplaceMatches(Vacancy vacancy, List<Guid> trackIds)
   {
-    foreach (var hypothesisId in hypothesisIds.Where(id => vacancy.Matches.All(m => m.HypothesisId != id)))
+    foreach (var trackId in trackIds.Where(id => vacancy.Matches.All(m => m.TrackId != id)))
     {
-      vacancy.SetMatch(hypothesisId, null, null, MatchAuthor.Human);
+      vacancy.SetMatch(trackId, null, null, MatchAuthor.Human);
     }
 
-    foreach (var hypothesisId in vacancy.Matches.Select(m => m.HypothesisId).Where(id => !hypothesisIds.Contains(id)).ToList())
+    foreach (var trackId in vacancy.Matches.Select(m => m.TrackId).Where(id => !trackIds.Contains(id)).ToList())
     {
-      vacancy.RemoveMatch(hypothesisId);
+      vacancy.RemoveMatch(trackId);
     }
   }
 
@@ -334,32 +334,32 @@ public partial class VacancyService(
       .FirstOrDefaultAsync(cancellationToken);
   }
 
-  private async Task<string?> FindHypothesesErrorAsync(
+  private async Task<string?> FindTracksErrorAsync(
     IKarajobDbContext db,
-    List<Guid> hypothesisIds,
+    List<Guid> trackIds,
     Vacancy? existing,
     Guid? roleId,
     CancellationToken cancellationToken)
   {
-    var knownHypotheses = await db.Hypotheses
-      .Where(h => hypothesisIds.Contains(h.Id))
+    var knownTracks = await db.Tracks
+      .Where(h => trackIds.Contains(h.Id))
       .Select(h => new { h.Id, h.Status, h.RoleId })
       .ToListAsync(cancellationToken);
-    if (knownHypotheses.Count != hypothesisIds.Count)
+    if (knownTracks.Count != trackIds.Count)
     {
-      return localizer["Error.HypothesisNotFound"];
+      return localizer["Error.TrackNotFound"];
     }
 
-    // The applied hypothesis can't be unselected, so exempting it keeps a vacancy with an application editable.
-    var appliedId = existing?.Application?.HypothesisId;
-    if (roleId is not null && knownHypotheses.Any(h => h.RoleId != roleId && h.Id != appliedId))
+    // The applied track can't be unselected, so exempting it keeps a vacancy with an application editable.
+    var appliedId = existing?.Application?.TrackId;
+    if (roleId is not null && knownTracks.Any(h => h.RoleId != roleId && h.Id != appliedId))
     {
-      return localizer["Error.HypothesisRoleMismatch"];
+      return localizer["Error.TrackRoleMismatch"];
     }
 
-    var addsDisabled = knownHypotheses.Any(h => h.Status == HypothesisStatus.Disabled
-      && (existing is null || existing.Matches.All(m => m.HypothesisId != h.Id)));
-    return addsDisabled ? localizer["Error.HypothesisDisabled"].Value : null;
+    var addsDisabled = knownTracks.Any(h => h.Status == TrackStatus.Disabled
+      && (existing is null || existing.Matches.All(m => m.TrackId != h.Id)));
+    return addsDisabled ? localizer["Error.TrackDisabled"].Value : null;
   }
 
   private async Task<NormalizedVacancy> ValidateAsync(
@@ -436,16 +436,16 @@ public partial class VacancyService(
       }
     }
 
-    var hypothesisIds = input.HypothesisIds.Distinct().ToList();
-    var hypothesesError = await FindHypothesesErrorAsync(db, hypothesisIds, existing, input.RoleId, cancellationToken);
-    if (hypothesesError is null && existing is not null)
+    var trackIds = input.TrackIds.Distinct().ToList();
+    var tracksError = await FindTracksErrorAsync(db, trackIds, existing, input.RoleId, cancellationToken);
+    if (tracksError is null && existing is not null)
     {
-      hypothesesError = FindMatchRemovalError(existing, hypothesisIds);
+      tracksError = FindMatchRemovalError(existing, trackIds);
     }
 
-    if (hypothesesError is not null)
+    if (tracksError is not null)
     {
-      errors[nameof(VacancyInput.HypothesisIds)] = hypothesesError;
+      errors[nameof(VacancyInput.TrackIds)] = tracksError;
     }
 
     if (errors.Count > 0)
@@ -464,23 +464,23 @@ public partial class VacancyService(
       input.LanguageId,
       input.WorkFormat is null or WorkFormat.None ? null : input.WorkFormat,
       salary,
-      hypothesisIds,
+      trackIds,
       BlankToNull(input.Description),
       BlankToNull(input.Notes));
   }
 
-  private string? FindMatchRemovalError(Vacancy vacancy, List<Guid> hypothesisIds)
+  private string? FindMatchRemovalError(Vacancy vacancy, List<Guid> trackIds)
   {
-    var removed = vacancy.Matches.Select(m => m.HypothesisId).Where(id => !hypothesisIds.Contains(id)).ToList();
-    if (vacancy.Application is { } application && removed.Contains(application.HypothesisId))
+    var removed = vacancy.Matches.Select(m => m.TrackId).Where(id => !trackIds.Contains(id)).ToList();
+    if (vacancy.Application is { } application && removed.Contains(application.TrackId))
     {
       return localizer["Error.CannotUnmatchApplied"];
     }
 
     var onBoard = vacancy.Stage is not (VacancyStage.Inbox or VacancyStage.Dismissed);
-    if (onBoard && removed.Count > 0 && hypothesisIds.Count == 0)
+    if (onBoard && removed.Count > 0 && trackIds.Count == 0)
     {
-      return localizer["Error.BoardNeedsHypothesis"];
+      return localizer["Error.BoardNeedsTrack"];
     }
 
     return null;
@@ -518,14 +518,14 @@ public partial class VacancyService(
       vacancy.Salary?.Min,
       vacancy.Salary?.Max,
       vacancy.Salary?.Currency,
-      vacancy.Matches.Select(m => m.HypothesisId).ToList(),
+      vacancy.Matches.Select(m => m.TrackId).ToList(),
       vacancy.Description,
       vacancy.Notes,
       vacancy.Source,
       vacancy.Stage,
       vacancy.DismissReason,
       vacancy.DiscoveredAt,
-      vacancy.Application?.HypothesisId,
+      vacancy.Application?.TrackId,
       vacancy.Application?.CoverLetter,
       vacancy.Events.OrderByDescending(e => e.OccurredAt).Select(ToItem).ToList(),
       similar,
@@ -610,7 +610,7 @@ public partial class VacancyService(
     Guid? LanguageId,
     WorkFormat? WorkFormat,
     SalaryRange? Salary,
-    List<Guid> HypothesisIds,
+    List<Guid> TrackIds,
     string? Description,
     string? Notes);
 }

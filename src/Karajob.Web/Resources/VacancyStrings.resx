@@ -46,9 +46,9 @@
   <data name="Event.Type" xml:space="preserve"><value>Type</value></data>
   <data name="Event.Date" xml:space="preserve"><value>Date</value></data>
   <data name="Event.Note" xml:space="preserve"><value>Note</value></data>
-  <data name="Apply.NoHypotheses" xml:space="preserve"><value>The vacancy has no matching hypotheses. Link the vacancy to a hypothesis to apply.</value></data>
+  <data name="Apply.NoTracks" xml:space="preserve"><value>The vacancy has no matching tracks. Link the vacancy to a track to apply.</value></data>
   <data name="Apply.NoCv" xml:space="preserve"><value>No CVs uploaded. Upload a CV to apply.</value></data>
-  <data name="Apply.Hypothesis" xml:space="preserve"><value>Hypothesis</value></data>
+  <data name="Apply.Track" xml:space="preserve"><value>Track</value></data>
   <data name="Apply.Channel" xml:space="preserve"><value>Channel</value></data>
   <data name="Apply.Date" xml:space="preserve"><value>Application date</value></data>
   <data name="Apply.CoverLetter" xml:space="preserve"><value>Cover letter</value></data>
@@ -62,8 +62,8 @@
   <data name="CreateCompany.Submit" xml:space="preserve"><value>Create</value></data>
   <data name="DismissDialog.Reason" xml:space="preserve"><value>Reason</value></data>
   <data name="DismissDialog.Comment" xml:space="preserve"><value>Comment (optional)</value></data>
-  <data name="MoveToBoard.Matching" xml:space="preserve"><value>Matching hypotheses</value></data>
-  <data name="MoveToBoard.NoHypotheses" xml:space="preserve"><value>Create a hypothesis first</value></data>
+  <data name="MoveToBoard.Matching" xml:space="preserve"><value>Matching tracks</value></data>
+  <data name="MoveToBoard.NoTracks" xml:space="preserve"><value>Create a track first</value></data>
   <data name="MoveToBoard.Submit" xml:space="preserve"><value>To board</value></data>
   <data name="Timeline.Title" xml:space="preserve"><value>History</value></data>
   <data name="Timeline.Add" xml:space="preserve"><value>Add event</value></data>
@@ -96,9 +96,9 @@
   <data name="Page.SalaryMin" xml:space="preserve"><value>Salary from</value></data>
   <data name="Page.SalaryMax" xml:space="preserve"><value>Salary to</value></data>
   <data name="Page.Currency" xml:space="preserve"><value>Currency</value></data>
-  <data name="Page.Hypotheses" xml:space="preserve"><value>Matching hypotheses</value></data>
-  <data name="Page.NoHypotheses" xml:space="preserve"><value>Create a hypothesis first</value></data>
-  <data name="Page.NoHypothesesForRole" xml:space="preserve"><value>No hypotheses for this role</value></data>
+  <data name="Page.Tracks" xml:space="preserve"><value>Matching tracks</value></data>
+  <data name="Page.NoTracks" xml:space="preserve"><value>Create a track first</value></data>
+  <data name="Page.NoTracksForRole" xml:space="preserve"><value>No tracks for this role</value></data>
   <data name="Page.Description" xml:space="preserve"><value>Description</value></data>
   <data name="Page.Notes" xml:space="preserve"><value>Notes</value></data>
   <data name="Page.Saved" xml:space="preserve"><value>Saved</value></data>

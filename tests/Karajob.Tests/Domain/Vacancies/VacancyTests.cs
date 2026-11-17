@@ -88,30 +88,30 @@ public class VacancyTests
   }
 
   [Fact]
-  public void SetMatch_NewHypothesis_AddsMatchWithAllFields()
+  public void SetMatch_NewTrack_AddsMatchWithAllFields()
   {
     var vacancy = Create();
-    var hypothesisId = Guid.NewGuid();
+    var trackId = Guid.NewGuid();
 
-    var match = vacancy.SetMatch(hypothesisId, 80, "fits", MatchAuthor.Human);
+    var match = vacancy.SetMatch(trackId, 80, "fits", MatchAuthor.Human);
 
     Assert.Same(match, Assert.Single(vacancy.Matches));
     Assert.Equal(vacancy.Id, match.VacancyId);
     Assert.Equal(vacancy.UserId, match.UserId);
-    Assert.Equal(hypothesisId, match.HypothesisId);
+    Assert.Equal(trackId, match.TrackId);
     Assert.Equal(80, match.Score);
     Assert.Equal("fits", match.Rationale);
     Assert.Equal(MatchAuthor.Human, match.MatchedBy);
   }
 
   [Fact]
-  public void SetMatch_SameHypothesisAgain_UpdatesExistingMatch()
+  public void SetMatch_SameTrackAgain_UpdatesExistingMatch()
   {
     var vacancy = Create();
-    var hypothesisId = Guid.NewGuid();
-    var first = vacancy.SetMatch(hypothesisId, 80, "fits", MatchAuthor.Human);
+    var trackId = Guid.NewGuid();
+    var first = vacancy.SetMatch(trackId, 80, "fits", MatchAuthor.Human);
 
-    var second = vacancy.SetMatch(hypothesisId, 60, "meh", MatchAuthor.Ai);
+    var second = vacancy.SetMatch(trackId, 60, "meh", MatchAuthor.Ai);
 
     Assert.Same(first, second);
     Assert.Single(vacancy.Matches);
@@ -144,7 +144,7 @@ public class VacancyTests
   }
 
   [Fact]
-  public void SetMatch_EmptyHypothesisId_Throws()
+  public void SetMatch_EmptyTrackId_Throws()
   {
     var vacancy = Create();
 
@@ -152,13 +152,13 @@ public class VacancyTests
   }
 
   [Fact]
-  public void RemoveMatch_ExistingHypothesis_RemovesMatch()
+  public void RemoveMatch_ExistingTrack_RemovesMatch()
   {
     var vacancy = Create();
-    var hypothesisId = Guid.NewGuid();
-    vacancy.SetMatch(hypothesisId, 50, null, MatchAuthor.Human);
+    var trackId = Guid.NewGuid();
+    vacancy.SetMatch(trackId, 50, null, MatchAuthor.Human);
 
-    vacancy.RemoveMatch(hypothesisId);
+    vacancy.RemoveMatch(trackId);
 
     Assert.Empty(vacancy.Matches);
   }

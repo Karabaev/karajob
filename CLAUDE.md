@@ -1,6 +1,6 @@
 # Karajob
 
-A family job-search tracker: hypotheses → vacancies → applications → metrics → a decision on the hypothesis.
+A family job-search tracker: tracks → vacancies → applications → metrics → a decision on the track.
 
 - Full design document: `docs/design.md`
 - Work plan and per-day checklists: `docs/roadmap.md`
@@ -28,7 +28,7 @@ Before starting any task, check `docs/roadmap.md`. **Phase 0.5 is in progress no
 ## Solution structure
 
 - `Karajob.Domain` — entities, stage transition rules, no dependencies on EF or ASP.NET
-- `Karajob.Application` — scenario services (`VacancyService`, `ApplicationService`, `HypothesisService`, `IngestService`). The UI, REST and (later) MCP call only these.
+- `Karajob.Application` — scenario services (`VacancyService`, `ApplicationService`, `TrackService`, `IngestService`). The UI, REST and (later) MCP call only these.
 - `Karajob.Infrastructure` — EF Core, files, external clients
 - `Karajob.Migrations.Sqlite` — EF Core migrations for SQLite (one project per provider); created only via `scripts/add-migration.ps1`
 - `Karajob.Web` — Blazor pages, Minimal API, composition root
@@ -51,7 +51,7 @@ Domain  →  nothing (BCL only)
 ## Rules
 
 - Business logic (deduplication, stage transition rules, required fields) lives only in Domain/Application, never in Razor components.
-- Every vacancy stage transition writes an `ApplicationEvent`. Moving to Applied requires a hypothesis and a CV version; moving to Closed requires an outcome (Offer / Rejected / Ghosted / Withdrawn).
+- Every vacancy stage transition writes an `ApplicationEvent`. Moving to Applied requires a track and a CV version; moving to Closed requires an outcome (Offer / Rejected / Ghosted / Withdrawn).
 - PostgreSQL compatibility in the future: no raw SQL; time is UTC `DateTime` (not `DateTimeOffset`); money is integers (not `decimal`); slugs, domains and URLs are normalized to lowercase in code before writing.
 - All user data has a `UserId` (EF Core global filter). Companies and projects are shared reference data.
 - A company is identified by slug and matched by domains and aliases.

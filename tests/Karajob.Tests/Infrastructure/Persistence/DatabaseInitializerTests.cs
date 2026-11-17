@@ -1,5 +1,5 @@
 using Karajob.Application.Users;
-using Karajob.Domain.Hypotheses;
+using Karajob.Domain.Tracks;
 using Karajob.Domain.Vacancies;
 using Karajob.Infrastructure.Persistence;
 using Karajob.Infrastructure.Users;
@@ -103,7 +103,7 @@ public class DatabaseInitializerTests : IAsyncLifetime
     var stageCounts = vacancies.GroupBy(v => v.Stage).ToDictionary(g => g.Key, g => g.Count());
 
     Assert.Equal(1, await context.Users.CountAsync());
-    Assert.Equal(3, await context.Hypotheses.CountAsync());
+    Assert.Equal(3, await context.Tracks.CountAsync());
     Assert.Equal(10, vacancies.Count);
     Assert.Equal(2, stageCounts[VacancyStage.Inbox]);
     Assert.Equal(2, stageCounts[VacancyStage.Targeted]);
@@ -135,15 +135,15 @@ public class DatabaseInitializerTests : IAsyncLifetime
     var firstFactory = first.GetRequiredService<IDbContextFactory<KarajobDbContext>>();
     await using (var context = await firstFactory.CreateDbContextAsync())
     {
-      context.Hypotheses.Add(new Hypothesis(SeedData.OwnerId, "Extra", SeedData.UnityDeveloperRoleId, SeedData.EnglishLanguageId, Now.UtcDateTime));
+      context.Tracks.Add(new Track(SeedData.OwnerId, "Extra", SeedData.UnityDeveloperRoleId, SeedData.EnglishLanguageId, Now.UtcDateTime));
       await context.SaveChangesAsync();
     }
 
     var secondFactory = second.GetRequiredService<IDbContextFactory<KarajobDbContext>>();
     await using var secondContext = await secondFactory.CreateDbContextAsync();
     await using var firstContext = await firstFactory.CreateDbContextAsync();
-    Assert.Equal(3, await secondContext.Hypotheses.CountAsync());
-    Assert.Equal(4, await firstContext.Hypotheses.CountAsync());
+    Assert.Equal(3, await secondContext.Tracks.CountAsync());
+    Assert.Equal(4, await firstContext.Tracks.CountAsync());
   }
 
   private ServiceProvider BuildFileProvider()

@@ -1,13 +1,13 @@
 using Karajob.Application.Catalogs;
 using Karajob.Application.Companies;
 using Karajob.Application.Cvs;
-using Karajob.Application.Hypotheses;
+using Karajob.Application.Tracks;
 using Karajob.Application.Vacancies;
-using Karajob.Domain.Hypotheses;
+using Karajob.Domain.Tracks;
 using Karajob.Domain.Vacancies;
 using Karajob.Infrastructure.Persistence;
 using Karajob.Tests.Application.Cvs;
-using Karajob.Tests.Application.Hypotheses;
+using Karajob.Tests.Application.Tracks;
 using Karajob.Tests.Infrastructure.Persistence;
 
 namespace Karajob.Tests.Application.Users;
@@ -44,14 +44,14 @@ public class ProfileIsolationTests : IAsyncLifetime
   }
 
   [Fact]
-  public async Task Hypotheses_CreatedByOwner_AreInvisibleToOtherProfile()
+  public async Task Tracks_CreatedByOwner_AreInvisibleToOtherProfile()
   {
-    var ownerHypotheses = HypothesesFor(SeedData.OwnerId);
-    var created = await ownerHypotheses.CreateAsync(NewHypothesis("Owner hypothesis"));
+    var ownerTracks = TracksFor(SeedData.OwnerId);
+    var created = await ownerTracks.CreateAsync(NewTrack("Owner track"));
 
-    Assert.Empty(await HypothesesFor(_otherId).ListAsync());
-    Assert.Null(await HypothesesFor(_otherId).FindAsync(created.Id));
-    Assert.Single(await ownerHypotheses.ListAsync());
+    Assert.Empty(await TracksFor(_otherId).ListAsync());
+    Assert.Null(await TracksFor(_otherId).FindAsync(created.Id));
+    Assert.Single(await ownerTracks.ListAsync());
   }
 
   [Fact]
@@ -136,9 +136,9 @@ public class ProfileIsolationTests : IAsyncLifetime
     return new VacancyInput(url, null, null, null, null, [], [], null, null, null, null, null, [], null, null);
   }
 
-  private static HypothesisInput NewHypothesis(string name)
+  private static TrackInput NewTrack(string name)
   {
-    return new HypothesisInput(name, SeedData.UnityDeveloperRoleId, [], [], [], [], WorkFormat.Remote, SeedData.RussianLanguageId, null, null, HypothesisStatus.Draft);
+    return new TrackInput(name, SeedData.UnityDeveloperRoleId, [], [], [], [], WorkFormat.Remote, SeedData.RussianLanguageId, null, null, TrackStatus.Draft);
   }
 
   private static CompanyInput NewCompany(string slug, string name)
@@ -156,9 +156,9 @@ public class ProfileIsolationTests : IAsyncLifetime
     return TestDbContextFactory.CreateVacancyService(_database, userId, _clock);
   }
 
-  private HypothesisService HypothesesFor(Guid userId)
+  private TrackService TracksFor(Guid userId)
   {
-    return TestDbContextFactory.CreateHypothesisService(_database, userId, _clock);
+    return TestDbContextFactory.CreateTrackService(_database, userId, _clock);
   }
 
   private CvService CvsFor(Guid userId)

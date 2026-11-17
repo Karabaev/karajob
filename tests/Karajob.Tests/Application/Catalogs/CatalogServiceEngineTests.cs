@@ -2,7 +2,7 @@ using Karajob.Application.Catalogs;
 using Karajob.Application.Common;
 using Karajob.Domain.Companies;
 using Karajob.Domain.Goals;
-using Karajob.Domain.Hypotheses;
+using Karajob.Domain.Tracks;
 using Karajob.Domain.Vacancies;
 using Karajob.Infrastructure.Persistence;
 using Karajob.Tests.Infrastructure.Persistence;
@@ -129,18 +129,18 @@ public class CatalogServiceEngineTests : CatalogServiceFixture
   }
 
   [Fact]
-  public async Task DeleteAsync_EngineUsedByHypothesis_ThrowsValidationWithEmptyKeyAndKeepsIt()
+  public async Task DeleteAsync_EngineUsedByTrack_ThrowsValidationWithEmptyKeyAndKeepsIt()
   {
-    await AddHypothesisWithEngineAsync(SeedData.OwnerId, SeedData.UnrealEngineId);
+    await AddTrackWithEngineAsync(SeedData.OwnerId, SeedData.UnrealEngineId);
 
     await AssertDeleteBlockedAsync(SeedData.UnrealEngineId);
   }
 
   [Fact]
-  public async Task DeleteAsync_EngineUsedByHypothesisOfAnotherUser_ThrowsValidationWithEmptyKey()
+  public async Task DeleteAsync_EngineUsedByTrackOfAnotherUser_ThrowsValidationWithEmptyKey()
   {
     var other = await PersistenceFixtures.AddUserAsync(Database);
-    await AddHypothesisWithEngineAsync(other.Id, SeedData.UnrealEngineId);
+    await AddTrackWithEngineAsync(other.Id, SeedData.UnrealEngineId);
 
     await AssertDeleteBlockedAsync(SeedData.UnrealEngineId);
   }
@@ -187,12 +187,12 @@ public class CatalogServiceEngineTests : CatalogServiceFixture
     Assert.Contains(await Service.ListAsync(CatalogKind.Engine), i => i.Id == id);
   }
 
-  private async Task AddHypothesisWithEngineAsync(Guid userId, Guid engineId)
+  private async Task AddTrackWithEngineAsync(Guid userId, Guid engineId)
   {
-    var hypothesis = new Hypothesis(userId, "Hypo", SeedData.UnrealDeveloperRoleId, SeedData.RussianLanguageId, Moment);
-    hypothesis.SetEngines([engineId]);
+    var track = new Track(userId, "Hypo", SeedData.UnrealDeveloperRoleId, SeedData.RussianLanguageId, Moment);
+    track.SetEngines([engineId]);
     await using var context = Database.CreateContext(userId);
-    context.Hypotheses.Add(hypothesis);
+    context.Tracks.Add(track);
     await context.SaveChangesAsync();
   }
 

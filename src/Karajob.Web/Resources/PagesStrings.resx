@@ -5,8 +5,8 @@
   <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <data name="Pages.Board" xml:space="preserve"><value>Board</value></data>
-  <data name="Pages.Hypothesis" xml:space="preserve"><value>Hypothesis</value></data>
-  <data name="Pages.AllHypotheses" xml:space="preserve"><value>All hypotheses</value></data>
+  <data name="Pages.Track" xml:space="preserve"><value>Track</value></data>
+  <data name="Pages.AllTracks" xml:space="preserve"><value>All tracks</value></data>
   <data name="Pages.Collapse" xml:space="preserve"><value>Collapse</value></data>
   <data name="Pages.Show" xml:space="preserve"><value>Show</value></data>
   <data name="Pages.ApplyTitle" xml:space="preserve"><value>Application</value></data>
@@ -33,9 +33,9 @@
   <data name="Pages.Tags" xml:space="preserve"><value>Tags</value></data>
   <data name="Pages.Versions" xml:space="preserve"><value>Versions</value></data>
   <data name="Pages.Updated" xml:space="preserve"><value>Updated</value></data>
-  <data name="Pages.Hypotheses" xml:space="preserve"><value>Hypotheses</value></data>
-  <data name="Pages.AddHypothesis" xml:space="preserve"><value>+ Hypothesis</value></data>
-  <data name="Pages.NoHypotheses" xml:space="preserve"><value>No hypotheses yet.</value></data>
+  <data name="Pages.Tracks" xml:space="preserve"><value>Tracks</value></data>
+  <data name="Pages.AddTrack" xml:space="preserve"><value>+ Track</value></data>
+  <data name="Pages.NoTracks" xml:space="preserve"><value>No tracks yet.</value></data>
   <data name="Pages.Role" xml:space="preserve"><value>Role</value></data>
   <data name="Pages.Format" xml:space="preserve"><value>Format</value></data>
   <data name="Pages.Status" xml:space="preserve"><value>Status</value></data>
@@ -68,7 +68,7 @@
   <data name="Pages.ConversionThreshold" xml:space="preserve"><value>Conversion threshold, %</value></data>
   <data name="Pages.ConversionThresholdHelp" xml:space="preserve"><value>What share of applications with a response counts as good</value></data>
   <data name="Pages.MinSample" xml:space="preserve"><value>Minimum application sample</value></data>
-  <data name="Pages.MinSampleHelp" xml:space="preserve"><value>Until there are this many applications, it is too early to draw conclusions about a hypothesis</value></data>
+  <data name="Pages.MinSampleHelp" xml:space="preserve"><value>Until there are this many applications, it is too early to draw conclusions about a track</value></data>
   <data name="Pages.MaturationDays" xml:space="preserve"><value>Application maturation, days</value></data>
   <data name="Pages.MaturationDaysHelp" xml:space="preserve"><value>After how many days without a response an application is considered matured</value></data>
   <data name="Pages.Save" xml:space="preserve"><value>Save</value></data>
@@ -82,7 +82,7 @@
   <data name="Pages.Search" xml:space="preserve"><value>Search</value></data>
   <data name="Pages.ColVacancy" xml:space="preserve"><value>Vacancy</value></data>
   <data name="Pages.ColStatus" xml:space="preserve"><value>Status</value></data>
-  <data name="Pages.ColHypothesis" xml:space="preserve"><value>Hypothesis</value></data>
+  <data name="Pages.ColTrack" xml:space="preserve"><value>Track</value></data>
   <data name="Pages.ColCv" xml:space="preserve"><value>CV</value></data>
   <data name="Pages.ColChannel" xml:space="preserve"><value>Channel</value></data>
   <data name="Pages.ColApplied" xml:space="preserve"><value>Applied</value></data>
@@ -92,10 +92,10 @@
   <data name="Pages.ReopenTitle" xml:space="preserve"><value>Reopen vacancy</value></data>
   <data name="Pages.NoApplications" xml:space="preserve"><value>No applications found</value></data>
   <data name="Pages.WellBeingThreshold" xml:space="preserve"><value>Well-being threshold</value></data>
-  <data name="Pages.WellBeingThresholdHelp" xml:space="preserve"><value>From 1 to 5. Two consecutive check-ins at or below this average signal that the hypothesis is not a personal fit</value></data>
+  <data name="Pages.WellBeingThresholdHelp" xml:space="preserve"><value>From 1 to 5. Two consecutive check-ins at or below this average signal that the track is not a personal fit</value></data>
   <data name="WeeklyReview.Title" xml:space="preserve"><value>Weekly Review</value></data>
   <data name="WeeklyReview.Goal" xml:space="preserve"><value>Applications this week</value></data>
-  <data name="WeeklyReview.GoalCaption" xml:space="preserve"><value>Across all hypotheses, against the weekly target</value></data>
+  <data name="WeeklyReview.GoalCaption" xml:space="preserve"><value>Across all tracks, against the weekly target</value></data>
   <data name="WeeklyReview.OfCount" xml:space="preserve"><value>{0} of {1}</value></data>
   <data name="WeeklyReview.Stale" xml:space="preserve"><value>Stale applications</value></data>
   <data name="WeeklyReview.StaleCaption" xml:space="preserve"><value>No events for {0} days or more</value></data>
@@ -105,11 +105,11 @@
   <data name="WeeklyReview.Ghosted" xml:space="preserve"><value>Ghosted</value></data>
   <data name="WeeklyReview.GhostedDone" xml:space="preserve"><value>Application closed as ghosted</value></data>
   <data name="WeeklyReview.VacancyGone" xml:space="preserve"><value>The vacancy no longer exists</value></data>
-  <data name="WeeklyReview.Hypotheses" xml:space="preserve"><value>Hypotheses</value></data>
-  <data name="WeeklyReview.HypothesesEmpty" xml:space="preserve"><value>No active hypotheses</value></data>
+  <data name="WeeklyReview.Tracks" xml:space="preserve"><value>Tracks</value></data>
+  <data name="WeeklyReview.TracksEmpty" xml:space="preserve"><value>No active tracks</value></data>
   <data name="WeeklyReview.CheckedIn" xml:space="preserve"><value>Checked in</value></data>
   <data name="WeeklyReview.CheckIn" xml:space="preserve"><value>Check in</value></data>
   <data name="WeeklyReview.CheckInTitle" xml:space="preserve"><value>Weekly check-in</value></data>
   <data name="WeeklyReview.Decision" xml:space="preserve"><value>Decide</value></data>
-  <data name="WeeklyReview.DecisionTitle" xml:space="preserve"><value>Decision on the hypothesis</value></data>
+  <data name="WeeklyReview.DecisionTitle" xml:space="preserve"><value>Decision on the track</value></data>
 </root>

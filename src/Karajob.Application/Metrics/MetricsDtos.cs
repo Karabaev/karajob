@@ -2,8 +2,8 @@ using Karajob.Domain.Metrics;
 
 namespace Karajob.Application.Metrics;
 
-public record HypothesisMetrics(
-  Guid HypothesisId,
+public record TrackMetrics(
+  Guid TrackId,
   DateTime PeriodStart,
   DateTime AsOf,
   CalendarWeek Week,

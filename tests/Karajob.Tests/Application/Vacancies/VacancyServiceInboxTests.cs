@@ -1,7 +1,7 @@
 using Karajob.Application.Common;
 using Karajob.Application.Vacancies;
 using Karajob.Domain.Applications;
-using Karajob.Domain.Hypotheses;
+using Karajob.Domain.Tracks;
 using Karajob.Domain.Vacancies;
 using Karajob.Infrastructure.Persistence;
 using Karajob.Tests.Infrastructure.Persistence;
@@ -13,25 +13,25 @@ public class VacancyServiceInboxTests : VacancyServiceFixture
   [Fact]
   public async Task MoveToBoardAsync_FromInbox_MovesToTargetedWithHumanMatches()
   {
-    var first = await CreateHypothesisAsync("First");
-    var second = await CreateHypothesisAsync("Second");
+    var first = await CreateTrackAsync("First");
+    var second = await CreateTrackAsync("Second");
     var id = await AddInboxVacancyAsync();
 
     await Service.MoveToBoardAsync(id, [first, second]);
 
     var stored = await LoadAsync(id);
     Assert.Equal(VacancyStage.Targeted, stored.Stage);
-    Assert.Equal(new[] { first, second }.Order(), stored.Matches.Select(m => m.HypothesisId).Order());
+    Assert.Equal(new[] { first, second }.Order(), stored.Matches.Select(m => m.TrackId).Order());
     Assert.All(stored.Matches, m => Assert.Equal(MatchAuthor.Human, m.MatchedBy));
   }
 
   [Fact]
   public async Task MoveToBoardAsync_FromInbox_WritesStageChangedEvent()
   {
-    var hypothesisId = await CreateHypothesisAsync();
+    var trackId = await CreateTrackAsync();
     var id = await AddInboxVacancyAsync();
 
-    await Service.MoveToBoardAsync(id, [hypothesisId]);
+    await Service.MoveToBoardAsync(id, [trackId]);
 
     var stored = await LoadAsync(id);
     var stageEvent = Assert.Single(stored.Events);
@@ -43,25 +43,25 @@ public class VacancyServiceInboxTests : VacancyServiceFixture
   [Fact]
   public async Task MoveToBoardAsync_ExistingMatches_AreReplacedByGivenSet()
   {
-    var old = await CreateHypothesisAsync("Old");
-    var kept = await CreateHypothesisAsync("Kept");
-    var added = await CreateHypothesisAsync("Added");
-    var created = await Service.CreateAsync(Input(hypothesisIds: [old, kept]));
+    var old = await CreateTrackAsync("Old");
+    var kept = await CreateTrackAsync("Kept");
+    var added = await CreateTrackAsync("Added");
+    var created = await Service.CreateAsync(Input(trackIds: [old, kept]));
 
     await Service.MoveToBoardAsync(created.Id, [kept, added]);
 
     var stored = await LoadAsync(created.Id);
-    Assert.Equal(new[] { kept, added }.Order(), stored.Matches.Select(m => m.HypothesisId).Order());
+    Assert.Equal(new[] { kept, added }.Order(), stored.Matches.Select(m => m.TrackId).Order());
   }
 
   [Fact]
   public async Task MoveToBoardAsync_DismissedInAnotherTab_FailsValidationAndKeepsStage()
   {
-    var hypothesisId = await CreateHypothesisAsync();
+    var trackId = await CreateTrackAsync();
     var id = await AddInboxVacancyAsync();
     await MutateAsync(id, v => v.Dismiss(DismissReason.WrongRole, null, Now.AddHours(1)));
 
-    await Assert.ThrowsAsync<ValidationFailedException>(() => Service.MoveToBoardAsync(id, [hypothesisId]));
+    await Assert.ThrowsAsync<ValidationFailedException>(() => Service.MoveToBoardAsync(id, [trackId]));
 
     var stored = await LoadAsync(id);
     Assert.Equal(VacancyStage.Dismissed, stored.Stage);
@@ -69,47 +69,47 @@ public class VacancyServiceInboxTests : VacancyServiceFixture
   }
 
   [Fact]
-  public async Task MoveToBoardAsync_EmptyHypotheses_FailsWithHypothesisIdsError()
+  public async Task MoveToBoardAsync_EmptyTracks_FailsWithTrackIdsError()
   {
     var id = await AddInboxVacancyAsync();
 
     var ex = await Assert.ThrowsAsync<ValidationFailedException>(() => Service.MoveToBoardAsync(id, []));
 
-    Assert.Contains("HypothesisIds", ex.Errors.Keys);
+    Assert.Contains("TrackIds", ex.Errors.Keys);
     Assert.Equal(VacancyStage.Inbox, (await LoadAsync(id)).Stage);
   }
 
   [Fact]
-  public async Task MoveToBoardAsync_UnknownHypothesis_FailsWithHypothesisIdsError()
+  public async Task MoveToBoardAsync_UnknownTrack_FailsWithTrackIdsError()
   {
     var id = await AddInboxVacancyAsync();
 
     var ex = await Assert.ThrowsAsync<ValidationFailedException>(() => Service.MoveToBoardAsync(id, [Guid.NewGuid()]));
 
-    Assert.Contains("HypothesisIds", ex.Errors.Keys);
+    Assert.Contains("TrackIds", ex.Errors.Keys);
     Assert.Equal(VacancyStage.Inbox, (await LoadAsync(id)).Stage);
   }
 
   [Fact]
-  public async Task MoveToBoardAsync_DisabledHypothesisNotYetMatched_FailsWithHypothesisIdsError()
+  public async Task MoveToBoardAsync_DisabledTrackNotYetMatched_FailsWithTrackIdsError()
   {
-    var disabled = await CreateHypothesisAsync("Off", status: HypothesisStatus.Disabled);
+    var disabled = await CreateTrackAsync("Off", status: TrackStatus.Disabled);
     var id = await AddInboxVacancyAsync();
 
     var ex = await Assert.ThrowsAsync<ValidationFailedException>(() => Service.MoveToBoardAsync(id, [disabled]));
 
-    Assert.Contains("HypothesisIds", ex.Errors.Keys);
+    Assert.Contains("TrackIds", ex.Errors.Keys);
     Assert.Equal(VacancyStage.Inbox, (await LoadAsync(id)).Stage);
   }
 
   [Fact]
-  public async Task MoveToBoardAsync_DisabledHypothesisAlreadyMatched_Succeeds()
+  public async Task MoveToBoardAsync_DisabledTrackAlreadyMatched_Succeeds()
   {
-    var hypothesisId = await CreateHypothesisAsync("Soon off");
-    var created = await Service.CreateAsync(Input(hypothesisIds: [hypothesisId]));
-    await MutateHypothesisAsync(hypothesisId, h => h.Status = HypothesisStatus.Disabled);
+    var trackId = await CreateTrackAsync("Soon off");
+    var created = await Service.CreateAsync(Input(trackIds: [trackId]));
+    await MutateTrackAsync(trackId, h => h.Status = TrackStatus.Disabled);
 
-    await Service.MoveToBoardAsync(created.Id, [hypothesisId]);
+    await Service.MoveToBoardAsync(created.Id, [trackId]);
 
     Assert.Equal(VacancyStage.Targeted, (await LoadAsync(created.Id)).Stage);
   }
@@ -117,19 +117,19 @@ public class VacancyServiceInboxTests : VacancyServiceFixture
   [Fact]
   public async Task MoveToBoardAsync_AlreadyTargeted_FailsValidation()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var created = await Service.CreateAsync(Input(hypothesisIds: [hypothesisId]));
+    var trackId = await CreateTrackAsync();
+    var created = await Service.CreateAsync(Input(trackIds: [trackId]));
     await MutateAsync(created.Id, v => v.MoveTo(VacancyStage.Targeted, Now.AddHours(1)));
 
-    await Assert.ThrowsAsync<ValidationFailedException>(() => Service.MoveToBoardAsync(created.Id, [hypothesisId]));
+    await Assert.ThrowsAsync<ValidationFailedException>(() => Service.MoveToBoardAsync(created.Id, [trackId]));
   }
 
   [Fact]
   public async Task MoveToBoardAsync_UnknownVacancy_ThrowsKeyNotFound()
   {
-    var hypothesisId = await CreateHypothesisAsync();
+    var trackId = await CreateTrackAsync();
 
-    await Assert.ThrowsAsync<KeyNotFoundException>(() => Service.MoveToBoardAsync(Guid.NewGuid(), [hypothesisId]));
+    await Assert.ThrowsAsync<KeyNotFoundException>(() => Service.MoveToBoardAsync(Guid.NewGuid(), [trackId]));
   }
 
   [Fact]
@@ -172,8 +172,8 @@ public class VacancyServiceInboxTests : VacancyServiceFixture
   [Fact]
   public async Task DismissAsync_FromTargeted_MovesToDismissed()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var created = await Service.CreateAsync(Input(hypothesisIds: [hypothesisId]));
+    var trackId = await CreateTrackAsync();
+    var created = await Service.CreateAsync(Input(trackIds: [trackId]));
     await MutateAsync(created.Id, v => v.MoveTo(VacancyStage.Targeted, Now.AddHours(1)));
 
     await Service.DismissAsync(created.Id, new DismissInput(DismissReason.WrongStack, null));
@@ -184,8 +184,8 @@ public class VacancyServiceInboxTests : VacancyServiceFixture
   [Fact]
   public async Task DismissAsync_ExpectedInboxButAlreadyTargeted_FailsValidationAndKeepsStage()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var created = await Service.CreateAsync(Input(hypothesisIds: [hypothesisId]));
+    var trackId = await CreateTrackAsync();
+    var created = await Service.CreateAsync(Input(trackIds: [trackId]));
     await MutateAsync(created.Id, v => v.MoveTo(VacancyStage.Targeted, Now.AddHours(1)));
 
     await Assert.ThrowsAsync<ValidationFailedException>(
@@ -207,13 +207,13 @@ public class VacancyServiceInboxTests : VacancyServiceFixture
   [Fact]
   public async Task DismissAsync_FromApplied_FailsValidationAndKeepsStage()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var created = await Service.CreateAsync(Input(hypothesisIds: [hypothesisId]));
+    var trackId = await CreateTrackAsync();
+    var created = await Service.CreateAsync(Input(trackIds: [trackId]));
     var (_, cvVersion) = await PersistenceFixtures.AddCvAsync(Database, SeedData.OwnerId);
     await MutateAsync(created.Id, v =>
     {
       v.MoveTo(VacancyStage.Targeted, Now);
-      v.Apply(hypothesisId, cvVersion.Id, ApplicationChannel.Website, Now.AddHours(1), null);
+      v.Apply(trackId, cvVersion.Id, ApplicationChannel.Website, Now.AddHours(1), null);
     });
 
     await Assert.ThrowsAsync<ValidationFailedException>(() =>

@@ -1,6 +1,6 @@
 using Karajob.Domain.Common;
 using Karajob.Infrastructure.Users;
-using Karajob.Tests.Application.Hypotheses;
+using Karajob.Tests.Application.Tracks;
 using Karajob.Web.Components.Common;
 
 namespace Karajob.Tests.Web.Components.Common;

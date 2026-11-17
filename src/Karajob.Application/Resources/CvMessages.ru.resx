@@ -7,7 +7,7 @@
   <data name="Error.VersionInUse" xml:space="preserve"><value>Версия используется в откликах — её нельзя удалить</value></data>
   <data name="Error.LastVersion" xml:space="preserve"><value>Это единственная версия — удалите CV целиком</value></data>
   <data name="Error.CvInUse" xml:space="preserve"><value>CV используется в откликах — его нельзя удалить</value></data>
-  <data name="Error.CvPrimaryInHypothesis" xml:space="preserve"><value>CV выбрано основным в гипотезе — сначала смените его там</value></data>
+  <data name="Error.CvPrimaryInTrack" xml:space="preserve"><value>CV выбрано основным в треке — сначала смените его там</value></data>
   <data name="Error.NameRequired" xml:space="preserve"><value>Укажите название</value></data>
   <data name="Error.LanguageRequired" xml:space="preserve"><value>Укажите язык</value></data>
   <data name="Error.LanguageNotFound" xml:space="preserve"><value>Язык не найден</value></data>

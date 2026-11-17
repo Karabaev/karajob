@@ -1,7 +1,7 @@
 using Karajob.Domain.Applications;
 using Karajob.Domain.Companies;
 using Karajob.Domain.Cvs;
-using Karajob.Domain.Hypotheses;
+using Karajob.Domain.Tracks;
 using Karajob.Domain.Vacancies;
 
 namespace Karajob.Infrastructure.Persistence;
@@ -13,11 +13,11 @@ public static class DevelopmentSeed
     var userId = SeedData.OwnerId;
     var start = utcNow.AddDays(-30);
 
-    var unityRu = CreateHypothesis(userId, "Unity Developer RU", SeedData.UnityDeveloperRoleId, SeedData.RussianLanguageId, WorkFormat.Remote, start);
-    var unrealRu = CreateHypothesis(userId, "Unreal Developer RU", SeedData.UnrealDeveloperRoleId, SeedData.RussianLanguageId, WorkFormat.Remote, start);
-    var unityEn = CreateHypothesis(userId, "Unity Developer EN", SeedData.UnityDeveloperRoleId, SeedData.EnglishLanguageId, WorkFormat.Remote | WorkFormat.Relocation, start);
+    var unityRu = CreateTrack(userId, "Unity Developer RU", SeedData.UnityDeveloperRoleId, SeedData.RussianLanguageId, WorkFormat.Remote, start);
+    var unrealRu = CreateTrack(userId, "Unreal Developer RU", SeedData.UnrealDeveloperRoleId, SeedData.RussianLanguageId, WorkFormat.Remote, start);
+    var unityEn = CreateTrack(userId, "Unity Developer EN", SeedData.UnityDeveloperRoleId, SeedData.EnglishLanguageId, WorkFormat.Remote | WorkFormat.Relocation, start);
     unityEn.SetLocations([SeedData.EuLocationId]);
-    context.Hypotheses.AddRange(unityRu, unrealRu, unityEn);
+    context.Tracks.AddRange(unityRu, unrealRu, unityEn);
 
     var cv = new CvDocument(userId, "Unity CV", SeedData.RussianLanguageId, start);
     var cvVersion = cv.AddVersion("unity-cv.pdf", "seed/unity-cv.pdf", "application/pdf", 120_000, "Seed version", start);
@@ -50,10 +50,10 @@ public static class DevelopmentSeed
     NewVacancy(null, SeedData.UnityDeveloperRoleId);
     NewVacancy(orbit, null);
 
-    foreach (var (company, hypothesis) in new[] { (pixel, unityRu), (northern, unrealRu) })
+    foreach (var (company, track) in new[] { (pixel, unityRu), (northern, unrealRu) })
     {
-      var targeted = NewVacancy(company, hypothesis.RoleId);
-      targeted.SetMatch(hypothesis.Id, 70, null, MatchAuthor.Human);
+      var targeted = NewVacancy(company, track.RoleId);
+      targeted.SetMatch(track.Id, 70, null, MatchAuthor.Human);
       targeted.MoveTo(VacancyStage.Targeted, At(1));
     }
 
@@ -82,14 +82,14 @@ public static class DevelopmentSeed
     await context.SaveChangesAsync(cancellationToken);
   }
 
-  private static void Apply(Vacancy vacancy, Guid hypothesisId, Guid cvVersionId, DateTime targetedAt, DateTime appliedAt)
+  private static void Apply(Vacancy vacancy, Guid trackId, Guid cvVersionId, DateTime targetedAt, DateTime appliedAt)
   {
-    vacancy.SetMatch(hypothesisId, 75, null, MatchAuthor.Human);
+    vacancy.SetMatch(trackId, 75, null, MatchAuthor.Human);
     vacancy.MoveTo(VacancyStage.Targeted, targetedAt);
-    vacancy.Apply(hypothesisId, cvVersionId, ApplicationChannel.Website, appliedAt, null);
+    vacancy.Apply(trackId, cvVersionId, ApplicationChannel.Website, appliedAt, null);
   }
 
-  private static Hypothesis CreateHypothesis(
+  private static Track CreateTrack(
     Guid userId,
     string name,
     Guid roleId,
@@ -97,14 +97,14 @@ public static class DevelopmentSeed
     WorkFormat workFormat,
     DateTime startedAt)
   {
-    var hypothesis = new Hypothesis(userId, name, roleId, languageId, startedAt)
+    var track = new Track(userId, name, roleId, languageId, startedAt)
     {
       WorkFormat = workFormat,
-      Status = HypothesisStatus.Active,
+      Status = TrackStatus.Active,
       StartedAt = startedAt,
     };
-    hypothesis.SetPlatforms([SeedData.PcPlatformId]);
-    return hypothesis;
+    track.SetPlatforms([SeedData.PcPlatformId]);
+    return track;
   }
 
   private static Company CreateCompany(string slug, string name, string domain)

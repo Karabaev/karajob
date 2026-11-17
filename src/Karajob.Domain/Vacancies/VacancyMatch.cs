@@ -7,7 +7,7 @@ public class VacancyMatch : IUserOwned
   public Guid Id { get; private set; }
   public Guid UserId { get; private set; }
   public Guid VacancyId { get; private set; }
-  public Guid HypothesisId { get; private set; }
+  public Guid TrackId { get; private set; }
   public int? Score { get; private set; }
   public string? Rationale { get; private set; }
   public MatchAuthor MatchedBy { get; private set; }
@@ -28,7 +28,7 @@ public class VacancyMatch : IUserOwned
   internal VacancyMatch(
     Guid userId,
     Guid vacancyId,
-    Guid hypothesisId,
+    Guid trackId,
     int? score,
     string? rationale,
     MatchAuthor matchedBy)
@@ -36,7 +36,7 @@ public class VacancyMatch : IUserOwned
     Id = Guid.CreateVersion7();
     UserId = Require.NotEmpty(userId);
     VacancyId = Require.NotEmpty(vacancyId);
-    HypothesisId = Require.NotEmpty(hypothesisId);
+    TrackId = Require.NotEmpty(trackId);
     Update(score, rationale, matchedBy);
   }
 }

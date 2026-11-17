@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Error.InUse" xml:space="preserve"><value>У трека есть вакансии, отклики, чек-ины или решения — вместо удаления запишите решение Disable</value></data>
+  <data name="Error.NameRequired" xml:space="preserve"><value>Укажите название</value></data>
+  <data name="Error.RoleRequired" xml:space="preserve"><value>Укажите роль</value></data>
+  <data name="Error.RoleNotFound" xml:space="preserve"><value>Роль не найдена</value></data>
+  <data name="Error.LanguageRequired" xml:space="preserve"><value>Укажите язык</value></data>
+  <data name="Error.LanguageNotFound" xml:space="preserve"><value>Язык не найден</value></data>
+  <data name="Error.LocationNotFound" xml:space="preserve"><value>Локация не найдена</value></data>
+  <data name="Error.PlatformNotFound" xml:space="preserve"><value>Платформа не найдена</value></data>
+  <data name="Error.EngineNotFound" xml:space="preserve"><value>Движок не найден</value></data>
+  <data name="Error.WorkFormatRequired" xml:space="preserve"><value>Выберите хотя бы один формат</value></data>
+  <data name="Error.CvNotFound" xml:space="preserve"><value>CV не найдено</value></data>
+  <data name="Error.StatusViaDecision" xml:space="preserve"><value>Статусы Расширен и Отключён устанавливаются только записью решения</value></data>
+  <data name="Error.StatusNotAllowed" xml:space="preserve"><value>Это возможно только для активного или расширенного трека</value></data>
+  <data name="Error.CheckInFuture" xml:space="preserve"><value>Чек-ин нельзя сделать за будущую неделю</value></data>
+  <data name="Error.MotivationRange" xml:space="preserve"><value>Мотивация должна быть от {0} до {1}</value></data>
+  <data name="Error.ConfidenceRange" xml:space="preserve"><value>Уверенность должна быть от {0} до {1}</value></data>
+  <data name="Error.ChangesRequired" xml:space="preserve"><value>Опишите, что было изменено</value></data>
+  <data name="Error.ReasonRequired" xml:space="preserve"><value>Для отключения трека нужна причина</value></data>
+  <data name="Error.DraftNotFound" xml:space="preserve"><value>Выберите существующий трек-черновик для активации</value></data>
+  <data name="Error.DraftOnlyOnDisable" xml:space="preserve"><value>Черновик можно активировать только вместе с отключением</value></data>
+</root>
