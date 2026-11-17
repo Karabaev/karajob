@@ -65,9 +65,18 @@ else if (_loaded)
               </MudTooltip>
             </MudStack>
 
-            <MudTextField T="string" Class="vacancy-url" Label="@L["Page.Url"]" Required="true" Immediate="true" spellcheck="false"
-                          @bind-Value="_url"
-                          Error="HasError(nameof(VacancyInput.Url))" ErrorText="@ErrorOf(nameof(VacancyInput.Url))" />
+            <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center">
+              <MudTextField T="string" Class="vacancy-url" Label="@L["Page.Url"]" Required="true" Immediate="true" spellcheck="false"
+                            @bind-Value="_url"
+                            Error="HasError(nameof(VacancyInput.Url))" ErrorText="@ErrorOf(nameof(VacancyInput.Url))" />
+              @if (OpenUrl is { } openUrl)
+              {
+                <MudTooltip Text="@L["Page.OpenLink"]">
+                  <MudIconButton Class="vacancy-open-link" Icon="@Icons.Material.Filled.OpenInNew" AriaLabel="@L["Page.OpenLink"]"
+                                 Href="@openUrl" Target="_blank" rel="noopener noreferrer" />
+                </MudTooltip>
+              }
+            </MudStack>
 
             <MudAutocomplete T="CompanyListItem" @key="_companyKey" Class="vacancy-company" Label="@L["Page.Company"]"
                              Value="_company" ValueChanged="OnCompanyChangedAsync"
@@ -239,6 +248,10 @@ else if (_loaded)
 
   [Parameter]
   public Guid? Id { get; set; }
+
+  private string? OpenUrl => Uri.TryCreate(_url?.Trim(), UriKind.Absolute, out var uri) && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps)
+    ? uri.AbsoluteUri
+    : null;
 
   private string Title => _details is not null ? L["Page.Title"].Value : Id is null ? L["Page.New"].Value : L["Page.NotFound"].Value;
 

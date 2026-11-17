@@ -116,6 +116,7 @@ Order: block A → block B; blocks C, D, E, G are independent after #41.
 
 - [x] #73 Vacancy title: filled from the page behind the link (og:title / `<title>`, a plain GET without AI) when a vacancy is added, editable with a "fetch from link" button, shown on Board cards and in Inbox.
 - [x] #80 Title field in the New vacancy dialog: fetched automatically when the link is entered, editable before Add; a hand-typed title is never overwritten, an empty one falls back to reading the page.
+- [x] #89 Open link button next to the URL field on the vacancy card: opens the URL currently in the field in a new tab, shown only for an absolute http(s) URL.
 
 ### H. Branding
 
