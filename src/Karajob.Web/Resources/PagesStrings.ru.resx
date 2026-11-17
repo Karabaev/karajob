@@ -93,4 +93,22 @@
   <data name="Pages.NoApplications" xml:space="preserve"><value>Откликов не найдено</value></data>
   <data name="Pages.WellBeingThreshold" xml:space="preserve"><value>Порог самочувствия</value></data>
   <data name="Pages.WellBeingThresholdHelp" xml:space="preserve"><value>От 1 до 5. Два чекина подряд со средней оценкой не выше порога — сигнал, что гипотеза не подходит лично</value></data>
+  <data name="WeeklyReview.Title" xml:space="preserve"><value>Недельный обзор</value></data>
+  <data name="WeeklyReview.Goal" xml:space="preserve"><value>Отклики за неделю</value></data>
+  <data name="WeeklyReview.GoalCaption" xml:space="preserve"><value>По всем гипотезам, относительно недельной цели</value></data>
+  <data name="WeeklyReview.OfCount" xml:space="preserve"><value>{0} из {1}</value></data>
+  <data name="WeeklyReview.Stale" xml:space="preserve"><value>Зависшие отклики</value></data>
+  <data name="WeeklyReview.StaleCaption" xml:space="preserve"><value>Нет событий {0} дн. и более</value></data>
+  <data name="WeeklyReview.StaleEmpty" xml:space="preserve"><value>Зависших откликов нет</value></data>
+  <data name="WeeklyReview.IdleDays" xml:space="preserve"><value>{0} дн. без событий</value></data>
+  <data name="WeeklyReview.AppliedOn" xml:space="preserve"><value>отклик {0}</value></data>
+  <data name="WeeklyReview.Ghosted" xml:space="preserve"><value>Игнор</value></data>
+  <data name="WeeklyReview.GhostedDone" xml:space="preserve"><value>Отклик закрыт как проигнорированный</value></data>
+  <data name="WeeklyReview.Hypotheses" xml:space="preserve"><value>Гипотезы</value></data>
+  <data name="WeeklyReview.HypothesesEmpty" xml:space="preserve"><value>Активных гипотез нет</value></data>
+  <data name="WeeklyReview.CheckedIn" xml:space="preserve"><value>Чекин сделан</value></data>
+  <data name="WeeklyReview.CheckIn" xml:space="preserve"><value>Чекин</value></data>
+  <data name="WeeklyReview.CheckInTitle" xml:space="preserve"><value>Еженедельный чекин</value></data>
+  <data name="WeeklyReview.Decision" xml:space="preserve"><value>Решение</value></data>
+  <data name="WeeklyReview.DecisionTitle" xml:space="preserve"><value>Решение по гипотезе</value></data>
 </root>

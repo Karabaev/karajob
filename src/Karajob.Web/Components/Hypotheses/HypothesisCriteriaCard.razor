@@ -9,7 +9,7 @@
   {
     <MudText Typo="Typo.body2" Class="mud-text-secondary criteria-unavailable">@L["Hypothesis.MetricsUnavailable"]</MudText>
   }
-  else if (_review is null || _activity is null)
+  else if (_review is null || (ShowActivity && _activity is null))
   {
     <MudProgressLinear Indeterminate="true" Class="mt-2" />
   }
@@ -60,18 +60,21 @@
 
       <MudDivider />
 
-      <div class="criteria-activity">
-        <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Wrap="Wrap.Wrap" Spacing="1">
-          <MudText Typo="Typo.subtitle2">@L["Hypothesis.Activity"]</MudText>
-          <MudChip T="string" Class="criteria-verdict" Size="Size.Small" Color="@MetricsText.VerdictColor(_activity.Verdict)">@MetricsText.Verdict(_activity.Verdict)</MudChip>
-        </MudStack>
-        <MudText Typo="Typo.h5">@L["Hypothesis.OfCount", _activity.Applications, _activity.WeeklyTarget]</MudText>
-        <MudText Typo="Typo.caption" Class="mud-text-secondary">
-          @L["Hypothesis.ActivityCaption", metrics.WeeklyApplications]
-        </MudText>
-      </div>
+      @if (_activity is not null)
+      {
+        <div class="criteria-activity">
+          <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Wrap="Wrap.Wrap" Spacing="1">
+            <MudText Typo="Typo.subtitle2">@L["Hypothesis.Activity"]</MudText>
+            <MudChip T="string" Class="criteria-verdict" Size="Size.Small" Color="@MetricsText.VerdictColor(_activity.Verdict)">@MetricsText.Verdict(_activity.Verdict)</MudChip>
+          </MudStack>
+          <MudText Typo="Typo.h5">@L["Hypothesis.OfCount", _activity.Applications, _activity.WeeklyTarget]</MudText>
+          <MudText Typo="Typo.caption" Class="mud-text-secondary">
+            @L["Hypothesis.ActivityCaption", metrics.WeeklyApplications]
+          </MudText>
+        </div>
 
-      <MudDivider />
+        <MudDivider />
+      }
 
       <div class="criteria-wellbeing">
         <MudText Typo="Typo.subtitle2">@L["Hypothesis.WellBeing"]</MudText>
@@ -134,7 +137,7 @@
     try
     {
       var review = await DecisionService.GetReviewAsync(requestedId);
-      var activity = await MetricsService.GetActivityAsync();
+      var activity = ShowActivity ? await MetricsService.GetActivityAsync() : null;
       // A newer load may have started while this one awaited; only the latest result is shown.
       if (requestedId != _loadedId || requestedVersion != _loadedVersion) return;
 

@@ -11,6 +11,7 @@
   <data name="Layout.Board" xml:space="preserve"><value>Доска</value></data>
   <data name="Layout.Companies" xml:space="preserve"><value>Компании</value></data>
   <data name="Layout.Hypotheses" xml:space="preserve"><value>Гипотезы</value></data>
+  <data name="Layout.WeeklyReview" xml:space="preserve"><value>Недельный обзор</value></data>
   <data name="Layout.Catalogs" xml:space="preserve"><value>Справочники</value></data>
   <data name="Layout.MasterProfile" xml:space="preserve"><value>Мастер-профиль</value></data>
   <data name="Layout.Settings" xml:space="preserve"><value>Настройки</value></data>
