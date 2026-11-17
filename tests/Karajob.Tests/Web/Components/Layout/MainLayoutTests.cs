@@ -61,6 +61,18 @@ public class MainLayoutTests : IAsyncLifetime
   }
 
   [Fact]
+  public void Render_AppBarHasLogoLinkToRoot()
+  {
+    var cut = RenderLayout();
+
+    var link = Assert.Single(cut.FindAll(".mud-appbar a.appbar-logo"));
+    Assert.Equal(string.Empty, link.GetAttribute("href")!.Trim('/'));
+    var image = link.QuerySelector("img")!;
+    Assert.Equal("logo-horizontal.png", image.GetAttribute("src"));
+    Assert.Equal("Karajob", image.GetAttribute("alt"));
+  }
+
+  [Fact]
   public void Render_HasSingleAddVacancyButtonWithText()
   {
     var cut = RenderLayout();

@@ -2,6 +2,12 @@ h1:focus {
   outline: none;
 }
 
+.appbar-logo img {
+  display: block;
+  height: 40px;
+  width: auto;
+}
+
 .add-vacancy-fab {
   position: fixed;
   right: 16px;
