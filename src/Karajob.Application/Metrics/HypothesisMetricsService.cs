@@ -36,7 +36,7 @@ public class HypothesisMetricsService(IKarajobDbContextFactory dbContextFactory,
     var start = periodStart ?? hypothesis.PeriodStartedAt ?? hypothesis.StartedAt ?? hypothesis.CreatedAt;
     if (start > now)
     {
-      var source = periodStart is null ? "The hypothesis period (StartedAt or CreatedAt)" : "The period";
+      var source = periodStart is null ? "The hypothesis period (PeriodStartedAt, StartedAt or CreatedAt)" : "The period";
       throw new ArgumentException($"{source} starts after the metrics date.", periodStart is null ? nameof(asOf) : nameof(periodStart));
     }
 

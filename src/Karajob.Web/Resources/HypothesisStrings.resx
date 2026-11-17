@@ -78,7 +78,6 @@
   <data name="Decision.ChangesLabel" xml:space="preserve"><value>Changes: {0}</value></data>
   <data name="Decision.ReasonLabel" xml:space="preserve"><value>Reason: {0}</value></data>
   <data name="Decision.Title" xml:space="preserve"><value>Decision on the hypothesis</value></data>
-  <data name="Decision.Kind" xml:space="preserve"><value>Decision</value></data>
   <data name="Decision.Reason" xml:space="preserve"><value>Reason</value></data>
   <data name="Decision.Changes" xml:space="preserve"><value>What was changed</value></data>
   <data name="Decision.NotPersonalFit" xml:space="preserve"><value>Not a personal fit</value></data>

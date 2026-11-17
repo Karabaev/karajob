@@ -42,7 +42,8 @@ public class SettingsPageTests : SettingsWebFixture
       22,
       45,
       60,
-      21));
+      21,
+      3));
 
     var cut = Context.Render<SettingsPage>();
 
@@ -148,7 +149,8 @@ public class SettingsPageTests : SettingsWebFixture
       goal.MarketThresholdPerWeek,
       goal.ConversionThresholdPermille,
       goal.MinSampleSize,
-      goal.MaturationDays));
+      goal.MaturationDays,
+      goal.WellBeingThreshold));
 
     var cut = Context.Render<SettingsPage>();
 
@@ -244,7 +246,8 @@ public class SettingsPageTests : SettingsWebFixture
       goal.MarketThresholdPerWeek,
       goal.ConversionThresholdPermille,
       goal.MinSampleSize,
-      goal.MaturationDays));
+      goal.MaturationDays,
+      goal.WellBeingThreshold));
 
     var cut = Context.Render<SettingsPage>();
 

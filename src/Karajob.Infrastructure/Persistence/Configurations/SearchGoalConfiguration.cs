@@ -15,7 +15,7 @@ public class SearchGoalConfiguration : IEntityTypeConfiguration<SearchGoal>
     builder.HasOne<Currency>().WithMany().HasForeignKey(g => g.IncomeCurrency).HasPrincipalKey(c => c.Code).OnDelete(DeleteBehavior.Restrict);
 
     // Existing profiles get the default threshold when the column is added.
-    builder.Property(g => g.WellBeingThreshold).HasDefaultValue(2);
+    builder.Property(g => g.WellBeingThreshold).HasDefaultValue(SearchGoalDefaults.WellBeingThreshold);
 
     builder.HasMany(g => g.Locations).WithOne().HasForeignKey(l => l.SearchGoalId).OnDelete(DeleteBehavior.Cascade);
     // SetLocations diffs against the loaded collection.

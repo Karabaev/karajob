@@ -1,5 +1,6 @@
 using Karajob.Application.Goals;
 using Karajob.Application.Users;
+using Karajob.Domain.Goals;
 using Karajob.Infrastructure.Persistence;
 using Karajob.Tests.Application.Hypotheses;
 using Karajob.Tests.Infrastructure.Persistence;
@@ -43,7 +44,8 @@ public abstract class SearchGoalServiceFixture : IAsyncLifetime
       marketThresholdPerWeek,
       conversionThresholdPermille,
       minSampleSize,
-      maturationDays);
+      maturationDays,
+      SearchGoalDefaults.WellBeingThreshold);
   }
 
   protected SearchGoalService ServiceFor(Guid userId)

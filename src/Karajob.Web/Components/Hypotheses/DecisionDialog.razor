@@ -86,20 +86,50 @@
 
   protected override async Task OnInitializedAsync()
   {
-    _review = await DecisionService.GetReviewAsync(HypothesisId);
+    try
+    {
+      _review = await DecisionService.GetReviewAsync(HypothesisId);
+    }
+    catch (KeyNotFoundException)
+    {
+      CloseAsGone();
+    }
   }
 
   private async Task OnKindChangedAsync(HypothesisDecisionKind kind)
   {
     _kind = kind;
-    if (kind != HypothesisDecisionKind.Disable) return;
+    string notPersonalFit = L["Decision.NotPersonalFit"];
+    if (kind != HypothesisDecisionKind.Disable)
+    {
+      if (_reason == notPersonalFit)
+      {
+        _reason = null;
+      }
+
+      return;
+    }
 
     if (_review?.Hint == DecisionHint.Disable && string.IsNullOrWhiteSpace(_reason))
     {
-      _reason = L["Decision.NotPersonalFit"];
+      _reason = notPersonalFit;
     }
 
-    _options ??= await DecisionService.GetDisableOptionsAsync(HypothesisId);
+    try
+    {
+      _options ??= await DecisionService.GetDisableOptionsAsync(HypothesisId);
+    }
+    catch (KeyNotFoundException)
+    {
+      CloseAsGone();
+    }
+  }
+
+  // Deleted in another tab: an unhandled exception would drop the circuit; the page reloads and shows "not found".
+  private void CloseAsGone()
+  {
+    Snackbar.Add(L["Hypothesis.NotFound"], Severity.Warning);
+    MudDialog.Close(DialogResult.Ok(true));
   }
 
   private string DraftName(Guid? id)
@@ -129,7 +159,8 @@
     try
     {
       var result = await DecisionService.RecordDecisionAsync(HypothesisId, input);
-      if (result.ActiveStatus != ActiveHypothesesStatus.Ok)
+      Snackbar.Add(L["Decision.Saved"], Severity.Success);
+      if (_kind == HypothesisDecisionKind.Disable && result.ActiveStatus != ActiveHypothesesStatus.Ok)
       {
         Snackbar.Add(L["Decision.ActiveWarning"], Severity.Warning);
       }
@@ -139,6 +170,10 @@
     catch (ValidationFailedException exception)
     {
       _errors = exception.Errors;
+    }
+    catch (KeyNotFoundException)
+    {
+      CloseAsGone();
     }
     finally
     {

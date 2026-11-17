@@ -24,7 +24,7 @@ public class HypothesisDecisionService(
     var status = await FindStatusAsync(db, hypothesisId, cancellationToken);
     var now = timeProvider.GetUtcNow().UtcDateTime;
     var currentWeek = CalendarWeek.Containing(now, currentUser.TimeZone).FirstDay;
-    var week = CalendarWeek.Containing(UserTime.StartOfDayUtc(input.Day, currentUser.TimeZone), currentUser.TimeZone).FirstDay;
+    var week = CalendarWeek.MondayOf(input.Day);
 
     var errors = new Dictionary<string, string>();
     if (!ActiveHypothesesRule.IsActive(status))

@@ -91,6 +91,10 @@ public class Hypothesis : IUserOwned
       case HypothesisDecisionKind.Disable:
         Status = HypothesisStatus.Disabled;
         break;
+      case HypothesisDecisionKind.Continue:
+        break;
+      default:
+        throw new ArgumentOutOfRangeException(nameof(kind), kind, null);
     }
   }
 

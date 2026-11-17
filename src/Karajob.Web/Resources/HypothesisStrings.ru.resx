@@ -78,7 +78,6 @@
   <data name="Decision.ChangesLabel" xml:space="preserve"><value>Изменения: {0}</value></data>
   <data name="Decision.ReasonLabel" xml:space="preserve"><value>Причина: {0}</value></data>
   <data name="Decision.Title" xml:space="preserve"><value>Решение по гипотезе</value></data>
-  <data name="Decision.Kind" xml:space="preserve"><value>Решение</value></data>
   <data name="Decision.Reason" xml:space="preserve"><value>Причина</value></data>
   <data name="Decision.Changes" xml:space="preserve"><value>Что изменили</value></data>
   <data name="Decision.NotPersonalFit" xml:space="preserve"><value>Не подходит лично</value></data>

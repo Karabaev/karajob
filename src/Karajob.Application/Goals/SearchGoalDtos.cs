@@ -1,5 +1,3 @@
-using Karajob.Domain.Goals;
-
 namespace Karajob.Application.Goals;
 
 public record SearchGoalInput(
@@ -17,7 +15,7 @@ public record SearchGoalInput(
   int ConversionThresholdPermille,
   int MinSampleSize,
   int MaturationDays,
-  int WellBeingThreshold = SearchGoalDefaults.WellBeingThreshold);
+  int WellBeingThreshold);
 
 public record SearchGoalDetails(
   Guid? RoleId,
@@ -34,4 +32,4 @@ public record SearchGoalDetails(
   int ConversionThresholdPermille,
   int MinSampleSize,
   int MaturationDays,
-  int WellBeingThreshold = SearchGoalDefaults.WellBeingThreshold);
+  int WellBeingThreshold);

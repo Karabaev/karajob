@@ -1,4 +1,5 @@
 @page "/settings"
+@using Karajob.Domain.Goals
 @inject SearchGoalService SearchGoalService
 @inject CatalogService CatalogService
 @inject ISnackbar Snackbar
@@ -110,7 +111,7 @@
                              HelperText="@L["Pages.MaturationDaysHelp"]"
                              @bind-Value="_maturationDays"
                              Error="HasError(nameof(SearchGoalInput.MaturationDays))" ErrorText="@ErrorOf(nameof(SearchGoalInput.MaturationDays))" />
-            <MudNumericField T="int" Class="settings-wellbeing-threshold" Label="@L["Pages.WellBeingThreshold"]" Min="1" Max="5"
+            <MudNumericField T="int" Class="settings-wellbeing-threshold" Label="@L["Pages.WellBeingThreshold"]" Min="SearchGoal.MinWellBeingThreshold" Max="SearchGoal.MaxWellBeingThreshold"
                              HelperText="@L["Pages.WellBeingThresholdHelp"]"
                              @bind-Value="_wellBeingThreshold"
                              Error="HasError(nameof(SearchGoalInput.WellBeingThreshold))" ErrorText="@ErrorOf(nameof(SearchGoalInput.WellBeingThreshold))" />

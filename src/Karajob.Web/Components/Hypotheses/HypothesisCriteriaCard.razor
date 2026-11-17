@@ -126,10 +126,17 @@
     _notFound = false;
     _loadedId = HypothesisId;
     _loadedVersion = Version;
+    var requestedId = HypothesisId;
+    var requestedVersion = Version;
     try
     {
-      _review = await DecisionService.GetReviewAsync(HypothesisId);
-      _activity = await MetricsService.GetActivityAsync();
+      var review = await DecisionService.GetReviewAsync(requestedId);
+      var activity = await MetricsService.GetActivityAsync();
+      // A newer load may have started while this one awaited; only the latest result is shown.
+      if (requestedId != _loadedId || requestedVersion != _loadedVersion) return;
+
+      _review = review;
+      _activity = activity;
     }
     catch (KeyNotFoundException)
     {

@@ -1,5 +1,7 @@
+@using Karajob.Domain.Metrics
 @inject HypothesisDecisionService DecisionService
 @inject UserDates Dates
+@inject ISnackbar Snackbar
 
 <MudDialog>
   <DialogContent>
@@ -64,8 +66,7 @@
 
   private DateOnly WeekStart(DateTime? date)
   {
-    var day = DateOnly.FromDateTime(date ?? _today);
-    return day.AddDays(-(((int)day.DayOfWeek + 6) % 7));
+    return CalendarWeek.MondayOf(DateOnly.FromDateTime(date ?? _today));
   }
 
   private void Prefill()
@@ -109,11 +110,18 @@
     try
     {
       await DecisionService.SaveCheckInAsync(HypothesisId, input);
+      Snackbar.Add(L["CheckIn.Saved"], Severity.Success);
       MudDialog.Close(DialogResult.Ok(true));
     }
     catch (ValidationFailedException exception)
     {
       _errors = exception.Errors;
+    }
+    catch (KeyNotFoundException)
+    {
+      // Deleted in another tab: an unhandled exception would drop the circuit; the page reloads and shows "not found".
+      Snackbar.Add(L["Hypothesis.NotFound"], Severity.Warning);
+      MudDialog.Close(DialogResult.Ok(true));
     }
     finally
     {

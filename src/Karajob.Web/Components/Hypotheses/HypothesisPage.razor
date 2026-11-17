@@ -435,6 +435,7 @@ else if (_loaded)
       _errors = new Dictionary<string, string>();
       _details = saved;
       FillFields();
+      _reviewVersion++;
       Snackbar.Add(L["Hypothesis.Saved"], Severity.Success);
       if (Id != saved.Id)
       {
