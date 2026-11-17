@@ -91,4 +91,6 @@
   <data name="Pages.Reopen" xml:space="preserve"><value>Вернуть в работу</value></data>
   <data name="Pages.ReopenTitle" xml:space="preserve"><value>Вернуть вакансию в работу</value></data>
   <data name="Pages.NoApplications" xml:space="preserve"><value>Откликов не найдено</value></data>
+  <data name="Pages.WellBeingThreshold" xml:space="preserve"><value>Порог самочувствия</value></data>
+  <data name="Pages.WellBeingThresholdHelp" xml:space="preserve"><value>От 1 до 5. Два чекина подряд со средней оценкой не выше порога — сигнал, что гипотеза не подходит лично</value></data>
 </root>

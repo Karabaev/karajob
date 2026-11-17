@@ -1,0 +1,152 @@
+@inject HypothesisDecisionService DecisionService
+@inject ISnackbar Snackbar
+
+<MudDialog>
+  <DialogContent>
+    @if (_review is null)
+    {
+      <MudProgressLinear Indeterminate="true" />
+    }
+    else
+    {
+      <MudStack Spacing="2">
+        @if (_errors.TryGetValue("", out var general))
+        {
+          <MudAlert Severity="Severity.Error">@general</MudAlert>
+        }
+        <MudChip T="string" Class="decision-hint" Size="Size.Small" Color="@HypothesisText.HintColor(_review.Hint)"
+                 data-hint="@_review.Hint">@HypothesisText.Hint(_review.Hint)</MudChip>
+        @if (_review.Metrics.Conversion.IsInsufficientData)
+        {
+          <MudAlert Severity="Severity.Warning" Dense="true" Class="decision-insufficient">@L["Decision.InsufficientData"]</MudAlert>
+        }
+        <MudRadioGroup T="HypothesisDecisionKind" Class="decision-kind" Value="_kind" ValueChanged="OnKindChangedAsync">
+          @foreach (var kind in Enum.GetValues<HypothesisDecisionKind>())
+          {
+            <MudRadio T="HypothesisDecisionKind" Value="kind">@HypothesisText.DecisionKind(kind)</MudRadio>
+          }
+        </MudRadioGroup>
+        <MudTextField T="string" Class="decision-reason" Label="@L["Decision.Reason"]" Lines="2" Sizing="InputSizing.Auto"
+                      Required="@(_kind == HypothesisDecisionKind.Disable)" @bind-Value="_reason"
+                      Error="HasError(nameof(DecisionInput.Reason))" ErrorText="@ErrorOf(nameof(DecisionInput.Reason))" />
+        @if (_kind == HypothesisDecisionKind.Expand)
+        {
+          <MudTextField T="string" Class="decision-changes" Label="@L["Decision.Changes"]" Lines="3" Sizing="InputSizing.Auto"
+                        Required="true" @bind-Value="_changes"
+                        Error="HasError(nameof(DecisionInput.Changes))" ErrorText="@ErrorOf(nameof(DecisionInput.Changes))" />
+        }
+        @if (_kind == HypothesisDecisionKind.Disable && _options is not null)
+        {
+          @if (_options.Drafts.Count > 0)
+          {
+            <MudSelect T="Guid?" Class="decision-draft" Label="@L["Decision.ActivateDraft"]" @bind-Value="_draftId" ToStringFunc="DraftName"
+                       Error="HasError(nameof(DecisionInput.ActivateDraftId))" ErrorText="@ErrorOf(nameof(DecisionInput.ActivateDraftId))">
+              <MudSelectItem T="Guid?" Value="@((Guid?)null)">@L["Decision.NoDraft"]</MudSelectItem>
+              @foreach (var draft in _options.Drafts)
+              {
+                <MudSelectItem T="Guid?" Value="@((Guid?)draft.Id)">@draft.Name</MudSelectItem>
+              }
+            </MudSelect>
+          }
+
+          var activeAfter = _options.ActiveCountAfter + (_draftId is null ? 0 : 1);
+          var status = ActiveHypothesesRule.Check(activeAfter);
+          if (status != ActiveHypothesesStatus.Ok)
+          {
+            <MudAlert Severity="Severity.Warning" Dense="true" Class="decision-active-warning">
+              @(status == ActiveHypothesesStatus.TooFew ? L["Decision.TooFew", activeAfter] : L["Decision.TooMany", activeAfter])
+            </MudAlert>
+          }
+        }
+      </MudStack>
+    }
+  </DialogContent>
+  <DialogActions>
+    <MudButton OnClick="Cancel">@L["Hypothesis.Cancel"]</MudButton>
+    <MudButton Class="decision-save" Color="Color.Primary" Variant="Variant.Filled" Disabled="@(_review is null || _saving)" OnClick="SaveAsync">@L["Decision.Save"]</MudButton>
+  </DialogActions>
+</MudDialog>
+
+@code {
+  private IReadOnlyDictionary<string, string> _errors = new Dictionary<string, string>();
+  private HypothesisReview? _review;
+  private DisableOptions? _options;
+  private HypothesisDecisionKind _kind = HypothesisDecisionKind.Continue;
+  private string? _reason;
+  private string? _changes;
+  private Guid? _draftId;
+  private bool _saving;
+
+  [CascadingParameter]
+  private IMudDialogInstance MudDialog { get; set; } = null!;
+
+  [Parameter, EditorRequired]
+  public Guid HypothesisId { get; set; }
+
+  protected override async Task OnInitializedAsync()
+  {
+    _review = await DecisionService.GetReviewAsync(HypothesisId);
+    if (_review.Hint == DecisionHint.Disable)
+    {
+      _reason = L["Decision.NotPersonalFit"];
+    }
+  }
+
+  private async Task OnKindChangedAsync(HypothesisDecisionKind kind)
+  {
+    _kind = kind;
+    if (kind == HypothesisDecisionKind.Disable)
+    {
+      _options ??= await DecisionService.GetDisableOptionsAsync(HypothesisId);
+    }
+  }
+
+  private string DraftName(Guid? id)
+  {
+    return _options?.Drafts.FirstOrDefault(d => d.Id == id)?.Name ?? L["Decision.NoDraft"];
+  }
+
+  private bool HasError(string key)
+  {
+    return _errors.ContainsKey(key);
+  }
+
+  private string? ErrorOf(string key)
+  {
+    return _errors.GetValueOrDefault(key);
+  }
+
+  private async Task SaveAsync()
+  {
+    var input = new DecisionInput(
+      _kind,
+      _reason,
+      _kind == HypothesisDecisionKind.Expand ? _changes : null,
+      _kind == HypothesisDecisionKind.Disable ? _draftId : null);
+
+    _saving = true;
+    try
+    {
+      var result = await DecisionService.RecordDecisionAsync(HypothesisId, input);
+      if (result.ActiveStatus != ActiveHypothesesStatus.Ok)
+      {
+        Snackbar.Add(L["Decision.ActiveWarning"], Severity.Warning);
+      }
+
+      MudDialog.Close(DialogResult.Ok(true));
+    }
+    catch (ValidationFailedException exception)
+    {
+      _errors = exception.Errors;
+    }
+    finally
+    {
+      _saving = false;
+    }
+  }
+
+  private void Cancel()
+  {
+    MudDialog.Cancel();
+  }
+}

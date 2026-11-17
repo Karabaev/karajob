@@ -110,6 +110,10 @@
                              HelperText="@L["Pages.MaturationDaysHelp"]"
                              @bind-Value="_maturationDays"
                              Error="HasError(nameof(SearchGoalInput.MaturationDays))" ErrorText="@ErrorOf(nameof(SearchGoalInput.MaturationDays))" />
+            <MudNumericField T="int" Class="settings-wellbeing-threshold" Label="@L["Pages.WellBeingThreshold"]" Min="1" Max="5"
+                             HelperText="@L["Pages.WellBeingThresholdHelp"]"
+                             @bind-Value="_wellBeingThreshold"
+                             Error="HasError(nameof(SearchGoalInput.WellBeingThreshold))" ErrorText="@ErrorOf(nameof(SearchGoalInput.WellBeingThreshold))" />
           </MudStack>
         </MudPaper>
 
@@ -144,6 +148,7 @@
   private decimal _conversionPercent;
   private int _minSample;
   private int _maturationDays;
+  private int _wellBeingThreshold;
 
   protected override async Task OnInitializedAsync()
   {
@@ -172,6 +177,7 @@
     _conversionPercent = ConversionPercent.FromPermille(goal.ConversionThresholdPermille);
     _minSample = goal.MinSampleSize;
     _maturationDays = goal.MaturationDays;
+    _wellBeingThreshold = goal.WellBeingThreshold;
   }
 
   private void OnLocationsChanged(IReadOnlyCollection<Guid>? locationIds)
@@ -250,7 +256,8 @@
       _marketThreshold,
       ConversionPercent.ToPermille(_conversionPercent),
       _minSample,
-      _maturationDays);
+      _maturationDays,
+      _wellBeingThreshold);
 
     _saving = true;
     try

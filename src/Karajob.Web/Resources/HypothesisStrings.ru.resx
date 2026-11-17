@@ -54,4 +54,47 @@
   <data name="Verdict.InsufficientData" xml:space="preserve"><value>данных мало</value></data>
   <data name="Verdict.BelowThreshold" xml:space="preserve"><value>ниже порога</value></data>
   <data name="Verdict.OnTrack" xml:space="preserve"><value>в норме</value></data>
+  <data name="Hypothesis.WellBeing" xml:space="preserve"><value>Самочувствие</value></data>
+  <data name="Hypothesis.WellBeingCaption" xml:space="preserve"><value>среднее по мотивации и уверенности · низкое при {0} и ниже</value></data>
+  <data name="Hypothesis.WellBeingLow" xml:space="preserve"><value>Не подходит лично: два низких чекина подряд</value></data>
+  <data name="Hypothesis.WellBeingTrend" xml:space="preserve"><value>{0} к прошлому чекину</value></data>
+  <data name="Hint.NotEnoughData" xml:space="preserve"><value>Подсказка: данных пока мало</value></data>
+  <data name="Hint.Expand" xml:space="preserve"><value>Подсказка: рынок узкий, стоит расширить</value></data>
+  <data name="Hint.Continue" xml:space="preserve"><value>Подсказка: продолжать как есть</value></data>
+  <data name="Hint.ReviseCv" xml:space="preserve"><value>Подсказка: пересмотреть резюме и позиционирование</value></data>
+  <data name="Hint.Disable" xml:space="preserve"><value>Подсказка: рассмотреть отключение</value></data>
+  <data name="Hypothesis.CheckInButton" xml:space="preserve"><value>Чекин</value></data>
+  <data name="Hypothesis.DecisionButton" xml:space="preserve"><value>Решение</value></data>
+  <data name="Hypothesis.Decisions" xml:space="preserve"><value>Решения</value></data>
+  <data name="Hypothesis.NoDecisions" xml:space="preserve"><value>Решений пока нет</value></data>
+  <data name="Hypothesis.CheckIns" xml:space="preserve"><value>Последние чекины</value></data>
+  <data name="Hypothesis.NoCheckIns" xml:space="preserve"><value>Чекинов пока нет</value></data>
+  <data name="Decision.Continue" xml:space="preserve"><value>Продолжить</value></data>
+  <data name="Decision.Expand" xml:space="preserve"><value>Расширить</value></data>
+  <data name="Decision.Disable" xml:space="preserve"><value>Отключить</value></data>
+  <data name="Decision.Conversion" xml:space="preserve"><value>конверсия {0} из {1}</value></data>
+  <data name="Decision.Market" xml:space="preserve"><value>рынок {0} (порог {1})</value></data>
+  <data name="Decision.WellBeing" xml:space="preserve"><value>самочувствие {0}</value></data>
+  <data name="Decision.ChangesLabel" xml:space="preserve"><value>Изменения: {0}</value></data>
+  <data name="Decision.ReasonLabel" xml:space="preserve"><value>Причина: {0}</value></data>
+  <data name="Decision.Title" xml:space="preserve"><value>Решение по гипотезе</value></data>
+  <data name="Decision.Kind" xml:space="preserve"><value>Решение</value></data>
+  <data name="Decision.Reason" xml:space="preserve"><value>Причина</value></data>
+  <data name="Decision.Changes" xml:space="preserve"><value>Что изменили</value></data>
+  <data name="Decision.NotPersonalFit" xml:space="preserve"><value>Не подходит лично</value></data>
+  <data name="Decision.InsufficientData" xml:space="preserve"><value>Откликов с истекшим сроком созревания мало для надёжного вердикта по конверсии. Решение всё равно можно записать.</value></data>
+  <data name="Decision.ActivateDraft" xml:space="preserve"><value>Вместо неё активировать черновик</value></data>
+  <data name="Decision.NoDraft" xml:space="preserve"><value>Не активировать черновик</value></data>
+  <data name="Decision.TooFew" xml:space="preserve"><value>После этого активных гипотез останется {0}; рекомендуется не меньше 2.</value></data>
+  <data name="Decision.TooMany" xml:space="preserve"><value>После этого активных гипотез останется {0}; рекомендуется не больше 3.</value></data>
+  <data name="Decision.ActiveWarning" xml:space="preserve"><value>Число активных гипотез вне рекомендуемых 2–3.</value></data>
+  <data name="Decision.Saved" xml:space="preserve"><value>Решение записано</value></data>
+  <data name="Decision.Save" xml:space="preserve"><value>Записать</value></data>
+  <data name="CheckIn.Title" xml:space="preserve"><value>Недельный чекин</value></data>
+  <data name="CheckIn.Date" xml:space="preserve"><value>Любой день недели</value></data>
+  <data name="CheckIn.Week" xml:space="preserve"><value>Неделя {0}</value></data>
+  <data name="CheckIn.Motivation" xml:space="preserve"><value>Мотивация</value></data>
+  <data name="CheckIn.Confidence" xml:space="preserve"><value>Уверенность</value></data>
+  <data name="CheckIn.Note" xml:space="preserve"><value>Заметка</value></data>
+  <data name="CheckIn.Saved" xml:space="preserve"><value>Чекин сохранён</value></data>
 </root>

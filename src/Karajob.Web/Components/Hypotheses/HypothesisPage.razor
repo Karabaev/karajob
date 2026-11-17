@@ -1,6 +1,7 @@
 @page "/hypotheses/new"
 @page "/hypotheses/{Id:guid}"
 @inject HypothesisService HypothesisService
+@inject HypothesisDecisionService DecisionService
 @inject CatalogService CatalogService
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
@@ -24,7 +25,10 @@ else if (_loaded)
     {
       <MudItem xs="12" md="5" Class="order-md-last">
         @* @key: another hypothesis gets a fresh card, so a slow load for the previous one cannot overwrite it. *@
-        <HypothesisCriteriaCard @key="_details.Id" HypothesisId="_details.Id" />
+        <MudStack Spacing="3">
+          <HypothesisCriteriaCard @key="_details.Id" HypothesisId="_details.Id" Version="_reviewVersion" />
+          <DecisionHistory Decisions="_decisions" CheckIns="_checkIns" />
+        </MudStack>
       </MudItem>
     }
     <MudItem xs="12" md="7">
@@ -122,7 +126,7 @@ else if (_loaded)
               }
             </MudSelect>
             <MudSelect T="HypothesisStatus" Class="hypothesis-status" Label="@L["Hypothesis.Status"]" @bind-Value="_status">
-              @foreach (var status in Enum.GetValues<HypothesisStatus>())
+              @foreach (var status in StatusOptions())
               {
                 <MudSelectItem T="HypothesisStatus" Value="status">@HypothesisText.Status(status)</MudSelectItem>
               }
@@ -130,6 +134,14 @@ else if (_loaded)
             @if (_details?.StartedAt is { } startedAt)
             {
               <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["Hypothesis.Started", Dates.FormatDate(startedAt)]</MudText>
+            }
+
+            @if (_details is { Status: HypothesisStatus.Active or HypothesisStatus.Expanded })
+            {
+              <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="2">
+                <MudButton Class="hypothesis-checkin-button" Variant="Variant.Outlined" Color="Color.Primary" OnClick="CheckInAsync">@L["Hypothesis.CheckInButton"]</MudButton>
+                <MudButton Class="hypothesis-decision-button" Variant="Variant.Outlined" Color="Color.Primary" OnClick="DecideAsync">@L["Hypothesis.DecisionButton"]</MudButton>
+              </MudStack>
             }
 
             <MudStack Row="true" Justify="Justify.SpaceBetween">
@@ -170,6 +182,9 @@ else if (_loaded)
   private string? _positioning;
   private Guid? _primaryCvId;
   private HypothesisStatus _status = HypothesisStatus.Draft;
+  private IReadOnlyList<DecisionDetails> _decisions = [];
+  private IReadOnlyList<CheckInDetails> _checkIns = [];
+  private int _reviewVersion;
 
   [Parameter]
   public Guid? Id { get; set; }
@@ -205,7 +220,71 @@ else if (_loaded)
     }
 
     FillFields();
+    await LoadHistoryAsync();
     _loaded = true;
+  }
+
+  private async Task LoadHistoryAsync()
+  {
+    if (_details is null)
+    {
+      _decisions = [];
+      _checkIns = [];
+      return;
+    }
+
+    _decisions = await DecisionService.ListDecisionsAsync(_details.Id);
+    _checkIns = await DecisionService.ListCheckInsAsync(_details.Id);
+  }
+
+  private IEnumerable<HypothesisStatus> StatusOptions()
+  {
+    yield return HypothesisStatus.Draft;
+    yield return HypothesisStatus.Active;
+    yield return HypothesisStatus.Paused;
+    if (_details?.Status is HypothesisStatus.Expanded or HypothesisStatus.Disabled)
+    {
+      yield return _details.Status;
+    }
+  }
+
+  private Task CheckInAsync()
+  {
+    return ShowDialogAsync<CheckInDialog>(L["CheckIn.Title"]);
+  }
+
+  private Task DecideAsync()
+  {
+    return ShowDialogAsync<DecisionDialog>(L["Decision.Title"]);
+  }
+
+  private async Task ShowDialogAsync<TDialog>(string title)
+    where TDialog : Microsoft.AspNetCore.Components.IComponent
+  {
+    var parameters = new DialogParameters { [nameof(CheckInDialog.HypothesisId)] = _details!.Id };
+    var reference = await DialogService.ShowAsync<TDialog>(title, parameters, new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true });
+    var result = await reference.Result;
+    if (result is null || result.Canceled)
+    {
+      return;
+    }
+
+    try
+    {
+      _details = await HypothesisService.FindAsync(_details.Id);
+      _notFound = _details is null;
+      if (_details is not null)
+      {
+        _status = _details.Status;
+      }
+
+      await LoadHistoryAsync();
+      _reviewVersion++;
+    }
+    catch (KeyNotFoundException)
+    {
+      _notFound = true;
+    }
   }
 
   private void FillFields()
