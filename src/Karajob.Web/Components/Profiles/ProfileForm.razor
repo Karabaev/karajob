@@ -1,0 +1,7 @@
+@code {
+  [Parameter]
+  public UserDto? Profile { get; set; }
+
+  [Parameter]
+  public EventCallback<UserDto> OnSaved { get; set; }
+}

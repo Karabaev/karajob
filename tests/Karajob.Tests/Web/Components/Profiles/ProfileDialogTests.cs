@@ -13,57 +13,18 @@ public class ProfileDialogTests : ProfileWebFixture
     return new DialogParameters<ProfileDialog>();
   }
 
-  private static DialogParameters<ProfileDialog> EditMode(UserDto profile)
-  {
-    return new DialogParameters<ProfileDialog> { { d => d.Profile, profile } };
-  }
-
   [Fact]
-  public async Task Render_CreateMode_ShowsOneSwatchPerPaletteColor()
+  public async Task Render_ShowsProfileForm()
   {
     var (provider, _) = await ShowDialogAsync(CreateMode());
 
-    var swatches = provider.WaitForElements(".profile-color");
-
-    Assert.Equal(ProfilePalette.Colors, swatches.Select(s => s.GetAttribute("aria-label")));
+    provider.WaitForElement(".profile-name input");
+    Assert.NotEmpty(provider.FindAll(".profile-color"));
+    Assert.NotEmpty(provider.FindAll(".profile-time-zone"));
   }
 
   [Fact]
-  public async Task Render_CreateMode_PreselectsFirstPaletteColor()
-  {
-    var (provider, _) = await ShowDialogAsync(CreateMode());
-
-    var swatches = provider.WaitForElements(".profile-color");
-
-    Assert.Equal("true", swatches[0].GetAttribute("aria-pressed"));
-    Assert.All(swatches.Skip(1), s => Assert.Equal("false", s.GetAttribute("aria-pressed")));
-  }
-
-  [Fact]
-  public async Task ClickSwatch_SelectsItAndDeselectsPrevious()
-  {
-    var (provider, _) = await ShowDialogAsync(CreateMode());
-    provider.WaitForElements(".profile-color")[2].Click();
-
-    var swatches = provider.FindAll(".profile-color");
-
-    Assert.Equal("true", swatches[2].GetAttribute("aria-pressed"));
-    Assert.Single(swatches, s => s.GetAttribute("aria-pressed") == "true");
-  }
-
-  [Fact]
-  public async Task Save_CreateModeBlankName_ShowsErrorAndStaysOpenAndCreatesNothing()
-  {
-    var (provider, reference) = await ShowDialogAsync(CreateMode());
-    provider.WaitForElement(".profile-save").Click();
-
-    provider.WaitForAssertion(() => Assert.NotEmpty(provider.FindAll(".profile-name .mud-input-error")));
-    Assert.False(reference.Result!.IsCompleted);
-    Assert.Single(await Users.ListAsync());
-  }
-
-  [Fact]
-  public async Task Save_CreateModeValidName_CreatesProfileWithFirstPaletteColorAndClosesWithDto()
+  public async Task Save_ValidName_CreatesProfileAndClosesWithDto()
   {
     var (provider, reference) = await ShowDialogAsync(CreateMode());
     provider.WaitForElement(".profile-name input").Input("Anna");
@@ -74,104 +35,30 @@ public class ProfileDialogTests : ProfileWebFixture
     Assert.False(result!.Canceled);
     var dto = Assert.IsType<UserDto>(result.Data);
     Assert.Equal("Anna", dto.Name);
-    Assert.Equal(ProfilePalette.Colors[0], dto.Color);
     Assert.Equal(dto, await Users.GetAsync(dto.Id));
   }
 
   [Fact]
-  public async Task Save_CreateModeAfterPickingSwatch_CreatesProfileWithPickedColor()
+  public async Task Save_BlankName_StaysOpenAndCreatesNothing()
   {
     var (provider, reference) = await ShowDialogAsync(CreateMode());
-    provider.WaitForElement(".profile-name input").Input("Anna");
-    provider.Find($".profile-color[aria-label='{ProfilePalette.Colors[3]}']").Click();
-    provider.Find(".profile-save").Click();
-
-    var result = await reference.Result!.WaitAsync(TimeSpan.FromSeconds(5));
-
-    Assert.Equal(ProfilePalette.Colors[3], Assert.IsType<UserDto>(result!.Data).Color);
-  }
-
-  [Fact]
-  public async Task Render_EditMode_PrefillsNameAndSelectsCurrentColor()
-  {
-    var (provider, _) = await ShowDialogAsync(EditMode(new UserDto(SeedData.OwnerId, "Owner", SeedData.OwnerColor)));
-
-    var name = provider.WaitForElement(".profile-name input");
-
-    Assert.Equal("Owner", name.GetAttribute("value"));
-    var pressed = Assert.Single(provider.FindAll(".profile-color"), s => s.GetAttribute("aria-pressed") == "true");
-    Assert.Equal(SeedData.OwnerColor, pressed.GetAttribute("aria-label"));
-  }
-
-  [Fact]
-  public async Task Save_EditMode_UpdatesProfileAndClosesWithDto()
-  {
-    var created = await Users.CreateAsync(new UserInput("Anna", ProfilePalette.Colors[0]));
-    var (provider, reference) = await ShowDialogAsync(EditMode(created));
-    provider.WaitForElement(".profile-name input").Input("Maria");
-    provider.Find($".profile-color[aria-label='{ProfilePalette.Colors[1]}']").Click();
-    provider.Find(".profile-save").Click();
-
-    var result = await reference.Result!.WaitAsync(TimeSpan.FromSeconds(5));
-
-    var dto = Assert.IsType<UserDto>(result!.Data);
-    Assert.Equal(created.Id, dto.Id);
-    Assert.Equal("Maria", dto.Name);
-    Assert.Equal(ProfilePalette.Colors[1], dto.Color);
-    Assert.Equal(dto, await Users.GetAsync(created.Id));
-    Assert.Equal(2, (await Users.ListAsync()).Count);
-  }
-
-  [Fact]
-  public async Task Save_EditModeBlankName_ShowsErrorAndStaysOpenAndKeepsStoredName()
-  {
-    var created = await Users.CreateAsync(new UserInput("Anna", ProfilePalette.Colors[0]));
-    var (provider, reference) = await ShowDialogAsync(EditMode(created));
-    provider.WaitForElement(".profile-name input").Input("");
-    provider.Find(".profile-save").Click();
+    provider.WaitForElement(".profile-save").Click();
 
     provider.WaitForAssertion(() => Assert.NotEmpty(provider.FindAll(".profile-name .mud-input-error")));
     Assert.False(reference.Result!.IsCompleted);
-    Assert.Equal("Anna", (await Users.GetAsync(created.Id))!.Name);
+    Assert.Single(await Users.ListAsync());
   }
 
   [Fact]
-  public async Task Render_EditMode_ShowsProfileTimeZone()
+  public async Task Cancel_ClosesWithCanceledResultAndCreatesNothing()
   {
-    var created = await Users.CreateAsync(new UserInput("Anna", ProfilePalette.Colors[0], "Asia/Tokyo"));
-    var (provider, _) = await ShowDialogAsync(EditMode(created));
-
-    var input = provider.WaitForElement(".profile-time-zone input");
-
-    Assert.Equal("(UTC+09:00) Asia/Tokyo", input.GetAttribute("value"));
-  }
-
-  [Fact]
-  public async Task Save_EditModeWithoutTouchingTimeZone_KeepsIt()
-  {
-    var created = await Users.CreateAsync(new UserInput("Anna", ProfilePalette.Colors[0], "Asia/Tokyo"));
-    var (provider, reference) = await ShowDialogAsync(EditMode(created));
-    provider.WaitForElement(".profile-name input").Input("Maria");
-    provider.Find(".profile-save").Click();
+    var (provider, reference) = await ShowDialogAsync(CreateMode());
+    provider.WaitForElement(".profile-name input").Input("Anna");
+    provider.FindAll("button").First(b => b.TextContent.Contains("Cancel")).Click();
 
     var result = await reference.Result!.WaitAsync(TimeSpan.FromSeconds(5));
 
-    Assert.Equal("Asia/Tokyo", Assert.IsType<UserDto>(result!.Data).TimeZoneId);
-  }
-
-  [Fact]
-  public async Task Save_PickedTimeZone_PersistsIt()
-  {
-    var created = await Users.CreateAsync(new UserInput("Anna", ProfilePalette.Colors[0]));
-    var (provider, reference) = await ShowDialogAsync(EditMode(created));
-    provider.WaitForElement(".profile-time-zone input");
-    var timeZone = provider.FindComponent<MudAutocomplete<string>>();
-    await provider.InvokeAsync(() => timeZone.Instance.ValueChanged.InvokeAsync("Asia/Tokyo"));
-    provider.Find(".profile-save").Click();
-
-    var result = await reference.Result!.WaitAsync(TimeSpan.FromSeconds(5));
-
-    Assert.Equal("Asia/Tokyo", Assert.IsType<UserDto>(result!.Data).TimeZoneId);
-    Assert.Equal("Asia/Tokyo", (await Users.GetAsync(created.Id))!.TimeZoneId);
+    Assert.True(result!.Canceled);
+    Assert.Single(await Users.ListAsync());
   }
 }

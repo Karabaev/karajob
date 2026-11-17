@@ -20,6 +20,13 @@ public class ProfileCurrentUser : ICurrentUser
     TimeZone = timeZone;
   }
 
+  public event Action? ProfileUpdated;
+
+  public void NotifyProfileUpdated(UserDto profile)
+  {
+    throw new NotImplementedException();
+  }
+
   public bool IsCurrent(Guid userId)
   {
     return _userId == userId;
