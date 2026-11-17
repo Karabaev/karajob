@@ -1,6 +1,9 @@
 services:
   karajob:
-    build: .
+    build:
+      context: .
+      args:
+        SOURCE_REVISION: ${KARAJOB_SOURCE_REVISION:-}
     image: ${KARAJOB_IMAGE:-karajob}
     restart: unless-stopped
     env_file: .env

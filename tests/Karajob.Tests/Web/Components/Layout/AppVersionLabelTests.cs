@@ -88,5 +88,6 @@ public class AppVersionLabelTests : IAsyncLifetime
   {
     _context.Services.AddMudServices();
     _context.Services.AddLocalization();
+    _context.JSInterop.Mode = JSRuntimeMode.Loose;
   }
 }

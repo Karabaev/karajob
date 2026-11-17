@@ -1,4 +1,26 @@
+@inject IJSRuntime JS
+@inject ISnackbar Snackbar
+
+<MudTooltip Text="@L["Layout.CopyVersion"]">
+  <MudButton Class="app-version mud-text-secondary" Variant="Variant.Text" Size="Size.Small"
+             Style="text-transform: none;" aria-label="@L["Layout.CopyVersion"]" OnClick="CopyAsync">@Version</MudButton>
+</MudTooltip>
+
 @code {
   [Parameter]
   public string Version { get; set; } = AppVersion.Current;
+
+  private async Task CopyAsync()
+  {
+    try
+    {
+      await JS.InvokeVoidAsync("navigator.clipboard.writeText", Version);
+      Snackbar.Add(L["Layout.VersionCopied"], Severity.Success);
+    }
+    // navigator.clipboard exists only in a secure context (HTTPS or localhost); over plain HTTP the call fails.
+    catch (JSException)
+    {
+      Snackbar.Add(L["Layout.VersionCopyFailed"], Severity.Warning);
+    }
+  }
 }
