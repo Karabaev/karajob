@@ -11,6 +11,7 @@ using Karajob.Application.Persistence;
 using Karajob.Application.Resources;
 using Karajob.Application.Users;
 using Karajob.Application.Vacancies;
+using Karajob.Application.WeeklyReviews;
 using Karajob.Infrastructure.Users;
 using Karajob.Tests.Application.Vacancies;
 using Karajob.Tests.Infrastructure.Persistence;
@@ -92,6 +93,19 @@ internal class TestDbContextFactory(SqliteTestDatabase database, Guid userId) : 
       timeProvider,
       CreateHypothesisMetricsService(database, userId, timeProvider, timeZone),
       TestLocalizer.For<HypothesisMessages>());
+  }
+
+  public static WeeklyReviewService CreateWeeklyReviewService(
+    SqliteTestDatabase database,
+    Guid userId,
+    TimeProvider timeProvider,
+    TimeZoneInfo? timeZone = null)
+  {
+    return new WeeklyReviewService(
+      new TestDbContextFactory(database, userId),
+      new FixedCurrentUser(userId, timeZone),
+      timeProvider,
+      CreateHypothesisMetricsService(database, userId, timeProvider, timeZone));
   }
 
   public static HypothesisMetricsService CreateHypothesisMetricsService(SqliteTestDatabase database, Guid userId, TimeProvider timeProvider, TimeZoneInfo? timeZone = null)

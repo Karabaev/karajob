@@ -317,6 +317,31 @@ public class HypothesisCriteriaCardTests : HypothesisDecisionServiceFixture, IAs
     cut.WaitForAssertion(() => Assert.Single(cut.FindAll(".criteria-hint")));
   }
 
+  [Fact]
+  public async Task Render_ShowActivityDefault_ShowsActivityBlock()
+  {
+    var hypothesisId = await CreateStartedHypothesisAsync();
+
+    var cut = RenderCard(hypothesisId);
+
+    cut.WaitForAssertion(() => Assert.Single(cut.FindAll(".criteria-activity")));
+  }
+
+  [Fact]
+  public async Task Render_ShowActivityFalse_HidesActivityBlockButKeepsOtherRows()
+  {
+    var hypothesisId = await CreateStartedHypothesisAsync();
+
+    var cut = RenderCard(hypothesisId, showActivity: false);
+
+    cut.WaitForAssertion(() =>
+    {
+      Assert.NotNull(cut.Find(".criteria-market"));
+      Assert.NotNull(cut.Find(".criteria-conversion"));
+      Assert.Empty(cut.FindAll(".criteria-activity"));
+    });
+  }
+
   async Task IAsyncLifetime.InitializeAsync()
   {
     await InitializeAsync();
@@ -328,7 +353,7 @@ public class HypothesisCriteriaCardTests : HypothesisDecisionServiceFixture, IAs
     await DisposeAsync();
   }
 
-  private IRenderedComponent<HypothesisCriteriaCard> RenderCard(Guid hypothesisId)
+  private IRenderedComponent<HypothesisCriteriaCard> RenderCard(Guid hypothesisId, bool showActivity = true)
   {
     // bUnit forbids registrations after the first render, and some tests render two cards.
     if (!servicesRegistered)
@@ -338,7 +363,7 @@ public class HypothesisCriteriaCardTests : HypothesisDecisionServiceFixture, IAs
       servicesRegistered = true;
     }
 
-    return Context.Render<HypothesisCriteriaCard>(p => p.Add(c => c.HypothesisId, hypothesisId));
+    return Context.Render<HypothesisCriteriaCard>(p => p.Add(c => c.HypothesisId, hypothesisId).Add(c => c.ShowActivity, showActivity));
   }
 
   private async Task ApplyMaturedAsync(Guid hypothesisId, int total, int positive)
