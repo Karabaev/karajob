@@ -15,6 +15,7 @@ namespace Karajob.Tests.Web.Components.Hypotheses;
 public class HypothesisCriteriaCardTests : HypothesisDecisionServiceFixture, IAsyncLifetime
 {
   private static readonly DateTime MaturedAt = Now.AddDays(-20);
+  private bool servicesRegistered;
 
   private BunitContext Context { get; } = new();
 
@@ -329,8 +330,14 @@ public class HypothesisCriteriaCardTests : HypothesisDecisionServiceFixture, IAs
 
   private IRenderedComponent<HypothesisCriteriaCard> RenderCard(Guid hypothesisId)
   {
-    Context.Services.AddSingleton(Metrics);
-    Context.Services.AddSingleton(Decisions);
+    // bUnit forbids registrations after the first render, and some tests render two cards.
+    if (!servicesRegistered)
+    {
+      Context.Services.AddSingleton(Metrics);
+      Context.Services.AddSingleton(Decisions);
+      servicesRegistered = true;
+    }
+
     return Context.Render<HypothesisCriteriaCard>(p => p.Add(c => c.HypothesisId, hypothesisId));
   }
 
