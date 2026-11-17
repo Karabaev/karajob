@@ -81,8 +81,8 @@
     }
     catch (ValidationFailedException ex)
     {
-      _timeZoneError = ex.Errors.GetValueOrDefault(nameof(UserInput.TimeZoneId));
-      var nameErrors = ex.Errors.Where(e => e.Key != nameof(UserInput.TimeZoneId)).Select(e => e.Value);
+      _timeZoneError = ex.Errors.GetValueOrDefault(nameof(CatalogListItem.TimeZoneId));
+      var nameErrors = ex.Errors.Where(e => e.Key != nameof(CatalogListItem.TimeZoneId)).Select(e => e.Value);
       _error = nameErrors.Any() ? string.Join(" ", nameErrors) : null;
       return;
     }

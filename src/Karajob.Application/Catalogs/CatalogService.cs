@@ -2,7 +2,6 @@ using Karajob.Application.Resources;
 using Microsoft.Extensions.Localization;
 using Karajob.Application.Common;
 using Karajob.Application.Persistence;
-using Karajob.Application.Users;
 using Karajob.Domain.Catalogs;
 using Karajob.Domain.Common;
 using Karajob.Domain.Normalization;
@@ -107,7 +106,7 @@ public class CatalogService(IKarajobDbContextFactory dbContextFactory, IStringLo
     await ValidateNameAsync(db, CatalogKind.Location, name, id, errors, cancellationToken);
     if (!IsValidTimeZone(timeZoneId))
     {
-      errors[nameof(UserInput.TimeZoneId)] = localizer["Error.TimeZoneInvalid"];
+      errors[nameof(CatalogListItem.TimeZoneId)] = localizer["Error.TimeZoneInvalid"];
     }
 
     if (errors.Count > 0)
