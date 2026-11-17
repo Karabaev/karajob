@@ -38,6 +38,7 @@
   <data name="Common.Save" xml:space="preserve"><value>Сохранить</value></data>
   <data name="Common.Delete" xml:space="preserve"><value>Удалить</value></data>
   <data name="AddVacancy.Url" xml:space="preserve"><value>Ссылка на вакансию</value></data>
+  <data name="AddVacancy.Title" xml:space="preserve"><value>Название (необязательно)</value></data>
   <data name="AddVacancy.Note" xml:space="preserve"><value>Заметка (необязательно)</value></data>
   <data name="AddVacancy.AlreadyExists" xml:space="preserve"><value>Вакансия уже есть: {0}</value></data>
   <data name="AddVacancy.Added" xml:space="preserve"><value>Добавлено в Inbox</value></data>

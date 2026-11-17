@@ -75,7 +75,7 @@ public record SimilarVacancy(Guid Id, string Url, VacancyStage Stage, DateTime D
 
 public record VacancyEventInput(ApplicationEventType Type, DateTime OccurredAt, string? Note);
 
-public record QuickAddInput(string Url, string? Note);
+public record QuickAddInput(string Url, string? Note, string? Title = null);
 
 public record QuickAddResult(Guid VacancyId, bool AlreadyExisted, VacancyStage Stage);
 
