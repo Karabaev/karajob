@@ -117,6 +117,10 @@ Order: block A → block B; blocks C, D, E, G are independent after #41.
 - [x] #73 Vacancy title: filled from the page behind the link (og:title / `<title>`, a plain GET without AI) when a vacancy is added, editable with a "fetch from link" button, shown on Board cards and in Inbox.
 - [x] #80 Title field in the New vacancy dialog: fetched automatically when the link is entered, editable before Add; a hand-typed title is never overwritten, an empty one falls back to reading the page.
 
+### H. Branding
+
+- [x] #82 Logo and favicon: transparent logo and icon, the favicon, the logo in the app bar instead of the text.
+
 ### Not in Phase 0.5
 
 Any AI and MCP, building the master profile from a CV with AI, CV adaptation and generation, the Contact entity and "Activity" goals for contacts and CV adaptations, job boards and a scanner, calendar, public access and OAuth. If you feel like adding something from this list along the way, write it into the backlog and move on.
