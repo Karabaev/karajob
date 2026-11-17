@@ -140,6 +140,56 @@ public class ProfileMenuTests : ProfileWebFixture
     });
   }
 
+  [Fact]
+  public async Task Open_HasLinkToSettings()
+  {
+    var (cut, popover) = RenderMenu();
+
+    await OpenAsync(cut);
+
+    await popover.WaitForAssertionAsync(() =>
+    {
+      var link = popover.FindAll("a").Single(a => a.TextContent.Trim() == "Settings");
+      Assert.EndsWith("settings", link.GetAttribute("href"));
+    });
+  }
+
+  [Fact]
+  public async Task Open_SettingsLinkHasSettingsIcon()
+  {
+    var (cut, popover) = RenderMenu();
+
+    await OpenAsync(cut);
+
+    await popover.WaitForAssertionAsync(() =>
+    {
+      var link = popover.FindAll("a").Single(a => a.TextContent.Trim() == "Settings");
+      var expected = Context.Render<MudIcon>(p => p.Add(i => i.Icon, Icons.Material.Filled.Settings)).Find("svg").InnerHtml;
+      Assert.Equal(expected, link.QuerySelector("svg")!.InnerHtml);
+    });
+  }
+
+  [Fact]
+  public async Task Open_SettingsLinkIsBetweenMasterProfileAndAllProfiles()
+  {
+    var (cut, popover) = RenderMenu();
+
+    await OpenAsync(cut);
+
+    await popover.WaitForAssertionAsync(() =>
+    {
+      var texts = popover.FindAll("a").Select(a => a.TextContent.Trim()).ToList();
+      var master = texts.IndexOf("Master profile");
+      var settings = texts.IndexOf("Settings");
+      var all = texts.IndexOf("All profiles");
+      Assert.True(settings >= 0, "Settings link is missing");
+      Assert.True(master >= 0, "Master profile link is missing");
+      Assert.True(all >= 0, "All profiles link is missing");
+      Assert.True(master < settings, "Settings link must follow Master profile link");
+      Assert.True(settings < all, "Settings link must precede All profiles link");
+    });
+  }
+
   private static async Task OpenAsync(IRenderedComponent<ProfileMenu> cut)
   {
     var activator = await cut.WaitForElementAsync(ActivatorSelector);

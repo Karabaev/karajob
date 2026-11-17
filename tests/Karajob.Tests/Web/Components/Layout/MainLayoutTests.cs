@@ -40,7 +40,6 @@ public class MainLayoutTests : IAsyncLifetime
   [InlineData("companies", "Companies")]
   [InlineData("tracks", "Tracks")]
   [InlineData("cvs", "CV")]
-  [InlineData("settings", "Settings")]
   public void Render_HasNavLink(string href, string text)
   {
     var cut = RenderLayout();

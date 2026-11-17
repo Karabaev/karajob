@@ -27,6 +27,16 @@ public class NavMenuTests : IAsyncLifetime
     Assert.DoesNotContain(hrefs, h => h.EndsWith("master-profile"));
   }
 
+  [Fact]
+  public void Render_HasNoLinkToSettings()
+  {
+    var cut = _context.Render<NavMenu>();
+
+    var hrefs = cut.FindAll("a").Select(a => a.GetAttribute("href")!.Trim('/')).ToList();
+    Assert.Contains("companies", hrefs);
+    Assert.DoesNotContain(hrefs, h => h.EndsWith("settings"));
+  }
+
   public async Task InitializeAsync()
   {
     _database = await SqliteTestDatabase.CreateAsync();
