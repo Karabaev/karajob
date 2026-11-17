@@ -39,7 +39,8 @@ public class CompanyService(IKarajobDbContextFactory dbContextFactory, ICurrentU
         c.Name,
         IconUrl(c),
         SortedDomains(c),
-        blacklisted.Contains(c.Id)))
+        blacklisted.Contains(c.Id),
+        []))
       .ToList();
   }
 
@@ -201,6 +202,7 @@ public class CompanyService(IKarajobDbContextFactory dbContextFactory, ICurrentU
       IconUrl(company),
       SortedDomains(company),
       company.Aliases.Select(a => a.Value).Order(StringComparer.Ordinal).ToList(),
+      [],
       projects.OrderBy(p => p.Name, StringComparer.OrdinalIgnoreCase).Select(p => ToItem(p, p.EngineId is { } id ? engineNames[id] : null)).ToList(),
       note?.Note,
       note?.IsBlacklisted ?? false);

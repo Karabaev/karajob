@@ -7,6 +7,7 @@ public class Company
 {
   private readonly List<CompanyDomain> domains = [];
   private readonly List<CompanyAlias> aliases = [];
+  private readonly List<CompanyLocation> locations = [];
 
   public Guid Id { get; private set; }
   public string Slug { get; private set; }
@@ -16,6 +17,12 @@ public class Company
   public string? IconPath { get; set; }
   public IReadOnlyCollection<CompanyDomain> Domains => domains;
   public IReadOnlyCollection<CompanyAlias> Aliases => aliases;
+  public IReadOnlyCollection<CompanyLocation> Locations => locations;
+
+  public void SetLocations(IEnumerable<Guid> locationIds)
+  {
+    throw new NotImplementedException();
+  }
 
   public void ChangeSlug(string slug)
   {

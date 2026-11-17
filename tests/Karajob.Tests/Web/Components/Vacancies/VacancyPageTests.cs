@@ -440,7 +440,7 @@ public class VacancyPageTests : VacancyWebFixture
     cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindAll(".vacancy-similar")));
 
     var pending = cut.InvokeAsync(() => CompanyAutocomplete(cut).Instance.ValueChanged.InvokeAsync(
-      new CompanyListItem(Guid.Empty, "", "+ Create \"Other\"", null, [], false)));
+      new CompanyListItem(Guid.Empty, "", "+ Create \"Other\"", null, [], false, [])));
     provider.WaitForElement(".company-name");
     provider.FindAll("button").First(b => b.TextContent.Contains("Cancel")).Click();
     await pending.WaitAsync(TimeSpan.FromSeconds(5));
@@ -619,7 +619,7 @@ public class VacancyPageTests : VacancyWebFixture
 
   private static CompanyListItem ToItem(CompanyDetails company)
   {
-    return new CompanyListItem(company.Id, company.Slug, company.Name, company.IconUrl, company.Domains, company.IsBlacklisted);
+    return new CompanyListItem(company.Id, company.Slug, company.Name, company.IconUrl, company.Domains, company.IsBlacklisted, []);
   }
 
   private static IRenderedComponent<MudAutocomplete<CompanyListItem>> CompanyAutocomplete(IRenderedComponent<VacancyPage> cut)
