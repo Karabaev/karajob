@@ -5,6 +5,7 @@ h1:focus {
 .appbar-logo img {
   display: block;
   height: 40px;
+  width: auto;
 }
 
 .add-vacancy-fab {
