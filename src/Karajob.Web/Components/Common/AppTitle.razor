@@ -1,11 +1,13 @@
 <PageTitle>@Format(Text)</PageTitle>
 
 @code {
+  private const string AppName = "Karajob";
+
   [Parameter, EditorRequired]
   public string Text { get; set; } = null!;
 
   public static string Format(string? text)
   {
-    throw new NotImplementedException();
+    return string.IsNullOrWhiteSpace(text) ? AppName : $"{AppName} | {text}";
   }
 }

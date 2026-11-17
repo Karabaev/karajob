@@ -41,6 +41,9 @@
   <data name="Pages.Status" xml:space="preserve"><value>Status</value></data>
   <data name="Pages.AddManually" xml:space="preserve"><value>Add manually</value></data>
   <data name="Pages.InboxEmpty" xml:space="preserve"><value>Inbox is empty for now.</value></data>
+  <data name="Pages.Inbox" xml:space="preserve"><value>Inbox</value></data>
+  <data name="Pages.Cvs" xml:space="preserve"><value>CV</value></data>
+  <data name="Pages.Error" xml:space="preserve"><value>Error</value></data>
   <data name="Pages.Vacancy" xml:space="preserve"><value>Vacancy</value></data>
   <data name="Pages.Discovered" xml:space="preserve"><value>Discovered</value></data>
   <data name="Pages.ToBoardButton" xml:space="preserve"><value>→ To board</value></data>

@@ -2,10 +2,10 @@
 @inject CvService CvService
 @inject UserDates Dates
 
-<PageTitle>CV</PageTitle>
+<AppTitle Text="@L["Pages.Cvs"]" />
 
 <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
-  <MudText Typo="Typo.h4" HtmlTag="h1">CV</MudText>
+  <MudText Typo="Typo.h4" HtmlTag="h1">@L["Pages.Cvs"]</MudText>
   <MudButton Href="/cvs/new" Variant="Variant.Filled" Color="Color.Primary">+ CV</MudButton>
 </MudStack>
 
