@@ -16,4 +16,5 @@
   <data name="Error.AliasTaken" xml:space="preserve"><value>Алиас «{0}» уже используется компанией «{1}»</value></data>
   <data name="Error.UrlInvalid" xml:space="preserve"><value>Некорректный адрес</value></data>
   <data name="Error.EngineNotFound" xml:space="preserve"><value>Движок не найден</value></data>
+  <data name="Error.LocationNotFound" xml:space="preserve"><value>Локация не найдена</value></data>
 </root>

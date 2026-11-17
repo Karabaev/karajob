@@ -118,6 +118,10 @@ Order: block A → block B; blocks C, D, E, G are independent after #41.
 - [x] #80 Title field in the New vacancy dialog: fetched automatically when the link is entered, editable before Add; a hand-typed title is never overwritten, an empty one falls back to reading the page.
 - [x] #89 Open link button next to the URL field on the vacancy card: opens the URL currently in the field in a new tab, shown only for an absolute http(s) URL.
 
+### Company locations
+
+- [x] #104 Company locations: a company has one or several locations from the `Location` reference data, edited on the company card and shown as chips in the companies list.
+
 ### H. Branding
 
 - [x] #82 Logo and favicon: transparent logo and icon, the favicon, the logo in the app bar instead of the text.

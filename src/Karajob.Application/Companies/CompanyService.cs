@@ -31,6 +31,8 @@ public class CompanyService(IKarajobDbContextFactory dbContextFactory, ICurrentU
         .ToListAsync(cancellationToken))
       .ToHashSet();
 
+    var locationNames = await db.Locations.AsNoTracking().ToDictionaryAsync(l => l.Id, l => l.Name, cancellationToken);
+
     return companies
       .OrderBy(c => c.Name, StringComparer.OrdinalIgnoreCase)
       .Select(c => new CompanyListItem(
@@ -40,7 +42,7 @@ public class CompanyService(IKarajobDbContextFactory dbContextFactory, ICurrentU
         IconUrl(c),
         SortedDomains(c),
         blacklisted.Contains(c.Id),
-        []))
+        c.Locations.Select(l => locationNames[l.LocationId]).Order(StringComparer.OrdinalIgnoreCase).ToList()))
       .ToList();
   }
 
@@ -202,7 +204,7 @@ public class CompanyService(IKarajobDbContextFactory dbContextFactory, ICurrentU
       IconUrl(company),
       SortedDomains(company),
       company.Aliases.Select(a => a.Value).Order(StringComparer.Ordinal).ToList(),
-      [],
+      company.Locations.Select(l => l.LocationId).ToList(),
       projects.OrderBy(p => p.Name, StringComparer.OrdinalIgnoreCase).Select(p => ToItem(p, p.EngineId is { } id ? engineNames[id] : null)).ToList(),
       note?.Note,
       note?.IsBlacklisted ?? false);
@@ -303,12 +305,18 @@ public class CompanyService(IKarajobDbContextFactory dbContextFactory, ICurrentU
       }
     }
 
+    var locationIds = (input.LocationIds ?? []).Distinct().ToList();
+    if (locationIds.Count > 0 && await db.Locations.CountAsync(l => locationIds.Contains(l.Id), cancellationToken) != locationIds.Count)
+    {
+      errors[nameof(CompanyInput.LocationIds)] = localizer["Error.LocationNotFound"];
+    }
+
     if (errors.Count > 0)
     {
       throw new ValidationFailedException(errors);
     }
 
-    return new NormalizedCompany(slug!, name!, website, BlankToNull(input.Description), domains, aliases);
+    return new NormalizedCompany(slug!, name!, website, BlankToNull(input.Description), domains, aliases, locationIds);
   }
 
   private async Task<NormalizedProject> ValidateProjectAsync(IKarajobDbContext db, ProjectInput input, CancellationToken cancellationToken)
@@ -361,6 +369,8 @@ public class CompanyService(IKarajobDbContextFactory dbContextFactory, ICurrentU
     {
       company.AddAlias(alias);
     }
+
+    company.SetLocations(normalized.LocationIds);
   }
 
   private static string? Try(Func<string> normalize, Dictionary<string, string> errors, string key, string message)
@@ -425,7 +435,7 @@ public class CompanyService(IKarajobDbContextFactory dbContextFactory, ICurrentU
     return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
   }
 
-  private record NormalizedCompany(string Slug, string Name, string? Website, string? Description, List<string> Domains, List<string> Aliases);
+  private record NormalizedCompany(string Slug, string Name, string? Website, string? Description, List<string> Domains, List<string> Aliases, List<Guid> LocationIds);
 
   private record NormalizedProject(string Name, string? Genre, string? Url);
 }

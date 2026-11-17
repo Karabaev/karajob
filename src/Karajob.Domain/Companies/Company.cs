@@ -21,7 +21,12 @@ public class Company
 
   public void SetLocations(IEnumerable<Guid> locationIds)
   {
-    throw new NotImplementedException();
+    var wanted = locationIds.Select(id => Require.NotEmpty(id, nameof(locationIds))).Distinct().ToList();
+    locations.RemoveAll(l => !wanted.Contains(l.LocationId));
+    foreach (var locationId in wanted.Where(id => locations.All(l => l.LocationId != id)))
+    {
+      locations.Add(new CompanyLocation(Id, locationId));
+    }
   }
 
   public void ChangeSlug(string slug)
