@@ -93,6 +93,52 @@ public class ProfileMenuTests : ProfileWebFixture
     });
   }
 
+  [Fact]
+  public async Task Open_HasLinkToMasterProfile()
+  {
+    var (cut, popover) = RenderMenu();
+
+    await OpenAsync(cut);
+
+    await popover.WaitForAssertionAsync(() =>
+    {
+      var link = popover.FindAll("a").Single(a => a.TextContent.Trim() == "Master profile");
+      Assert.EndsWith("master-profile", link.GetAttribute("href"));
+    });
+  }
+
+  [Fact]
+  public async Task Open_MasterProfileLinkIsAboveAllProfilesLink()
+  {
+    var (cut, popover) = RenderMenu();
+
+    await OpenAsync(cut);
+
+    await popover.WaitForAssertionAsync(() =>
+    {
+      var texts = popover.FindAll("a").Select(a => a.TextContent.Trim()).ToList();
+      var master = texts.IndexOf("Master profile");
+      var all = texts.IndexOf("All profiles");
+      Assert.True(master >= 0, "Master profile link is missing");
+      Assert.True(all >= 0, "All profiles link is missing");
+      Assert.True(master < all, "Master profile link must precede All profiles link");
+    });
+  }
+
+  [Fact]
+  public async Task Open_MasterProfileLinkHasBadgeIcon()
+  {
+    var (cut, popover) = RenderMenu();
+
+    await OpenAsync(cut);
+
+    await popover.WaitForAssertionAsync(() =>
+    {
+      var link = popover.FindAll("a").Single(a => a.TextContent.Trim() == "Master profile");
+      Assert.Contains(Icons.Material.Filled.Badge, link.InnerHtml);
+    });
+  }
+
   private static async Task OpenAsync(IRenderedComponent<ProfileMenu> cut)
   {
     var activator = await cut.WaitForElementAsync(ActivatorSelector);
