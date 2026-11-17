@@ -1,0 +1,175 @@
+@page "/weekly-review"
+@using Karajob.Application.WeeklyReviews
+@inject WeeklyReviewService WeeklyReviewService
+@inject VacancyService VacancyService
+@inject UserDates Dates
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<AppTitle Text="@L["WeeklyReview.Title"]" />
+
+<MudStack Spacing="3">
+  <div>
+    <MudText Typo="Typo.h4" HtmlTag="h1">@L["WeeklyReview.Title"]</MudText>
+    @if (_summary is not null)
+    {
+      <MudText Typo="Typo.caption" Class="mud-text-secondary">@MetricsText.Week(_summary.Week)</MudText>
+    }
+  </div>
+
+  @if (_summary is null)
+  {
+    <MudProgressLinear Indeterminate="true" />
+  }
+  else
+  {
+    var activity = _summary.Activity;
+    <MudPaper Class="pa-4 weekly-goal">
+      <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Wrap="Wrap.Wrap" Spacing="1">
+        <MudText Typo="Typo.h6" HtmlTag="h2">@L["WeeklyReview.Goal"]</MudText>
+        <MudChip T="string" Size="Size.Small" Color="@MetricsText.VerdictColor(activity.Verdict)">@MetricsText.Verdict(activity.Verdict)</MudChip>
+      </MudStack>
+      <MudText Typo="Typo.h5" Class="mt-2">@L["WeeklyReview.OfCount", activity.Applications, activity.WeeklyTarget]</MudText>
+      <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["WeeklyReview.GoalCaption"]</MudText>
+    </MudPaper>
+
+    <MudPaper Class="pa-4 weekly-stale">
+      <MudText Typo="Typo.h6" HtmlTag="h2">@L["WeeklyReview.Stale"]</MudText>
+      <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["WeeklyReview.StaleCaption", _summary.StaleAfterDays]</MudText>
+      @if (_summary.StaleApplications.Count == 0)
+      {
+        <MudText Typo="Typo.body2" Class="mud-text-secondary mt-2 stale-empty">@L["WeeklyReview.StaleEmpty"]</MudText>
+      }
+      else
+      {
+        <MudStack Spacing="2" Class="mt-2">
+          @foreach (var stale in _summary.StaleApplications)
+          {
+            <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="2" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="stale-application" @key="stale.VacancyId">
+              <div>
+                <MudLink Href="@($"/vacancies/{stale.VacancyId}")">@VacancyLabel(stale)</MudLink>
+                <MudText Typo="Typo.caption" Class="mud-text-secondary d-block">
+                  @stale.HypothesisName · @L["WeeklyReview.IdleDays", stale.IdleDays] · @L["WeeklyReview.AppliedOn", Dates.FormatDate(stale.AppliedAt)]
+                </MudText>
+              </div>
+              <MudButton Variant="Variant.Outlined" Size="Size.Small" Class="stale-ghosted" Disabled="_saving"
+                         OnClick="@(() => GhostAsync(stale.VacancyId))">@L["WeeklyReview.Ghosted"]</MudButton>
+            </MudStack>
+          }
+        </MudStack>
+      }
+    </MudPaper>
+
+    <MudText Typo="Typo.h6" HtmlTag="h2">@L["WeeklyReview.Hypotheses"]</MudText>
+    @if (_summary.Hypotheses.Count == 0)
+    {
+      <MudPaper Class="pa-4">
+        <MudText Typo="Typo.body2" Class="mud-text-secondary weekly-hypotheses-empty">@L["WeeklyReview.HypothesesEmpty"]</MudText>
+        <MudLink Href="/hypotheses">@L["Pages.Hypotheses"]</MudLink>
+      </MudPaper>
+    }
+    else
+    {
+      <MudGrid>
+        @foreach (var h in _summary.Hypotheses)
+        {
+          <MudItem xs="12" md="6" @key="h.Id">
+            <div class="weekly-hypothesis">
+              <MudStack Spacing="2">
+                <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="2" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                  <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="2" AlignItems="AlignItems.Center">
+                    <MudLink Href="@($"/hypotheses/{h.Id}")" Typo="Typo.h6">@h.Name</MudLink>
+                    @if (h.CheckedInThisWeek)
+                    {
+                      <MudChip T="string" Size="Size.Small" Color="Color.Success" Class="weekly-checked-in">@L["WeeklyReview.CheckedIn"]</MudChip>
+                    }
+                  </MudStack>
+                  <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="1">
+                    <MudButton Variant="Variant.Outlined" Size="Size.Small" Class="weekly-checkin-button"
+                               OnClick="@(() => ShowDialogAsync<CheckInDialog>(h.Id, L["WeeklyReview.CheckInTitle"]))">@L["WeeklyReview.CheckIn"]</MudButton>
+                    <MudButton Variant="Variant.Outlined" Size="Size.Small" Class="weekly-decision-button"
+                               OnClick="@(() => ShowDialogAsync<DecisionDialog>(h.Id, L["WeeklyReview.DecisionTitle"]))">@L["WeeklyReview.Decision"]</MudButton>
+                  </MudStack>
+                </MudStack>
+                <HypothesisCriteriaCard @key="h.Id" HypothesisId="h.Id" Version="_version" ShowActivity="false" />
+              </MudStack>
+            </div>
+          </MudItem>
+        }
+      </MudGrid>
+    }
+  }
+</MudStack>
+
+@code {
+  private WeeklyReviewSummary? _summary;
+  private bool _saving;
+  private int _version;
+  private int _loadCount;
+
+  private static string VacancyLabel(StaleApplication stale)
+  {
+    if (!string.IsNullOrWhiteSpace(stale.CompanyName) && !string.IsNullOrWhiteSpace(stale.RoleName))
+    {
+      return $"{stale.CompanyName} · {stale.RoleName}";
+    }
+
+    return !string.IsNullOrWhiteSpace(stale.Title) ? stale.Title : stale.Url;
+  }
+
+  private async Task GhostAsync(Guid vacancyId)
+  {
+    _saving = true;
+    try
+    {
+      await VacancyService.CloseAsync(vacancyId, VacancyStage.Applied, ApplicationOutcome.Ghosted);
+      Snackbar.Add(L["WeeklyReview.GhostedDone"], Severity.Success);
+    }
+    catch (ValidationFailedException ex)
+    {
+      Snackbar.Add(string.Join(" ", ex.Errors.Values), Severity.Error);
+    }
+    catch (KeyNotFoundException)
+    {
+      Snackbar.Add(L["WeeklyReview.VacancyGone"], Severity.Error);
+    }
+    catch (Exception ex)
+    {
+      await DispatchExceptionAsync(ex);
+      return;
+    }
+    finally
+    {
+      _saving = false;
+    }
+
+    await LoadAsync();
+  }
+
+  private async Task ShowDialogAsync<TDialog>(Guid hypothesisId, string title)
+    where TDialog : Microsoft.AspNetCore.Components.IComponent
+  {
+    var parameters = new DialogParameters { [nameof(CheckInDialog.HypothesisId)] = hypothesisId };
+    var reference = await DialogService.ShowAsync<TDialog>(title, parameters, new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true });
+    var result = await reference.Result;
+    if (result is null || result.Canceled) return;
+
+    await LoadAsync();
+    _version++;
+  }
+
+  private async Task LoadAsync()
+  {
+    var load = ++_loadCount;
+    var summary = await WeeklyReviewService.GetAsync();
+    // A Ghosted click and a closing dialog can reload at the same time; only the latest load is shown.
+    if (load != _loadCount) return;
+
+    _summary = summary;
+  }
+
+  protected override async Task OnInitializedAsync()
+  {
+    await LoadAsync();
+  }
+}

@@ -93,4 +93,23 @@
   <data name="Pages.NoApplications" xml:space="preserve"><value>No applications found</value></data>
   <data name="Pages.WellBeingThreshold" xml:space="preserve"><value>Well-being threshold</value></data>
   <data name="Pages.WellBeingThresholdHelp" xml:space="preserve"><value>From 1 to 5. Two consecutive check-ins at or below this average signal that the hypothesis is not a personal fit</value></data>
+  <data name="WeeklyReview.Title" xml:space="preserve"><value>Weekly Review</value></data>
+  <data name="WeeklyReview.Goal" xml:space="preserve"><value>Applications this week</value></data>
+  <data name="WeeklyReview.GoalCaption" xml:space="preserve"><value>Across all hypotheses, against the weekly target</value></data>
+  <data name="WeeklyReview.OfCount" xml:space="preserve"><value>{0} of {1}</value></data>
+  <data name="WeeklyReview.Stale" xml:space="preserve"><value>Stale applications</value></data>
+  <data name="WeeklyReview.StaleCaption" xml:space="preserve"><value>No events for {0} days or more</value></data>
+  <data name="WeeklyReview.StaleEmpty" xml:space="preserve"><value>No stale applications</value></data>
+  <data name="WeeklyReview.IdleDays" xml:space="preserve"><value>{0} days without events</value></data>
+  <data name="WeeklyReview.AppliedOn" xml:space="preserve"><value>applied {0}</value></data>
+  <data name="WeeklyReview.Ghosted" xml:space="preserve"><value>Ghosted</value></data>
+  <data name="WeeklyReview.GhostedDone" xml:space="preserve"><value>Application closed as ghosted</value></data>
+  <data name="WeeklyReview.VacancyGone" xml:space="preserve"><value>The vacancy no longer exists</value></data>
+  <data name="WeeklyReview.Hypotheses" xml:space="preserve"><value>Hypotheses</value></data>
+  <data name="WeeklyReview.HypothesesEmpty" xml:space="preserve"><value>No active hypotheses</value></data>
+  <data name="WeeklyReview.CheckedIn" xml:space="preserve"><value>Checked in</value></data>
+  <data name="WeeklyReview.CheckIn" xml:space="preserve"><value>Check in</value></data>
+  <data name="WeeklyReview.CheckInTitle" xml:space="preserve"><value>Weekly check-in</value></data>
+  <data name="WeeklyReview.Decision" xml:space="preserve"><value>Decide</value></data>
+  <data name="WeeklyReview.DecisionTitle" xml:space="preserve"><value>Decision on the hypothesis</value></data>
 </root>
