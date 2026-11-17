@@ -63,7 +63,12 @@
     _titleFetch?.Dispose();
     _titleFetch = null;
     _fetchingTitle = false;
-    if (string.IsNullOrWhiteSpace(_url) || !TitleIsAuto) return;
+    if (!TitleIsAuto) return;
+
+    // A fetched title belongs to the previous link; keep it and Add would save it on the new one.
+    _title = null;
+    _fetchedTitle = null;
+    if (string.IsNullOrWhiteSpace(_url)) return;
 
     var fetch = new CancellationTokenSource();
     _titleFetch = fetch;
