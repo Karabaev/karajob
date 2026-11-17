@@ -105,6 +105,7 @@
   private WeeklyReviewSummary? _summary;
   private bool _saving;
   private int _version;
+  private int _loadCount;
 
   private static string VacancyLabel(StaleApplication stale)
   {
@@ -128,6 +129,15 @@
     {
       Snackbar.Add(string.Join(" ", ex.Errors.Values), Severity.Error);
     }
+    catch (KeyNotFoundException)
+    {
+      Snackbar.Add(L["WeeklyReview.VacancyGone"], Severity.Error);
+    }
+    catch (Exception ex)
+    {
+      await DispatchExceptionAsync(ex);
+      return;
+    }
     finally
     {
       _saving = false;
@@ -150,7 +160,12 @@
 
   private async Task LoadAsync()
   {
-    _summary = await WeeklyReviewService.GetAsync();
+    var load = ++_loadCount;
+    var summary = await WeeklyReviewService.GetAsync();
+    // A Ghosted click and a closing dialog can reload at the same time; only the latest load is shown.
+    if (load != _loadCount) return;
+
+    _summary = summary;
   }
 
   protected override async Task OnInitializedAsync()

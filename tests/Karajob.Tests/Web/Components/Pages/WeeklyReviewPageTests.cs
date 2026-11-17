@@ -50,7 +50,7 @@ public class WeeklyReviewPageTests : HypothesisDecisionServiceFixture, IAsyncLif
     {
       Assert.Single(cut.FindAll(".weekly-checkin-button"));
       Assert.Single(cut.FindAll(".weekly-decision-button"));
-      Assert.NotEmpty(cut.FindAll(".hypothesis-criteria"));
+      Assert.NotEmpty(cut.FindAll(".criteria-market"));
     });
     Assert.Empty(cut.FindAll(".criteria-activity"));
   }
@@ -109,8 +109,7 @@ public class WeeklyReviewPageTests : HypothesisDecisionServiceFixture, IAsyncLif
     cut.WaitForAssertion(() =>
     {
       var text = cut.Find(".weekly-goal").TextContent;
-      Assert.Contains("1", text);
-      Assert.Contains("10", text);
+      Assert.Contains("1 of 10", text);
     });
   }
 
@@ -126,7 +125,7 @@ public class WeeklyReviewPageTests : HypothesisDecisionServiceFixture, IAsyncLif
     {
       var row = Assert.Single(cut.FindAll(".stale-application"));
       Assert.Contains("Gamedev EU", row.TextContent);
-      Assert.Contains("20", row.TextContent);
+      Assert.Contains("20 days without events", row.TextContent);
       Assert.NotNull(row.QuerySelector(".stale-ghosted"));
     });
     Assert.Empty(cut.FindAll(".stale-empty"));
@@ -176,6 +175,23 @@ public class WeeklyReviewPageTests : HypothesisDecisionServiceFixture, IAsyncLif
     cut.WaitForAssertion(() => Assert.Single(cut.FindAll(".stale-application")));
     Assert.Equal(VacancyStage.Closed, (await LoadAsync(oldest)).Stage);
     Assert.Equal(VacancyStage.Applied, (await LoadAsync(other)).Stage);
+  }
+
+  [Fact]
+  public async Task ClickGhosted_VacancyMovedInAnotherTab_KeepsStageAndDropsRow()
+  {
+    var hypothesisId = await CreateActiveAsync();
+    var vacancyId = await ApplyAsync(hypothesisId, Now.AddDays(-20));
+    var cut = RenderPage();
+    var ghosted = cut.WaitForElement(".stale-application .stale-ghosted");
+    await Service.MoveAsync(vacancyId, VacancyStage.Applied, VacancyStage.Interviewing);
+
+    ghosted.Click();
+
+    cut.WaitForAssertion(() => Assert.Empty(cut.FindAll(".stale-application")));
+    var vacancy = await LoadAsync(vacancyId);
+    Assert.Equal(VacancyStage.Interviewing, vacancy.Stage);
+    Assert.Null(vacancy.Application!.Outcome);
   }
 
   [Fact]

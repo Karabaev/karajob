@@ -104,6 +104,7 @@
   <data name="WeeklyReview.AppliedOn" xml:space="preserve"><value>отклик {0}</value></data>
   <data name="WeeklyReview.Ghosted" xml:space="preserve"><value>Игнор</value></data>
   <data name="WeeklyReview.GhostedDone" xml:space="preserve"><value>Отклик закрыт как проигнорированный</value></data>
+  <data name="WeeklyReview.VacancyGone" xml:space="preserve"><value>Вакансия больше не существует</value></data>
   <data name="WeeklyReview.Hypotheses" xml:space="preserve"><value>Гипотезы</value></data>
   <data name="WeeklyReview.HypothesesEmpty" xml:space="preserve"><value>Активных гипотез нет</value></data>
   <data name="WeeklyReview.CheckedIn" xml:space="preserve"><value>Чекин сделан</value></data>

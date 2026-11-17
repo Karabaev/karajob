@@ -104,6 +104,7 @@
   <data name="WeeklyReview.AppliedOn" xml:space="preserve"><value>applied {0}</value></data>
   <data name="WeeklyReview.Ghosted" xml:space="preserve"><value>Ghosted</value></data>
   <data name="WeeklyReview.GhostedDone" xml:space="preserve"><value>Application closed as ghosted</value></data>
+  <data name="WeeklyReview.VacancyGone" xml:space="preserve"><value>The vacancy no longer exists</value></data>
   <data name="WeeklyReview.Hypotheses" xml:space="preserve"><value>Hypotheses</value></data>
   <data name="WeeklyReview.HypothesesEmpty" xml:space="preserve"><value>No active hypotheses</value></data>
   <data name="WeeklyReview.CheckedIn" xml:space="preserve"><value>Checked in</value></data>
