@@ -104,6 +104,8 @@
   <data name="Page.Saved" xml:space="preserve"><value>Saved</value></data>
   <data name="Page.CreateCompany" xml:space="preserve"><value>+ Create "{0}"</value></data>
   <data name="Page.NewCompany" xml:space="preserve"><value>New company</value></data>
+  <data name="Page.CompanyCreated" xml:space="preserve"><value>Company “{0}” created</value></data>
+  <data name="Page.OpenCompany" xml:space="preserve"><value>Open company page</value></data>
   <data name="Page.EmptyHint" xml:space="preserve"><value>Add them in the Catalogs section</value></data>
   <data name="Page.NewEvent" xml:space="preserve"><value>New event</value></data>
   <data name="Page.DeleteEventTitle" xml:space="preserve"><value>Delete event?</value></data>

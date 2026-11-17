@@ -370,7 +370,25 @@ else if (_loaded)
       return null;
     }
 
+    Snackbar.Add(CompanyCreatedMessage(details), Severity.Success);
     return new CompanyListItem(details.Id, details.Slug, details.Name, details.IconUrl, details.Domains, details.IsBlacklisted, []);
+  }
+
+  private RenderFragment CompanyCreatedMessage(CompanyDetails details)
+  {
+    var href = $"/companies/{Uri.EscapeDataString(details.Slug)}";
+    return builder =>
+    {
+      builder.AddContent(0, L["Page.CompanyCreated", details.Name].Value);
+      builder.AddMarkupContent(1, " ");
+      builder.OpenElement(2, "a");
+      builder.AddAttribute(3, "href", href);
+      builder.AddAttribute(4, "target", "_blank");
+      builder.AddAttribute(5, "rel", "noopener");
+      builder.AddAttribute(6, "style", "color: inherit; font-weight: 600;");
+      builder.AddContent(7, L["Page.OpenCompany"].Value);
+      builder.CloseElement();
+    };
   }
 
   private async Task OnRoleChangedAsync(Guid? roleId)

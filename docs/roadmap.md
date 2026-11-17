@@ -122,6 +122,8 @@ Order: block A → block B; blocks C, D, E, G are independent after #41.
 
 - [x] #104 Company locations: a company has one or several locations from the `Location` reference data, edited on the company card and shown as chips in the companies list.
 
+- [x] #101 Quick company creation on the vacancy page shows a toast with a link (new tab) to the company page, to fill in the rest of the card.
+
 ### H. Branding
 
 - [x] #82 Logo and favicon: transparent logo and icon, the favicon, the logo in the app bar instead of the text.
