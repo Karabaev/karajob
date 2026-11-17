@@ -104,6 +104,10 @@ else if (_loaded)
                 <MudTd DataLabel="@L["Cv.Size"]">@FormatSize(context.SizeBytes)</MudTd>
                 <MudTd DataLabel="@L["Cv.Comment"]">@context.Comment</MudTd>
                 <MudTd>
+                  @if (context.FileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
+                  {
+                    <MudButton Class="cv-preview" Size="Size.Small" OnClick="() => PreviewAsync(context)">@L["Cv.Preview"]</MudButton>
+                  }
                   <a class="mud-link mud-link-underline-hover" href="/cvs/versions/@context.Id/file" download="@context.FileName">@L["Cv.Download"]</a>
                   <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
                                  aria-label="@L["Cv.DeleteVersionLabel"]" OnClick="() => DeleteVersionAsync(context)" />
@@ -309,6 +313,17 @@ else if (_loaded)
     {
       _saving = false;
     }
+  }
+
+  private Task PreviewAsync(CvVersionItem version)
+  {
+    var parameters = new DialogParameters
+    {
+      [nameof(CvPreviewDialog.Url)] = $"/cvs/versions/{version.Id}/file?inline=true",
+      [nameof(CvPreviewDialog.FileName)] = version.FileName
+    };
+    return DialogService.ShowAsync<CvPreviewDialog>(version.FileName, parameters,
+      new DialogOptions { MaxWidth = MaxWidth.Large, FullWidth = true, CloseButton = true });
   }
 
   private async Task DeleteVersionAsync(CvVersionItem version)

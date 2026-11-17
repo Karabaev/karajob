@@ -8,6 +8,15 @@ namespace Karajob.Tests.Web.Components.Cvs;
 
 public class CvPageTests : CvWebFixture
 {
+  private IRenderedComponent<MudDialogProvider> dialogs = null!;
+
+  private IRenderedComponent<CvPage> RenderPage(Guid id)
+  {
+    Context.Render<MudPopoverProvider>();
+    dialogs = Context.Render<MudDialogProvider>();
+    return Context.Render<CvPage>(p => p.Add(c => c.Id, id));
+  }
+
   [Fact]
   public async Task Render_ExistingCvWithTwoVersions_ShowsBothFileNames()
   {
@@ -41,6 +50,66 @@ public class CvPageTests : CvWebFixture
           a => a.GetAttribute("href")!.EndsWith($"/cvs/versions/{version.Id}/file", StringComparison.OrdinalIgnoreCase));
       }
     });
+  }
+
+  [Fact]
+  public async Task Render_PdfVersion_ShowsPreviewControl()
+  {
+    var created = await Service.CreateAsync(Input("Main"), Upload("only.pdf"));
+
+    var cut = RenderPage(created.Id);
+
+    cut.WaitForAssertion(() => Assert.Single(cut.FindAll(".cv-preview")));
+  }
+
+  [Fact]
+  public async Task Render_DocxVersion_HasNoPreviewControlButKeepsDownload()
+  {
+    var created = await Service.CreateAsync(Input("Main"), Upload("only.docx"));
+
+    var cut = RenderPage(created.Id);
+
+    cut.WaitForAssertion(() => Assert.Single(cut.FindAll("a[download]")));
+    Assert.Empty(cut.FindAll(".cv-preview"));
+  }
+
+  [Fact]
+  public async Task Render_PdfAndDocxVersions_PreviewOnlyForPdfAndDownloadForBoth()
+  {
+    var created = await Service.CreateAsync(Input("Main"), Upload("one.pdf"));
+    await Service.AddVersionAsync(created.Id, Upload("two.docx"));
+
+    var cut = RenderPage(created.Id);
+
+    cut.WaitForAssertion(() => Assert.Equal(2, cut.FindAll("a[download]").Count));
+    Assert.Single(cut.FindAll(".cv-preview"));
+  }
+
+  [Fact]
+  public async Task Preview_Clicked_OpensDialogWithInlineFrame()
+  {
+    var created = await Service.CreateAsync(Input("Main"), Upload("only.pdf"));
+    var versionId = created.Versions[0].Id;
+    var cut = RenderPage(created.Id);
+
+    cut.WaitForElement(".cv-preview").Click();
+
+    var frame = dialogs.WaitForElement("iframe.cv-preview-frame");
+    Assert.Equal($"/cvs/versions/{versionId}/file?inline=true", frame.GetAttribute("src"));
+  }
+
+  [Fact]
+  public async Task Preview_Clicked_DialogHasOpenInNewTabLink()
+  {
+    var created = await Service.CreateAsync(Input("Main"), Upload("only.pdf"));
+    var versionId = created.Versions[0].Id;
+    var cut = RenderPage(created.Id);
+
+    cut.WaitForElement(".cv-preview").Click();
+
+    var link = dialogs.WaitForElement("a.cv-preview-open");
+    Assert.Equal($"/cvs/versions/{versionId}/file?inline=true", link.GetAttribute("href"));
+    Assert.Equal("_blank", link.GetAttribute("target"));
   }
 
   [Fact]

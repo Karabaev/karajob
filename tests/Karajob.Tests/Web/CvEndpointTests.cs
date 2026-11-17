@@ -77,6 +77,133 @@ public class CvEndpointTests : IDisposable
   }
 
   [Fact]
+  public async Task GetVersionFile_PdfInline_ReturnsInlineDispositionWithBytes()
+  {
+    byte[] bytes = [0x25, 0x50, 0x44, 0x46, 1, 2, 3];
+    var versionId = await CreateCvAsync("Inline.pdf", bytes);
+    var client = await ProfileClient.AuthenticatedClientAsync(factory, SeedData.OwnerId);
+
+    var response = await client.GetAsync($"/cvs/versions/{versionId}/file?inline=true");
+
+    Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    Assert.Equal("application/pdf", response.Content.Headers.ContentType?.MediaType);
+    Assert.Equal("inline", response.Content.Headers.ContentDisposition?.DispositionType);
+    Assert.Equal(bytes, await response.Content.ReadAsByteArrayAsync());
+  }
+
+  [Fact]
+  public async Task GetVersionFile_PdfInlineWithLongCyrillicName_ReturnsInlineWithEncodedFileName()
+  {
+    const string fileName = "Резюме Иван Иванович Иванов Senior Unity Developer 2026 final version.pdf";
+    var versionId = await CreateCvAsync(fileName, [1, 2, 3]);
+    var client = await ProfileClient.AuthenticatedClientAsync(factory, SeedData.OwnerId);
+
+    var response = await client.GetAsync($"/cvs/versions/{versionId}/file?inline=true");
+
+    Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    var disposition = response.Content.Headers.ContentDisposition;
+    Assert.NotNull(disposition);
+    Assert.Equal("inline", disposition.DispositionType);
+    Assert.Equal(fileName, disposition.FileNameStar);
+  }
+
+  [Fact]
+  public async Task GetVersionFile_PdfInline_DoesNotBlockSameOriginFraming()
+  {
+    var versionId = await CreateCvAsync("Frame.pdf", [1, 2, 3]);
+    var client = await ProfileClient.AuthenticatedClientAsync(factory, SeedData.OwnerId);
+
+    var response = await client.GetAsync($"/cvs/versions/{versionId}/file?inline=true");
+
+    Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    Assert.False(response.Headers.Contains("X-Frame-Options"));
+    if (response.Headers.TryGetValues("Content-Security-Policy", out var policies))
+    {
+      Assert.DoesNotContain(policies, p => p.Contains("frame-ancestors", StringComparison.OrdinalIgnoreCase));
+    }
+  }
+
+  [Fact]
+  public async Task GetVersionFile_PdfInline_SendsNosniffHeader()
+  {
+    var versionId = await CreateCvAsync("Sniff.pdf", [1, 2, 3]);
+    var client = await ProfileClient.AuthenticatedClientAsync(factory, SeedData.OwnerId);
+
+    var response = await client.GetAsync($"/cvs/versions/{versionId}/file?inline=true");
+
+    Assert.Equal("nosniff", Assert.Single(response.Headers.GetValues("X-Content-Type-Options")));
+  }
+
+  [Theory]
+  [InlineData("")]
+  [InlineData("?inline=false")]
+  public async Task GetVersionFile_PdfWithoutInlineFlag_ReturnsAttachmentWithFileName(string query)
+  {
+    var versionId = await CreateCvAsync("Plain.pdf", [1, 2, 3]);
+    var client = await ProfileClient.AuthenticatedClientAsync(factory, SeedData.OwnerId);
+
+    var response = await client.GetAsync($"/cvs/versions/{versionId}/file{query}");
+
+    var disposition = response.Content.Headers.ContentDisposition;
+    Assert.NotNull(disposition);
+    Assert.Equal("attachment", disposition.DispositionType);
+    Assert.Equal("Plain.pdf", disposition.FileNameStar ?? disposition.FileName?.Trim('"'));
+  }
+
+  [Fact]
+  public async Task GetVersionFile_DocxInline_StillReturnsAttachment()
+  {
+    var versionId = await CreateCvAsync("Resume.docx", [1, 2, 3]);
+    var client = await ProfileClient.AuthenticatedClientAsync(factory, SeedData.OwnerId);
+
+    var response = await client.GetAsync($"/cvs/versions/{versionId}/file?inline=true");
+
+    Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    Assert.Equal("attachment", response.Content.Headers.ContentDisposition?.DispositionType);
+  }
+
+  [Fact]
+  public async Task GetVersionFile_InlineUnknownId_ReturnsNotFound()
+  {
+    var client = await ProfileClient.AuthenticatedClientAsync(factory, SeedData.OwnerId);
+
+    var response = await client.GetAsync($"/cvs/versions/{Guid.NewGuid()}/file?inline=true");
+
+    Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+  }
+
+  [Fact]
+  public async Task GetVersionFile_InlineOtherUsersVersion_ReturnsNotFound()
+  {
+    using var scope = factory.Services.CreateScope();
+    var contextFactory = scope.ServiceProvider.GetRequiredService<IDbContextFactory<KarajobDbContext>>();
+    await using var context = await contextFactory.CreateDbContextAsync();
+    var other = new User("Other", "#26a69a", DateTime.UtcNow);
+    var document = new CvDocument(other.Id, "Other CV", SeedData.EnglishLanguageId, DateTime.UtcNow);
+    var version = document.AddVersion("other.pdf", "cv/other/other.pdf", "application/pdf", 3, null, DateTime.UtcNow);
+    context.Users.Add(other);
+    context.CvDocuments.Add(document);
+    await context.SaveChangesAsync();
+    var client = await ProfileClient.AuthenticatedClientAsync(factory, SeedData.OwnerId);
+
+    var response = await client.GetAsync($"/cvs/versions/{version.Id}/file?inline=true");
+
+    Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+  }
+
+  [Fact]
+  public async Task GetVersionFile_InlineStoredFileMissing_ReturnsNotFound()
+  {
+    var versionId = await CreateCvAsync("Gone.pdf", [1, 2, 3]);
+    Directory.Delete(root, recursive: true);
+    var client = await ProfileClient.AuthenticatedClientAsync(factory, SeedData.OwnerId);
+
+    var response = await client.GetAsync($"/cvs/versions/{versionId}/file?inline=true");
+
+    Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+  }
+
+  [Fact]
   public void Host_ResolvesCvOptionsWithFiveMegabyteLimit()
   {
     var options = factory.Services.GetRequiredService<CvOptions>();

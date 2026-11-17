@@ -35,4 +35,7 @@
   <data name="Cv.DeleteMessage" xml:space="preserve"><value>CV “{0}” and all its versions will be deleted.</value></data>
   <data name="Cv.DeleteConfirm" xml:space="preserve"><value>Delete</value></data>
   <data name="Cv.Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Cv.Preview" xml:space="preserve"><value>Preview</value></data>
+  <data name="Cv.OpenInNewTab" xml:space="preserve"><value>Open in new tab</value></data>
+  <data name="Cv.Close" xml:space="preserve"><value>Close</value></data>
 </root>
