@@ -73,12 +73,25 @@ public class Hypothesis : IUserOwned
     if (status is HypothesisStatus.Active or HypothesisStatus.Expanded && StartedAt is null)
     {
       StartedAt = utcNow;
+      PeriodStartedAt = utcNow;
     }
   }
 
   public void ApplyDecision(HypothesisDecisionKind kind, DateTime utcNow)
   {
-    throw new NotImplementedException();
+    if (!ActiveHypothesesRule.IsActive(Status)) throw new InvalidOperationException($"A decision cannot be applied to a {Status} hypothesis.");
+    UtcGuard.Ensure(utcNow);
+
+    switch (kind)
+    {
+      case HypothesisDecisionKind.Expand:
+        Status = HypothesisStatus.Expanded;
+        PeriodStartedAt = utcNow;
+        break;
+      case HypothesisDecisionKind.Disable:
+        Status = HypothesisStatus.Disabled;
+        break;
+    }
   }
 
   public Hypothesis(Guid userId, string name, Guid roleId, Guid languageId, DateTime createdAt)

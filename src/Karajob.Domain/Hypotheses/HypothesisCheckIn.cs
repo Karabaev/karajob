@@ -19,12 +19,28 @@ public class HypothesisCheckIn : IUserOwned
 
   public void Update(int motivation, int confidence, string? note, DateTime utcNow)
   {
-    throw new NotImplementedException();
+    ArgumentOutOfRangeException.ThrowIfLessThan(motivation, MinScore);
+    ArgumentOutOfRangeException.ThrowIfGreaterThan(motivation, MaxScore);
+    ArgumentOutOfRangeException.ThrowIfLessThan(confidence, MinScore);
+    ArgumentOutOfRangeException.ThrowIfGreaterThan(confidence, MaxScore);
+    var updatedAt = UtcGuard.Ensure(utcNow);
+
+    Motivation = motivation;
+    Confidence = confidence;
+    Note = string.IsNullOrWhiteSpace(note) ? null : note.Trim();
+    UpdatedAt = updatedAt;
   }
 
   public HypothesisCheckIn(Guid userId, Guid hypothesisId, DateOnly week, int motivation, int confidence, string? note, DateTime createdAt)
   {
-    throw new NotImplementedException();
+    if (week.DayOfWeek != DayOfWeek.Monday) throw new ArgumentException("Week must start on Monday.", nameof(week));
+
+    Id = Guid.CreateVersion7();
+    UserId = Require.NotEmpty(userId);
+    HypothesisId = Require.NotEmpty(hypothesisId);
+    Week = week;
+    CreatedAt = UtcGuard.Ensure(createdAt);
+    Update(motivation, confidence, note, createdAt);
   }
 
   private HypothesisCheckIn()

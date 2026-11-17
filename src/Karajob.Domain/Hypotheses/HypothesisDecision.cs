@@ -20,6 +20,11 @@ public class HypothesisDecision : IUserOwned
   public int? WellBeingTenths { get; private set; }
   public DecisionHint Hint { get; private set; }
 
+  private static string? BlankToNull(string? value)
+  {
+    return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+  }
+
   public HypothesisDecision(
     Guid userId,
     Guid hypothesisId,
@@ -29,7 +34,25 @@ public class HypothesisDecision : IUserOwned
     string? changes,
     DecisionSnapshot snapshot)
   {
-    throw new NotImplementedException();
+    Id = Guid.CreateVersion7();
+    UserId = Require.NotEmpty(userId);
+    HypothesisId = Require.NotEmpty(hypothesisId);
+    DecidedAt = UtcGuard.Ensure(decidedAt);
+    Kind = kind;
+    Reason = BlankToNull(reason);
+    Changes = BlankToNull(changes);
+
+    if (kind == HypothesisDecisionKind.Expand && Changes is null) throw new ArgumentException("Changes are required to expand.", nameof(changes));
+    if (kind == HypothesisDecisionKind.Disable && Reason is null) throw new ArgumentException("Reason is required to disable.", nameof(reason));
+
+    PeriodStartedAt = UtcGuard.Ensure(snapshot.PeriodStartedAt, nameof(snapshot));
+    MarketVacancies = snapshot.MarketVacancies;
+    MarketThreshold = snapshot.MarketThreshold;
+    PositiveApplications = snapshot.PositiveApplications;
+    MaturedApplications = snapshot.MaturedApplications;
+    ConversionThresholdPermille = snapshot.ConversionThresholdPermille;
+    WellBeingTenths = snapshot.WellBeingTenths;
+    Hint = snapshot.Hint;
   }
 
   private HypothesisDecision()

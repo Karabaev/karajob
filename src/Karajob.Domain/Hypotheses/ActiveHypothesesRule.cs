@@ -12,6 +12,9 @@ public static class ActiveHypothesesRule
 
   public static ActiveHypothesesStatus Check(int activeCount)
   {
-    throw new NotImplementedException();
+    if (activeCount < MinActive) return ActiveHypothesesStatus.TooFew;
+    if (activeCount > MaxActive) return ActiveHypothesesStatus.TooMany;
+
+    return ActiveHypothesesStatus.Ok;
   }
 }

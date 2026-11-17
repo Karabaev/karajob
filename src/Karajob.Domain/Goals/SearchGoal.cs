@@ -80,7 +80,16 @@ public class SearchGoal : IUserOwned
     }
   }
 
-  public int WellBeingThreshold { get; set; }
+  public int WellBeingThreshold
+  {
+    get;
+    set
+    {
+      ArgumentOutOfRangeException.ThrowIfLessThan(value, MinWellBeingThreshold);
+      ArgumentOutOfRangeException.ThrowIfGreaterThan(value, MaxWellBeingThreshold);
+      field = value;
+    }
+  }
 
   public void SetLocations(IEnumerable<Guid> locationIds)
   {
