@@ -21,6 +21,10 @@
     {
       <MudTh>@L["Catalog.Code"]</MudTh>
     }
+    @if (Kind == CatalogKind.Location)
+    {
+      <MudTh>@L["Catalog.TimeZone"]</MudTh>
+    }
     <MudTh></MudTh>
   </HeaderContent>
   <RowTemplate>
@@ -28,6 +32,10 @@
     @if (HasCode)
     {
       <MudTd DataLabel="@L["Catalog.Code"]">@context.Code</MudTd>
+    }
+    @if (Kind == CatalogKind.Location)
+    {
+      <MudTd DataLabel="@L["Catalog.TimeZone"]"><span class="catalog-time-zone-value">@context.TimeZoneId</span></MudTd>
     }
     <MudTd>
       <MudIconButton Class="catalog-rename" Icon="@Icons.Material.Filled.Edit" Size="Size.Small"

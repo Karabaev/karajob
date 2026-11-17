@@ -1,7 +1,9 @@
 using Bunit;
 using Karajob.Application.Catalogs;
+using Karajob.Infrastructure.Persistence;
 using Karajob.Tests.Web.Components.Catalogs;
 using Karajob.Web.Components.Catalogs;
+using MudBlazor;
 using CatalogsPage = Karajob.Web.Components.Pages.Catalogs;
 
 namespace Karajob.Tests.Web.Components.Pages;
@@ -215,6 +217,38 @@ public class CatalogsPageTests : CatalogWebFixture
       Assert.Contains("Locations", cut.Markup);
       Assert.Contains("Languages", cut.Markup);
     });
+  }
+
+  [Fact]
+  public void Render_Locations_ShowsSeededSerbiaTimeZone()
+  {
+    var cut = Context.Render<CatalogList>(p => p.Add(c => c.Kind, CatalogKind.Location));
+
+    cut.WaitForAssertion(() =>
+    {
+      var rows = cut.FindAll(".catalog-row").Select(r => r.TextContent).ToList();
+      Assert.Contains(rows, r => r.Contains("Serbia") && r.Contains("Europe/Belgrade"));
+    });
+  }
+
+  [Fact]
+  public async Task EditLocation_PickedTimeZone_PersistsIt()
+  {
+    Context.Render<MudPopoverProvider>();
+    var provider = Context.Render<MudDialogProvider>();
+    var cut = Context.Render<CatalogList>(p => p.Add(c => c.Kind, CatalogKind.Location));
+    cut.WaitForAssertion(() => Assert.Contains("Serbia", cut.Markup));
+    var euRow = cut.FindAll(".catalog-row").Single(r => r.QuerySelector(".catalog-name")!.TextContent.Trim() == "EU");
+    euRow.QuerySelector(".catalog-rename")!.Click();
+    provider.WaitForElement(".catalog-time-zone input");
+    var timeZone = provider.FindComponent<MudAutocomplete<string>>();
+    await provider.InvokeAsync(() => timeZone.Instance.ValueChanged.InvokeAsync("Europe/Berlin"));
+
+    provider.FindAll("button").Single(b => b.TextContent.Trim() == "Save").Click();
+
+    cut.WaitForAssertion(() => Assert.Contains("Europe/Berlin", cut.Markup));
+    var item = (await Service.ListAsync(CatalogKind.Location)).Single(i => i.Id == SeedData.EuLocationId);
+    Assert.Equal("Europe/Berlin", item.TimeZoneId);
   }
 
   private static void TypeName(IRenderedComponent<CatalogList> cut, string name)

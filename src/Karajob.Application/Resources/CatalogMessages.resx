@@ -10,4 +10,5 @@
   <data name="Error.CurrencyCodeInvalid" xml:space="preserve"><value>Code must be 3 Latin letters</value></data>
   <data name="Error.LanguageCodeInvalid" xml:space="preserve"><value>Code must be 2-3 Latin letters</value></data>
   <data name="Error.CodeExists" xml:space="preserve"><value>This code already exists</value></data>
+  <data name="Error.TimeZoneInvalid" xml:space="preserve"><value>Choose a time zone from the list</value></data>
 </root>

@@ -14,4 +14,5 @@
   <data name="Catalog.Cancel" xml:space="preserve"><value>Отмена</value></data>
   <data name="Catalog.Save" xml:space="preserve"><value>Сохранить</value></data>
   <data name="Catalog.AlreadyDeleted" xml:space="preserve"><value>Запись уже удалена</value></data>
+  <data name="Catalog.TimeZone" xml:space="preserve"><value>Часовой пояс</value></data>
 </root>

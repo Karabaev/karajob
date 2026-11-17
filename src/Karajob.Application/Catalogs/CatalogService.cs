@@ -3,6 +3,7 @@ using Microsoft.Extensions.Localization;
 using Karajob.Application.Common;
 using Karajob.Application.Persistence;
 using Karajob.Domain.Catalogs;
+using Karajob.Domain.Common;
 using Karajob.Domain.Normalization;
 using Microsoft.EntityFrameworkCore;
 
@@ -93,6 +94,45 @@ public class CatalogService(IKarajobDbContextFactory dbContextFactory, IStringLo
     entry.Rename(name);
     await db.SaveChangesAsync(cancellationToken);
     return ToItem(entry);
+  }
+
+  public async Task<CatalogListItem> UpdateLocationAsync(Guid id, string name, string? timeZoneId, CancellationToken cancellationToken = default)
+  {
+    await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+    var location = await db.Locations.FirstOrDefaultAsync(l => l.Id == id, cancellationToken)
+      ?? throw new KeyNotFoundException($"{CatalogKind.Location} {id} was not found.");
+
+    var errors = new Dictionary<string, string>();
+    await ValidateNameAsync(db, CatalogKind.Location, name, id, errors, cancellationToken);
+    if (!IsValidTimeZone(timeZoneId))
+    {
+      errors[nameof(CatalogListItem.TimeZoneId)] = localizer["Error.TimeZoneInvalid"];
+    }
+
+    if (errors.Count > 0)
+    {
+      throw new ValidationFailedException(errors);
+    }
+
+    location.Rename(name);
+    location.SetTimeZone(timeZoneId);
+    await db.SaveChangesAsync(cancellationToken);
+    return ToItem(location);
+  }
+
+  private static bool IsValidTimeZone(string? timeZoneId)
+  {
+    if (string.IsNullOrWhiteSpace(timeZoneId)) return true;
+
+    try
+    {
+      UserTime.NormalizeId(timeZoneId);
+      return true;
+    }
+    catch (ArgumentException)
+    {
+      return false;
+    }
   }
 
   public async Task DeleteAsync(CatalogKind kind, Guid id, CancellationToken cancellationToken = default)
@@ -243,6 +283,10 @@ public class CatalogService(IKarajobDbContextFactory dbContextFactory, IStringLo
 
   private static CatalogListItem ToItem(CatalogEntry entry)
   {
-    return new CatalogListItem(entry.Id, entry.Name, entry switch { Language language => language.Code, Currency currency => currency.Code, _ => null });
+    return new CatalogListItem(
+      entry.Id,
+      entry.Name,
+      entry switch { Language language => language.Code, Currency currency => currency.Code, _ => null },
+      (entry as Location)?.TimeZoneId);
   }
 }
