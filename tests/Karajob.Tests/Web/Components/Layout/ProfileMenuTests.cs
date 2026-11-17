@@ -135,7 +135,8 @@ public class ProfileMenuTests : ProfileWebFixture
     await popover.WaitForAssertionAsync(() =>
     {
       var link = popover.FindAll("a").Single(a => a.TextContent.Trim() == "Master profile");
-      Assert.Contains(Icons.Material.Filled.Badge, link.InnerHtml);
+      var expected = Context.Render<MudIcon>(p => p.Add(i => i.Icon, Icons.Material.Filled.Badge)).Find("svg").InnerHtml;
+      Assert.Equal(expected, link.QuerySelector("svg")!.InnerHtml);
     });
   }
 

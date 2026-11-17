@@ -94,6 +94,8 @@ Order: block A → block B; blocks C, D, E, G are independent after #41.
 
 - [x] #47 Master profile: Markdown with fixed sections, versions, preview, restore.
 
+- [x] #98 Master profile access moved from the side menu to the profile dropdown (above "All profiles").
+
 ### D. Access from a phone
 
 - [ ] #48 A personal profile token and `POST /api/inbox` for an iPhone Shortcuts quick command.
