@@ -29,6 +29,8 @@ public interface IKarajobDbContext : IAsyncDisposable
   DbSet<HypothesisLocation> HypothesisLocations { get; }
   DbSet<HypothesisPlatform> HypothesisPlatforms { get; }
   DbSet<HypothesisEngine> HypothesisEngines { get; }
+  DbSet<HypothesisCheckIn> HypothesisCheckIns { get; }
+  DbSet<HypothesisDecision> HypothesisDecisions { get; }
   DbSet<CvDocument> CvDocuments { get; }
   DbSet<CvVersion> CvVersions { get; }
   DbSet<Vacancy> Vacancies { get; }

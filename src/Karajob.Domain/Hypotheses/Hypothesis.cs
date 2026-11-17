@@ -8,6 +8,7 @@ public class Hypothesis : IUserOwned
   private readonly List<HypothesisPlatform> platforms = [];
   private readonly List<HypothesisEngine> engines = [];
   private DateTime? startedAt;
+  private DateTime? periodStartedAt;
 
   public Guid Id { get; private set; }
   public Guid UserId { get; private set; }
@@ -28,6 +29,12 @@ public class Hypothesis : IUserOwned
   {
     get => startedAt;
     set => startedAt = UtcGuard.Ensure(value);
+  }
+
+  public DateTime? PeriodStartedAt
+  {
+    get => periodStartedAt;
+    private set => periodStartedAt = UtcGuard.Ensure(value);
   }
 
   public void SetLocations(IEnumerable<Guid> locationIds)
@@ -67,6 +74,11 @@ public class Hypothesis : IUserOwned
     {
       StartedAt = utcNow;
     }
+  }
+
+  public void ApplyDecision(HypothesisDecisionKind kind, DateTime utcNow)
+  {
+    throw new NotImplementedException();
   }
 
   public Hypothesis(Guid userId, string name, Guid roleId, Guid languageId, DateTime createdAt)

@@ -42,6 +42,8 @@ public class KarajobDbContext(DbContextOptions<KarajobDbContext> options, ICurre
   public DbSet<HypothesisLocation> HypothesisLocations => Set<HypothesisLocation>();
   public DbSet<HypothesisPlatform> HypothesisPlatforms => Set<HypothesisPlatform>();
   public DbSet<HypothesisEngine> HypothesisEngines => Set<HypothesisEngine>();
+  public DbSet<HypothesisCheckIn> HypothesisCheckIns => Set<HypothesisCheckIn>();
+  public DbSet<HypothesisDecision> HypothesisDecisions => Set<HypothesisDecision>();
   public DbSet<CvDocument> CvDocuments => Set<CvDocument>();
   public DbSet<CvVersion> CvVersions => Set<CvVersion>();
   public DbSet<Vacancy> Vacancies => Set<Vacancy>();

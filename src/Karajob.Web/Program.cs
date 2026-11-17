@@ -71,6 +71,7 @@ builder.Services.AddHttpClient<IPageTitleReader, HttpPageTitleReader>(client =>
   client.DefaultRequestHeaders.Accept.ParseAdd("text/html");
 });
 builder.Services.AddScoped<HypothesisMetricsService>();
+builder.Services.AddScoped<HypothesisDecisionService>();
 builder.Services.AddScoped<UserDates>();
 builder.Services.AddScoped<InboxNotifier>();
 

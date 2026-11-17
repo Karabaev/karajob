@@ -37,6 +37,7 @@ public record HypothesisDetails(
   string? Positioning,
   Guid? PrimaryCvDocumentId,
   HypothesisStatus Status,
-  DateTime? StartedAt);
+  DateTime? StartedAt,
+  DateTime? PeriodStartedAt);
 
 public record CvOption(Guid Id, string Name, string LanguageCode);

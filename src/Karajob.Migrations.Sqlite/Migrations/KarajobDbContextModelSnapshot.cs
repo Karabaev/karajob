@@ -625,6 +625,11 @@ namespace Karajob.Migrations.Sqlite.Migrations
                     b.Property<int>("WeeklyApplicationTarget")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("WellBeingThreshold")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(2);
+
                     b.HasKey("Id");
 
                     b.HasIndex("IncomeCurrency");
@@ -645,7 +650,8 @@ namespace Karajob.Migrations.Sqlite.Migrations
                             MaturationDays = 14,
                             MinSampleSize = 30,
                             UserId = new Guid("019a7c1e-0000-7000-8000-000000000001"),
-                            WeeklyApplicationTarget = 10
+                            WeeklyApplicationTarget = 10,
+                            WellBeingThreshold = 2
                         });
                 });
 
@@ -746,6 +752,9 @@ namespace Karajob.Migrations.Sqlite.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<DateTime?>("PeriodStartedAt")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Positioning")
                         .HasColumnType("TEXT");
 
@@ -778,6 +787,101 @@ namespace Karajob.Migrations.Sqlite.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Hypotheses");
+                });
+
+            modelBuilder.Entity("Karajob.Domain.Hypotheses.HypothesisCheckIn", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Confidence")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("HypothesisId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Motivation")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Note")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateOnly>("Week")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("HypothesisId", "Week")
+                        .IsUnique();
+
+                    b.ToTable("HypothesisCheckIns");
+                });
+
+            modelBuilder.Entity("Karajob.Domain.Hypotheses.HypothesisDecision", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Changes")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("ConversionThresholdPermille")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("DecidedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Hint")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("HypothesisId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("MarketThreshold")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("MarketVacancies")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("MaturedApplications")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("PeriodStartedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("PositiveApplications")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Reason")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("WellBeingTenths")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("HypothesisId", "DecidedAt");
+
+                    b.ToTable("HypothesisDecisions");
                 });
 
             modelBuilder.Entity("Karajob.Domain.Hypotheses.HypothesisEngine", b =>
@@ -1339,6 +1443,36 @@ namespace Karajob.Migrations.Sqlite.Migrations
                     b.HasOne("Karajob.Domain.Catalogs.Role", null)
                         .WithMany()
                         .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Karajob.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Karajob.Domain.Hypotheses.HypothesisCheckIn", b =>
+                {
+                    b.HasOne("Karajob.Domain.Hypotheses.Hypothesis", null)
+                        .WithMany()
+                        .HasForeignKey("HypothesisId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Karajob.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Karajob.Domain.Hypotheses.HypothesisDecision", b =>
+                {
+                    b.HasOne("Karajob.Domain.Hypotheses.Hypothesis", null)
+                        .WithMany()
+                        .HasForeignKey("HypothesisId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 

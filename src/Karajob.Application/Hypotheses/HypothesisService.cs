@@ -213,7 +213,8 @@ public class HypothesisService(
       h.Positioning,
       h.PrimaryCvDocumentId,
       h.Status,
-      h.StartedAt);
+      h.StartedAt,
+      h.PeriodStartedAt);
   }
 
   private static string? BlankToNull(string? value)

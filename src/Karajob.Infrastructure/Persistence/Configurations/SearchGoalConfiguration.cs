@@ -14,6 +14,9 @@ public class SearchGoalConfiguration : IEntityTypeConfiguration<SearchGoal>
     builder.Property(g => g.IncomeCurrency).HasMaxLength(3);
     builder.HasOne<Currency>().WithMany().HasForeignKey(g => g.IncomeCurrency).HasPrincipalKey(c => c.Code).OnDelete(DeleteBehavior.Restrict);
 
+    // Existing profiles get the default threshold when the column is added.
+    builder.Property(g => g.WellBeingThreshold).HasDefaultValue(2);
+
     builder.HasMany(g => g.Locations).WithOne().HasForeignKey(l => l.SearchGoalId).OnDelete(DeleteBehavior.Cascade);
     // SetLocations diffs against the loaded collection.
     builder.Navigation(g => g.Locations).AutoInclude();
@@ -34,6 +37,7 @@ public class SearchGoalConfiguration : IEntityTypeConfiguration<SearchGoal>
       ConversionThresholdPermille = 30,
       MinSampleSize = 30,
       MaturationDays = 14,
+      WellBeingThreshold = 2,
     });
   }
 }
