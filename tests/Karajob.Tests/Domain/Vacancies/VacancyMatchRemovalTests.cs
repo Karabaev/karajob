@@ -7,11 +7,11 @@ public class VacancyMatchRemovalTests
 {
   private static readonly DateTime Now = new(2026, 11, 12, 10, 0, 0, DateTimeKind.Utc);
 
-  private static Vacancy Build(VacancyStage stage, Guid hypothesisId, params Guid[] extraHypotheses)
+  private static Vacancy Build(VacancyStage stage, Guid trackId, params Guid[] extraTracks)
   {
     var vacancy = new Vacancy(Guid.NewGuid(), "https://example.com/jobs/1", VacancySource.Manual, Now);
-    vacancy.SetMatch(hypothesisId, null, null, MatchAuthor.Human);
-    foreach (var extra in extraHypotheses)
+    vacancy.SetMatch(trackId, null, null, MatchAuthor.Human);
+    foreach (var extra in extraTracks)
     {
       vacancy.SetMatch(extra, null, null, MatchAuthor.Human);
     }
@@ -30,16 +30,16 @@ public class VacancyMatchRemovalTests
         break;
       case VacancyStage.Applied:
         vacancy.MoveTo(VacancyStage.Targeted, Now);
-        Apply(vacancy, hypothesisId);
+        Apply(vacancy, trackId);
         break;
       case VacancyStage.Interviewing:
         vacancy.MoveTo(VacancyStage.Targeted, Now);
-        Apply(vacancy, hypothesisId);
+        Apply(vacancy, trackId);
         vacancy.MoveTo(VacancyStage.Interviewing, Now);
         break;
       case VacancyStage.Closed:
         vacancy.MoveTo(VacancyStage.Targeted, Now);
-        Apply(vacancy, hypothesisId);
+        Apply(vacancy, trackId);
         vacancy.Close(ApplicationOutcome.Rejected, Now);
         break;
     }
@@ -47,9 +47,9 @@ public class VacancyMatchRemovalTests
     return vacancy;
   }
 
-  private static void Apply(Vacancy vacancy, Guid hypothesisId)
+  private static void Apply(Vacancy vacancy, Guid trackId)
   {
-    vacancy.Apply(hypothesisId, Guid.NewGuid(), ApplicationChannel.Website, Now, null);
+    vacancy.Apply(trackId, Guid.NewGuid(), ApplicationChannel.Website, Now, null);
   }
 
   public static IEnumerable<object[]> OffBoardStages() =>
@@ -65,10 +65,10 @@ public class VacancyMatchRemovalTests
   [MemberData(nameof(OffBoardStages))]
   public void RemoveMatch_LastMatchOffBoard_Allowed(VacancyStage stage)
   {
-    var hypothesisId = Guid.NewGuid();
-    var vacancy = Build(stage, hypothesisId);
+    var trackId = Guid.NewGuid();
+    var vacancy = Build(stage, trackId);
 
-    vacancy.RemoveMatch(hypothesisId);
+    vacancy.RemoveMatch(trackId);
 
     Assert.Empty(vacancy.Matches);
   }
@@ -77,10 +77,10 @@ public class VacancyMatchRemovalTests
   [MemberData(nameof(BoardStages))]
   public void RemoveMatch_LastMatchOnBoard_ThrowsAndKeepsMatch(VacancyStage stage)
   {
-    var hypothesisId = Guid.NewGuid();
-    var vacancy = Build(stage, hypothesisId);
+    var trackId = Guid.NewGuid();
+    var vacancy = Build(stage, trackId);
 
-    Assert.Throws<InvalidOperationException>(() => vacancy.RemoveMatch(hypothesisId));
+    Assert.Throws<InvalidOperationException>(() => vacancy.RemoveMatch(trackId));
 
     Assert.Single(vacancy.Matches);
   }
@@ -96,12 +96,12 @@ public class VacancyMatchRemovalTests
 
     vacancy.RemoveMatch(second);
 
-    Assert.Equal(first, Assert.Single(vacancy.Matches).HypothesisId);
+    Assert.Equal(first, Assert.Single(vacancy.Matches).TrackId);
   }
 
   [Theory]
   [MemberData(nameof(AppliedStages))]
-  public void RemoveMatch_OtherThanApplicationHypothesis_Allowed(VacancyStage stage)
+  public void RemoveMatch_OtherThanApplicationTrack_Allowed(VacancyStage stage)
   {
     var applied = Guid.NewGuid();
     var other = Guid.NewGuid();
@@ -109,12 +109,12 @@ public class VacancyMatchRemovalTests
 
     vacancy.RemoveMatch(other);
 
-    Assert.Equal(applied, Assert.Single(vacancy.Matches).HypothesisId);
+    Assert.Equal(applied, Assert.Single(vacancy.Matches).TrackId);
   }
 
   [Theory]
   [MemberData(nameof(AppliedStages))]
-  public void RemoveMatch_ApplicationHypothesisWithOthersPresent_ThrowsAndKeepsMatch(VacancyStage stage)
+  public void RemoveMatch_ApplicationTrackWithOthersPresent_ThrowsAndKeepsMatch(VacancyStage stage)
   {
     var applied = Guid.NewGuid();
     var other = Guid.NewGuid();
@@ -126,10 +126,10 @@ public class VacancyMatchRemovalTests
   }
 
   [Fact]
-  public void RemoveMatch_NotMatchedHypothesisOnBoard_IsNoOp()
+  public void RemoveMatch_NotMatchedTrackOnBoard_IsNoOp()
   {
-    var hypothesisId = Guid.NewGuid();
-    var vacancy = Build(VacancyStage.Targeted, hypothesisId);
+    var trackId = Guid.NewGuid();
+    var vacancy = Build(VacancyStage.Targeted, trackId);
 
     vacancy.RemoveMatch(Guid.NewGuid());
 

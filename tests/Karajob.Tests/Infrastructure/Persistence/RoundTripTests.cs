@@ -1,6 +1,6 @@
 using Karajob.Domain.Applications;
 using Karajob.Domain.Companies;
-using Karajob.Domain.Hypotheses;
+using Karajob.Domain.Tracks;
 using Karajob.Domain.MasterProfiles;
 using Karajob.Domain.Users;
 using Karajob.Domain.Vacancies;
@@ -112,28 +112,28 @@ public class RoundTripTests
   }
 
   [Fact]
-  public async Task Hypothesis_SavedAndReloaded_PreservesListsFlagsAndDates()
+  public async Task Track_SavedAndReloaded_PreservesListsFlagsAndDates()
   {
     await using var database = await SqliteTestDatabase.CreateAsync();
     var (cv, _) = await PersistenceFixtures.AddCvAsync(database, SeedData.OwnerId);
-    var hypothesis = PersistenceFixtures.NewHypothesis(SeedData.OwnerId);
-    hypothesis.SetLocations([SeedData.EuLocationId, SeedData.SerbiaLocationId]);
-    hypothesis.Industries.AddRange(["Games", "Fintech"]);
-    hypothesis.WorkFormat = WorkFormat.Remote | WorkFormat.Relocation;
-    hypothesis.Positioning = "Senior";
-    hypothesis.StartedAt = Moment.AddDays(1);
-    hypothesis.Status = HypothesisStatus.Active;
-    hypothesis.PrimaryCvDocumentId = cv.Id;
+    var track = PersistenceFixtures.NewTrack(SeedData.OwnerId);
+    track.SetLocations([SeedData.EuLocationId, SeedData.SerbiaLocationId]);
+    track.Industries.AddRange(["Games", "Fintech"]);
+    track.WorkFormat = WorkFormat.Remote | WorkFormat.Relocation;
+    track.Positioning = "Senior";
+    track.StartedAt = Moment.AddDays(1);
+    track.Status = TrackStatus.Active;
+    track.PrimaryCvDocumentId = cv.Id;
     await using (var context = database.CreateContext(SeedData.OwnerId))
     {
-      context.Hypotheses.Add(hypothesis);
+      context.Tracks.Add(track);
       await context.SaveChangesAsync();
     }
 
     await using var fresh = database.CreateContext(SeedData.OwnerId);
-    var loaded = await fresh.Hypotheses.SingleAsync(h => h.Id == hypothesis.Id);
+    var loaded = await fresh.Tracks.SingleAsync(h => h.Id == track.Id);
 
-    Assert.Equal(hypothesis.Name, loaded.Name);
+    Assert.Equal(track.Name, loaded.Name);
     Assert.Equal(SeedData.UnityDeveloperRoleId, loaded.RoleId);
     Assert.Equal(SeedData.EnglishLanguageId, loaded.LanguageId);
     Assert.Equal("Senior", loaded.Positioning);
@@ -142,20 +142,20 @@ public class RoundTripTests
       loaded.Locations.Select(l => l.LocationId).Order());
     Assert.Equal(["Games", "Fintech"], loaded.Industries);
     Assert.Equal(WorkFormat.Remote | WorkFormat.Relocation, loaded.WorkFormat);
-    Assert.Equal(HypothesisStatus.Active, loaded.Status);
+    Assert.Equal(TrackStatus.Active, loaded.Status);
     Assert.Equal(cv.Id, loaded.PrimaryCvDocumentId);
     AssertUtc(Moment, loaded.CreatedAt);
     AssertUtc(Moment.AddDays(1), loaded.StartedAt);
   }
 
   [Fact]
-  public async Task Hypothesis_WithoutOptionalValues_ReloadsNullsAndEmptyLists()
+  public async Task Track_WithoutOptionalValues_ReloadsNullsAndEmptyLists()
   {
     await using var database = await SqliteTestDatabase.CreateAsync();
-    var hypothesis = await PersistenceFixtures.AddHypothesisAsync(database, SeedData.OwnerId);
+    var track = await PersistenceFixtures.AddTrackAsync(database, SeedData.OwnerId);
 
     await using var fresh = database.CreateContext(SeedData.OwnerId);
-    var loaded = await fresh.Hypotheses.SingleAsync(h => h.Id == hypothesis.Id);
+    var loaded = await fresh.Tracks.SingleAsync(h => h.Id == track.Id);
 
     Assert.Null(loaded.StartedAt);
     Assert.Null(loaded.PrimaryCvDocumentId);
@@ -273,9 +273,9 @@ public class RoundTripTests
   public async Task VacancyMatch_SavedAndReloaded_PreservesValues()
   {
     await using var database = await SqliteTestDatabase.CreateAsync();
-    var hypothesis = await PersistenceFixtures.AddHypothesisAsync(database, SeedData.OwnerId);
+    var track = await PersistenceFixtures.AddTrackAsync(database, SeedData.OwnerId);
     var vacancy = new Vacancy(SeedData.OwnerId, "https://example.com/jobs/match", VacancySource.Manual, Moment);
-    var match = vacancy.SetMatch(hypothesis.Id, 77, "good fit", MatchAuthor.Ai);
+    var match = vacancy.SetMatch(track.Id, 77, "good fit", MatchAuthor.Ai);
     await using (var context = database.CreateContext(SeedData.OwnerId))
     {
       context.Vacancies.Add(vacancy);
@@ -286,7 +286,7 @@ public class RoundTripTests
     var loaded = await fresh.VacancyMatches.SingleAsync(m => m.Id == match.Id);
 
     Assert.Equal(vacancy.Id, loaded.VacancyId);
-    Assert.Equal(hypothesis.Id, loaded.HypothesisId);
+    Assert.Equal(track.Id, loaded.TrackId);
     Assert.Equal(77, loaded.Score);
     Assert.Equal("good fit", loaded.Rationale);
     Assert.Equal(MatchAuthor.Ai, loaded.MatchedBy);
@@ -296,13 +296,13 @@ public class RoundTripTests
   public async Task JobApplication_SavedAndReloaded_PreservesValues()
   {
     await using var database = await SqliteTestDatabase.CreateAsync();
-    var (vacancy, hypothesis, cvVersion) = await PersistenceFixtures.AddAppliedVacancyAsync(database, SeedData.OwnerId);
+    var (vacancy, track, cvVersion) = await PersistenceFixtures.AddAppliedVacancyAsync(database, SeedData.OwnerId);
 
     await using var fresh = database.CreateContext(SeedData.OwnerId);
     var loaded = await fresh.JobApplications.SingleAsync(a => a.VacancyId == vacancy.Id);
 
     Assert.Equal(vacancy.Application!.Id, loaded.Id);
-    Assert.Equal(hypothesis.Id, loaded.HypothesisId);
+    Assert.Equal(track.Id, loaded.TrackId);
     Assert.Equal(cvVersion.Id, loaded.CvVersionId);
     Assert.Equal(ApplicationChannel.Website, loaded.Channel);
     Assert.Equal("letter", loaded.CoverLetter);

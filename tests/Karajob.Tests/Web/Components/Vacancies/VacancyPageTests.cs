@@ -134,8 +134,8 @@ public class VacancyPageTests : VacancyWebFixture
   [Fact]
   public async Task Render_ExistingVacancy_ShowsDiscoveredItemAndTimelineWithDeleteOnlyForManualEvents()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var created = await Vacancies.CreateAsync(Input("https://example.com/jobs/1", hypothesisIds: [hypothesisId]));
+    var trackId = await CreateTrackAsync();
+    var created = await Vacancies.CreateAsync(Input("https://example.com/jobs/1", trackIds: [trackId]));
     await MutateAsync(created.Id, v => v.MoveTo(VacancyStage.Targeted, created.DiscoveredAt.AddHours(1)));
     await Vacancies.AddEventAsync(
       created.Id,
@@ -604,20 +604,20 @@ public class VacancyPageTests : VacancyWebFixture
 
   private async Task<Guid> CreateWithLetterAsync(VacancyStage stage, string? letter, ApplicationOutcome outcome = ApplicationOutcome.Rejected)
   {
-    var hypothesisId = await CreateHypothesisAsync();
+    var trackId = await CreateTrackAsync();
     if (stage == VacancyStage.Inbox)
     {
-      return (await Vacancies.CreateAsync(Input("https://example.com/jobs/letter", hypothesisIds: [hypothesisId]))).Id;
+      return (await Vacancies.CreateAsync(Input("https://example.com/jobs/letter", trackIds: [trackId]))).Id;
     }
 
-    return await CreateOnBoardAsync(stage, hypothesisId, "https://example.com/jobs/letter", outcome, letter);
+    return await CreateOnBoardAsync(stage, trackId, "https://example.com/jobs/letter", outcome, letter);
   }
 
   [Fact]
   public async Task Render_ClosedVacancy_ShowsReopenButton()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var id = await CreateOnBoardAsync(VacancyStage.Closed, hypothesisId, "https://example.com/jobs/1");
+    var trackId = await CreateTrackAsync();
+    var id = await CreateOnBoardAsync(VacancyStage.Closed, trackId, "https://example.com/jobs/1");
 
     var cut = Context.Render<VacancyPage>(p => p.Add(c => c.Id, id));
 
@@ -631,10 +631,10 @@ public class VacancyPageTests : VacancyWebFixture
   [InlineData(VacancyStage.Interviewing)]
   public async Task Render_VacancyNotClosed_HasNoReopenButton(VacancyStage stage)
   {
-    var hypothesisId = await CreateHypothesisAsync();
+    var trackId = await CreateTrackAsync();
     var id = stage == VacancyStage.Inbox
       ? (await Vacancies.CreateAsync(Input("https://example.com/jobs/1"))).Id
-      : await CreateOnBoardAsync(stage, hypothesisId, "https://example.com/jobs/1");
+      : await CreateOnBoardAsync(stage, trackId, "https://example.com/jobs/1");
 
     var cut = Context.Render<VacancyPage>(p => p.Add(c => c.Id, id));
 
@@ -645,8 +645,8 @@ public class VacancyPageTests : VacancyWebFixture
   [Fact]
   public async Task Reopen_ViaDialog_ReloadsPageWithNewStage()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var id = await CreateOnBoardAsync(VacancyStage.Closed, hypothesisId, "https://example.com/jobs/1");
+    var trackId = await CreateTrackAsync();
+    var id = await CreateOnBoardAsync(VacancyStage.Closed, trackId, "https://example.com/jobs/1");
     Context.Render<MudPopoverProvider>();
     var provider = Context.Render<MudDialogProvider>();
     var cut = Context.Render<VacancyPage>(p => p.Add(c => c.Id, id));
@@ -679,61 +679,61 @@ public class VacancyPageTests : VacancyWebFixture
   }
 
   [Fact]
-  public async Task Render_RoleSelected_HypothesesSelectOffersOnlyHypothesesOfThatRole()
+  public async Task Render_RoleSelected_TracksSelectOffersOnlyTracksOfThatRole()
   {
-    var unity = await CreateHypothesisAsync("Unity one");
-    await CreateHypothesisAsync("Unreal one", SeedData.UnrealDeveloperRoleId);
+    var unity = await CreateTrackAsync("Unity one");
+    await CreateTrackAsync("Unreal one", SeedData.UnrealDeveloperRoleId);
     var cut = Context.Render<VacancyPage>();
     cut.WaitForElement(".vacancy-url input");
 
     await SelectRoleAsync(cut, SeedData.UnityDeveloperRoleId);
 
-    cut.WaitForAssertion(() => Assert.Equal([unity], HypothesisOptionIds(cut)));
+    cut.WaitForAssertion(() => Assert.Equal([unity], TrackOptionIds(cut)));
   }
 
   [Fact]
-  public async Task Render_NoRoleSelected_HypothesesSelectOffersAllHypotheses()
+  public async Task Render_NoRoleSelected_TracksSelectOffersAllTracks()
   {
-    var unity = await CreateHypothesisAsync("Unity one");
-    var unreal = await CreateHypothesisAsync("Unreal one", SeedData.UnrealDeveloperRoleId);
+    var unity = await CreateTrackAsync("Unity one");
+    var unreal = await CreateTrackAsync("Unreal one", SeedData.UnrealDeveloperRoleId);
 
     var cut = Context.Render<VacancyPage>();
 
-    cut.WaitForAssertion(() => Assert.Equal(new[] { unity, unreal }.Order(), HypothesisOptionIds(cut).Order()));
+    cut.WaitForAssertion(() => Assert.Equal(new[] { unity, unreal }.Order(), TrackOptionIds(cut).Order()));
   }
 
   [Fact]
-  public async Task Render_SelectedHypothesisOfAnotherRole_StaysInOptions()
+  public async Task Render_SelectedTrackOfAnotherRole_StaysInOptions()
   {
-    var unity = await CreateHypothesisAsync("Unity one");
-    var unreal = await CreateHypothesisAsync("Unreal one", SeedData.UnrealDeveloperRoleId);
-    var created = await Vacancies.CreateAsync(Input("https://example.com/jobs/1", roleId: SeedData.UnityDeveloperRoleId, hypothesisIds: [unity]));
+    var unity = await CreateTrackAsync("Unity one");
+    var unreal = await CreateTrackAsync("Unreal one", SeedData.UnrealDeveloperRoleId);
+    var created = await Vacancies.CreateAsync(Input("https://example.com/jobs/1", roleId: SeedData.UnityDeveloperRoleId, trackIds: [unity]));
     await MutateAsync(created.Id, v => v.RoleId = SeedData.UnrealDeveloperRoleId);
 
     var cut = Context.Render<VacancyPage>(p => p.Add(c => c.Id, created.Id));
 
-    cut.WaitForAssertion(() => Assert.Equal(new[] { unity, unreal }.Order(), HypothesisOptionIds(cut).Order()));
+    cut.WaitForAssertion(() => Assert.Equal(new[] { unity, unreal }.Order(), TrackOptionIds(cut).Order()));
   }
 
   [Fact]
-  public async Task Render_RoleChangedAfterHypothesisSelected_KeepsSelectedHypothesisAndHidesOthersOfOtherRoles()
+  public async Task Render_RoleChangedAfterTrackSelected_KeepsSelectedTrackAndHidesOthersOfOtherRoles()
   {
-    var unity = await CreateHypothesisAsync("Unity one");
-    var unityTwo = await CreateHypothesisAsync("Unity two");
-    await CreateHypothesisAsync("Unreal one", SeedData.UnrealDeveloperRoleId);
-    var created = await Vacancies.CreateAsync(Input("https://example.com/jobs/1", roleId: SeedData.UnityDeveloperRoleId, hypothesisIds: [unity]));
+    var unity = await CreateTrackAsync("Unity one");
+    var unityTwo = await CreateTrackAsync("Unity two");
+    await CreateTrackAsync("Unreal one", SeedData.UnrealDeveloperRoleId);
+    var created = await Vacancies.CreateAsync(Input("https://example.com/jobs/1", roleId: SeedData.UnityDeveloperRoleId, trackIds: [unity]));
     var cut = Context.Render<VacancyPage>(p => p.Add(c => c.Id, created.Id));
     cut.WaitForElement(".vacancy-url input");
 
     await SelectRoleAsync(cut, SeedData.UnrealDeveloperRoleId);
 
-    cut.WaitForAssertion(() => Assert.DoesNotContain(unityTwo, HypothesisOptionIds(cut)));
-    Assert.Contains(unity, HypothesisOptionIds(cut));
+    cut.WaitForAssertion(() => Assert.DoesNotContain(unityTwo, TrackOptionIds(cut)));
+    Assert.Contains(unity, TrackOptionIds(cut));
   }
 
-  private static List<Guid> HypothesisOptionIds(IRenderedComponent<VacancyPage> cut)
+  private static List<Guid> TrackOptionIds(IRenderedComponent<VacancyPage> cut)
   {
-    var select = cut.FindComponents<MudSelect<Guid>>().Single(c => c.Instance.Class?.Contains("vacancy-hypotheses") == true);
+    var select = cut.FindComponents<MudSelect<Guid>>().Single(c => c.Instance.Class?.Contains("vacancy-tracks") == true);
     return select.FindComponents<MudSelectItem<Guid>>().Select(i => i.Instance.Value).ToList();
   }
 

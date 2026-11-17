@@ -1,6 +1,6 @@
 using Karajob.Domain.Companies;
 using Karajob.Domain.Goals;
-using Karajob.Domain.Hypotheses;
+using Karajob.Domain.Tracks;
 using Karajob.Domain.Vacancies;
 using Karajob.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -12,15 +12,15 @@ public class EnginePersistenceTests
   private static DateTime Moment => PersistenceFixtures.Moment;
 
   [Fact]
-  public async Task Hypothesis_WithEngines_ReloadsEngineLinks()
+  public async Task Track_WithEngines_ReloadsEngineLinks()
   {
     await using var database = await SqliteTestDatabase.CreateAsync();
-    var hypothesis = PersistenceFixtures.NewHypothesis(SeedData.OwnerId);
-    hypothesis.SetEngines([SeedData.UnityEngineId, SeedData.UnrealEngineId]);
-    await SaveAsync(database, SeedData.OwnerId, c => c.Hypotheses.Add(hypothesis));
+    var track = PersistenceFixtures.NewTrack(SeedData.OwnerId);
+    track.SetEngines([SeedData.UnityEngineId, SeedData.UnrealEngineId]);
+    await SaveAsync(database, SeedData.OwnerId, c => c.Tracks.Add(track));
 
     await using var fresh = database.CreateContext(SeedData.OwnerId);
-    var loaded = await fresh.Hypotheses.SingleAsync(h => h.Id == hypothesis.Id);
+    var loaded = await fresh.Tracks.SingleAsync(h => h.Id == track.Id);
 
     Assert.Equal(
       new[] { SeedData.UnityEngineId, SeedData.UnrealEngineId }.Order(),
@@ -64,43 +64,43 @@ public class EnginePersistenceTests
   }
 
   [Fact]
-  public async Task Hypothesis_WithoutEngines_ReloadsEmptyEngines()
+  public async Task Track_WithoutEngines_ReloadsEmptyEngines()
   {
     await using var database = await SqliteTestDatabase.CreateAsync();
-    var hypothesis = await PersistenceFixtures.AddHypothesisAsync(database, SeedData.OwnerId);
+    var track = await PersistenceFixtures.AddTrackAsync(database, SeedData.OwnerId);
 
     await using var fresh = database.CreateContext(SeedData.OwnerId);
-    var loaded = await fresh.Hypotheses.SingleAsync(h => h.Id == hypothesis.Id);
+    var loaded = await fresh.Tracks.SingleAsync(h => h.Id == track.Id);
 
     Assert.Empty(loaded.Engines);
   }
 
   [Fact]
-  public async Task Hypothesis_RemovingEngineFromSet_DeletesLinkRow()
+  public async Task Track_RemovingEngineFromSet_DeletesLinkRow()
   {
     await using var database = await SqliteTestDatabase.CreateAsync();
-    var hypothesis = PersistenceFixtures.NewHypothesis(SeedData.OwnerId);
-    hypothesis.SetEngines([SeedData.UnityEngineId, SeedData.UnrealEngineId]);
-    await SaveAsync(database, SeedData.OwnerId, c => c.Hypotheses.Add(hypothesis));
+    var track = PersistenceFixtures.NewTrack(SeedData.OwnerId);
+    track.SetEngines([SeedData.UnityEngineId, SeedData.UnrealEngineId]);
+    await SaveAsync(database, SeedData.OwnerId, c => c.Tracks.Add(track));
 
     await using (var context = database.CreateContext(SeedData.OwnerId))
     {
-      var loaded = await context.Hypotheses.SingleAsync(h => h.Id == hypothesis.Id);
+      var loaded = await context.Tracks.SingleAsync(h => h.Id == track.Id);
       loaded.SetEngines([SeedData.UnityEngineId]);
       await context.SaveChangesAsync();
     }
 
     await using var fresh = database.CreateContext(SeedData.OwnerId);
-    Assert.Equal(SeedData.UnityEngineId, Assert.Single(await fresh.HypothesisEngines.ToListAsync()).EngineId);
+    Assert.Equal(SeedData.UnityEngineId, Assert.Single(await fresh.TrackEngines.ToListAsync()).EngineId);
   }
 
   [Fact]
-  public async Task SaveChanges_DeletingEngineReferencedByHypothesis_ThrowsDbUpdateException()
+  public async Task SaveChanges_DeletingEngineReferencedByTrack_ThrowsDbUpdateException()
   {
     await using var database = await SqliteTestDatabase.CreateAsync();
-    var hypothesis = PersistenceFixtures.NewHypothesis(SeedData.OwnerId);
-    hypothesis.SetEngines([SeedData.UnityEngineId]);
-    await SaveAsync(database, SeedData.OwnerId, c => c.Hypotheses.Add(hypothesis));
+    var track = PersistenceFixtures.NewTrack(SeedData.OwnerId);
+    track.SetEngines([SeedData.UnityEngineId]);
+    await SaveAsync(database, SeedData.OwnerId, c => c.Tracks.Add(track));
 
     await AssertDeletingEngineFailsAsync(database, SeedData.UnityEngineId);
   }
@@ -143,25 +143,25 @@ public class EnginePersistenceTests
   }
 
   [Fact]
-  public async Task SaveChanges_DeletingHypothesisWithEngines_CascadesToLinks()
+  public async Task SaveChanges_DeletingTrackWithEngines_CascadesToLinks()
   {
     await using var database = await SqliteTestDatabase.CreateAsync();
-    var hypothesis = PersistenceFixtures.NewHypothesis(SeedData.OwnerId);
-    hypothesis.SetEngines([SeedData.UnityEngineId]);
-    await SaveAsync(database, SeedData.OwnerId, c => c.Hypotheses.Add(hypothesis));
+    var track = PersistenceFixtures.NewTrack(SeedData.OwnerId);
+    track.SetEngines([SeedData.UnityEngineId]);
+    await SaveAsync(database, SeedData.OwnerId, c => c.Tracks.Add(track));
 
     await using (var context = database.CreateContext(SeedData.OwnerId))
     {
-      context.Hypotheses.Remove(await context.Hypotheses.SingleAsync(h => h.Id == hypothesis.Id));
+      context.Tracks.Remove(await context.Tracks.SingleAsync(h => h.Id == track.Id));
       await context.SaveChangesAsync();
     }
 
     await using var fresh = database.CreateContext(SeedData.OwnerId);
-    Assert.Empty(await fresh.HypothesisEngines.ToListAsync());
+    Assert.Empty(await fresh.TrackEngines.ToListAsync());
   }
 
   [Theory]
-  [InlineData(typeof(HypothesisEngine), nameof(HypothesisEngine.HypothesisId))]
+  [InlineData(typeof(TrackEngine), nameof(TrackEngine.TrackId))]
   [InlineData(typeof(VacancyEngine), nameof(VacancyEngine.VacancyId))]
   [InlineData(typeof(SearchGoalEngine), nameof(SearchGoalEngine.SearchGoalId))]
   public async Task Model_EngineLink_HasUniqueIndexOnOwnerAndEngine(Type linkType, string ownerProperty)
@@ -181,9 +181,9 @@ public class EnginePersistenceTests
   {
     await using var database = await SqliteTestDatabase.CreateAsync();
     var other = await PersistenceFixtures.AddUserAsync(database);
-    var hypothesis = PersistenceFixtures.NewHypothesis(other.Id);
-    hypothesis.SetEngines([SeedData.UnityEngineId]);
-    await SaveAsync(database, other.Id, c => c.Hypotheses.Add(hypothesis));
+    var track = PersistenceFixtures.NewTrack(other.Id);
+    track.SetEngines([SeedData.UnityEngineId]);
+    await SaveAsync(database, other.Id, c => c.Tracks.Add(track));
     var vacancy = new Vacancy(other.Id, "https://example.com/jobs/isolation", VacancySource.Manual, Moment);
     vacancy.SetEngines([SeedData.DefoldEngineId]);
     await SaveAsync(database, other.Id, c => c.Vacancies.Add(vacancy));
@@ -194,10 +194,10 @@ public class EnginePersistenceTests
     await using var owner = database.CreateContext(SeedData.OwnerId);
     await using var otherContext = database.CreateContext(other.Id);
 
-    Assert.Empty(await owner.HypothesisEngines.ToListAsync());
+    Assert.Empty(await owner.TrackEngines.ToListAsync());
     Assert.Empty(await owner.VacancyEngines.ToListAsync());
     Assert.Empty(await owner.SearchGoalEngines.ToListAsync());
-    Assert.Single(await otherContext.HypothesisEngines.ToListAsync());
+    Assert.Single(await otherContext.TrackEngines.ToListAsync());
     Assert.Single(await otherContext.VacancyEngines.ToListAsync());
     Assert.Single(await otherContext.SearchGoalEngines.ToListAsync());
     Assert.Equal(6, await owner.Engines.CountAsync());

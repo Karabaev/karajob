@@ -1,6 +1,6 @@
 using Karajob.Domain.Applications;
 using Karajob.Domain.Cvs;
-using Karajob.Domain.Hypotheses;
+using Karajob.Domain.Tracks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -10,7 +10,7 @@ public class JobApplicationConfiguration : IEntityTypeConfiguration<JobApplicati
 {
   public void Configure(EntityTypeBuilder<JobApplication> builder)
   {
-    builder.HasOne<Hypothesis>().WithMany().HasForeignKey(a => a.HypothesisId).OnDelete(DeleteBehavior.Restrict);
+    builder.HasOne<Track>().WithMany().HasForeignKey(a => a.TrackId).OnDelete(DeleteBehavior.Restrict);
     builder.HasOne<CvVersion>().WithMany().HasForeignKey(a => a.CvVersionId).OnDelete(DeleteBehavior.Restrict);
   }
 }

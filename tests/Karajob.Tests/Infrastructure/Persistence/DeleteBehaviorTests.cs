@@ -1,7 +1,7 @@
 using Karajob.Domain.Applications;
 using Karajob.Domain.Companies;
 using Karajob.Domain.Cvs;
-using Karajob.Domain.Hypotheses;
+using Karajob.Domain.Tracks;
 using Karajob.Domain.Users;
 using Karajob.Domain.Vacancies;
 using Karajob.Infrastructure.Persistence;
@@ -22,12 +22,12 @@ public class DeleteBehaviorTests
     { typeof(Company), typeof(Vacancy), DeleteBehavior.Restrict },
     { typeof(Company), typeof(Project), DeleteBehavior.Restrict },
     { typeof(Company), typeof(UserCompanyNote), DeleteBehavior.Restrict },
-    { typeof(Hypothesis), typeof(VacancyMatch), DeleteBehavior.Restrict },
-    { typeof(Hypothesis), typeof(JobApplication), DeleteBehavior.Restrict },
+    { typeof(Track), typeof(VacancyMatch), DeleteBehavior.Restrict },
+    { typeof(Track), typeof(JobApplication), DeleteBehavior.Restrict },
     { typeof(CvVersion), typeof(JobApplication), DeleteBehavior.Restrict },
-    { typeof(CvDocument), typeof(Hypothesis), DeleteBehavior.Restrict },
+    { typeof(CvDocument), typeof(Track), DeleteBehavior.Restrict },
     { typeof(User), typeof(Vacancy), DeleteBehavior.Restrict },
-    { typeof(User), typeof(Hypothesis), DeleteBehavior.Restrict },
+    { typeof(User), typeof(Track), DeleteBehavior.Restrict },
     { typeof(User), typeof(CvDocument), DeleteBehavior.Restrict },
     { typeof(User), typeof(ApplicationEvent), DeleteBehavior.Restrict },
   };

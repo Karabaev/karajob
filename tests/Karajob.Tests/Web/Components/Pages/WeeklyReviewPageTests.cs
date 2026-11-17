@@ -1,14 +1,14 @@
 using Bunit;
-using Karajob.Application.Hypotheses;
+using Karajob.Application.Tracks;
 using Karajob.Application.Users;
 using Karajob.Application.WeeklyReviews;
 using Karajob.Domain.Applications;
-using Karajob.Domain.Hypotheses;
+using Karajob.Domain.Tracks;
 using Karajob.Domain.Vacancies;
 using Karajob.Infrastructure.Persistence;
 using Karajob.Infrastructure.Users;
 using Karajob.Tests.Application;
-using Karajob.Tests.Application.Hypotheses;
+using Karajob.Tests.Application.Tracks;
 using Karajob.Web.Components.Common;
 using Karajob.Web.Components.Pages;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,22 +16,22 @@ using MudBlazor.Services;
 
 namespace Karajob.Tests.Web.Components.Pages;
 
-public class WeeklyReviewPageTests : HypothesisDecisionServiceFixture, IAsyncLifetime
+public class WeeklyReviewPageTests : TrackDecisionServiceFixture, IAsyncLifetime
 {
   private BunitContext Context { get; } = new();
 
   [Fact]
-  public async Task Render_ActiveAndDraftHypotheses_ShowsCardOnlyForActive()
+  public async Task Render_ActiveAndDraftTracks_ShowsCardOnlyForActive()
   {
     await CreateActiveAsync("Gamedev EU");
-    await CreateActiveAsync("Unity RU", status: HypothesisStatus.Expanded);
-    await CreateHypothesisAsync("Just a draft");
+    await CreateActiveAsync("Unity RU", status: TrackStatus.Expanded);
+    await CreateTrackAsync("Just a draft");
 
     var cut = RenderPage();
 
     cut.WaitForAssertion(() =>
     {
-      var cards = cut.FindAll(".weekly-hypothesis");
+      var cards = cut.FindAll(".weekly-track");
       Assert.Equal(2, cards.Count);
       Assert.Contains(cards, c => c.TextContent.Contains("Gamedev EU"));
       Assert.Contains(cards, c => c.TextContent.Contains("Unity RU"));
@@ -40,7 +40,7 @@ public class WeeklyReviewPageTests : HypothesisDecisionServiceFixture, IAsyncLif
   }
 
   [Fact]
-  public async Task Render_ActiveHypothesis_ShowsCheckInAndDecisionButtonsWithoutActivityBlock()
+  public async Task Render_ActiveTrack_ShowsCheckInAndDecisionButtonsWithoutActivityBlock()
   {
     await CreateActiveAsync();
 
@@ -62,12 +62,12 @@ public class WeeklyReviewPageTests : HypothesisDecisionServiceFixture, IAsyncLif
 
     var cut = RenderPage();
 
-    cut.WaitForElement(".weekly-hypothesis");
+    cut.WaitForElement(".weekly-track");
     Assert.Empty(cut.FindAll(".weekly-checked-in"));
   }
 
   [Fact]
-  public async Task Render_CheckInThisWeek_ShowsCheckedInChipOnlyOnThatHypothesis()
+  public async Task Render_CheckInThisWeek_ShowsCheckedInChipOnlyOnThatTrack()
   {
     var checkedIn = await CreateActiveAsync("Checked one");
     await CreateActiveAsync("Other one");
@@ -79,7 +79,7 @@ public class WeeklyReviewPageTests : HypothesisDecisionServiceFixture, IAsyncLif
     {
       var chip = Assert.Single(cut.FindAll(".weekly-checked-in"));
       Assert.NotNull(chip);
-      var cards = cut.FindAll(".weekly-hypothesis");
+      var cards = cut.FindAll(".weekly-track");
       Assert.Equal(2, cards.Count);
       Assert.Single(cards, c => c.QuerySelector(".weekly-checked-in") is not null && c.TextContent.Contains("Checked one"));
     });
@@ -88,12 +88,12 @@ public class WeeklyReviewPageTests : HypothesisDecisionServiceFixture, IAsyncLif
   [Fact]
   public async Task Render_CheckInOnlyLastWeek_HidesCheckedInChip()
   {
-    var hypothesisId = await CreateActiveAsync();
-    await Decisions.SaveCheckInAsync(hypothesisId, CheckIn(PreviousWeek));
+    var trackId = await CreateActiveAsync();
+    await Decisions.SaveCheckInAsync(trackId, CheckIn(PreviousWeek));
 
     var cut = RenderPage();
 
-    cut.WaitForElement(".weekly-hypothesis");
+    cut.WaitForElement(".weekly-track");
     Assert.Empty(cut.FindAll(".weekly-checked-in"));
   }
 
@@ -101,8 +101,8 @@ public class WeeklyReviewPageTests : HypothesisDecisionServiceFixture, IAsyncLif
   public async Task Render_WeeklyGoal_ShowsApplicationsAndTarget()
   {
     await UpdateGoalAsync(weeklyApplicationTarget: 10);
-    var hypothesisId = await CreateActiveAsync();
-    await ApplyAsync(hypothesisId, Utc(11, 10, 12));
+    var trackId = await CreateActiveAsync();
+    await ApplyAsync(trackId, Utc(11, 10, 12));
 
     var cut = RenderPage();
 
@@ -116,8 +116,8 @@ public class WeeklyReviewPageTests : HypothesisDecisionServiceFixture, IAsyncLif
   [Fact]
   public async Task Render_StaleApplication_ShowsRowWithGhostedButton()
   {
-    var hypothesisId = await CreateActiveAsync("Gamedev EU");
-    await ApplyAsync(hypothesisId, Now.AddDays(-20));
+    var trackId = await CreateActiveAsync("Gamedev EU");
+    await ApplyAsync(trackId, Now.AddDays(-20));
 
     var cut = RenderPage();
 
@@ -134,8 +134,8 @@ public class WeeklyReviewPageTests : HypothesisDecisionServiceFixture, IAsyncLif
   [Fact]
   public async Task Render_FreshApplication_ShowsNoStaleRow()
   {
-    var hypothesisId = await CreateActiveAsync();
-    await ApplyAsync(hypothesisId, Now.AddDays(-3));
+    var trackId = await CreateActiveAsync();
+    await ApplyAsync(trackId, Now.AddDays(-3));
 
     var cut = RenderPage();
 
@@ -146,8 +146,8 @@ public class WeeklyReviewPageTests : HypothesisDecisionServiceFixture, IAsyncLif
   [Fact]
   public async Task ClickGhosted_StaleApplication_ClosesVacancyAsGhostedAndRemovesRow()
   {
-    var hypothesisId = await CreateActiveAsync();
-    var vacancyId = await ApplyAsync(hypothesisId, Now.AddDays(-20));
+    var trackId = await CreateActiveAsync();
+    var vacancyId = await ApplyAsync(trackId, Now.AddDays(-20));
     var cut = RenderPage();
     cut.WaitForElement(".stale-application .stale-ghosted").Click();
 
@@ -164,9 +164,9 @@ public class WeeklyReviewPageTests : HypothesisDecisionServiceFixture, IAsyncLif
   [Fact]
   public async Task ClickGhosted_OneOfTwoStaleApplications_KeepsTheOtherRow()
   {
-    var hypothesisId = await CreateActiveAsync();
-    var oldest = await ApplyAsync(hypothesisId, Now.AddDays(-40));
-    var other = await ApplyAsync(hypothesisId, Now.AddDays(-20));
+    var trackId = await CreateActiveAsync();
+    var oldest = await ApplyAsync(trackId, Now.AddDays(-40));
+    var other = await ApplyAsync(trackId, Now.AddDays(-20));
     var cut = RenderPage();
     cut.WaitForAssertion(() => Assert.Equal(2, cut.FindAll(".stale-application").Count));
 
@@ -180,8 +180,8 @@ public class WeeklyReviewPageTests : HypothesisDecisionServiceFixture, IAsyncLif
   [Fact]
   public async Task ClickGhosted_VacancyMovedInAnotherTab_KeepsStageAndDropsRow()
   {
-    var hypothesisId = await CreateActiveAsync();
-    var vacancyId = await ApplyAsync(hypothesisId, Now.AddDays(-20));
+    var trackId = await CreateActiveAsync();
+    var vacancyId = await ApplyAsync(trackId, Now.AddDays(-20));
     var cut = RenderPage();
     var ghosted = cut.WaitForElement(".stale-application .stale-ghosted");
     await Service.MoveAsync(vacancyId, VacancyStage.Applied, VacancyStage.Interviewing);
@@ -204,23 +204,23 @@ public class WeeklyReviewPageTests : HypothesisDecisionServiceFixture, IAsyncLif
   }
 
   [Fact]
-  public void Render_NoActiveHypotheses_ShowsEmptyState()
+  public void Render_NoActiveTracks_ShowsEmptyState()
   {
     var cut = RenderPage();
 
-    cut.WaitForElement(".weekly-hypotheses-empty");
-    Assert.Empty(cut.FindAll(".weekly-hypothesis"));
+    cut.WaitForElement(".weekly-tracks-empty");
+    Assert.Empty(cut.FindAll(".weekly-track"));
   }
 
   [Fact]
-  public async Task Render_ActiveHypothesis_HidesHypothesesEmptyState()
+  public async Task Render_ActiveTrack_HidesTracksEmptyState()
   {
     await CreateActiveAsync();
 
     var cut = RenderPage();
 
-    cut.WaitForElement(".weekly-hypothesis");
-    Assert.Empty(cut.FindAll(".weekly-hypotheses-empty"));
+    cut.WaitForElement(".weekly-track");
+    Assert.Empty(cut.FindAll(".weekly-tracks-empty"));
   }
 
   async Task IAsyncLifetime.InitializeAsync()
@@ -231,7 +231,7 @@ public class WeeklyReviewPageTests : HypothesisDecisionServiceFixture, IAsyncLif
     Context.Services.AddSingleton(Service);
     Context.Services.AddSingleton(Metrics);
     Context.Services.AddSingleton(Decisions);
-    Context.Services.AddSingleton(Hypotheses);
+    Context.Services.AddSingleton(Tracks);
   }
 
   async Task IAsyncLifetime.DisposeAsync()

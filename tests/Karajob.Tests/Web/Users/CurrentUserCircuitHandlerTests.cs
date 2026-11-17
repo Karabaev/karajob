@@ -2,7 +2,7 @@ using System.Security.Claims;
 using Karajob.Application.Users;
 using Karajob.Infrastructure.Persistence;
 using Karajob.Tests.Application;
-using Karajob.Tests.Application.Hypotheses;
+using Karajob.Tests.Application.Tracks;
 using Karajob.Tests.Infrastructure.Persistence;
 using Karajob.Web.Users;
 using Microsoft.AspNetCore.Components.Authorization;

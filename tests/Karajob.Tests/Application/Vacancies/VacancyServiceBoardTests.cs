@@ -13,14 +13,14 @@ public class VacancyServiceBoardTests : VacancyServiceFixture
   [Fact]
   public async Task GetBoardAsync_MixedStages_ReturnsOnlyBoardStages()
   {
-    var hypothesisId = await CreateHypothesisAsync();
+    var trackId = await CreateTrackAsync();
     foreach (var (stage, i) in BoardMoves.Columns.Select((s, i) => (s, i)))
     {
-      await CreateOnBoardAsync(stage, hypothesisId, $"https://example.com/jobs/board-{i}");
+      await CreateOnBoardAsync(stage, trackId, $"https://example.com/jobs/board-{i}");
     }
 
-    await CreateOnBoardAsync(VacancyStage.Inbox, hypothesisId, "https://example.com/jobs/inbox");
-    var dismissed = await CreateOnBoardAsync(VacancyStage.Targeted, hypothesisId, "https://example.com/jobs/dismissed");
+    await CreateOnBoardAsync(VacancyStage.Inbox, trackId, "https://example.com/jobs/inbox");
+    var dismissed = await CreateOnBoardAsync(VacancyStage.Targeted, trackId, "https://example.com/jobs/dismissed");
     await Service.DismissAsync(dismissed, new DismissInput(DismissReason.Other, null));
 
     var board = await Service.GetBoardAsync(null);
@@ -31,13 +31,13 @@ public class VacancyServiceBoardTests : VacancyServiceFixture
   [Fact]
   public async Task GetBoardAsync_Cards_AreOrderedByDiscoveredAtDescending()
   {
-    var hypothesisId = await CreateHypothesisAsync();
+    var trackId = await CreateTrackAsync();
     Clock.UtcNow = Now;
-    var older = await CreateOnBoardAsync(VacancyStage.Targeted, hypothesisId, "https://example.com/jobs/older");
+    var older = await CreateOnBoardAsync(VacancyStage.Targeted, trackId, "https://example.com/jobs/older");
     Clock.UtcNow = Now.AddDays(2);
-    var newer = await CreateOnBoardAsync(VacancyStage.Targeted, hypothesisId, "https://example.com/jobs/newer");
+    var newer = await CreateOnBoardAsync(VacancyStage.Targeted, trackId, "https://example.com/jobs/newer");
     Clock.UtcNow = Now.AddDays(1);
-    var middle = await CreateOnBoardAsync(VacancyStage.Targeted, hypothesisId, "https://example.com/jobs/middle");
+    var middle = await CreateOnBoardAsync(VacancyStage.Targeted, trackId, "https://example.com/jobs/middle");
 
     var board = await Service.GetBoardAsync(null);
 
@@ -47,13 +47,13 @@ public class VacancyServiceBoardTests : VacancyServiceFixture
   [Fact]
   public async Task GetBoardAsync_VacancyWithCompanyAndRole_ResolvesNames()
   {
-    var hypothesisId = await CreateHypothesisAsync();
+    var trackId = await CreateTrackAsync();
     var companyId = await CreateCompanyAsync("pixel-forge");
     var vacancy = await Service.CreateAsync(Input(
       companyId: companyId,
       roleId: SeedData.UnityDeveloperRoleId,
-      hypothesisIds: [hypothesisId]));
-    await Service.MoveToBoardAsync(vacancy.Id, [hypothesisId]);
+      trackIds: [trackId]));
+    await Service.MoveToBoardAsync(vacancy.Id, [trackId]);
 
     var card = Assert.Single((await Service.GetBoardAsync(null)).Cards);
 
@@ -65,8 +65,8 @@ public class VacancyServiceBoardTests : VacancyServiceFixture
   [Fact]
   public async Task GetBoardAsync_VacancyWithoutCompanyAndRole_HasNullNames()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    await CreateOnBoardAsync(VacancyStage.Targeted, hypothesisId);
+    var trackId = await CreateTrackAsync();
+    await CreateOnBoardAsync(VacancyStage.Targeted, trackId);
 
     var card = Assert.Single((await Service.GetBoardAsync(null)).Cards);
 
@@ -78,8 +78,8 @@ public class VacancyServiceBoardTests : VacancyServiceFixture
   [Fact]
   public async Task GetBoardAsync_ClosedVacancy_CardCarriesOutcome()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    await CreateOnBoardAsync(VacancyStage.Closed, hypothesisId, outcome: ApplicationOutcome.Offer);
+    var trackId = await CreateTrackAsync();
+    await CreateOnBoardAsync(VacancyStage.Closed, trackId, outcome: ApplicationOutcome.Offer);
 
     var card = Assert.Single((await Service.GetBoardAsync(null)).Cards);
 
@@ -90,10 +90,10 @@ public class VacancyServiceBoardTests : VacancyServiceFixture
   [Fact]
   public async Task GetBoardAsync_ClosedVacancies_CountsOutcomesIncludingZeros()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    await CreateOnBoardAsync(VacancyStage.Closed, hypothesisId, "https://example.com/jobs/1", ApplicationOutcome.Rejected);
-    await CreateOnBoardAsync(VacancyStage.Closed, hypothesisId, "https://example.com/jobs/2", ApplicationOutcome.Rejected);
-    await CreateOnBoardAsync(VacancyStage.Closed, hypothesisId, "https://example.com/jobs/3", ApplicationOutcome.Offer);
+    var trackId = await CreateTrackAsync();
+    await CreateOnBoardAsync(VacancyStage.Closed, trackId, "https://example.com/jobs/1", ApplicationOutcome.Rejected);
+    await CreateOnBoardAsync(VacancyStage.Closed, trackId, "https://example.com/jobs/2", ApplicationOutcome.Rejected);
+    await CreateOnBoardAsync(VacancyStage.Closed, trackId, "https://example.com/jobs/3", ApplicationOutcome.Offer);
 
     var board = await Service.GetBoardAsync(null);
 
@@ -115,10 +115,10 @@ public class VacancyServiceBoardTests : VacancyServiceFixture
   }
 
   [Fact]
-  public async Task GetBoardAsync_HypothesisFilter_ReturnsOnlyMatchedVacanciesAcrossStages()
+  public async Task GetBoardAsync_TrackFilter_ReturnsOnlyMatchedVacanciesAcrossStages()
   {
-    var wanted = await CreateHypothesisAsync("Wanted");
-    var other = await CreateHypothesisAsync("Other");
+    var wanted = await CreateTrackAsync("Wanted");
+    var other = await CreateTrackAsync("Other");
     var targeted = await CreateOnBoardAsync(VacancyStage.Targeted, wanted, "https://example.com/jobs/1");
     var closed = await CreateOnBoardAsync(VacancyStage.Closed, wanted, "https://example.com/jobs/2");
     await CreateOnBoardAsync(VacancyStage.Targeted, other, "https://example.com/jobs/3");
@@ -129,10 +129,10 @@ public class VacancyServiceBoardTests : VacancyServiceFixture
   }
 
   [Fact]
-  public async Task GetBoardAsync_HypothesisFilter_CountsOutcomesOnlyForFilteredClosedCards()
+  public async Task GetBoardAsync_TrackFilter_CountsOutcomesOnlyForFilteredClosedCards()
   {
-    var wanted = await CreateHypothesisAsync("Wanted");
-    var other = await CreateHypothesisAsync("Other");
+    var wanted = await CreateTrackAsync("Wanted");
+    var other = await CreateTrackAsync("Other");
     await CreateOnBoardAsync(VacancyStage.Closed, wanted, "https://example.com/jobs/1", ApplicationOutcome.Offer);
     await CreateOnBoardAsync(VacancyStage.Closed, other, "https://example.com/jobs/2", ApplicationOutcome.Offer);
     await CreateOnBoardAsync(VacancyStage.Closed, other, "https://example.com/jobs/3", ApplicationOutcome.Ghosted);
@@ -147,12 +147,12 @@ public class VacancyServiceBoardTests : VacancyServiceFixture
   public async Task GetBoardAsync_OtherUsersVacancies_AreNotVisible()
   {
     var otherUserId = (await PersistenceFixtures.AddUserAsync(Database)).Id;
-    var otherHypothesis = await CreateHypothesisAsync("Theirs", otherUserId);
+    var otherTrack = await CreateTrackAsync("Theirs", otherUserId);
     var otherService = ServiceFor(otherUserId);
-    var theirs = await otherService.CreateAsync(Input("https://example.com/jobs/theirs", hypothesisIds: [otherHypothesis]));
-    await otherService.MoveToBoardAsync(theirs.Id, [otherHypothesis]);
-    var hypothesisId = await CreateHypothesisAsync();
-    var mine = await CreateOnBoardAsync(VacancyStage.Targeted, hypothesisId, "https://example.com/jobs/mine");
+    var theirs = await otherService.CreateAsync(Input("https://example.com/jobs/theirs", trackIds: [otherTrack]));
+    await otherService.MoveToBoardAsync(theirs.Id, [otherTrack]);
+    var trackId = await CreateTrackAsync();
+    var mine = await CreateOnBoardAsync(VacancyStage.Targeted, trackId, "https://example.com/jobs/mine");
 
     var board = await Service.GetBoardAsync(null);
 
@@ -162,8 +162,8 @@ public class VacancyServiceBoardTests : VacancyServiceFixture
   [Fact]
   public async Task MoveAsync_TargetedToPreparing_ChangesStageAndAddsStageEvent()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var id = await CreateOnBoardAsync(VacancyStage.Targeted, hypothesisId);
+    var trackId = await CreateTrackAsync();
+    var id = await CreateOnBoardAsync(VacancyStage.Targeted, trackId);
     Clock.UtcNow = Now.AddHours(5);
 
     await Service.MoveAsync(id, VacancyStage.Targeted, VacancyStage.Preparing);
@@ -179,8 +179,8 @@ public class VacancyServiceBoardTests : VacancyServiceFixture
   [Fact]
   public async Task MoveAsync_PreparingBackToTargeted_ChangesStage()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var id = await CreateOnBoardAsync(VacancyStage.Preparing, hypothesisId);
+    var trackId = await CreateTrackAsync();
+    var id = await CreateOnBoardAsync(VacancyStage.Preparing, trackId);
 
     await Service.MoveAsync(id, VacancyStage.Preparing, VacancyStage.Targeted);
 
@@ -190,8 +190,8 @@ public class VacancyServiceBoardTests : VacancyServiceFixture
   [Fact]
   public async Task MoveAsync_AppliedToInterviewing_ChangesStage()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var id = await CreateOnBoardAsync(VacancyStage.Applied, hypothesisId);
+    var trackId = await CreateTrackAsync();
+    var id = await CreateOnBoardAsync(VacancyStage.Applied, trackId);
 
     await Service.MoveAsync(id, VacancyStage.Applied, VacancyStage.Interviewing);
 
@@ -201,8 +201,8 @@ public class VacancyServiceBoardTests : VacancyServiceFixture
   [Fact]
   public async Task MoveAsync_ClosedToApplied_ReopensAndClearsOutcome()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var id = await CreateOnBoardAsync(VacancyStage.Closed, hypothesisId, outcome: ApplicationOutcome.Rejected);
+    var trackId = await CreateTrackAsync();
+    var id = await CreateOnBoardAsync(VacancyStage.Closed, trackId, outcome: ApplicationOutcome.Rejected);
 
     await Service.MoveAsync(id, VacancyStage.Closed, VacancyStage.Applied);
 
@@ -214,8 +214,8 @@ public class VacancyServiceBoardTests : VacancyServiceFixture
   [Fact]
   public async Task MoveAsync_ClosedToInterviewing_ReopensAndClearsOutcome()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var id = await CreateOnBoardAsync(VacancyStage.Closed, hypothesisId, outcome: ApplicationOutcome.Ghosted);
+    var trackId = await CreateTrackAsync();
+    var id = await CreateOnBoardAsync(VacancyStage.Closed, trackId, outcome: ApplicationOutcome.Ghosted);
 
     await Service.MoveAsync(id, VacancyStage.Closed, VacancyStage.Interviewing);
 
@@ -227,8 +227,8 @@ public class VacancyServiceBoardTests : VacancyServiceFixture
   [Fact]
   public async Task MoveAsync_StaleExpectedStage_ThrowsValidationAndKeepsStage()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var id = await CreateOnBoardAsync(VacancyStage.Preparing, hypothesisId);
+    var trackId = await CreateTrackAsync();
+    var id = await CreateOnBoardAsync(VacancyStage.Preparing, trackId);
 
     await Assert.ThrowsAsync<ValidationFailedException>(
       () => Service.MoveAsync(id, VacancyStage.Targeted, VacancyStage.Preparing));
@@ -245,8 +245,8 @@ public class VacancyServiceBoardTests : VacancyServiceFixture
   [InlineData(VacancyStage.Targeted, VacancyStage.Dismissed)]
   public async Task MoveAsync_NonDirectMove_ThrowsValidationAndAddsNoEvent(VacancyStage from, VacancyStage to)
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var id = await CreateOnBoardAsync(from, hypothesisId);
+    var trackId = await CreateTrackAsync();
+    var id = await CreateOnBoardAsync(from, trackId);
     var eventsBefore = (await LoadAsync(id)).Events.Count;
 
     await Assert.ThrowsAsync<ValidationFailedException>(() => Service.MoveAsync(id, from, to));
@@ -264,43 +264,43 @@ public class VacancyServiceBoardTests : VacancyServiceFixture
   }
 
   [Fact]
-  public async Task GetApplyOptionsAsync_Vacancy_ListsOnlyMatchedHypotheses()
+  public async Task GetApplyOptionsAsync_Vacancy_ListsOnlyMatchedTracks()
   {
-    var matched = await CreateHypothesisAsync("Matched");
-    await CreateHypothesisAsync("Unmatched");
+    var matched = await CreateTrackAsync("Matched");
+    await CreateTrackAsync("Unmatched");
     var id = await CreateOnBoardAsync(VacancyStage.Preparing, matched);
 
     var options = await Service.GetApplyOptionsAsync(id);
 
-    var option = Assert.Single(options.Hypotheses);
+    var option = Assert.Single(options.Tracks);
     Assert.Equal(matched, option.Id);
     Assert.Equal("Matched", option.Name);
   }
 
   [Fact]
-  public async Task GetApplyOptionsAsync_HypothesisWithPrimaryCv_DefaultsToNewestVersion()
+  public async Task GetApplyOptionsAsync_TrackWithPrimaryCv_DefaultsToNewestVersion()
   {
-    var hypothesisId = await CreateHypothesisAsync();
+    var trackId = await CreateTrackAsync();
     var (documentId, _) = await CreateCvAsync("Primary", "v1.pdf");
     Clock.UtcNow = Now.AddDays(1);
     var newest = await AddCvVersionAsync(documentId, "v2.pdf");
-    await MutateHypothesisAsync(hypothesisId, h => h.PrimaryCvDocumentId = documentId);
-    var id = await CreateOnBoardAsync(VacancyStage.Preparing, hypothesisId);
+    await MutateTrackAsync(trackId, h => h.PrimaryCvDocumentId = documentId);
+    var id = await CreateOnBoardAsync(VacancyStage.Preparing, trackId);
 
     var options = await Service.GetApplyOptionsAsync(id);
 
-    Assert.Equal(newest, Assert.Single(options.Hypotheses).DefaultCvVersionId);
+    Assert.Equal(newest, Assert.Single(options.Tracks).DefaultCvVersionId);
   }
 
   [Fact]
-  public async Task GetApplyOptionsAsync_HypothesisWithoutPrimaryCv_HasNoDefault()
+  public async Task GetApplyOptionsAsync_TrackWithoutPrimaryCv_HasNoDefault()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var id = await CreateOnBoardAsync(VacancyStage.Preparing, hypothesisId);
+    var trackId = await CreateTrackAsync();
+    var id = await CreateOnBoardAsync(VacancyStage.Preparing, trackId);
 
     var options = await Service.GetApplyOptionsAsync(id);
 
-    Assert.Null(Assert.Single(options.Hypotheses).DefaultCvVersionId);
+    Assert.Null(Assert.Single(options.Tracks).DefaultCvVersionId);
   }
 
   [Fact]
@@ -311,8 +311,8 @@ public class VacancyServiceBoardTests : VacancyServiceFixture
     Clock.UtcNow = Now.AddDays(1);
     await AddCvVersionAsync(alpha, "alpha-2.pdf");
     await AddCvVersionAsync(beta, "beta-2.pdf");
-    var hypothesisId = await CreateHypothesisAsync();
-    var id = await CreateOnBoardAsync(VacancyStage.Preparing, hypothesisId);
+    var trackId = await CreateTrackAsync();
+    var id = await CreateOnBoardAsync(VacancyStage.Preparing, trackId);
 
     var options = await Service.GetApplyOptionsAsync(id);
 
@@ -327,8 +327,8 @@ public class VacancyServiceBoardTests : VacancyServiceFixture
   {
     var otherUserId = (await PersistenceFixtures.AddUserAsync(Database)).Id;
     await CreateCvAsync("Theirs", "theirs.pdf", otherUserId);
-    var hypothesisId = await CreateHypothesisAsync();
-    var id = await CreateOnBoardAsync(VacancyStage.Preparing, hypothesisId);
+    var trackId = await CreateTrackAsync();
+    var id = await CreateOnBoardAsync(VacancyStage.Preparing, trackId);
 
     var options = await Service.GetApplyOptionsAsync(id);
 
@@ -346,18 +346,18 @@ public class VacancyServiceBoardTests : VacancyServiceFixture
   [InlineData(VacancyStage.Preparing)]
   public async Task ApplyAsync_Valid_CreatesApplicationAndMovesToApplied(VacancyStage from)
   {
-    var hypothesisId = await CreateHypothesisAsync();
+    var trackId = await CreateTrackAsync();
     var (_, cvVersionId) = await CreateCvAsync();
-    var id = await CreateOnBoardAsync(from, hypothesisId);
+    var id = await CreateOnBoardAsync(from, trackId);
     Clock.UtcNow = Now.AddHours(5);
     var appliedAt = Now.AddHours(3);
 
-    await Service.ApplyAsync(id, from, new ApplyInput(hypothesisId, cvVersionId, ApplicationChannel.Referral, appliedAt, "  hello  "));
+    await Service.ApplyAsync(id, from, new ApplyInput(trackId, cvVersionId, ApplicationChannel.Referral, appliedAt, "  hello  "));
 
     var vacancy = await LoadAsync(id);
     Assert.Equal(VacancyStage.Applied, vacancy.Stage);
     var application = vacancy.Application!;
-    Assert.Equal(hypothesisId, application.HypothesisId);
+    Assert.Equal(trackId, application.TrackId);
     Assert.Equal(cvVersionId, application.CvVersionId);
     Assert.Equal(ApplicationChannel.Referral, application.Channel);
     Assert.Equal(appliedAt, application.AppliedAt);
@@ -369,11 +369,11 @@ public class VacancyServiceBoardTests : VacancyServiceFixture
   [Fact]
   public async Task ApplyAsync_BlankCoverLetter_StoresNull()
   {
-    var hypothesisId = await CreateHypothesisAsync();
+    var trackId = await CreateTrackAsync();
     var (_, cvVersionId) = await CreateCvAsync();
-    var id = await CreateOnBoardAsync(VacancyStage.Preparing, hypothesisId);
+    var id = await CreateOnBoardAsync(VacancyStage.Preparing, trackId);
 
-    await Service.ApplyAsync(id, VacancyStage.Preparing, Valid(hypothesisId, cvVersionId, coverLetter: "   "));
+    await Service.ApplyAsync(id, VacancyStage.Preparing, Valid(trackId, cvVersionId, coverLetter: "   "));
 
     Assert.Null((await LoadAsync(id)).Application!.CoverLetter);
   }
@@ -381,38 +381,38 @@ public class VacancyServiceBoardTests : VacancyServiceFixture
   [Fact]
   public async Task ApplyAsync_AppliedAtEqualToNow_IsAccepted()
   {
-    var hypothesisId = await CreateHypothesisAsync();
+    var trackId = await CreateTrackAsync();
     var (_, cvVersionId) = await CreateCvAsync();
-    var id = await CreateOnBoardAsync(VacancyStage.Preparing, hypothesisId);
+    var id = await CreateOnBoardAsync(VacancyStage.Preparing, trackId);
 
-    await Service.ApplyAsync(id, VacancyStage.Preparing, Valid(hypothesisId, cvVersionId, appliedAt: Now));
+    await Service.ApplyAsync(id, VacancyStage.Preparing, Valid(trackId, cvVersionId, appliedAt: Now));
 
     Assert.Equal(VacancyStage.Applied, (await LoadAsync(id)).Stage);
   }
 
   [Fact]
-  public async Task ApplyAsync_HypothesisNotMatchedToVacancy_FailsOnHypothesisId()
+  public async Task ApplyAsync_TrackNotMatchedToVacancy_FailsOnTrackId()
   {
-    var matched = await CreateHypothesisAsync("Matched");
-    var unmatched = await CreateHypothesisAsync("Unmatched");
+    var matched = await CreateTrackAsync("Matched");
+    var unmatched = await CreateTrackAsync("Unmatched");
     var (_, cvVersionId) = await CreateCvAsync();
     var id = await CreateOnBoardAsync(VacancyStage.Preparing, matched);
 
     var exception = await Assert.ThrowsAsync<ValidationFailedException>(
       () => Service.ApplyAsync(id, VacancyStage.Preparing, Valid(unmatched, cvVersionId)));
 
-    Assert.Contains("HypothesisId", exception.Errors.Keys);
+    Assert.Contains("TrackId", exception.Errors.Keys);
     await AssertNothingAppliedAsync(id, VacancyStage.Preparing);
   }
 
   [Fact]
   public async Task ApplyAsync_UnknownCvVersion_FailsOnCvVersionId()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var id = await CreateOnBoardAsync(VacancyStage.Preparing, hypothesisId);
+    var trackId = await CreateTrackAsync();
+    var id = await CreateOnBoardAsync(VacancyStage.Preparing, trackId);
 
     var exception = await Assert.ThrowsAsync<ValidationFailedException>(
-      () => Service.ApplyAsync(id, VacancyStage.Preparing, Valid(hypothesisId, Guid.NewGuid())));
+      () => Service.ApplyAsync(id, VacancyStage.Preparing, Valid(trackId, Guid.NewGuid())));
 
     Assert.Contains("CvVersionId", exception.Errors.Keys);
     await AssertNothingAppliedAsync(id, VacancyStage.Preparing);
@@ -423,11 +423,11 @@ public class VacancyServiceBoardTests : VacancyServiceFixture
   {
     var otherUserId = (await PersistenceFixtures.AddUserAsync(Database)).Id;
     var (_, foreignVersionId) = await CreateCvAsync("Theirs", "theirs.pdf", otherUserId);
-    var hypothesisId = await CreateHypothesisAsync();
-    var id = await CreateOnBoardAsync(VacancyStage.Preparing, hypothesisId);
+    var trackId = await CreateTrackAsync();
+    var id = await CreateOnBoardAsync(VacancyStage.Preparing, trackId);
 
     var exception = await Assert.ThrowsAsync<ValidationFailedException>(
-      () => Service.ApplyAsync(id, VacancyStage.Preparing, Valid(hypothesisId, foreignVersionId)));
+      () => Service.ApplyAsync(id, VacancyStage.Preparing, Valid(trackId, foreignVersionId)));
 
     Assert.Contains("CvVersionId", exception.Errors.Keys);
     await AssertNothingAppliedAsync(id, VacancyStage.Preparing);
@@ -436,12 +436,12 @@ public class VacancyServiceBoardTests : VacancyServiceFixture
   [Fact]
   public async Task ApplyAsync_AppliedAtInFuture_FailsOnAppliedAt()
   {
-    var hypothesisId = await CreateHypothesisAsync();
+    var trackId = await CreateTrackAsync();
     var (_, cvVersionId) = await CreateCvAsync();
-    var id = await CreateOnBoardAsync(VacancyStage.Preparing, hypothesisId);
+    var id = await CreateOnBoardAsync(VacancyStage.Preparing, trackId);
 
     var exception = await Assert.ThrowsAsync<ValidationFailedException>(
-      () => Service.ApplyAsync(id, VacancyStage.Preparing, Valid(hypothesisId, cvVersionId, appliedAt: Now.AddMinutes(1))));
+      () => Service.ApplyAsync(id, VacancyStage.Preparing, Valid(trackId, cvVersionId, appliedAt: Now.AddMinutes(1))));
 
     Assert.Contains("AppliedAt", exception.Errors.Keys);
     await AssertNothingAppliedAsync(id, VacancyStage.Preparing);
@@ -450,13 +450,13 @@ public class VacancyServiceBoardTests : VacancyServiceFixture
   [Fact]
   public async Task ApplyAsync_AppliedAtBeforeDiscoveryDay_FailsOnAppliedAt()
   {
-    var hypothesisId = await CreateHypothesisAsync();
+    var trackId = await CreateTrackAsync();
     var (_, cvVersionId) = await CreateCvAsync();
-    var id = await CreateOnBoardAsync(VacancyStage.Preparing, hypothesisId);
+    var id = await CreateOnBoardAsync(VacancyStage.Preparing, trackId);
     var discoveredDay = (await LoadAsync(id)).DiscoveredAt.Date;
 
     var exception = await Assert.ThrowsAsync<ValidationFailedException>(
-      () => Service.ApplyAsync(id, VacancyStage.Preparing, Valid(hypothesisId, cvVersionId, appliedAt: discoveredDay.AddSeconds(-1))));
+      () => Service.ApplyAsync(id, VacancyStage.Preparing, Valid(trackId, cvVersionId, appliedAt: discoveredDay.AddSeconds(-1))));
 
     Assert.Contains("AppliedAt", exception.Errors.Keys);
     await AssertNothingAppliedAsync(id, VacancyStage.Preparing);
@@ -465,12 +465,12 @@ public class VacancyServiceBoardTests : VacancyServiceFixture
   [Fact]
   public async Task ApplyAsync_AppliedAtOnDiscoveryDayStart_IsAccepted()
   {
-    var hypothesisId = await CreateHypothesisAsync();
+    var trackId = await CreateTrackAsync();
     var (_, cvVersionId) = await CreateCvAsync();
-    var id = await CreateOnBoardAsync(VacancyStage.Preparing, hypothesisId);
+    var id = await CreateOnBoardAsync(VacancyStage.Preparing, trackId);
     var discoveredDay = (await LoadAsync(id)).DiscoveredAt.Date;
 
-    await Service.ApplyAsync(id, VacancyStage.Preparing, Valid(hypothesisId, cvVersionId, appliedAt: discoveredDay));
+    await Service.ApplyAsync(id, VacancyStage.Preparing, Valid(trackId, cvVersionId, appliedAt: discoveredDay));
 
     Assert.Equal(VacancyStage.Applied, (await LoadAsync(id)).Stage);
   }
@@ -478,14 +478,14 @@ public class VacancyServiceBoardTests : VacancyServiceFixture
   [Fact]
   public async Task ApplyAsync_AppliedAtOnDayBeforeLastTransition_FailsOnAppliedAt()
   {
-    var hypothesisId = await CreateHypothesisAsync();
+    var trackId = await CreateTrackAsync();
     var (_, cvVersionId) = await CreateCvAsync();
-    var id = await CreateOnBoardAsync(VacancyStage.Preparing, hypothesisId);
+    var id = await CreateOnBoardAsync(VacancyStage.Preparing, trackId);
     var lastDay = LastStageChange(await LoadAsync(id)).Date;
     Clock.UtcNow = lastDay.AddDays(3);
 
     var exception = await Assert.ThrowsAsync<ValidationFailedException>(
-      () => Service.ApplyAsync(id, VacancyStage.Preparing, Valid(hypothesisId, cvVersionId, appliedAt: lastDay.AddDays(-1).AddHours(23))));
+      () => Service.ApplyAsync(id, VacancyStage.Preparing, Valid(trackId, cvVersionId, appliedAt: lastDay.AddDays(-1).AddHours(23))));
 
     Assert.Contains("AppliedAt", exception.Errors.Keys);
     await AssertNothingAppliedAsync(id, VacancyStage.Preparing);
@@ -494,13 +494,13 @@ public class VacancyServiceBoardTests : VacancyServiceFixture
   [Fact]
   public async Task ApplyAsync_AppliedAtEarlierOnLastTransitionDay_UsesLastTransitionTime()
   {
-    var hypothesisId = await CreateHypothesisAsync();
+    var trackId = await CreateTrackAsync();
     var (_, cvVersionId) = await CreateCvAsync();
-    var id = await CreateOnBoardAsync(VacancyStage.Preparing, hypothesisId);
+    var id = await CreateOnBoardAsync(VacancyStage.Preparing, trackId);
     var last = LastStageChange(await LoadAsync(id));
     Clock.UtcNow = last.AddHours(5);
 
-    await Service.ApplyAsync(id, VacancyStage.Preparing, Valid(hypothesisId, cvVersionId, appliedAt: last.Date));
+    await Service.ApplyAsync(id, VacancyStage.Preparing, Valid(trackId, cvVersionId, appliedAt: last.Date));
 
     var vacancy = await LoadAsync(id);
     Assert.Equal(last, vacancy.Application!.AppliedAt);
@@ -513,12 +513,12 @@ public class VacancyServiceBoardTests : VacancyServiceFixture
   [Fact]
   public async Task ApplyAsync_StaleExpectedStage_ThrowsValidationAndAppliesNothing()
   {
-    var hypothesisId = await CreateHypothesisAsync();
+    var trackId = await CreateTrackAsync();
     var (_, cvVersionId) = await CreateCvAsync();
-    var id = await CreateOnBoardAsync(VacancyStage.Preparing, hypothesisId);
+    var id = await CreateOnBoardAsync(VacancyStage.Preparing, trackId);
 
     await Assert.ThrowsAsync<ValidationFailedException>(
-      () => Service.ApplyAsync(id, VacancyStage.Targeted, Valid(hypothesisId, cvVersionId)));
+      () => Service.ApplyAsync(id, VacancyStage.Targeted, Valid(trackId, cvVersionId)));
 
     await AssertNothingAppliedAsync(id, VacancyStage.Preparing);
   }
@@ -526,12 +526,12 @@ public class VacancyServiceBoardTests : VacancyServiceFixture
   [Fact]
   public async Task ApplyAsync_FromInterviewing_ThrowsValidation()
   {
-    var hypothesisId = await CreateHypothesisAsync();
+    var trackId = await CreateTrackAsync();
     var (_, cvVersionId) = await CreateCvAsync();
-    var id = await CreateOnBoardAsync(VacancyStage.Interviewing, hypothesisId);
+    var id = await CreateOnBoardAsync(VacancyStage.Interviewing, trackId);
 
     await Assert.ThrowsAsync<ValidationFailedException>(
-      () => Service.ApplyAsync(id, VacancyStage.Interviewing, Valid(hypothesisId, cvVersionId)));
+      () => Service.ApplyAsync(id, VacancyStage.Interviewing, Valid(trackId, cvVersionId)));
 
     Assert.Equal(VacancyStage.Interviewing, (await LoadAsync(id)).Stage);
   }
@@ -539,11 +539,11 @@ public class VacancyServiceBoardTests : VacancyServiceFixture
   [Fact]
   public async Task ApplyAsync_UnknownVacancy_ThrowsKeyNotFound()
   {
-    var hypothesisId = await CreateHypothesisAsync();
+    var trackId = await CreateTrackAsync();
     var (_, cvVersionId) = await CreateCvAsync();
 
     await Assert.ThrowsAsync<KeyNotFoundException>(
-      () => Service.ApplyAsync(Guid.NewGuid(), VacancyStage.Preparing, Valid(hypothesisId, cvVersionId)));
+      () => Service.ApplyAsync(Guid.NewGuid(), VacancyStage.Preparing, Valid(trackId, cvVersionId)));
   }
 
   [Theory]
@@ -553,8 +553,8 @@ public class VacancyServiceBoardTests : VacancyServiceFixture
   [InlineData(VacancyStage.Interviewing, ApplicationOutcome.Ghosted)]
   public async Task CloseAsync_FromApplicationStage_ClosesWithOutcomeAndStageEvent(VacancyStage from, ApplicationOutcome outcome)
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var id = await CreateOnBoardAsync(from, hypothesisId);
+    var trackId = await CreateTrackAsync();
+    var id = await CreateOnBoardAsync(from, trackId);
     Clock.UtcNow = Now.AddHours(3);
 
     await Service.CloseAsync(id, from, outcome);
@@ -570,8 +570,8 @@ public class VacancyServiceBoardTests : VacancyServiceFixture
   [Fact]
   public async Task CloseAsync_FromTargeted_ThrowsValidationAndKeepsStage()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var id = await CreateOnBoardAsync(VacancyStage.Targeted, hypothesisId);
+    var trackId = await CreateTrackAsync();
+    var id = await CreateOnBoardAsync(VacancyStage.Targeted, trackId);
 
     await Assert.ThrowsAsync<ValidationFailedException>(
       () => Service.CloseAsync(id, VacancyStage.Targeted, ApplicationOutcome.Rejected));
@@ -582,8 +582,8 @@ public class VacancyServiceBoardTests : VacancyServiceFixture
   [Fact]
   public async Task CloseAsync_StaleExpectedStage_ThrowsValidationAndKeepsStage()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var id = await CreateOnBoardAsync(VacancyStage.Interviewing, hypothesisId);
+    var trackId = await CreateTrackAsync();
+    var id = await CreateOnBoardAsync(VacancyStage.Interviewing, trackId);
 
     await Assert.ThrowsAsync<ValidationFailedException>(
       () => Service.CloseAsync(id, VacancyStage.Applied, ApplicationOutcome.Rejected));
@@ -605,9 +605,9 @@ public class VacancyServiceBoardTests : VacancyServiceFixture
     return vacancy.Events.Where(e => e.Type == ApplicationEventType.StageChanged).Max(e => e.OccurredAt);
   }
 
-  private static ApplyInput Valid(Guid hypothesisId, Guid cvVersionId, DateTime? appliedAt = null, string? coverLetter = null)
+  private static ApplyInput Valid(Guid trackId, Guid cvVersionId, DateTime? appliedAt = null, string? coverLetter = null)
   {
-    return new ApplyInput(hypothesisId, cvVersionId, ApplicationChannel.Website, appliedAt ?? Now.AddHours(-1), coverLetter);
+    return new ApplyInput(trackId, cvVersionId, ApplicationChannel.Website, appliedAt ?? Now.AddHours(-1), coverLetter);
   }
 
   private async Task AssertNothingAppliedAsync(Guid vacancyId, VacancyStage expectedStage)
@@ -624,14 +624,14 @@ public class VacancyServiceBoardTests : VacancyServiceFixture
   {
     var moscow = TimeZoneInfo.FindSystemTimeZoneById("Europe/Moscow");
     var service = ServiceFor(SeedData.OwnerId, moscow);
-    var hypothesisId = await CreateHypothesisAsync();
+    var trackId = await CreateTrackAsync();
     var (_, cvVersionId) = await CreateCvAsync();
-    var id = await CreateOnBoardAsync(VacancyStage.Preparing, hypothesisId);
+    var id = await CreateOnBoardAsync(VacancyStage.Preparing, trackId);
     var last = LastStageChange(await LoadAsync(id));
     Clock.UtcNow = last.AddDays(2);
     var localMidnight = TimeZoneInfo.ConvertTimeToUtc(TimeZoneInfo.ConvertTimeFromUtc(last, moscow).Date, moscow);
 
-    await service.ApplyAsync(id, VacancyStage.Preparing, Valid(hypothesisId, cvVersionId, appliedAt: localMidnight));
+    await service.ApplyAsync(id, VacancyStage.Preparing, Valid(trackId, cvVersionId, appliedAt: localMidnight));
 
     Assert.Equal(last, (await LoadAsync(id)).Application!.AppliedAt);
   }
@@ -641,15 +641,15 @@ public class VacancyServiceBoardTests : VacancyServiceFixture
   {
     var moscow = TimeZoneInfo.FindSystemTimeZoneById("Europe/Moscow");
     var service = ServiceFor(SeedData.OwnerId, moscow);
-    var hypothesisId = await CreateHypothesisAsync();
+    var trackId = await CreateTrackAsync();
     var (_, cvVersionId) = await CreateCvAsync();
-    var id = await CreateOnBoardAsync(VacancyStage.Preparing, hypothesisId);
+    var id = await CreateOnBoardAsync(VacancyStage.Preparing, trackId);
     var last = LastStageChange(await LoadAsync(id));
     Clock.UtcNow = last.AddDays(2);
     var localMidnight = TimeZoneInfo.ConvertTimeToUtc(TimeZoneInfo.ConvertTimeFromUtc(last, moscow).Date, moscow);
 
     var exception = await Assert.ThrowsAsync<ValidationFailedException>(
-      () => service.ApplyAsync(id, VacancyStage.Preparing, Valid(hypothesisId, cvVersionId, appliedAt: localMidnight.AddSeconds(-1))));
+      () => service.ApplyAsync(id, VacancyStage.Preparing, Valid(trackId, cvVersionId, appliedAt: localMidnight.AddSeconds(-1))));
 
     Assert.Contains("AppliedAt", exception.Errors.Keys);
   }

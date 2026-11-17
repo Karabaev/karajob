@@ -66,8 +66,8 @@ public class VacancyServiceCoverLetterTests : VacancyServiceFixture
   [Fact]
   public async Task FindAsync_TargetedVacancy_HasNoApplicationAndNoLetter()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var id = await CreateOnBoardAsync(VacancyStage.Targeted, hypothesisId);
+    var trackId = await CreateTrackAsync();
+    var id = await CreateOnBoardAsync(VacancyStage.Targeted, trackId);
 
     var found = await Service.FindAsync(id);
 
@@ -77,13 +77,13 @@ public class VacancyServiceCoverLetterTests : VacancyServiceFixture
 
   private async Task<Guid> CreateAppliedAsync(string? coverLetter)
   {
-    var hypothesisId = await CreateHypothesisAsync();
+    var trackId = await CreateTrackAsync();
     var (_, cvVersionId) = await CreateCvAsync();
-    var id = await CreateOnBoardAsync(VacancyStage.Targeted, hypothesisId);
+    var id = await CreateOnBoardAsync(VacancyStage.Targeted, trackId);
     await Service.ApplyAsync(
       id,
       VacancyStage.Targeted,
-      new ApplyInput(hypothesisId, cvVersionId, ApplicationChannel.Website, Now, coverLetter));
+      new ApplyInput(trackId, cvVersionId, ApplicationChannel.Website, Now, coverLetter));
     return id;
   }
 }

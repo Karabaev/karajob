@@ -110,10 +110,10 @@ public class CvServiceDeleteTests : CvServiceFixture
   }
 
   [Fact]
-  public async Task DeleteAsync_PrimaryCvOfHypothesis_ThrowsValidationWithEmptyKeyAndKeepsEverything()
+  public async Task DeleteAsync_PrimaryCvOfTrack_ThrowsValidationWithEmptyKeyAndKeepsEverything()
   {
     var created = await Service.CreateAsync(Input(), Upload());
-    await AddHypothesisWithPrimaryCvAsync(SeedData.OwnerId, created.Id);
+    await AddTrackWithPrimaryCvAsync(SeedData.OwnerId, created.Id);
 
     var exception = await Assert.ThrowsAsync<ValidationFailedException>(() => Service.DeleteAsync(created.Id));
 

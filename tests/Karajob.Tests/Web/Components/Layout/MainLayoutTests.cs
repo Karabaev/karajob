@@ -38,7 +38,7 @@ public class MainLayoutTests : IAsyncLifetime
   [InlineData("inbox", "Inbox")]
   [InlineData("applications", "Applications")]
   [InlineData("companies", "Companies")]
-  [InlineData("hypotheses", "Hypotheses")]
+  [InlineData("tracks", "Tracks")]
   [InlineData("cvs", "CV")]
   [InlineData("settings", "Settings")]
   public void Render_HasNavLink(string href, string text)

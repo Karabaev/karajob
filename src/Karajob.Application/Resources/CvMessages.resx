@@ -7,7 +7,7 @@
   <data name="Error.VersionInUse" xml:space="preserve"><value>This version is used in applications and cannot be deleted</value></data>
   <data name="Error.LastVersion" xml:space="preserve"><value>This is the only version; delete the whole CV instead</value></data>
   <data name="Error.CvInUse" xml:space="preserve"><value>This CV is used in applications and cannot be deleted</value></data>
-  <data name="Error.CvPrimaryInHypothesis" xml:space="preserve"><value>This CV is the primary one in a hypothesis; change it there first</value></data>
+  <data name="Error.CvPrimaryInTrack" xml:space="preserve"><value>This CV is the primary one in a track; change it there first</value></data>
   <data name="Error.NameRequired" xml:space="preserve"><value>Name is required</value></data>
   <data name="Error.LanguageRequired" xml:space="preserve"><value>Language is required</value></data>
   <data name="Error.LanguageNotFound" xml:space="preserve"><value>Language not found</value></data>

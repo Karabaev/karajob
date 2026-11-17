@@ -12,8 +12,8 @@ public class VacancyServiceEventTests : VacancyServiceFixture
   [Fact]
   public async Task FindAsync_WithStageChangesAndManualEvents_TimelineIsNewestFirst()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var created = await Service.CreateAsync(Input(hypothesisIds: [hypothesisId]));
+    var trackId = await CreateTrackAsync();
+    var created = await Service.CreateAsync(Input(trackIds: [trackId]));
     await MutateAsync(created.Id, v => v.MoveTo(VacancyStage.Targeted, Now.AddHours(1)));
     await Service.AddEventAsync(created.Id, new VacancyEventInput(ApplicationEventType.Note, Now.AddHours(3), "later"));
     await Service.AddEventAsync(created.Id, new VacancyEventInput(ApplicationEventType.Note, Now.AddHours(2), "middle"));
@@ -62,13 +62,13 @@ public class VacancyServiceEventTests : VacancyServiceFixture
   [Fact]
   public async Task AddEventAsync_ScreeningOnAppliedVacancy_Succeeds()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var created = await Service.CreateAsync(Input(hypothesisIds: [hypothesisId]));
+    var trackId = await CreateTrackAsync();
+    var created = await Service.CreateAsync(Input(trackIds: [trackId]));
     var (_, cvVersion) = await PersistenceFixtures.AddCvAsync(Database, SeedData.OwnerId);
     await MutateAsync(created.Id, v =>
     {
       v.MoveTo(VacancyStage.Targeted, Now);
-      v.Apply(hypothesisId, cvVersion.Id, ApplicationChannel.Website, Now.AddHours(1), null);
+      v.Apply(trackId, cvVersion.Id, ApplicationChannel.Website, Now.AddHours(1), null);
     });
 
     var item = await Service.AddEventAsync(created.Id, new VacancyEventInput(ApplicationEventType.Screening, Now.AddDays(1), null));
@@ -171,8 +171,8 @@ public class VacancyServiceEventTests : VacancyServiceFixture
   [Fact]
   public async Task DeleteEventAsync_StageChangedEvent_FailsWithGeneralErrorAndKeepsEvent()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var created = await Service.CreateAsync(Input(hypothesisIds: [hypothesisId]));
+    var trackId = await CreateTrackAsync();
+    var created = await Service.CreateAsync(Input(trackIds: [trackId]));
     await MutateAsync(created.Id, v => v.MoveTo(VacancyStage.Targeted, Now));
     var stageChanged = Assert.Single((await Service.FindAsync(created.Id))!.Timeline);
 

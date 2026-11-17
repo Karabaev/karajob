@@ -1,4 +1,4 @@
-using Karajob.Domain.Hypotheses;
+using Karajob.Domain.Tracks;
 using Karajob.Domain.Vacancies;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -9,7 +9,7 @@ public class VacancyMatchConfiguration : IEntityTypeConfiguration<VacancyMatch>
 {
   public void Configure(EntityTypeBuilder<VacancyMatch> builder)
   {
-    builder.HasIndex(m => new { m.VacancyId, m.HypothesisId }).IsUnique();
-    builder.HasOne<Hypothesis>().WithMany().HasForeignKey(m => m.HypothesisId).OnDelete(DeleteBehavior.Restrict);
+    builder.HasIndex(m => new { m.VacancyId, m.TrackId }).IsUnique();
+    builder.HasOne<Track>().WithMany().HasForeignKey(m => m.TrackId).OnDelete(DeleteBehavior.Restrict);
   }
 }

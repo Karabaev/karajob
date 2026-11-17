@@ -10,7 +10,7 @@
   <data name="Layout.NewVacancy" xml:space="preserve"><value>New vacancy</value></data>
   <data name="Layout.Board" xml:space="preserve"><value>Board</value></data>
   <data name="Layout.Companies" xml:space="preserve"><value>Companies</value></data>
-  <data name="Layout.Hypotheses" xml:space="preserve"><value>Hypotheses</value></data>
+  <data name="Layout.Tracks" xml:space="preserve"><value>Tracks</value></data>
   <data name="Layout.WeeklyReview" xml:space="preserve"><value>Weekly Review</value></data>
   <data name="Layout.Catalogs" xml:space="preserve"><value>Catalogs</value></data>
   <data name="Layout.MasterProfile" xml:space="preserve"><value>Master profile</value></data>

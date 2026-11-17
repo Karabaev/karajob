@@ -228,8 +228,8 @@ public class VacancyServiceTitleTests : VacancyServiceFixture
   [Fact]
   public async Task GetBoardAsync_TargetedVacancyWithTitle_ReturnsTitleOnCard()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var id = await CreateOnBoardAsync(VacancyStage.Targeted, hypothesisId);
+    var trackId = await CreateTrackAsync();
+    var id = await CreateOnBoardAsync(VacancyStage.Targeted, trackId);
     await MutateAsync(id, v => v.Title = "Board title");
 
     var board = await Service.GetBoardAsync(null);

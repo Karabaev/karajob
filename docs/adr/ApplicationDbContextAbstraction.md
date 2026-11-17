@@ -4,7 +4,7 @@
 Accepted. Implemented for issue #9.
 
 ## Context
-The scenario services (`CompanyService`, later `VacancyService`, `HypothesisService` …) live in `Karajob.Application` and must read and write data. `KarajobDbContext` lives in `Karajob.Infrastructure`, and an Application → Infrastructure reference goes against the dependency direction. design.md rejects a repository layer of its own: EF Core is already an abstraction over the DBMS, and repositories would only add code.
+The scenario services (`CompanyService`, later `VacancyService`, `TrackService` …) live in `Karajob.Application` and must read and write data. `KarajobDbContext` lives in `Karajob.Infrastructure`, and an Application → Infrastructure reference goes against the dependency direction. design.md rejects a repository layer of its own: EF Core is already an abstraction over the DBMS, and repositories would only add code.
 
 ## Decisions
 

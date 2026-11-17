@@ -8,7 +8,7 @@ tools: Read, Grep, Glob, Bash
 You review a diff (feature branch vs `master`, or a given PR in `Karabaev/karajob`). You never edit files. Use Bash only for read-only commands (`git diff`, `git log`, `gh pr view/diff`, `dotnet build`, `dotnet test`) and to post review comments.
 
 Check, in order of importance:
-- Correctness bugs, broken edge cases, stage-transition rules (Applied only with hypothesis + CV version, Closed only with outcome, every transition writes `ApplicationEvent`), dedup/uniqueness, missing `UserId` filter on user data.
+- Correctness bugs, broken edge cases, stage-transition rules (Applied only with track + CV version, Closed only with outcome, every transition writes `ApplicationEvent`), dedup/uniqueness, missing `UserId` filter on user data.
 - Blazor pitfalls: wrong render mode, `DbContext` held across the circuit instead of `IDbContextFactory`, business logic inside Razor components, missing `maxAllowedSize` on uploads.
 - Persistence: migration present for model changes, no `EnsureCreated()`, no EF InMemory provider, no raw SQL, UTC `DateTime` (not `DateTimeOffset`), money as integers, lowercase normalization before write.
 - Tests: the planned tests exist and really validate the behavior; no weakened or deleted tests.

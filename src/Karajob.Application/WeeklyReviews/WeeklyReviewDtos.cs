@@ -1,5 +1,5 @@
 using Karajob.Application.Metrics;
-using Karajob.Domain.Hypotheses;
+using Karajob.Domain.Tracks;
 using Karajob.Domain.Metrics;
 
 namespace Karajob.Application.WeeklyReviews;
@@ -8,10 +8,10 @@ public record WeeklyReviewSummary(
   CalendarWeek Week,
   ProfileActivity Activity,
   int StaleAfterDays,
-  IReadOnlyList<WeeklyReviewHypothesis> Hypotheses,
+  IReadOnlyList<WeeklyReviewTrack> Tracks,
   IReadOnlyList<StaleApplication> StaleApplications);
 
-public record WeeklyReviewHypothesis(Guid Id, string Name, HypothesisStatus Status, bool CheckedInThisWeek);
+public record WeeklyReviewTrack(Guid Id, string Name, TrackStatus Status, bool CheckedInThisWeek);
 
 public record StaleApplication(
   Guid VacancyId,
@@ -19,8 +19,8 @@ public record StaleApplication(
   string? Title,
   string? CompanyName,
   string? RoleName,
-  Guid HypothesisId,
-  string HypothesisName,
+  Guid TrackId,
+  string TrackName,
   DateTime AppliedAt,
   DateTime LastActivityAt,
   int IdleDays);

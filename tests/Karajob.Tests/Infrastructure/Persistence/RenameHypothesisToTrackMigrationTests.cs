@@ -121,6 +121,32 @@ public class RenameHypothesisToTrackMigrationTests : IAsyncLifetime
     Assert.Empty(violations);
   }
 
+  [Fact]
+  public async Task Migrate_FromAddCompanyLocations_RenamesIndexes()
+  {
+    var indexes = await QueryStringsAsync("SELECT name FROM sqlite_master WHERE type = 'index'");
+
+    Assert.DoesNotContain(indexes, name => name.Contains("Hypothes"));
+    Assert.Contains("IX_TrackEngines_TrackId_EngineId", indexes);
+    Assert.Contains("IX_VacancyMatches_VacancyId_TrackId", indexes);
+    Assert.Contains("IX_TrackCheckIns_TrackId_Week", indexes);
+  }
+
+  [Fact]
+  public async Task Rollback_ToAddCompanyLocations_RestoresOldNamesAndData()
+  {
+    await context.GetService<IMigrator>().MigrateAsync(LastMigrationBeforeRename);
+
+    var tables = await QueryStringsAsync("SELECT name FROM sqlite_master WHERE type = 'table'");
+    var ids = await QueryStringsAsync("SELECT Id FROM Hypotheses");
+    var matchColumns = await QueryStringsAsync("SELECT name FROM pragma_table_info('VacancyMatches')");
+
+    Assert.Empty(OldTables.Except(tables));
+    Assert.Empty(NewTables.Intersect(tables));
+    Assert.Equal([HypothesisId], ids, StringComparer.OrdinalIgnoreCase);
+    Assert.Contains("HypothesisId", matchColumns);
+  }
+
   private async Task SeedOldSchemaAsync()
   {
     string[] statements =

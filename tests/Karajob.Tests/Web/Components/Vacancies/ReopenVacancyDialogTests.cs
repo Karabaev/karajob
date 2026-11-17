@@ -85,8 +85,8 @@ public class ReopenVacancyDialogTests : VacancyWebFixture
 
   private async Task<Guid> CreateClosedAsync()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    return await CreateOnBoardAsync(VacancyStage.Closed, hypothesisId, "https://example.com/jobs/1", ApplicationOutcome.Offer);
+    var trackId = await CreateTrackAsync();
+    return await CreateOnBoardAsync(VacancyStage.Closed, trackId, "https://example.com/jobs/1", ApplicationOutcome.Offer);
   }
 
   private static IRenderedComponent<MudSelect<VacancyStage>> TargetSelect(IRenderedComponent<MudDialogProvider> provider)

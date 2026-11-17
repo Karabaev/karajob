@@ -1,6 +1,6 @@
 using Karajob.Domain.Applications;
 using Karajob.Domain.Common;
-using Karajob.Domain.Hypotheses;
+using Karajob.Domain.Tracks;
 using Karajob.Domain.Normalization;
 
 namespace Karajob.Domain.Vacancies;
@@ -74,35 +74,35 @@ public class Vacancy : IUserOwned
     }
   }
 
-  public VacancyMatch SetMatch(Guid hypothesisId, int? score, string? rationale, MatchAuthor matchedBy)
+  public VacancyMatch SetMatch(Guid trackId, int? score, string? rationale, MatchAuthor matchedBy)
   {
-    Require.NotEmpty(hypothesisId);
-    var existing = matches.FirstOrDefault(m => m.HypothesisId == hypothesisId);
+    Require.NotEmpty(trackId);
+    var existing = matches.FirstOrDefault(m => m.TrackId == trackId);
     if (existing is not null)
     {
       existing.Update(score, rationale, matchedBy);
       return existing;
     }
 
-    var match = new VacancyMatch(UserId, Id, hypothesisId, score, rationale, matchedBy);
+    var match = new VacancyMatch(UserId, Id, trackId, score, rationale, matchedBy);
     matches.Add(match);
     return match;
   }
 
-  public void RemoveMatch(Guid hypothesisId)
+  public void RemoveMatch(Guid trackId)
   {
-    if (matches.All(m => m.HypothesisId != hypothesisId)) return;
-    if (hypothesisId == Application?.HypothesisId)
+    if (matches.All(m => m.TrackId != trackId)) return;
+    if (trackId == Application?.TrackId)
     {
-      throw new InvalidOperationException("The hypothesis of the application cannot be unmatched.");
+      throw new InvalidOperationException("The track of the application cannot be unmatched.");
     }
 
     if (matches.Count == 1 && Stage is not (VacancyStage.Inbox or VacancyStage.Dismissed))
     {
-      throw new InvalidOperationException($"A vacancy in {Stage} requires at least one matched hypothesis.");
+      throw new InvalidOperationException($"A vacancy in {Stage} requires at least one matched track.");
     }
 
-    matches.RemoveAll(m => m.HypothesisId == hypothesisId);
+    matches.RemoveAll(m => m.TrackId == trackId);
   }
 
   public ApplicationEvent AddEvent(ApplicationEventType type, DateTime at, string? note, TimeZoneInfo zone)
@@ -153,7 +153,7 @@ public class Vacancy : IUserOwned
     var entersBoard = Stage is VacancyStage.Inbox or VacancyStage.Dismissed && target != VacancyStage.Inbox;
     if (entersBoard && matches.Count == 0)
     {
-      throw new StageTransitionException(Stage, target, $"{target} requires at least one matched hypothesis.");
+      throw new StageTransitionException(Stage, target, $"{target} requires at least one matched track.");
     }
 
     if (Stage == VacancyStage.Dismissed)
@@ -178,13 +178,13 @@ public class Vacancy : IUserOwned
   }
 
   public ApplicationEvent Apply(
-    Guid hypothesisId,
+    Guid trackId,
     Guid cvVersionId,
     ApplicationChannel channel,
     DateTime appliedAt,
     string? coverLetter)
   {
-    Require.NotEmpty(hypothesisId);
+    Require.NotEmpty(trackId);
     Require.NotEmpty(cvVersionId);
     UtcGuard.Ensure(appliedAt);
     EnsureCanMove(VacancyStage.Applied);
@@ -193,12 +193,12 @@ public class Vacancy : IUserOwned
       throw new StageTransitionException(Stage, VacancyStage.Applied, "The vacancy already has an application; reopen it instead.");
     }
 
-    if (matches.All(m => m.HypothesisId != hypothesisId))
+    if (matches.All(m => m.TrackId != trackId))
     {
-      throw new StageTransitionException(Stage, VacancyStage.Applied, "The hypothesis is not matched to this vacancy.");
+      throw new StageTransitionException(Stage, VacancyStage.Applied, "The track is not matched to this vacancy.");
     }
 
-    Application = new JobApplication(UserId, Id, hypothesisId, cvVersionId, channel, appliedAt, coverLetter);
+    Application = new JobApplication(UserId, Id, trackId, cvVersionId, channel, appliedAt, coverLetter);
     return ChangeStage(VacancyStage.Applied, appliedAt, null);
   }
 

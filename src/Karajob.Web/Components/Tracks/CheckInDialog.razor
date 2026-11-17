@@ -1,0 +1,136 @@
+@using Karajob.Domain.Metrics
+@inject TrackDecisionService DecisionService
+@inject UserDates Dates
+@inject ISnackbar Snackbar
+
+<MudDialog>
+  <DialogContent>
+    <MudStack Spacing="2">
+      @if (_errors.TryGetValue("", out var general))
+      {
+        <MudAlert Severity="Severity.Error">@general</MudAlert>
+      }
+      <MudDatePicker Class="checkin-date" Label="@L["CheckIn.Date"]" DateFormat="dd.MM.yyyy" MaxDate="_today" FirstDayOfWeek="DayOfWeek.Monday"
+                     Date="_date" DateChanged="OnDateChanged"
+                     HelperText="@L["CheckIn.Week", MetricsText.WeekOf(WeekStart(_date))]"
+                     Error="HasError(nameof(CheckInInput.Day))" ErrorText="@ErrorOf(nameof(CheckInInput.Day))" />
+      <div>
+        <MudText Typo="Typo.subtitle2">@L["CheckIn.Motivation"]</MudText>
+        <MudRating Class="checkin-motivation" MaxValue="5" SelectedValue="_motivation" SelectedValueChanged="OnMotivationChanged" />
+        @if (HasError(nameof(CheckInInput.Motivation)))
+        {
+          <MudText Typo="Typo.caption" Color="Color.Error">@ErrorOf(nameof(CheckInInput.Motivation))</MudText>
+        }
+      </div>
+      <div>
+        <MudText Typo="Typo.subtitle2">@L["CheckIn.Confidence"]</MudText>
+        <MudRating Class="checkin-confidence" MaxValue="5" SelectedValue="_confidence" SelectedValueChanged="OnConfidenceChanged" />
+        @if (HasError(nameof(CheckInInput.Confidence)))
+        {
+          <MudText Typo="Typo.caption" Color="Color.Error">@ErrorOf(nameof(CheckInInput.Confidence))</MudText>
+        }
+      </div>
+      <MudTextField T="string" Class="checkin-note" Label="@L["CheckIn.Note"]" Lines="3" Sizing="InputSizing.Auto" @bind-Value="_note"
+                    Error="HasError(nameof(CheckInInput.Note))" ErrorText="@ErrorOf(nameof(CheckInInput.Note))" />
+    </MudStack>
+  </DialogContent>
+  <DialogActions>
+    <MudButton OnClick="Cancel">@L["Track.Cancel"]</MudButton>
+    <MudButton Class="checkin-save" Color="Color.Primary" Variant="Variant.Filled" Disabled="_saving" OnClick="SaveAsync">@L["Track.Save"]</MudButton>
+  </DialogActions>
+</MudDialog>
+
+@code {
+  private IReadOnlyDictionary<string, string> _errors = new Dictionary<string, string>();
+  private IReadOnlyList<CheckInDetails> _checkIns = [];
+  private DateTime _today;
+  private DateTime? _date;
+  private int _motivation;
+  private int _confidence;
+  private string? _note;
+  private bool _saving;
+
+  [CascadingParameter]
+  private IMudDialogInstance MudDialog { get; set; } = null!;
+
+  [Parameter, EditorRequired]
+  public Guid TrackId { get; set; }
+
+  protected override async Task OnInitializedAsync()
+  {
+    _today = Dates.Today();
+    _date = _today;
+    _checkIns = await DecisionService.ListCheckInsAsync(TrackId);
+    Prefill();
+  }
+
+  private DateOnly WeekStart(DateTime? date)
+  {
+    return CalendarWeek.MondayOf(DateOnly.FromDateTime(date ?? _today));
+  }
+
+  private void Prefill()
+  {
+    var existing = _checkIns.FirstOrDefault(c => c.Week == WeekStart(_date));
+    _motivation = existing?.Motivation ?? 0;
+    _confidence = existing?.Confidence ?? 0;
+    _note = existing?.Note;
+  }
+
+  private void OnDateChanged(DateTime? date)
+  {
+    _date = date;
+    Prefill();
+  }
+
+  private void OnMotivationChanged(int value)
+  {
+    _motivation = value;
+  }
+
+  private void OnConfidenceChanged(int value)
+  {
+    _confidence = value;
+  }
+
+  private bool HasError(string key)
+  {
+    return _errors.ContainsKey(key);
+  }
+
+  private string? ErrorOf(string key)
+  {
+    return _errors.GetValueOrDefault(key);
+  }
+
+  private async Task SaveAsync()
+  {
+    var input = new CheckInInput(DateOnly.FromDateTime(_date ?? _today), _motivation, _confidence, _note);
+    _saving = true;
+    try
+    {
+      await DecisionService.SaveCheckInAsync(TrackId, input);
+      Snackbar.Add(L["CheckIn.Saved"], Severity.Success);
+      MudDialog.Close(DialogResult.Ok(true));
+    }
+    catch (ValidationFailedException exception)
+    {
+      _errors = exception.Errors;
+    }
+    catch (KeyNotFoundException)
+    {
+      // Deleted in another tab: an unhandled exception would drop the circuit; the page reloads and shows "not found".
+      Snackbar.Add(L["Track.NotFound"], Severity.Warning);
+      MudDialog.Close(DialogResult.Ok(true));
+    }
+    finally
+    {
+      _saving = false;
+    }
+  }
+
+  private void Cancel()
+  {
+    MudDialog.Cancel();
+  }
+}

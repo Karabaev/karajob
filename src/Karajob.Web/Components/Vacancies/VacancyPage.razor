@@ -2,7 +2,7 @@
 @page "/vacancies/{Id:guid}"
 @inject VacancyService VacancyService
 @inject CompanyService CompanyService
-@inject HypothesisService HypothesisService
+@inject TrackService TrackService
 @inject CatalogService CatalogService
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
@@ -173,14 +173,14 @@ else if (_loaded)
               }
             </div>
 
-            <MudSelect T="Guid" Class="vacancy-hypotheses" Label="@L["Page.Hypotheses"]" MultiSelection="true"
-                       SelectedValues="_hypothesisIds" SelectedValuesChanged="OnHypothesesChanged"
-                       ToStringFunc="HypothesisName" MultiSelectionTextFunc="JoinNames"
-                       HelperText="@HypothesesHint()"
-                       Error="HasError(nameof(VacancyInput.HypothesisIds))" ErrorText="@ErrorOf(nameof(VacancyInput.HypothesisIds))">
-              @foreach (var hypothesis in VisibleHypotheses())
+            <MudSelect T="Guid" Class="vacancy-tracks" Label="@L["Page.Tracks"]" MultiSelection="true"
+                       SelectedValues="_trackIds" SelectedValuesChanged="OnTracksChanged"
+                       ToStringFunc="TrackName" MultiSelectionTextFunc="JoinNames"
+                       HelperText="@TracksHint()"
+                       Error="HasError(nameof(VacancyInput.TrackIds))" ErrorText="@ErrorOf(nameof(VacancyInput.TrackIds))">
+              @foreach (var track in VisibleTracks())
               {
-                <MudSelectItem T="Guid" Value="hypothesis.Id">@hypothesis.Name</MudSelectItem>
+                <MudSelectItem T="Guid" Value="track.Id">@track.Name</MudSelectItem>
               }
             </MudSelect>
 
@@ -220,7 +220,7 @@ else if (_loaded)
   private IReadOnlyList<CatalogListItem> _platforms = [];
   private IReadOnlyList<CatalogListItem> _engines = [];
   private IReadOnlyList<CatalogListItem> _currencies = [];
-  private IReadOnlyList<HypothesisListItem> _hypotheses = [];
+  private IReadOnlyList<TrackListItem> _tracks = [];
   private IReadOnlyList<SimilarVacancy> _similar = [];
   private VacancyDetails? _details;
   private Guid? _currentId;
@@ -242,7 +242,7 @@ else if (_loaded)
   private long? _salaryMin;
   private long? _salaryMax;
   private string? _salaryCurrency;
-  private IReadOnlyCollection<Guid> _hypothesisIds = [];
+  private IReadOnlyCollection<Guid> _trackIds = [];
   private string? _description;
   private string? _notes;
 
@@ -284,9 +284,9 @@ else if (_loaded)
       _notFound = _details is null;
     }
 
-    var matched = _details?.HypothesisIds ?? [];
-    var hypotheses = await HypothesisService.ListAsync();
-    _hypotheses = hypotheses.Where(h => h.Status != HypothesisStatus.Disabled || matched.Contains(h.Id)).ToList();
+    var matched = _details?.TrackIds ?? [];
+    var tracks = await TrackService.ListAsync();
+    _tracks = tracks.Where(h => h.Status != TrackStatus.Disabled || matched.Contains(h.Id)).ToList();
 
     FillFields();
     _loaded = true;
@@ -309,7 +309,7 @@ else if (_loaded)
     _salaryMin = _details?.SalaryMin;
     _salaryMax = _details?.SalaryMax;
     _salaryCurrency = _details?.SalaryCurrency ?? (_currencies.Any(c => c.Code == DefaultCurrency) ? DefaultCurrency : null);
-    _hypothesisIds = _details?.HypothesisIds.ToList() ?? [];
+    _trackIds = _details?.TrackIds.ToList() ?? [];
     _description = _details?.Description;
     _notes = _details?.Notes;
     _similar = _details?.Similar ?? [];
@@ -414,26 +414,26 @@ else if (_loaded)
     }
   }
 
-  // Hypotheses of another role stay listed only while selected, so a role change can't silently drop a match;
+  // Tracks of another role stay listed only while selected, so a role change can't silently drop a match;
   // the server rejects the save until the user deselects them.
-  private IEnumerable<HypothesisListItem> VisibleHypotheses()
+  private IEnumerable<TrackListItem> VisibleTracks()
   {
-    return _hypotheses.Where(h => _roleId is null || h.RoleId == _roleId || _hypothesisIds.Contains(h.Id));
+    return _tracks.Where(h => _roleId is null || h.RoleId == _roleId || _trackIds.Contains(h.Id));
   }
 
-  private string? HypothesesHint()
+  private string? TracksHint()
   {
-    if (_hypotheses.Count == 0)
+    if (_tracks.Count == 0)
     {
-      return L["Page.NoHypotheses"];
+      return L["Page.NoTracks"];
     }
 
-    return VisibleHypotheses().Any() ? null : L["Page.NoHypothesesForRole"].Value;
+    return VisibleTracks().Any() ? null : L["Page.NoTracksForRole"].Value;
   }
 
-  private void OnHypothesesChanged(IReadOnlyCollection<Guid>? hypothesisIds)
+  private void OnTracksChanged(IReadOnlyCollection<Guid>? trackIds)
   {
-    _hypothesisIds = hypothesisIds?.ToList() ?? [];
+    _trackIds = trackIds?.ToList() ?? [];
   }
 
   private string RoleName(Guid? id)
@@ -476,9 +476,9 @@ else if (_loaded)
     return _languages.FirstOrDefault(l => l.Id == id)?.Name ?? "";
   }
 
-  private string HypothesisName(Guid id)
+  private string TrackName(Guid id)
   {
-    return _hypotheses.FirstOrDefault(h => h.Id == id)?.Name ?? "";
+    return _tracks.FirstOrDefault(h => h.Id == id)?.Name ?? "";
   }
 
   private static string JoinNames(IReadOnlyList<string?> names)
@@ -556,7 +556,7 @@ else if (_loaded)
       _salaryMin,
       _salaryMax,
       hasSalary ? _salaryCurrency : null,
-      _hypothesisIds.ToList(),
+      _trackIds.ToList(),
       _description,
       _notes);
 
@@ -619,7 +619,7 @@ else if (_loaded)
     var parameters = new DialogParameters<AddVacancyEventDialog>
     {
       { d => d.VacancyId, _details!.Id },
-      { d => d.HasApplication, _details.ApplicationHypothesisId is not null },
+      { d => d.HasApplication, _details.ApplicationTrackId is not null },
       { d => d.DiscoveredAt, _details.DiscoveredAt },
     };
     var reference = await DialogService.ShowAsync<AddVacancyEventDialog>(L["Page.NewEvent"], parameters);

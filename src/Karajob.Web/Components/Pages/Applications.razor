@@ -40,7 +40,7 @@ else
     <HeaderContent>
       <MudTh>@L["Pages.ColVacancy"]</MudTh>
       <MudTh>@L["Pages.ColStatus"]</MudTh>
-      <MudTh>@L["Pages.ColHypothesis"]</MudTh>
+      <MudTh>@L["Pages.ColTrack"]</MudTh>
       <MudTh>@L["Pages.ColCv"]</MudTh>
       <MudTh>@L["Pages.ColChannel"]</MudTh>
       <MudTh>@L["Pages.ColApplied"]</MudTh>
@@ -58,7 +58,7 @@ else
           }
         </MudStack>
       </MudTd>
-      <MudTd DataLabel="@L["Pages.ColHypothesis"]">@context.HypothesisName</MudTd>
+      <MudTd DataLabel="@L["Pages.ColTrack"]">@context.TrackName</MudTd>
       <MudTd DataLabel="@L["Pages.ColCv"]">@context.CvName / @context.CvFileName</MudTd>
       <MudTd DataLabel="@L["Pages.ColChannel"]">@VacancyText.Channel(context.Channel)</MudTd>
       <MudTd DataLabel="@L["Pages.ColApplied"]">@Dates.Format(context.AppliedAt)</MudTd>

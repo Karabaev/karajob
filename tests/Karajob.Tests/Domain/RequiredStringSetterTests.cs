@@ -1,6 +1,6 @@
 using Karajob.Domain.Companies;
 using Karajob.Domain.Cvs;
-using Karajob.Domain.Hypotheses;
+using Karajob.Domain.Tracks;
 using Karajob.Domain.Users;
 
 namespace Karajob.Tests.Domain;
@@ -15,7 +15,7 @@ public class RequiredStringSetterTests
     { "Company.Name", value => new Company("ubisoft", "Ubisoft").Name = value },
     { "Project.Name", value => new Project(Guid.NewGuid(), "Game", ProjectStatus.Released).Name = value },
     { "CvDocument.Name", value => NewCv().Name = value },
-    { "Hypothesis.Name", value => NewHypothesis().Name = value },
+    { "Track.Name", value => NewTrack().Name = value },
   };
 
   [Theory]
@@ -30,11 +30,11 @@ public class RequiredStringSetterTests
   [Fact]
   public void Setter_Value_IsTrimmed()
   {
-    var hypothesis = NewHypothesis();
+    var track = NewTrack();
 
-    hypothesis.Name = "  Unity Developer ";
+    track.Name = "  Unity Developer ";
 
-    Assert.Equal("Unity Developer", hypothesis.Name);
+    Assert.Equal("Unity Developer", track.Name);
   }
 
   private static CvDocument NewCv()
@@ -42,8 +42,8 @@ public class RequiredStringSetterTests
     return new CvDocument(Guid.NewGuid(), "Unity CV", Guid.NewGuid(), Now);
   }
 
-  private static Hypothesis NewHypothesis()
+  private static Track NewTrack()
   {
-    return new Hypothesis(Guid.NewGuid(), "Unity RU", Guid.NewGuid(), Guid.NewGuid(), Now);
+    return new Track(Guid.NewGuid(), "Unity RU", Guid.NewGuid(), Guid.NewGuid(), Now);
   }
 }

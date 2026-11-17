@@ -85,8 +85,8 @@ public class VacancyServiceQuickAddTests : VacancyServiceFixture
   [Fact]
   public async Task QuickAddAsync_DuplicateOfTargetedVacancy_ReturnsItsStage()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var created = await Service.CreateAsync(Input(hypothesisIds: [hypothesisId]));
+    var trackId = await CreateTrackAsync();
+    var created = await Service.CreateAsync(Input(trackIds: [trackId]));
     await MutateAsync(created.Id, v => v.MoveTo(VacancyStage.Targeted, Now.AddHours(1)));
 
     var result = await Service.QuickAddAsync(new QuickAddInput(DefaultUrl, null));
@@ -111,10 +111,10 @@ public class VacancyServiceQuickAddTests : VacancyServiceFixture
   [Fact]
   public async Task CountAsync_CountsOnlyRequestedStage()
   {
-    var hypothesisId = await CreateHypothesisAsync();
+    var trackId = await CreateTrackAsync();
     await Service.QuickAddAsync(new QuickAddInput("https://example.com/jobs/1", null));
     await Service.QuickAddAsync(new QuickAddInput("https://example.com/jobs/2", null));
-    var targeted = await Service.CreateAsync(Input("https://example.com/jobs/3", hypothesisIds: [hypothesisId]));
+    var targeted = await Service.CreateAsync(Input("https://example.com/jobs/3", trackIds: [trackId]));
     await MutateAsync(targeted.Id, v => v.MoveTo(VacancyStage.Targeted, Now.AddHours(1)));
 
     Assert.Equal(2, await Service.CountAsync(VacancyStage.Inbox));

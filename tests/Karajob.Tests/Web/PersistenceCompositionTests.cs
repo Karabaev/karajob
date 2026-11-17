@@ -28,7 +28,7 @@ public class PersistenceCompositionTests(WebApplicationFactory<Program> factory)
     var contextFactory = scope.ServiceProvider.GetRequiredService<IDbContextFactory<KarajobDbContext>>();
     await using var context = await contextFactory.CreateDbContextAsync();
 
-    Assert.Equal(3, await context.Hypotheses.CountAsync());
+    Assert.Equal(3, await context.Tracks.CountAsync());
   }
 
   [Fact]

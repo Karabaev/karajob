@@ -29,7 +29,7 @@ public class ApplicationService(IKarajobDbContextFactory dbContextFactory)
       .ToListAsync(cancellationToken);
     var companyIds = vacancies.Where(v => v.CompanyId is not null).Select(v => v.CompanyId!.Value).Distinct().ToList();
     var roleIds = vacancies.Where(v => v.RoleId is not null).Select(v => v.RoleId!.Value).Distinct().ToList();
-    var hypothesisIds = vacancies.Select(v => v.Application!.HypothesisId).Distinct().ToList();
+    var trackIds = vacancies.Select(v => v.Application!.TrackId).Distinct().ToList();
     var cvVersionIds = vacancies.Select(v => v.Application!.CvVersionId).Distinct().ToList();
 
     var companies = await db.Companies.AsNoTracking()
@@ -38,8 +38,8 @@ public class ApplicationService(IKarajobDbContextFactory dbContextFactory)
     var roleNames = await db.Roles.AsNoTracking()
       .Where(r => roleIds.Contains(r.Id))
       .ToDictionaryAsync(r => r.Id, r => r.Name, cancellationToken);
-    var hypothesisNames = await db.Hypotheses.AsNoTracking()
-      .Where(h => hypothesisIds.Contains(h.Id))
+    var trackNames = await db.Tracks.AsNoTracking()
+      .Where(h => trackIds.Contains(h.Id))
       .ToDictionaryAsync(h => h.Id, h => h.Name, cancellationToken);
     var cvVersions = await db.CvVersions.AsNoTracking()
       .Where(v => cvVersionIds.Contains(v.Id))
@@ -73,8 +73,8 @@ public class ApplicationService(IKarajobDbContextFactory dbContextFactory)
           v.RoleId is { } roleId ? roleNames[roleId] : null,
           v.Stage,
           application.Outcome,
-          application.HypothesisId,
-          hypothesisNames[application.HypothesisId],
+          application.TrackId,
+          trackNames[application.TrackId],
           documentNames[cvVersion.CvDocumentId],
           cvVersion.FileName,
           application.Channel,

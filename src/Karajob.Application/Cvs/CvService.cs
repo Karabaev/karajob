@@ -135,9 +135,9 @@ public class CvService(
       throw Blocked(localizer["Error.CvInUse"]);
     }
 
-    if (await db.Hypotheses.AnyAsync(h => h.PrimaryCvDocumentId == cvDocumentId, cancellationToken))
+    if (await db.Tracks.AnyAsync(h => h.PrimaryCvDocumentId == cvDocumentId, cancellationToken))
     {
-      throw Blocked(localizer["Error.CvPrimaryInHypothesis"]);
+      throw Blocked(localizer["Error.CvPrimaryInTrack"]);
     }
 
     var paths = document.Versions.Select(v => v.StoragePath).ToList();

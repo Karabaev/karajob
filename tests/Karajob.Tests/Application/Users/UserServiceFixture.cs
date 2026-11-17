@@ -1,6 +1,6 @@
 using Karajob.Application.Users;
 using Karajob.Infrastructure.Persistence;
-using Karajob.Tests.Application.Hypotheses;
+using Karajob.Tests.Application.Tracks;
 using Karajob.Tests.Infrastructure.Persistence;
 
 namespace Karajob.Tests.Application.Users;

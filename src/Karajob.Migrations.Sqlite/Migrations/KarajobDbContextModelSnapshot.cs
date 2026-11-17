@@ -70,11 +70,11 @@ namespace Karajob.Migrations.Sqlite.Migrations
                     b.Property<Guid>("CvVersionId")
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid>("HypothesisId")
-                        .HasColumnType("TEXT");
-
                     b.Property<int?>("Outcome")
                         .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("TrackId")
+                        .HasColumnType("TEXT");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("TEXT");
@@ -86,7 +86,7 @@ namespace Karajob.Migrations.Sqlite.Migrations
 
                     b.HasIndex("CvVersionId");
 
-                    b.HasIndex("HypothesisId");
+                    b.HasIndex("TrackId");
 
                     b.HasIndex("UserId");
 
@@ -759,235 +759,6 @@ namespace Karajob.Migrations.Sqlite.Migrations
                     b.ToTable("SearchGoalPlatforms");
                 });
 
-            modelBuilder.Entity("Karajob.Domain.Hypotheses.Hypothesis", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.PrimitiveCollection<string>("Industries")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid>("LanguageId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime?>("PeriodStartedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Positioning")
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid?>("PrimaryCvDocumentId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid>("RoleId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime?>("StartedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("WorkFormat")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("LanguageId");
-
-                    b.HasIndex("PrimaryCvDocumentId");
-
-                    b.HasIndex("RoleId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Hypotheses");
-                });
-
-            modelBuilder.Entity("Karajob.Domain.Hypotheses.HypothesisCheckIn", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("Confidence")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid>("HypothesisId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("Motivation")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Note")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateOnly>("Week")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.HasIndex("HypothesisId", "Week")
-                        .IsUnique();
-
-                    b.ToTable("HypothesisCheckIns");
-                });
-
-            modelBuilder.Entity("Karajob.Domain.Hypotheses.HypothesisDecision", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Changes")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("ConversionThresholdPermille")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("DecidedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("Hint")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<Guid>("HypothesisId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("Kind")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("MarketThreshold")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("MarketVacancies")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("MaturedApplications")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("PeriodStartedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("PositiveApplications")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Reason")
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int?>("WellBeingTenths")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.HasIndex("HypothesisId", "DecidedAt");
-
-                    b.ToTable("HypothesisDecisions");
-                });
-
-            modelBuilder.Entity("Karajob.Domain.Hypotheses.HypothesisEngine", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid>("EngineId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid>("HypothesisId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("EngineId");
-
-                    b.HasIndex("UserId");
-
-                    b.HasIndex("HypothesisId", "EngineId")
-                        .IsUnique();
-
-                    b.ToTable("HypothesisEngines");
-                });
-
-            modelBuilder.Entity("Karajob.Domain.Hypotheses.HypothesisLocation", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid>("HypothesisId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid>("LocationId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("LocationId");
-
-                    b.HasIndex("UserId");
-
-                    b.HasIndex("HypothesisId", "LocationId")
-                        .IsUnique();
-
-                    b.ToTable("HypothesisLocations");
-                });
-
-            modelBuilder.Entity("Karajob.Domain.Hypotheses.HypothesisPlatform", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid>("HypothesisId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid>("PlatformId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PlatformId");
-
-                    b.HasIndex("UserId");
-
-                    b.HasIndex("HypothesisId", "PlatformId")
-                        .IsUnique();
-
-                    b.ToTable("HypothesisPlatforms");
-                });
-
             modelBuilder.Entity("Karajob.Domain.MasterProfiles.MasterProfile", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1040,6 +811,235 @@ namespace Karajob.Migrations.Sqlite.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("MasterProfileVersions");
+                });
+
+            modelBuilder.Entity("Karajob.Domain.Tracks.Track", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.PrimitiveCollection<string>("Industries")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("LanguageId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("PeriodStartedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Positioning")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("PrimaryCvDocumentId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("RoleId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("StartedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("WorkFormat")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LanguageId");
+
+                    b.HasIndex("PrimaryCvDocumentId");
+
+                    b.HasIndex("RoleId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Tracks");
+                });
+
+            modelBuilder.Entity("Karajob.Domain.Tracks.TrackCheckIn", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Confidence")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Motivation")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Note")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("TrackId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateOnly>("Week")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("TrackId", "Week")
+                        .IsUnique();
+
+                    b.ToTable("TrackCheckIns");
+                });
+
+            modelBuilder.Entity("Karajob.Domain.Tracks.TrackDecision", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Changes")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("ConversionThresholdPermille")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("DecidedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Hint")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("MarketThreshold")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("MarketVacancies")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("MaturedApplications")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("PeriodStartedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("PositiveApplications")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Reason")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("TrackId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("WellBeingTenths")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("TrackId", "DecidedAt");
+
+                    b.ToTable("TrackDecisions");
+                });
+
+            modelBuilder.Entity("Karajob.Domain.Tracks.TrackEngine", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("EngineId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("TrackId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EngineId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("TrackId", "EngineId")
+                        .IsUnique();
+
+                    b.ToTable("TrackEngines");
+                });
+
+            modelBuilder.Entity("Karajob.Domain.Tracks.TrackLocation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("LocationId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("TrackId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LocationId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("TrackId", "LocationId")
+                        .IsUnique();
+
+                    b.ToTable("TrackLocations");
+                });
+
+            modelBuilder.Entity("Karajob.Domain.Tracks.TrackPlatform", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("PlatformId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("TrackId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlatformId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("TrackId", "PlatformId")
+                        .IsUnique();
+
+                    b.ToTable("TrackPlatforms");
                 });
 
             modelBuilder.Entity("Karajob.Domain.Users.User", b =>
@@ -1195,9 +1195,6 @@ namespace Karajob.Migrations.Sqlite.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid>("HypothesisId")
-                        .HasColumnType("TEXT");
-
                     b.Property<int>("MatchedBy")
                         .HasColumnType("INTEGER");
 
@@ -1207,6 +1204,9 @@ namespace Karajob.Migrations.Sqlite.Migrations
                     b.Property<int?>("Score")
                         .HasColumnType("INTEGER");
 
+                    b.Property<Guid>("TrackId")
+                        .HasColumnType("TEXT");
+
                     b.Property<Guid>("UserId")
                         .HasColumnType("TEXT");
 
@@ -1215,11 +1215,11 @@ namespace Karajob.Migrations.Sqlite.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("HypothesisId");
+                    b.HasIndex("TrackId");
 
                     b.HasIndex("UserId");
 
-                    b.HasIndex("VacancyId", "HypothesisId")
+                    b.HasIndex("VacancyId", "TrackId")
                         .IsUnique();
 
                     b.ToTable("VacancyMatches");
@@ -1274,9 +1274,9 @@ namespace Karajob.Migrations.Sqlite.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Karajob.Domain.Hypotheses.Hypothesis", null)
+                    b.HasOne("Karajob.Domain.Tracks.Track", null)
                         .WithMany()
-                        .HasForeignKey("HypothesisId")
+                        .HasForeignKey("TrackId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -1468,7 +1468,36 @@ namespace Karajob.Migrations.Sqlite.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Karajob.Domain.Hypotheses.Hypothesis", b =>
+            modelBuilder.Entity("Karajob.Domain.MasterProfiles.MasterProfile", b =>
+                {
+                    b.HasOne("Karajob.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Karajob.Domain.MasterProfiles.MasterProfileVersion", b =>
+                {
+                    b.HasOne("Karajob.Domain.MasterProfiles.MasterProfile", null)
+                        .WithMany("Versions")
+                        .HasForeignKey("MasterProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Karajob.Domain.MasterProfiles.MasterProfileVersion", null)
+                        .WithMany()
+                        .HasForeignKey("RestoredFromVersionId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Karajob.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Karajob.Domain.Tracks.Track", b =>
                 {
                     b.HasOne("Karajob.Domain.Catalogs.Language", null)
                         .WithMany()
@@ -1494,11 +1523,11 @@ namespace Karajob.Migrations.Sqlite.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Karajob.Domain.Hypotheses.HypothesisCheckIn", b =>
+            modelBuilder.Entity("Karajob.Domain.Tracks.TrackCheckIn", b =>
                 {
-                    b.HasOne("Karajob.Domain.Hypotheses.Hypothesis", null)
+                    b.HasOne("Karajob.Domain.Tracks.Track", null)
                         .WithMany()
-                        .HasForeignKey("HypothesisId")
+                        .HasForeignKey("TrackId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -1509,11 +1538,11 @@ namespace Karajob.Migrations.Sqlite.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Karajob.Domain.Hypotheses.HypothesisDecision", b =>
+            modelBuilder.Entity("Karajob.Domain.Tracks.TrackDecision", b =>
                 {
-                    b.HasOne("Karajob.Domain.Hypotheses.Hypothesis", null)
+                    b.HasOne("Karajob.Domain.Tracks.Track", null)
                         .WithMany()
-                        .HasForeignKey("HypothesisId")
+                        .HasForeignKey("TrackId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -1524,7 +1553,7 @@ namespace Karajob.Migrations.Sqlite.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Karajob.Domain.Hypotheses.HypothesisEngine", b =>
+            modelBuilder.Entity("Karajob.Domain.Tracks.TrackEngine", b =>
                 {
                     b.HasOne("Karajob.Domain.Catalogs.Engine", null)
                         .WithMany()
@@ -1532,9 +1561,9 @@ namespace Karajob.Migrations.Sqlite.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Karajob.Domain.Hypotheses.Hypothesis", null)
+                    b.HasOne("Karajob.Domain.Tracks.Track", null)
                         .WithMany("Engines")
-                        .HasForeignKey("HypothesisId")
+                        .HasForeignKey("TrackId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1545,20 +1574,20 @@ namespace Karajob.Migrations.Sqlite.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Karajob.Domain.Hypotheses.HypothesisLocation", b =>
+            modelBuilder.Entity("Karajob.Domain.Tracks.TrackLocation", b =>
                 {
-                    b.HasOne("Karajob.Domain.Hypotheses.Hypothesis", null)
-                        .WithMany("Locations")
-                        .HasForeignKey("HypothesisId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("Karajob.Domain.Catalogs.Location", null)
                         .WithMany()
                         .HasForeignKey("LocationId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Karajob.Domain.Tracks.Track", null)
+                        .WithMany("Locations")
+                        .HasForeignKey("TrackId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("Karajob.Domain.Users.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
@@ -1566,48 +1595,19 @@ namespace Karajob.Migrations.Sqlite.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Karajob.Domain.Hypotheses.HypothesisPlatform", b =>
+            modelBuilder.Entity("Karajob.Domain.Tracks.TrackPlatform", b =>
                 {
-                    b.HasOne("Karajob.Domain.Hypotheses.Hypothesis", null)
-                        .WithMany("Platforms")
-                        .HasForeignKey("HypothesisId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("Karajob.Domain.Catalogs.Platform", null)
                         .WithMany()
                         .HasForeignKey("PlatformId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Karajob.Domain.Users.User", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Karajob.Domain.MasterProfiles.MasterProfile", b =>
-                {
-                    b.HasOne("Karajob.Domain.Users.User", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Karajob.Domain.MasterProfiles.MasterProfileVersion", b =>
-                {
-                    b.HasOne("Karajob.Domain.MasterProfiles.MasterProfile", null)
-                        .WithMany("Versions")
-                        .HasForeignKey("MasterProfileId")
+                    b.HasOne("Karajob.Domain.Tracks.Track", null)
+                        .WithMany("Platforms")
+                        .HasForeignKey("TrackId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("Karajob.Domain.MasterProfiles.MasterProfileVersion", null)
-                        .WithMany()
-                        .HasForeignKey("RestoredFromVersionId")
-                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Karajob.Domain.Users.User", null)
                         .WithMany()
@@ -1668,9 +1668,9 @@ namespace Karajob.Migrations.Sqlite.Migrations
 
             modelBuilder.Entity("Karajob.Domain.Vacancies.VacancyMatch", b =>
                 {
-                    b.HasOne("Karajob.Domain.Hypotheses.Hypothesis", null)
+                    b.HasOne("Karajob.Domain.Tracks.Track", null)
                         .WithMany()
-                        .HasForeignKey("HypothesisId")
+                        .HasForeignKey("TrackId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -1731,18 +1731,18 @@ namespace Karajob.Migrations.Sqlite.Migrations
                     b.Navigation("Platforms");
                 });
 
-            modelBuilder.Entity("Karajob.Domain.Hypotheses.Hypothesis", b =>
+            modelBuilder.Entity("Karajob.Domain.MasterProfiles.MasterProfile", b =>
+                {
+                    b.Navigation("Versions");
+                });
+
+            modelBuilder.Entity("Karajob.Domain.Tracks.Track", b =>
                 {
                     b.Navigation("Engines");
 
                     b.Navigation("Locations");
 
                     b.Navigation("Platforms");
-                });
-
-            modelBuilder.Entity("Karajob.Domain.MasterProfiles.MasterProfile", b =>
-                {
-                    b.Navigation("Versions");
                 });
 
             modelBuilder.Entity("Karajob.Domain.Vacancies.Vacancy", b =>

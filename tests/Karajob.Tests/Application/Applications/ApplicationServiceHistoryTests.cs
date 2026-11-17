@@ -24,13 +24,13 @@ public class ApplicationServiceHistoryTests : VacancyServiceFixture
 
   private async Task<Guid> CreateAtAsync(
     VacancyStage stage,
-    Guid hypothesisId,
+    Guid trackId,
     string url,
     DateTime createdAt,
     ApplicationOutcome outcome = ApplicationOutcome.Rejected)
   {
     Clock.UtcNow = createdAt;
-    return await CreateOnBoardAsync(stage, hypothesisId, url, outcome);
+    return await CreateOnBoardAsync(stage, trackId, url, outcome);
   }
 
   private async Task<Guid> CreateCompanyNamedAsync(string slug, string name)
@@ -48,15 +48,15 @@ public class ApplicationServiceHistoryTests : VacancyServiceFixture
   [Fact]
   public async Task ListHistoryAsync_MixedStages_ReturnsOnlyVacanciesWithApplication()
   {
-    var hypothesisId = await CreateHypothesisAsync();
+    var trackId = await CreateTrackAsync();
     await Service.CreateAsync(Input("https://example.com/jobs/inbox"));
-    await CreateOnBoardAsync(VacancyStage.Targeted, hypothesisId, "https://example.com/jobs/targeted");
-    await CreateOnBoardAsync(VacancyStage.Preparing, hypothesisId, "https://example.com/jobs/preparing");
-    var dismissed = await CreateOnBoardAsync(VacancyStage.Targeted, hypothesisId, "https://example.com/jobs/dismissed");
+    await CreateOnBoardAsync(VacancyStage.Targeted, trackId, "https://example.com/jobs/targeted");
+    await CreateOnBoardAsync(VacancyStage.Preparing, trackId, "https://example.com/jobs/preparing");
+    var dismissed = await CreateOnBoardAsync(VacancyStage.Targeted, trackId, "https://example.com/jobs/dismissed");
     await Service.DismissAsync(dismissed, new Karajob.Application.Vacancies.DismissInput(DismissReason.Other, null));
-    var applied = await CreateOnBoardAsync(VacancyStage.Applied, hypothesisId, "https://example.com/jobs/applied");
-    var interviewing = await CreateOnBoardAsync(VacancyStage.Interviewing, hypothesisId, "https://example.com/jobs/interviewing");
-    var closed = await CreateOnBoardAsync(VacancyStage.Closed, hypothesisId, "https://example.com/jobs/closed");
+    var applied = await CreateOnBoardAsync(VacancyStage.Applied, trackId, "https://example.com/jobs/applied");
+    var interviewing = await CreateOnBoardAsync(VacancyStage.Interviewing, trackId, "https://example.com/jobs/interviewing");
+    var closed = await CreateOnBoardAsync(VacancyStage.Closed, trackId, "https://example.com/jobs/closed");
 
     var items = await ListAsync();
 
@@ -68,10 +68,10 @@ public class ApplicationServiceHistoryTests : VacancyServiceFixture
   [Fact]
   public async Task ListHistoryAsync_Vacancies_AreOrderedByAppliedAtDescending()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var oldest = await CreateAtAsync(VacancyStage.Applied, hypothesisId, "https://example.com/jobs/1", Now);
-    var newest = await CreateAtAsync(VacancyStage.Closed, hypothesisId, "https://example.com/jobs/2", Now.AddDays(5));
-    var middle = await CreateAtAsync(VacancyStage.Interviewing, hypothesisId, "https://example.com/jobs/3", Now.AddDays(2));
+    var trackId = await CreateTrackAsync();
+    var oldest = await CreateAtAsync(VacancyStage.Applied, trackId, "https://example.com/jobs/1", Now);
+    var newest = await CreateAtAsync(VacancyStage.Closed, trackId, "https://example.com/jobs/2", Now.AddDays(5));
+    var middle = await CreateAtAsync(VacancyStage.Interviewing, trackId, "https://example.com/jobs/3", Now.AddDays(2));
 
     var items = await ListAsync();
 
@@ -82,16 +82,16 @@ public class ApplicationServiceHistoryTests : VacancyServiceFixture
   public async Task ListHistoryAsync_AnotherUsersApplications_AreNotReturned()
   {
     var otherUserId = (await PersistenceFixtures.AddUserAsync(Database)).Id;
-    var otherHypothesis = await CreateHypothesisAsync("Theirs", otherUserId);
+    var otherTrack = await CreateTrackAsync("Theirs", otherUserId);
     var otherCv = await CreateCvAsync("Their CV", "their.pdf", otherUserId);
-    var theirs = await ServiceFor(otherUserId).CreateAsync(Input("https://example.com/jobs/theirs", hypothesisIds: [otherHypothesis]));
+    var theirs = await ServiceFor(otherUserId).CreateAsync(Input("https://example.com/jobs/theirs", trackIds: [otherTrack]));
     await MutateAsync(theirs.Id, v =>
     {
       v.MoveTo(VacancyStage.Targeted, Now);
-      v.Apply(otherHypothesis, otherCv.VersionId, ApplicationChannel.Website, Now, null);
+      v.Apply(otherTrack, otherCv.VersionId, ApplicationChannel.Website, Now, null);
     }, otherUserId);
-    var hypothesisId = await CreateHypothesisAsync();
-    var mine = await CreateOnBoardAsync(VacancyStage.Applied, hypothesisId, "https://example.com/jobs/mine");
+    var trackId = await CreateTrackAsync();
+    var mine = await CreateOnBoardAsync(VacancyStage.Applied, trackId, "https://example.com/jobs/mine");
 
     var items = await ListAsync();
 
@@ -102,9 +102,9 @@ public class ApplicationServiceHistoryTests : VacancyServiceFixture
   [Fact]
   public async Task ListHistoryAsync_Item_CarriesApplicationDetails()
   {
-    var hypothesisId = await CreateHypothesisAsync("Unity Developer RU");
+    var trackId = await CreateTrackAsync("Unity Developer RU");
     var companyId = await CreateCompanyNamedAsync("pixel-forge", "Pixel Forge");
-    var id = await CreateOnBoardAsync(VacancyStage.Applied, hypothesisId, "https://example.com/jobs/1");
+    var id = await CreateOnBoardAsync(VacancyStage.Applied, trackId, "https://example.com/jobs/1");
     await MutateAsync(id, v =>
     {
       v.CompanyId = companyId;
@@ -121,8 +121,8 @@ public class ApplicationServiceHistoryTests : VacancyServiceFixture
     Assert.Equal("Unity Developer", item.RoleName);
     Assert.Equal(VacancyStage.Applied, item.Stage);
     Assert.Null(item.Outcome);
-    Assert.Equal(hypothesisId, item.HypothesisId);
-    Assert.Equal("Unity Developer RU", item.HypothesisName);
+    Assert.Equal(trackId, item.TrackId);
+    Assert.Equal("Unity Developer RU", item.TrackName);
     Assert.StartsWith("CV for", item.CvName);
     Assert.Equal("board.pdf", item.CvFileName);
     Assert.Equal(ApplicationChannel.Website, item.Channel);
@@ -133,8 +133,8 @@ public class ApplicationServiceHistoryTests : VacancyServiceFixture
   [Fact]
   public async Task ListHistoryAsync_VacancyWithoutCompanyAndRole_HasNullNames()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    await CreateOnBoardAsync(VacancyStage.Applied, hypothesisId, "https://example.com/jobs/1");
+    var trackId = await CreateTrackAsync();
+    await CreateOnBoardAsync(VacancyStage.Applied, trackId, "https://example.com/jobs/1");
 
     var item = Assert.Single(await ListAsync());
 
@@ -146,8 +146,8 @@ public class ApplicationServiceHistoryTests : VacancyServiceFixture
   [Fact]
   public async Task ListHistoryAsync_ClosedVacancy_CarriesOutcomeClosedAtAndClosedFromStage()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var id = await CreateOnBoardAsync(VacancyStage.Interviewing, hypothesisId, "https://example.com/jobs/1");
+    var trackId = await CreateTrackAsync();
+    var id = await CreateOnBoardAsync(VacancyStage.Interviewing, trackId, "https://example.com/jobs/1");
     var closedAt = Now.AddDays(10);
     await MutateAsync(id, v => v.Close(ApplicationOutcome.Offer, closedAt));
 
@@ -164,8 +164,8 @@ public class ApplicationServiceHistoryTests : VacancyServiceFixture
   [InlineData(VacancyStage.Interviewing)]
   public async Task ListHistoryAsync_OpenVacancy_HasNoClosedAtAndClosedFromStage(VacancyStage stage)
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    await CreateOnBoardAsync(stage, hypothesisId, "https://example.com/jobs/1");
+    var trackId = await CreateTrackAsync();
+    await CreateOnBoardAsync(stage, trackId, "https://example.com/jobs/1");
 
     var item = Assert.Single(await ListAsync());
 
@@ -177,8 +177,8 @@ public class ApplicationServiceHistoryTests : VacancyServiceFixture
   [Fact]
   public async Task ListHistoryAsync_ReopenedAndClosedAgain_UsesLatestCloseEvent()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var id = await CreateOnBoardAsync(VacancyStage.Applied, hypothesisId, "https://example.com/jobs/1");
+    var trackId = await CreateTrackAsync();
+    var id = await CreateOnBoardAsync(VacancyStage.Applied, trackId, "https://example.com/jobs/1");
     await MutateAsync(id, v =>
     {
       v.Close(ApplicationOutcome.Rejected, Now.AddDays(3));
@@ -196,10 +196,10 @@ public class ApplicationServiceHistoryTests : VacancyServiceFixture
   [Fact]
   public async Task ListHistoryAsync_StageFilter_ReturnsOnlyThatStage()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    await CreateOnBoardAsync(VacancyStage.Applied, hypothesisId, "https://example.com/jobs/1");
-    var interviewing = await CreateOnBoardAsync(VacancyStage.Interviewing, hypothesisId, "https://example.com/jobs/2");
-    await CreateOnBoardAsync(VacancyStage.Closed, hypothesisId, "https://example.com/jobs/3");
+    var trackId = await CreateTrackAsync();
+    await CreateOnBoardAsync(VacancyStage.Applied, trackId, "https://example.com/jobs/1");
+    var interviewing = await CreateOnBoardAsync(VacancyStage.Interviewing, trackId, "https://example.com/jobs/2");
+    await CreateOnBoardAsync(VacancyStage.Closed, trackId, "https://example.com/jobs/3");
 
     var items = await ListAsync(new ApplicationHistoryFilter(VacancyStage.Interviewing, null, null));
 
@@ -209,10 +209,10 @@ public class ApplicationServiceHistoryTests : VacancyServiceFixture
   [Fact]
   public async Task ListHistoryAsync_OutcomeFilter_ReturnsOnlyThatOutcome()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    await CreateOnBoardAsync(VacancyStage.Applied, hypothesisId, "https://example.com/jobs/1");
-    var offer = await CreateOnBoardAsync(VacancyStage.Closed, hypothesisId, "https://example.com/jobs/2", ApplicationOutcome.Offer);
-    await CreateOnBoardAsync(VacancyStage.Closed, hypothesisId, "https://example.com/jobs/3", ApplicationOutcome.Rejected);
+    var trackId = await CreateTrackAsync();
+    await CreateOnBoardAsync(VacancyStage.Applied, trackId, "https://example.com/jobs/1");
+    var offer = await CreateOnBoardAsync(VacancyStage.Closed, trackId, "https://example.com/jobs/2", ApplicationOutcome.Offer);
+    await CreateOnBoardAsync(VacancyStage.Closed, trackId, "https://example.com/jobs/3", ApplicationOutcome.Rejected);
 
     var items = await ListAsync(new ApplicationHistoryFilter(null, ApplicationOutcome.Offer, null));
 
@@ -222,8 +222,8 @@ public class ApplicationServiceHistoryTests : VacancyServiceFixture
   [Fact]
   public async Task ListHistoryAsync_StageAndOutcomeFilters_AreCombined()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    await CreateOnBoardAsync(VacancyStage.Closed, hypothesisId, "https://example.com/jobs/1", ApplicationOutcome.Rejected);
+    var trackId = await CreateTrackAsync();
+    await CreateOnBoardAsync(VacancyStage.Closed, trackId, "https://example.com/jobs/1", ApplicationOutcome.Rejected);
 
     var items = await ListAsync(new ApplicationHistoryFilter(VacancyStage.Applied, ApplicationOutcome.Rejected, null));
 
@@ -233,9 +233,9 @@ public class ApplicationServiceHistoryTests : VacancyServiceFixture
   [Fact]
   public async Task ListHistoryAsync_SearchByCompanyName_IsCaseInsensitiveSubstring()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var pixel = await AppliedWithCompanyAsync(hypothesisId, "https://example.com/jobs/1", "pixel-forge", "Pixel Forge");
-    await AppliedWithCompanyAsync(hypothesisId, "https://example.com/jobs/2", "acme", "Acme Corp");
+    var trackId = await CreateTrackAsync();
+    var pixel = await AppliedWithCompanyAsync(trackId, "https://example.com/jobs/1", "pixel-forge", "Pixel Forge");
+    await AppliedWithCompanyAsync(trackId, "https://example.com/jobs/2", "acme", "Acme Corp");
 
     var items = await ListAsync(new ApplicationHistoryFilter(null, null, "xEL fo"));
 
@@ -245,9 +245,9 @@ public class ApplicationServiceHistoryTests : VacancyServiceFixture
   [Fact]
   public async Task ListHistoryAsync_SearchByCompanySlug_FindsVacancy()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var vacancy = await AppliedWithCompanyAsync(hypothesisId, "https://example.com/jobs/1", "zeta-games", "Totally Different");
-    await AppliedWithCompanyAsync(hypothesisId, "https://example.com/jobs/2", "acme", "Acme Corp");
+    var trackId = await CreateTrackAsync();
+    var vacancy = await AppliedWithCompanyAsync(trackId, "https://example.com/jobs/1", "zeta-games", "Totally Different");
+    await AppliedWithCompanyAsync(trackId, "https://example.com/jobs/2", "acme", "Acme Corp");
 
     var items = await ListAsync(new ApplicationHistoryFilter(null, null, "ZETA-gam"));
 
@@ -257,9 +257,9 @@ public class ApplicationServiceHistoryTests : VacancyServiceFixture
   [Fact]
   public async Task ListHistoryAsync_SearchByRoleName_FindsVacancy()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var unity = await CreateOnBoardAsync(VacancyStage.Applied, hypothesisId, "https://example.com/jobs/1");
-    var unreal = await CreateOnBoardAsync(VacancyStage.Applied, hypothesisId, "https://example.com/jobs/2");
+    var trackId = await CreateTrackAsync();
+    var unity = await CreateOnBoardAsync(VacancyStage.Applied, trackId, "https://example.com/jobs/1");
+    var unreal = await CreateOnBoardAsync(VacancyStage.Applied, trackId, "https://example.com/jobs/2");
     await MutateAsync(unity, v => v.RoleId = SeedData.UnityDeveloperRoleId);
     await MutateAsync(unreal, v => v.RoleId = SeedData.UnrealDeveloperRoleId);
 
@@ -271,9 +271,9 @@ public class ApplicationServiceHistoryTests : VacancyServiceFixture
   [Fact]
   public async Task ListHistoryAsync_SearchWithCyrillic_MatchesIgnoringCase()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var pixel = await AppliedWithCompanyAsync(hypothesisId, "https://example.com/jobs/1", "piksel", "Пиксель");
-    await AppliedWithCompanyAsync(hypothesisId, "https://example.com/jobs/2", "acme", "Acme Corp");
+    var trackId = await CreateTrackAsync();
+    var pixel = await AppliedWithCompanyAsync(trackId, "https://example.com/jobs/1", "piksel", "Пиксель");
+    await AppliedWithCompanyAsync(trackId, "https://example.com/jobs/2", "acme", "Acme Corp");
 
     var items = await ListAsync(new ApplicationHistoryFilter(null, null, "пикс"));
 
@@ -283,9 +283,9 @@ public class ApplicationServiceHistoryTests : VacancyServiceFixture
   [Fact]
   public async Task ListHistoryAsync_SearchIsTrimmed()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var pixel = await AppliedWithCompanyAsync(hypothesisId, "https://example.com/jobs/1", "pixel-forge", "Pixel Forge");
-    await AppliedWithCompanyAsync(hypothesisId, "https://example.com/jobs/2", "acme", "Acme Corp");
+    var trackId = await CreateTrackAsync();
+    var pixel = await AppliedWithCompanyAsync(trackId, "https://example.com/jobs/1", "pixel-forge", "Pixel Forge");
+    await AppliedWithCompanyAsync(trackId, "https://example.com/jobs/2", "acme", "Acme Corp");
 
     var items = await ListAsync(new ApplicationHistoryFilter(null, null, "  pixel  "));
 
@@ -298,9 +298,9 @@ public class ApplicationServiceHistoryTests : VacancyServiceFixture
   [InlineData("   ")]
   public async Task ListHistoryAsync_BlankSearch_DoesNotFilter(string? search)
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    await CreateOnBoardAsync(VacancyStage.Applied, hypothesisId, "https://example.com/jobs/1");
-    await CreateOnBoardAsync(VacancyStage.Closed, hypothesisId, "https://example.com/jobs/2");
+    var trackId = await CreateTrackAsync();
+    await CreateOnBoardAsync(VacancyStage.Applied, trackId, "https://example.com/jobs/1");
+    await CreateOnBoardAsync(VacancyStage.Closed, trackId, "https://example.com/jobs/2");
 
     var items = await ListAsync(new ApplicationHistoryFilter(null, null, search));
 
@@ -310,9 +310,9 @@ public class ApplicationServiceHistoryTests : VacancyServiceFixture
   [Fact]
   public async Task ListHistoryAsync_SearchByUrl_FindsVacancyWithoutCompany()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var hh = await CreateOnBoardAsync(VacancyStage.Applied, hypothesisId, "https://hh.ru/vacancy/1");
-    await CreateOnBoardAsync(VacancyStage.Applied, hypothesisId, "https://example.com/jobs/2");
+    var trackId = await CreateTrackAsync();
+    var hh = await CreateOnBoardAsync(VacancyStage.Applied, trackId, "https://hh.ru/vacancy/1");
+    await CreateOnBoardAsync(VacancyStage.Applied, trackId, "https://example.com/jobs/2");
 
     var items = await ListAsync(new ApplicationHistoryFilter(null, null, "HH.RU"));
 
@@ -322,18 +322,18 @@ public class ApplicationServiceHistoryTests : VacancyServiceFixture
   [Fact]
   public async Task ListHistoryAsync_SearchWithNoMatch_ReturnsEmpty()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    await AppliedWithCompanyAsync(hypothesisId, "https://example.com/jobs/1", "pixel-forge", "Pixel Forge");
+    var trackId = await CreateTrackAsync();
+    await AppliedWithCompanyAsync(trackId, "https://example.com/jobs/1", "pixel-forge", "Pixel Forge");
 
     var items = await ListAsync(new ApplicationHistoryFilter(null, null, "nonexistent"));
 
     Assert.Empty(items);
   }
 
-  private async Task<Guid> AppliedWithCompanyAsync(Guid hypothesisId, string url, string slug, string name)
+  private async Task<Guid> AppliedWithCompanyAsync(Guid trackId, string url, string slug, string name)
   {
     var companyId = await CreateCompanyNamedAsync(slug, name);
-    var id = await CreateOnBoardAsync(VacancyStage.Applied, hypothesisId, url);
+    var id = await CreateOnBoardAsync(VacancyStage.Applied, trackId, url);
     await MutateAsync(id, v => v.CompanyId = companyId);
     return id;
   }

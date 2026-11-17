@@ -20,10 +20,10 @@ public class VacancyEventTests
   private static Vacancy Applied()
   {
     var vacancy = Inbox();
-    var hypothesisId = Guid.NewGuid();
-    vacancy.SetMatch(hypothesisId, null, null, MatchAuthor.Human);
+    var trackId = Guid.NewGuid();
+    vacancy.SetMatch(trackId, null, null, MatchAuthor.Human);
     vacancy.MoveTo(VacancyStage.Targeted, Now);
-    vacancy.Apply(hypothesisId, Guid.NewGuid(), ApplicationChannel.Website, Now, null);
+    vacancy.Apply(trackId, Guid.NewGuid(), ApplicationChannel.Website, Now, null);
     return vacancy;
   }
 

@@ -8,14 +8,14 @@ namespace Karajob.Application.Vacancies;
 
 public partial class VacancyService
 {
-  public async Task<BoardView> GetBoardAsync(Guid? hypothesisId, CancellationToken cancellationToken = default)
+  public async Task<BoardView> GetBoardAsync(Guid? trackId, CancellationToken cancellationToken = default)
   {
     await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
     var columns = BoardMoves.Columns;
     var query = db.Vacancies.AsNoTracking().Where(v => columns.Contains(v.Stage));
-    if (hypothesisId is { } id)
+    if (trackId is { } id)
     {
-      query = query.Where(v => v.Matches.Any(m => m.HypothesisId == id));
+      query = query.Where(v => v.Matches.Any(m => m.TrackId == id));
     }
 
     var vacancies = await query.Include(v => v.Application).ToListAsync(cancellationToken);
@@ -80,10 +80,10 @@ public partial class VacancyService
 
     var matchedIds = await db.VacancyMatches.AsNoTracking()
       .Where(m => m.VacancyId == vacancyId)
-      .Select(m => m.HypothesisId)
+      .Select(m => m.TrackId)
       .ToListAsync(cancellationToken);
 
-    var hypotheses = await db.Hypotheses.AsNoTracking()
+    var tracks = await db.Tracks.AsNoTracking()
       .Where(h => matchedIds.Contains(h.Id))
       .OrderBy(h => h.Name)
       .Select(h => new { h.Id, h.Name, h.PrimaryCvDocumentId })
@@ -94,8 +94,8 @@ public partial class VacancyService
       .OrderBy(d => d.Name, StringComparer.OrdinalIgnoreCase)
       .SelectMany(d => d.Versions.OrderByDescending(v => v.CreatedAt).Select(v => new CvVersionOption(v.Id, d.Name, v.FileName, v.CreatedAt)))
       .ToList();
-    var options = hypotheses
-      .Select(h => new ApplyHypothesisOption(
+    var options = tracks
+      .Select(h => new ApplyTrackOption(
         h.Id,
         h.Name,
         documents.FirstOrDefault(d => d.Id == h.PrimaryCvDocumentId)?.Versions.MaxBy(v => v.CreatedAt)?.Id))
@@ -110,9 +110,9 @@ public partial class VacancyService
     EnsureStage(vacancy, expectedStage);
 
     var errors = new Dictionary<string, string>();
-    if (vacancy.Matches.All(m => m.HypothesisId != input.HypothesisId))
+    if (vacancy.Matches.All(m => m.TrackId != input.TrackId))
     {
-      errors[nameof(ApplyInput.HypothesisId)] = localizer["Error.HypothesisMismatch"];
+      errors[nameof(ApplyInput.TrackId)] = localizer["Error.TrackMismatch"];
     }
 
     if (!await db.CvVersions.AnyAsync(v => v.Id == input.CvVersionId, cancellationToken))
@@ -144,7 +144,7 @@ public partial class VacancyService
 
     try
     {
-      vacancy.Apply(input.HypothesisId, input.CvVersionId, input.Channel, appliedAt, BlankToNull(input.CoverLetter));
+      vacancy.Apply(input.TrackId, input.CvVersionId, input.Channel, appliedAt, BlankToNull(input.CoverLetter));
     }
     catch (StageTransitionException)
     {

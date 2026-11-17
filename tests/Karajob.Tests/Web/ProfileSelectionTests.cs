@@ -52,7 +52,7 @@ public class ProfileSelectionTests(WebApplicationFactory<Program> factory) : ICl
   }
 
   [Theory]
-  [InlineData("/hypotheses", "/hypotheses")]
+  [InlineData("/tracks", "/tracks")]
   [InlineData("/inbox", "/inbox")]
   [InlineData("https://evil.example/", "/")]
   [InlineData("//evil.example/x", "/")]
@@ -111,7 +111,7 @@ public class ProfileSelectionTests(WebApplicationFactory<Program> factory) : ICl
     var client = ProfileClient.CreateClient(factory);
     var token = await ProfileClient.FetchAntiforgeryTokenAsync(client);
 
-    var response = await ProfileClient.SelectAsync(client, token, Guid.NewGuid().ToString(), "/hypotheses");
+    var response = await ProfileClient.SelectAsync(client, token, Guid.NewGuid().ToString(), "/tracks");
 
     Assert.Equal(HttpStatusCode.Found, response.StatusCode);
     Assert.Equal("/profiles", ProfileClient.LocationOf(response).Split('?')[0]);

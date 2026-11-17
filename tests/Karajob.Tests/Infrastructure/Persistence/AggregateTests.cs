@@ -26,14 +26,14 @@ public class AggregateTests
   public async Task Vacancy_LoadedWithoutInclude_HasMatchesLoaded()
   {
     await using var database = await SqliteTestDatabase.CreateAsync();
-    var hypothesis = await PersistenceFixtures.AddHypothesisAsync(database, SeedData.OwnerId);
-    var vacancy = await PersistenceFixtures.AddMatchedVacancyAsync(database, SeedData.OwnerId, hypothesis.Id);
+    var track = await PersistenceFixtures.AddTrackAsync(database, SeedData.OwnerId);
+    var vacancy = await PersistenceFixtures.AddMatchedVacancyAsync(database, SeedData.OwnerId, track.Id);
 
     await using var fresh = database.CreateContext(SeedData.OwnerId);
     var loaded = await fresh.Vacancies.SingleAsync(v => v.Id == vacancy.Id);
 
     var match = Assert.Single(loaded.Matches);
-    Assert.Equal(hypothesis.Id, match.HypothesisId);
+    Assert.Equal(track.Id, match.TrackId);
   }
 
   [Fact]
@@ -85,8 +85,8 @@ public class AggregateTests
   public async Task MoveTo_LoadedVacancy_PersistsNewApplicationEvent()
   {
     await using var database = await SqliteTestDatabase.CreateAsync();
-    var hypothesis = await PersistenceFixtures.AddHypothesisAsync(database, SeedData.OwnerId);
-    var vacancy = await PersistenceFixtures.AddMatchedVacancyAsync(database, SeedData.OwnerId, hypothesis.Id);
+    var track = await PersistenceFixtures.AddTrackAsync(database, SeedData.OwnerId);
+    var vacancy = await PersistenceFixtures.AddMatchedVacancyAsync(database, SeedData.OwnerId, track.Id);
     await using var context = database.CreateContext(SeedData.OwnerId);
     var before = await context.ApplicationEvents.CountAsync(e => e.VacancyId == vacancy.Id);
     var loaded = await context.Vacancies.SingleAsync(v => v.Id == vacancy.Id);
@@ -145,14 +145,14 @@ public class AggregateTests
   public async Task Apply_LoadedVacancy_PersistsNewApplication()
   {
     await using var database = await SqliteTestDatabase.CreateAsync();
-    var hypothesis = await PersistenceFixtures.AddHypothesisAsync(database, SeedData.OwnerId);
+    var track = await PersistenceFixtures.AddTrackAsync(database, SeedData.OwnerId);
     var (_, cvVersion) = await PersistenceFixtures.AddCvAsync(database, SeedData.OwnerId);
-    var vacancy = await PersistenceFixtures.AddMatchedVacancyAsync(database, SeedData.OwnerId, hypothesis.Id);
+    var vacancy = await PersistenceFixtures.AddMatchedVacancyAsync(database, SeedData.OwnerId, track.Id);
     await using (var context = database.CreateContext(SeedData.OwnerId))
     {
       var loaded = await context.Vacancies.SingleAsync(v => v.Id == vacancy.Id);
       loaded.MoveTo(VacancyStage.Targeted, Moment);
-      loaded.Apply(hypothesis.Id, cvVersion.Id, ApplicationChannel.Referral, Moment.AddDays(1), null);
+      loaded.Apply(track.Id, cvVersion.Id, ApplicationChannel.Referral, Moment.AddDays(1), null);
       await context.SaveChangesAsync();
     }
 
@@ -164,11 +164,11 @@ public class AggregateTests
   }
 
   [Fact]
-  public async Task SetMatch_NewHypothesisOnLoadedVacancy_PersistsMatch()
+  public async Task SetMatch_NewTrackOnLoadedVacancy_PersistsMatch()
   {
     await using var database = await SqliteTestDatabase.CreateAsync();
-    var first = await PersistenceFixtures.AddHypothesisAsync(database, SeedData.OwnerId, "First");
-    var second = await PersistenceFixtures.AddHypothesisAsync(database, SeedData.OwnerId, "Second");
+    var first = await PersistenceFixtures.AddTrackAsync(database, SeedData.OwnerId, "First");
+    var second = await PersistenceFixtures.AddTrackAsync(database, SeedData.OwnerId, "Second");
     var vacancy = await PersistenceFixtures.AddMatchedVacancyAsync(database, SeedData.OwnerId, first.Id);
     await using (var context = database.CreateContext(SeedData.OwnerId))
     {
@@ -187,12 +187,12 @@ public class AggregateTests
   public async Task RemoveMatch_LoadedVacancy_DeletesMatchRow()
   {
     await using var database = await SqliteTestDatabase.CreateAsync();
-    var hypothesis = await PersistenceFixtures.AddHypothesisAsync(database, SeedData.OwnerId);
-    var vacancy = await PersistenceFixtures.AddMatchedVacancyAsync(database, SeedData.OwnerId, hypothesis.Id);
+    var track = await PersistenceFixtures.AddTrackAsync(database, SeedData.OwnerId);
+    var vacancy = await PersistenceFixtures.AddMatchedVacancyAsync(database, SeedData.OwnerId, track.Id);
     await using (var context = database.CreateContext(SeedData.OwnerId))
     {
       var loaded = await context.Vacancies.SingleAsync(v => v.Id == vacancy.Id);
-      loaded.RemoveMatch(hypothesis.Id);
+      loaded.RemoveMatch(track.Id);
       await context.SaveChangesAsync();
     }
 

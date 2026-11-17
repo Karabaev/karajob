@@ -6,24 +6,24 @@ namespace Karajob.Tests.Infrastructure.Persistence;
 public class RestrictDeleteTests
 {
   [Fact]
-  public async Task SaveChanges_DeletingHypothesisReferencedByMatch_ThrowsDbUpdateException()
+  public async Task SaveChanges_DeletingTrackReferencedByMatch_ThrowsDbUpdateException()
   {
     await using var database = await SqliteTestDatabase.CreateAsync();
-    var hypothesis = await PersistenceFixtures.AddHypothesisAsync(database, SeedData.OwnerId);
-    await PersistenceFixtures.AddMatchedVacancyAsync(database, SeedData.OwnerId, hypothesis.Id);
+    var track = await PersistenceFixtures.AddTrackAsync(database, SeedData.OwnerId);
+    await PersistenceFixtures.AddMatchedVacancyAsync(database, SeedData.OwnerId, track.Id);
     await using var context = database.CreateContext(SeedData.OwnerId);
-    var loaded = await context.Hypotheses.SingleAsync(h => h.Id == hypothesis.Id);
+    var loaded = await context.Tracks.SingleAsync(h => h.Id == track.Id);
 
-    context.Hypotheses.Remove(loaded);
+    context.Tracks.Remove(loaded);
 
     await Assert.ThrowsAsync<DbUpdateException>(() => context.SaveChangesAsync());
   }
 
   [Fact]
-  public async Task SaveChanges_DeletingRoleReferencedByHypothesis_ThrowsDbUpdateException()
+  public async Task SaveChanges_DeletingRoleReferencedByTrack_ThrowsDbUpdateException()
   {
     await using var database = await SqliteTestDatabase.CreateAsync();
-    await PersistenceFixtures.AddHypothesisAsync(database, SeedData.OwnerId);
+    await PersistenceFixtures.AddTrackAsync(database, SeedData.OwnerId);
     await using var context = database.CreateContext(SeedData.OwnerId);
     var role = await context.Roles.SingleAsync(r => r.Id == SeedData.UnityDeveloperRoleId);
 
@@ -33,14 +33,14 @@ public class RestrictDeleteTests
   }
 
   [Fact]
-  public async Task SaveChanges_DeletingLocationReferencedByHypothesisLocation_ThrowsDbUpdateException()
+  public async Task SaveChanges_DeletingLocationReferencedByTrackLocation_ThrowsDbUpdateException()
   {
     await using var database = await SqliteTestDatabase.CreateAsync();
-    var hypothesis = PersistenceFixtures.NewHypothesis(SeedData.OwnerId);
-    hypothesis.SetLocations([SeedData.EuLocationId]);
+    var track = PersistenceFixtures.NewTrack(SeedData.OwnerId);
+    track.SetLocations([SeedData.EuLocationId]);
     await using (var seed = database.CreateContext(SeedData.OwnerId))
     {
-      seed.Hypotheses.Add(hypothesis);
+      seed.Tracks.Add(track);
       await seed.SaveChangesAsync();
     }
 

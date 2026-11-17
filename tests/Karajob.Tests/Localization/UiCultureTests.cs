@@ -1,10 +1,10 @@
 using Bunit;
 using Karajob.Domain.Applications;
-using Karajob.Domain.Hypotheses;
+using Karajob.Domain.Tracks;
 using Karajob.Application.Metrics;
 using Karajob.Domain.Vacancies;
 using Karajob.Tests.Web.Components.Vacancies;
-using Karajob.Web.Components.Hypotheses;
+using Karajob.Web.Components.Tracks;
 using Karajob.Web.Components.Vacancies;
 using InboxPage = Karajob.Web.Components.Pages.Inbox;
 
@@ -79,15 +79,15 @@ public class UiCultureTests : VacancyWebFixture
   }
 
   [Theory]
-  [InlineData(HypothesisStatus.Draft, "Черновик")]
-  [InlineData(HypothesisStatus.Active, "Активна")]
-  [InlineData(HypothesisStatus.Expanded, "Расширена")]
-  [InlineData(HypothesisStatus.Paused, "На паузе")]
-  [InlineData(HypothesisStatus.Disabled, "Отключена")]
-  public void HypothesisText_Status_RussianCulture_ReturnsRussianLabel(HypothesisStatus status, string expected)
+  [InlineData(TrackStatus.Draft, "Черновик")]
+  [InlineData(TrackStatus.Active, "Активен")]
+  [InlineData(TrackStatus.Expanded, "Расширен")]
+  [InlineData(TrackStatus.Paused, "На паузе")]
+  [InlineData(TrackStatus.Disabled, "Отключён")]
+  public void TrackText_Status_RussianCulture_ReturnsRussianLabel(TrackStatus status, string expected)
   {
     using var _ = TestCulture.Use(TestCulture.Russian);
 
-    Assert.Equal(expected, HypothesisText.Status(status));
+    Assert.Equal(expected, TrackText.Status(status));
   }
 }

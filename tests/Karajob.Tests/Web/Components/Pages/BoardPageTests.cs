@@ -28,8 +28,8 @@ public class BoardPageTests : VacancyWebFixture
   [InlineData(VacancyStage.Interviewing)]
   public async Task Render_VacancyInStage_AppearsInItsColumn(VacancyStage stage)
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var id = await CreateOnBoardAsync(stage, hypothesisId, "https://example.com/jobs/1");
+    var trackId = await CreateTrackAsync();
+    var id = await CreateOnBoardAsync(stage, trackId, "https://example.com/jobs/1");
 
     var cut = Context.Render<BoardPage>();
 
@@ -39,11 +39,11 @@ public class BoardPageTests : VacancyWebFixture
   [Fact]
   public async Task Render_InboxAndDismissedVacancies_AreNotShown()
   {
-    var hypothesisId = await CreateHypothesisAsync();
+    var trackId = await CreateTrackAsync();
     var inbox = await Vacancies.CreateAsync(Input("https://example.com/jobs/inbox"));
-    var dismissed = await CreateOnBoardAsync(VacancyStage.Targeted, hypothesisId, "https://example.com/jobs/dismissed");
+    var dismissed = await CreateOnBoardAsync(VacancyStage.Targeted, trackId, "https://example.com/jobs/dismissed");
     await Vacancies.DismissAsync(dismissed, new Karajob.Application.Vacancies.DismissInput(DismissReason.Other, null));
-    var shown = await CreateOnBoardAsync(VacancyStage.Targeted, hypothesisId, "https://example.com/jobs/shown");
+    var shown = await CreateOnBoardAsync(VacancyStage.Targeted, trackId, "https://example.com/jobs/shown");
 
     var cut = Context.Render<BoardPage>();
 
@@ -55,10 +55,10 @@ public class BoardPageTests : VacancyWebFixture
   [Fact]
   public async Task Render_ClosedVacancies_AreCollapsedAndShowOutcomeCounts()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var closed = await CreateOnBoardAsync(VacancyStage.Closed, hypothesisId, "https://example.com/jobs/1", ApplicationOutcome.Offer);
-    await CreateOnBoardAsync(VacancyStage.Closed, hypothesisId, "https://example.com/jobs/2", ApplicationOutcome.Rejected);
-    await CreateOnBoardAsync(VacancyStage.Closed, hypothesisId, "https://example.com/jobs/3", ApplicationOutcome.Rejected);
+    var trackId = await CreateTrackAsync();
+    var closed = await CreateOnBoardAsync(VacancyStage.Closed, trackId, "https://example.com/jobs/1", ApplicationOutcome.Offer);
+    await CreateOnBoardAsync(VacancyStage.Closed, trackId, "https://example.com/jobs/2", ApplicationOutcome.Rejected);
+    await CreateOnBoardAsync(VacancyStage.Closed, trackId, "https://example.com/jobs/3", ApplicationOutcome.Rejected);
 
     var cut = Context.Render<BoardPage>();
 
@@ -75,8 +75,8 @@ public class BoardPageTests : VacancyWebFixture
   [Fact]
   public async Task ClickClosedToggle_RevealsClosedCards()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var closed = await CreateOnBoardAsync(VacancyStage.Closed, hypothesisId, "https://example.com/jobs/1");
+    var trackId = await CreateTrackAsync();
+    var closed = await CreateOnBoardAsync(VacancyStage.Closed, trackId, "https://example.com/jobs/1");
     var cut = Context.Render<BoardPage>();
 
     cut.WaitForElement(".board-closed-toggle").Click();
@@ -87,8 +87,8 @@ public class BoardPageTests : VacancyWebFixture
   [Fact]
   public async Task ClickNext_OnTargetedCard_MovesVacancyToPreparing()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var id = await CreateOnBoardAsync(VacancyStage.Targeted, hypothesisId, "https://example.com/jobs/1");
+    var trackId = await CreateTrackAsync();
+    var id = await CreateOnBoardAsync(VacancyStage.Targeted, trackId, "https://example.com/jobs/1");
     var cut = Context.Render<BoardPage>();
     cut.WaitForAssertion(() => Assert.NotEmpty(CardsIn(cut, VacancyStage.Targeted, id)));
 
@@ -101,8 +101,8 @@ public class BoardPageTests : VacancyWebFixture
   [Fact]
   public async Task ClickNext_OnApplicationCard_MovesVacancyToInterviewing()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var id = await CreateOnBoardAsync(VacancyStage.Applied, hypothesisId, "https://example.com/jobs/1");
+    var trackId = await CreateTrackAsync();
+    var id = await CreateOnBoardAsync(VacancyStage.Applied, trackId, "https://example.com/jobs/1");
     var cut = Context.Render<BoardPage>();
     cut.WaitForAssertion(() => Assert.NotEmpty(CardsIn(cut, VacancyStage.Applied, id)));
 
@@ -115,8 +115,8 @@ public class BoardPageTests : VacancyWebFixture
   [Fact]
   public async Task ClickNext_OnPreparingCard_OpensApplyDialogAndCancelLeavesStage()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var id = await CreateOnBoardAsync(VacancyStage.Preparing, hypothesisId, "https://example.com/jobs/1");
+    var trackId = await CreateTrackAsync();
+    var id = await CreateOnBoardAsync(VacancyStage.Preparing, trackId, "https://example.com/jobs/1");
     var (cut, dialogs) = RenderWithDialogs();
     cut.WaitForAssertion(() => Assert.NotEmpty(CardsIn(cut, VacancyStage.Preparing, id)));
 
@@ -132,10 +132,10 @@ public class BoardPageTests : VacancyWebFixture
   [Fact]
   public async Task ClickNext_OnPreparingCard_SubmitApplyDialogMovesCardToApplied()
   {
-    var hypothesisId = await CreateHypothesisAsync();
+    var trackId = await CreateTrackAsync();
     var (documentId, _) = await CreateCvAsync("Primary", "primary.pdf");
-    await SetPrimaryCvAsync(hypothesisId, documentId);
-    var id = await CreateOnBoardAsync(VacancyStage.Preparing, hypothesisId, "https://example.com/jobs/1");
+    await SetPrimaryCvAsync(trackId, documentId);
+    var id = await CreateOnBoardAsync(VacancyStage.Preparing, trackId, "https://example.com/jobs/1");
     var (cut, dialogs) = RenderWithDialogs();
     cut.WaitForAssertion(() => Assert.NotEmpty(CardsIn(cut, VacancyStage.Preparing, id)));
     CardsIn(cut, VacancyStage.Preparing, id).Single().QuerySelector(".board-next")!.Click();
@@ -150,8 +150,8 @@ public class BoardPageTests : VacancyWebFixture
   [Fact]
   public async Task ClickNext_OnInterviewingCard_OpensCloseDialogAndSubmitClosesVacancy()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var id = await CreateOnBoardAsync(VacancyStage.Interviewing, hypothesisId, "https://example.com/jobs/1");
+    var trackId = await CreateTrackAsync();
+    var id = await CreateOnBoardAsync(VacancyStage.Interviewing, trackId, "https://example.com/jobs/1");
     var (cut, dialogs) = RenderWithDialogs();
     cut.WaitForAssertion(() => Assert.NotEmpty(CardsIn(cut, VacancyStage.Interviewing, id)));
     CardsIn(cut, VacancyStage.Interviewing, id).Single().QuerySelector(".board-next")!.Click();
@@ -165,8 +165,8 @@ public class BoardPageTests : VacancyWebFixture
   [Fact]
   public async Task Render_StageChangedElsewhereBeforeClick_DoesNotMoveAndKeepsPageUsable()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var id = await CreateOnBoardAsync(VacancyStage.Targeted, hypothesisId, "https://example.com/jobs/1");
+    var trackId = await CreateTrackAsync();
+    var id = await CreateOnBoardAsync(VacancyStage.Targeted, trackId, "https://example.com/jobs/1");
     var cut = Context.Render<BoardPage>();
     cut.WaitForAssertion(() => Assert.NotEmpty(CardsIn(cut, VacancyStage.Targeted, id)));
     await Vacancies.MoveAsync(id, VacancyStage.Targeted, VacancyStage.Preparing);
@@ -180,8 +180,8 @@ public class BoardPageTests : VacancyWebFixture
   [Fact]
   public async Task Drop_PreparingCardOnApplied_OpensApplyDialogAndCancelKeepsCardInPreparing()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var id = await CreateOnBoardAsync(VacancyStage.Preparing, hypothesisId, "https://example.com/jobs/1");
+    var trackId = await CreateTrackAsync();
+    var id = await CreateOnBoardAsync(VacancyStage.Preparing, trackId, "https://example.com/jobs/1");
     var (cut, dialogs) = RenderWithDialogs();
     cut.WaitForAssertion(() => Assert.NotEmpty(CardsIn(cut, VacancyStage.Preparing, id)));
 
@@ -198,8 +198,8 @@ public class BoardPageTests : VacancyWebFixture
   [Fact]
   public async Task Drop_TargetedCardOnInterviewing_IsRejectedAndKeepsCardInTargeted()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var id = await CreateOnBoardAsync(VacancyStage.Targeted, hypothesisId, "https://example.com/jobs/1");
+    var trackId = await CreateTrackAsync();
+    var id = await CreateOnBoardAsync(VacancyStage.Targeted, trackId, "https://example.com/jobs/1");
     var cut = Context.Render<BoardPage>();
     cut.WaitForAssertion(() => Assert.NotEmpty(CardsIn(cut, VacancyStage.Targeted, id)));
     var eventsBefore = (await Vacancies.FindAsync(id))!.Timeline.Count;
@@ -216,8 +216,8 @@ public class BoardPageTests : VacancyWebFixture
   [Fact]
   public async Task Drop_TargetedCardOnPreparing_MovesCard()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var id = await CreateOnBoardAsync(VacancyStage.Targeted, hypothesisId, "https://example.com/jobs/1");
+    var trackId = await CreateTrackAsync();
+    var id = await CreateOnBoardAsync(VacancyStage.Targeted, trackId, "https://example.com/jobs/1");
     var cut = Context.Render<BoardPage>();
     cut.WaitForAssertion(() => Assert.NotEmpty(CardsIn(cut, VacancyStage.Targeted, id)));
 
@@ -228,10 +228,10 @@ public class BoardPageTests : VacancyWebFixture
   }
 
   [Fact]
-  public async Task FilterByHypothesis_ShowsOnlyMatchingCards()
+  public async Task FilterByTrack_ShowsOnlyMatchingCards()
   {
-    var first = await CreateHypothesisAsync("First");
-    var second = await CreateHypothesisAsync("Second");
+    var first = await CreateTrackAsync("First");
+    var second = await CreateTrackAsync("Second");
     var firstId = await CreateOnBoardAsync(VacancyStage.Targeted, first, "https://example.com/jobs/1");
     var secondId = await CreateOnBoardAsync(VacancyStage.Targeted, second, "https://example.com/jobs/2");
     var cut = Context.Render<BoardPage>();
@@ -247,8 +247,8 @@ public class BoardPageTests : VacancyWebFixture
   [Fact]
   public async Task DismissFromCardMenu_SubmitDialogRemovesCardAndDismissesVacancy()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var id = await CreateOnBoardAsync(VacancyStage.Targeted, hypothesisId, "https://example.com/jobs/1");
+    var trackId = await CreateTrackAsync();
+    var id = await CreateOnBoardAsync(VacancyStage.Targeted, trackId, "https://example.com/jobs/1");
     var (cut, dialogs) = RenderWithDialogs();
     cut.WaitForAssertion(() => Assert.NotEmpty(CardsIn(cut, VacancyStage.Targeted, id)));
     var card = cut.FindComponents<BoardCardView>().Single(c => c.Instance.Card.Id == id);
@@ -264,8 +264,8 @@ public class BoardPageTests : VacancyWebFixture
   [Fact]
   public async Task Render_CardWithTitle_ShowsTitleInCardLink()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var id = await CreateOnBoardAsync(VacancyStage.Targeted, hypothesisId, "https://example.com/jobs/1");
+    var trackId = await CreateTrackAsync();
+    var id = await CreateOnBoardAsync(VacancyStage.Targeted, trackId, "https://example.com/jobs/1");
     await MutateAsync(id, v => v.Title = "Senior Unity Dev");
 
     var cut = Context.Render<BoardPage>();
@@ -280,8 +280,8 @@ public class BoardPageTests : VacancyWebFixture
   [Fact]
   public async Task Render_CardWithoutTitleAndCompany_ShowsUrlInCardLink()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var id = await CreateOnBoardAsync(VacancyStage.Targeted, hypothesisId, "https://example.com/jobs/1");
+    var trackId = await CreateTrackAsync();
+    var id = await CreateOnBoardAsync(VacancyStage.Targeted, trackId, "https://example.com/jobs/1");
 
     var cut = Context.Render<BoardPage>();
 
@@ -295,9 +295,9 @@ public class BoardPageTests : VacancyWebFixture
   [Fact]
   public async Task Render_CardWithoutTitleButWithCompanyAndRole_ShowsCompanyAndRoleInCardLink()
   {
-    var hypothesisId = await CreateHypothesisAsync();
+    var trackId = await CreateTrackAsync();
     var company = await Companies.CreateAsync(new Karajob.Application.Companies.CompanyInput("pixel-forge", "Pixel Forge", null, null, [], [], []));
-    var vacancy = await Vacancies.CreateAsync(Input("https://example.com/jobs/1", company.Id, Karajob.Infrastructure.Persistence.SeedData.UnityDeveloperRoleId, [hypothesisId]));
+    var vacancy = await Vacancies.CreateAsync(Input("https://example.com/jobs/1", company.Id, Karajob.Infrastructure.Persistence.SeedData.UnityDeveloperRoleId, [trackId]));
     await MutateAsync(vacancy.Id, v => v.MoveTo(VacancyStage.Targeted, vacancy.DiscoveredAt.AddMinutes(1)));
 
     var cut = Context.Render<BoardPage>();

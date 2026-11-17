@@ -1,6 +1,6 @@
 @page "/"
 @inject VacancyService VacancyService
-@inject HypothesisService HypothesisService
+@inject TrackService TrackService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 
@@ -8,12 +8,12 @@
 
 <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
   <MudText Typo="Typo.h4" HtmlTag="h1">@L["Pages.Board"]</MudText>
-  <MudSelect T="Guid?" Class="board-filter" Label="@L["Pages.Hypothesis"]" Variant="Variant.Outlined" Dense="true" Style="max-width: 280px;"
-             Value="_hypothesisId" ValueChanged="OnFilterChangedAsync">
-    <MudSelectItem T="Guid?" Value="@((Guid?)null)">@L["Pages.AllHypotheses"]</MudSelectItem>
-    @foreach (var hypothesis in _hypotheses)
+  <MudSelect T="Guid?" Class="board-filter" Label="@L["Pages.Track"]" Variant="Variant.Outlined" Dense="true" Style="max-width: 280px;"
+             Value="_trackId" ValueChanged="OnFilterChangedAsync">
+    <MudSelectItem T="Guid?" Value="@((Guid?)null)">@L["Pages.AllTracks"]</MudSelectItem>
+    @foreach (var track in _tracks)
     {
-      <MudSelectItem T="Guid?" Value="@((Guid?)hypothesis.Id)">@hypothesis.Name</MudSelectItem>
+      <MudSelectItem T="Guid?" Value="@((Guid?)track.Id)">@track.Name</MudSelectItem>
     }
   </MudSelect>
 </MudStack>
@@ -65,16 +65,16 @@ else
 }
 
 @code {
-  private IReadOnlyList<HypothesisListItem> _hypotheses = [];
+  private IReadOnlyList<TrackListItem> _tracks = [];
   private BoardView? _view;
-  private Guid? _hypothesisId;
+  private Guid? _trackId;
   private bool _closedExpanded;
   private int _version;
   private bool _busy;
 
   protected override async Task OnInitializedAsync()
   {
-    _hypotheses = await HypothesisService.ListAsync();
+    _tracks = await TrackService.ListAsync();
     await ReloadAsync();
   }
 
@@ -82,13 +82,13 @@ else
   // Changing @key recreates the container, so every reload snaps cards back to what the server says.
   private async Task ReloadAsync()
   {
-    _view = await VacancyService.GetBoardAsync(_hypothesisId);
+    _view = await VacancyService.GetBoardAsync(_trackId);
     _version++;
   }
 
-  private Task OnFilterChangedAsync(Guid? hypothesisId)
+  private Task OnFilterChangedAsync(Guid? trackId)
   {
-    _hypothesisId = hypothesisId;
+    _trackId = trackId;
     return ReloadAsync();
   }
 
@@ -164,7 +164,7 @@ else
           {
             { d => d.VacancyId, card.Id },
             { d => d.ExpectedStage, card.Stage },
-            { d => d.PreferredHypothesisId, _hypothesisId },
+            { d => d.PreferredTrackId, _trackId },
           });
           break;
         case BoardMoveKind.Close:

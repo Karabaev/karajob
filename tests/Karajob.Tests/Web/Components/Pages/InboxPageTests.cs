@@ -48,8 +48,8 @@ public class InboxPageTests : VacancyWebFixture
   [Fact]
   public async Task Render_NonInboxVacancy_IsNotListed()
   {
-    var hypothesisId = await CreateHypothesisAsync();
-    var targeted = await Vacancies.CreateAsync(Input("https://example.com/jobs/1", hypothesisIds: [hypothesisId]));
+    var trackId = await CreateTrackAsync();
+    var targeted = await Vacancies.CreateAsync(Input("https://example.com/jobs/1", trackIds: [trackId]));
     await MutateAsync(targeted.Id, v => v.MoveTo(VacancyStage.Targeted, targeted.DiscoveredAt.AddHours(1)));
     var inbox = await Vacancies.CreateAsync(Input("https://example.com/jobs/2"));
 
@@ -106,13 +106,13 @@ public class InboxPageTests : VacancyWebFixture
   }
 
   [Fact]
-  public async Task ClickToBoard_CheckHypothesisAndSubmit_RemovesRow()
+  public async Task ClickToBoard_CheckTrackAndSubmit_RemovesRow()
   {
-    await CreateHypothesisAsync();
+    await CreateTrackAsync();
     var created = await Vacancies.CreateAsync(Input("https://example.com/jobs/1"));
     var (cut, dialogs) = RenderWithDialogs();
     cut.WaitForElement(".inbox-to-board").Click();
-    dialogs.WaitForElement(".move-to-board-hypothesis input").Change(true);
+    dialogs.WaitForElement(".move-to-board-track input").Change(true);
     dialogs.WaitForAssertion(() => Assert.False(dialogs.Find(".move-to-board-submit").HasAttribute("disabled")));
 
     dialogs.Find(".move-to-board-submit").Click();

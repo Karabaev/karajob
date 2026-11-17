@@ -1,0 +1,485 @@
+@page "/tracks/new"
+@page "/tracks/{Id:guid}"
+@inject TrackService TrackService
+@inject TrackDecisionService DecisionService
+@inject CatalogService CatalogService
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject UserDates Dates
+
+<AppTitle Text="@Title" />
+
+@if (_notFound)
+{
+  <MudText Typo="Typo.h4" HtmlTag="h1" GutterBottom="true">@L["Track.NotFound"]</MudText>
+  <MudButton Href="/tracks">@L["Track.BackToList"]</MudButton>
+}
+else if (_loaded)
+{
+  <MudText Typo="Typo.h4" HtmlTag="h1" Class="mb-4">@Title</MudText>
+
+  <MudGrid>
+    @* First in the DOM so that it sits above the form on a phone; order-md-last moves it to the right column. *@
+    @if (_details is { Status: not TrackStatus.Draft })
+    {
+      <MudItem xs="12" md="5" Class="order-md-last">
+        @* @key: another track gets a fresh card, so a slow load for the previous one cannot overwrite it. *@
+        <MudStack Spacing="3">
+          <TrackCriteriaCard @key="_details.Id" TrackId="_details.Id" Version="_reviewVersion" />
+          <DecisionHistory Decisions="_decisions" CheckIns="_checkIns" />
+        </MudStack>
+      </MudItem>
+    }
+    <MudItem xs="12" md="7">
+      <MudPaper Class="pa-4">
+        <MudForm>
+          <MudStack Spacing="2">
+            @if (_errors.TryGetValue("", out var general))
+            {
+              <MudAlert Severity="Severity.Error">@general</MudAlert>
+            }
+            <MudTextField T="string" Class="track-name" Label="@L["Track.Name"]" Immediate="true"
+                          Value="_name" ValueChanged="OnNameChanged"
+                          Error="HasError(nameof(TrackInput.Name))" ErrorText="@ErrorOf(nameof(TrackInput.Name))" />
+            <MudSelect T="Guid?" Class="track-role" Label="@L["Track.Role"]" Required="true"
+                       Value="_roleId" ValueChanged="OnRoleChanged" ToStringFunc="RoleName"
+                       HelperText="@EmptyHint(_roles)"
+                       Error="HasError(nameof(TrackInput.RoleId))" ErrorText="@ErrorOf(nameof(TrackInput.RoleId))">
+              @foreach (var role in _roles)
+              {
+                <MudSelectItem T="Guid?" Value="@((Guid?)role.Id)">@role.Name</MudSelectItem>
+              }
+            </MudSelect>
+            <MudSelect T="Guid?" Class="track-language" Label="@L["Track.Language"]"
+                       Value="_languageId" ValueChanged="OnLanguageChanged" ToStringFunc="LanguageName"
+                       HelperText="@EmptyHint(_languages)"
+                       Error="HasError(nameof(TrackInput.LanguageId))" ErrorText="@ErrorOf(nameof(TrackInput.LanguageId))">
+              @foreach (var language in _languages)
+              {
+                <MudSelectItem T="Guid?" Value="@((Guid?)language.Id)">@language.Name</MudSelectItem>
+              }
+            </MudSelect>
+
+            <div>
+              <MudText Typo="Typo.subtitle2">@L["Track.WorkFormat"]</MudText>
+              <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="2">
+                <MudCheckBox T="bool" Class="track-format-remote" Label="@L["WorkFormat.Remote"]"
+                             Value="HasFormat(WorkFormat.Remote)" ValueChanged="value => SetFormat(WorkFormat.Remote, value)" />
+                <MudCheckBox T="bool" Class="track-format-hybrid" Label="@L["WorkFormat.Hybrid"]"
+                             Value="HasFormat(WorkFormat.Hybrid)" ValueChanged="value => SetFormat(WorkFormat.Hybrid, value)" />
+                <MudCheckBox T="bool" Class="track-format-onsite" Label="@L["WorkFormat.OnSite"]"
+                             Value="HasFormat(WorkFormat.OnSite)" ValueChanged="value => SetFormat(WorkFormat.OnSite, value)" />
+                <MudCheckBox T="bool" Class="track-format-relocation" Label="@L["WorkFormat.Relocation"]"
+                             Value="HasFormat(WorkFormat.Relocation)" ValueChanged="value => SetFormat(WorkFormat.Relocation, value)" />
+              </MudStack>
+              @if (HasError(nameof(TrackInput.WorkFormat)))
+              {
+                <MudText Typo="Typo.caption" Color="Color.Error">@ErrorOf(nameof(TrackInput.WorkFormat))</MudText>
+              }
+            </div>
+
+            <MudSelect T="Guid" Class="track-locations" Label="@L["Track.Locations"]" MultiSelection="true"
+                       SelectedValues="_locationIds" SelectedValuesChanged="OnLocationsChanged"
+                       ToStringFunc="LocationName" MultiSelectionTextFunc="JoinNames"
+                       HelperText="@EmptyHint(_locationOptions)"
+                       Error="HasError(nameof(TrackInput.LocationIds))" ErrorText="@ErrorOf(nameof(TrackInput.LocationIds))">
+              @foreach (var location in _locationOptions)
+              {
+                <MudSelectItem T="Guid" Value="location.Id">@location.Name</MudSelectItem>
+              }
+            </MudSelect>
+
+            <MudSelect T="Guid" Class="track-platforms" Label="@L["Track.Platforms"]" MultiSelection="true"
+                       SelectedValues="_platformIds" SelectedValuesChanged="OnPlatformsChanged"
+                       ToStringFunc="PlatformName" MultiSelectionTextFunc="JoinNames"
+                       HelperText="@EmptyHint(_platformOptions)"
+                       Error="HasError(nameof(TrackInput.PlatformIds))" ErrorText="@ErrorOf(nameof(TrackInput.PlatformIds))">
+              @foreach (var platform in _platformOptions)
+              {
+                <MudSelectItem T="Guid" Value="platform.Id">@platform.Name</MudSelectItem>
+              }
+            </MudSelect>
+            <MudSelect T="Guid" Class="track-engines" Label="@L["Track.Engines"]" MultiSelection="true"
+                       SelectedValues="_engineIds" SelectedValuesChanged="OnEnginesChanged"
+                       ToStringFunc="EngineName" MultiSelectionTextFunc="JoinNames"
+                       HelperText="@EmptyHint(_engineOptions)"
+                       Error="HasError(nameof(TrackInput.EngineIds))" ErrorText="@ErrorOf(nameof(TrackInput.EngineIds))">
+              @foreach (var engine in _engineOptions)
+              {
+                <MudSelectItem T="Guid" Value="engine.Id">@engine.Name</MudSelectItem>
+              }
+            </MudSelect>
+            <MudTextField T="string" Class="track-industries" Label="@L["Track.Industries"]" HelperText="@L["Track.OnePerLine"]"
+                          Lines="3" Sizing="InputSizing.Auto" @bind-Value="_industries"
+                          Error="HasError(nameof(TrackInput.Industries))" ErrorText="@ErrorOf(nameof(TrackInput.Industries))" />
+            <MudTextField T="string" Class="track-positioning" Label="@L["Track.Positioning"]"
+                          Lines="3" Sizing="InputSizing.Auto" @bind-Value="_positioning"
+                          Error="HasError(nameof(TrackInput.Positioning))" ErrorText="@ErrorOf(nameof(TrackInput.Positioning))" />
+            <MudSelect T="Guid?" Class="track-cv" Label="@L["Track.PrimaryCv"]" @bind-Value="_primaryCvId"
+                       HelperText="@(_cvOptions.Count == 0 ? L["Track.CvHint"].Value : null)"
+                       Error="HasError(nameof(TrackInput.PrimaryCvDocumentId))" ErrorText="@ErrorOf(nameof(TrackInput.PrimaryCvDocumentId))">
+              <MudSelectItem T="Guid?" Value="@((Guid?)null)">@L["Track.NotSelected"]</MudSelectItem>
+              @foreach (var option in _cvOptions)
+              {
+                <MudSelectItem T="Guid?" Value="@((Guid?)option.Id)">@option.Name (@option.LanguageCode.ToUpperInvariant())</MudSelectItem>
+              }
+            </MudSelect>
+            <MudSelect T="TrackStatus" Class="track-status" Label="@L["Track.Status"]" @bind-Value="_status">
+              @foreach (var status in StatusOptions())
+              {
+                <MudSelectItem T="TrackStatus" Value="status">@TrackText.Status(status)</MudSelectItem>
+              }
+            </MudSelect>
+            @if (_details?.StartedAt is { } startedAt)
+            {
+              <MudText Typo="Typo.caption" Class="mud-text-secondary">@L["Track.Started", Dates.FormatDate(startedAt)]</MudText>
+            }
+
+            @if (_details is { Status: TrackStatus.Active or TrackStatus.Expanded })
+            {
+              <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="2">
+                <MudButton Class="track-checkin-button" Variant="Variant.Outlined" Color="Color.Primary" OnClick="CheckInAsync">@L["Track.CheckInButton"]</MudButton>
+                <MudButton Class="track-decision-button" Variant="Variant.Outlined" Color="Color.Primary" OnClick="DecideAsync">@L["Track.DecisionButton"]</MudButton>
+              </MudStack>
+            }
+
+            <MudStack Row="true" Justify="Justify.SpaceBetween">
+              <MudButton Class="track-save" Variant="Variant.Filled" Color="Color.Primary" Disabled="_saving" OnClick="SaveAsync">@L["Track.Save"]</MudButton>
+              @if (_details is not null)
+              {
+                <MudButton Class="track-delete" Color="Color.Error" OnClick="DeleteAsync">@L["Track.Delete"]</MudButton>
+              }
+            </MudStack>
+          </MudStack>
+        </MudForm>
+      </MudPaper>
+    </MudItem>
+  </MudGrid>
+}
+
+@code {
+  private IReadOnlyDictionary<string, string> _errors = new Dictionary<string, string>();
+  private IReadOnlyList<CvOption> _cvOptions = [];
+  private IReadOnlyList<CatalogListItem> _roles = [];
+  private IReadOnlyList<CatalogListItem> _locationOptions = [];
+  private IReadOnlyList<CatalogListItem> _platformOptions = [];
+  private IReadOnlyList<CatalogListItem> _engineOptions = [];
+  private IReadOnlyList<CatalogListItem> _languages = [];
+  private TrackDetails? _details;
+  private bool _loaded;
+  private bool _notFound;
+  private bool _nameEdited;
+  private bool _saving;
+  private string? _name;
+  private Guid? _roleId;
+  private Guid? _languageId;
+  private WorkFormat _format = WorkFormat.Remote;
+  private IReadOnlyCollection<Guid> _locationIds = [];
+  private IReadOnlyCollection<Guid> _platformIds = [];
+  private IReadOnlyCollection<Guid> _engineIds = [];
+  private string? _industries;
+  private string? _positioning;
+  private Guid? _primaryCvId;
+  private TrackStatus _status = TrackStatus.Draft;
+  private IReadOnlyList<DecisionDetails> _decisions = [];
+  private IReadOnlyList<CheckInDetails> _checkIns = [];
+  private int _reviewVersion;
+
+  [Parameter]
+  public Guid? Id { get; set; }
+
+  private string Title => _details?.Name ?? (Id is null ? L["Track.New"] : L["Track.NotFound"]);
+
+  // The same component instance is reused when the route changes, so load here, not in OnInitialized.
+  // After our own save navigates to the saved id the page already holds that track.
+  protected override async Task OnParametersSetAsync()
+  {
+    if (_loaded && Id is not null && Id == _details?.Id) return;
+
+    await LoadAsync();
+  }
+
+  private async Task LoadAsync()
+  {
+    _loaded = false;
+    _errors = new Dictionary<string, string>();
+    _notFound = false;
+    _details = null;
+    _cvOptions = await TrackService.ListCvOptionsAsync();
+    _roles = await CatalogService.ListAsync(CatalogKind.Role);
+    _locationOptions = await CatalogService.ListAsync(CatalogKind.Location);
+    _platformOptions = await CatalogService.ListAsync(CatalogKind.Platform);
+    _engineOptions = await CatalogService.ListAsync(CatalogKind.Engine);
+    _languages = await CatalogService.ListAsync(CatalogKind.Language);
+
+    if (Id is not null)
+    {
+      _details = await TrackService.FindAsync(Id.Value);
+      _notFound = _details is null;
+    }
+
+    FillFields();
+    await LoadHistoryAsync();
+    _loaded = true;
+  }
+
+  private async Task LoadHistoryAsync()
+  {
+    if (_details is null)
+    {
+      _decisions = [];
+      _checkIns = [];
+      return;
+    }
+
+    _decisions = await DecisionService.ListDecisionsAsync(_details.Id);
+    _checkIns = await DecisionService.ListCheckInsAsync(_details.Id);
+  }
+
+  private IEnumerable<TrackStatus> StatusOptions()
+  {
+    yield return TrackStatus.Draft;
+    yield return TrackStatus.Active;
+    yield return TrackStatus.Paused;
+    if (_details?.Status is TrackStatus.Expanded or TrackStatus.Disabled)
+    {
+      yield return _details.Status;
+    }
+  }
+
+  private Task CheckInAsync()
+  {
+    return ShowDialogAsync<CheckInDialog>(L["CheckIn.Title"]);
+  }
+
+  private Task DecideAsync()
+  {
+    return ShowDialogAsync<DecisionDialog>(L["Decision.Title"]);
+  }
+
+  private async Task ShowDialogAsync<TDialog>(string title)
+    where TDialog : Microsoft.AspNetCore.Components.IComponent
+  {
+    var parameters = new DialogParameters { [nameof(CheckInDialog.TrackId)] = _details!.Id };
+    var reference = await DialogService.ShowAsync<TDialog>(title, parameters, new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true });
+    var result = await reference.Result;
+    if (result is null || result.Canceled)
+    {
+      return;
+    }
+
+    try
+    {
+      _details = await TrackService.FindAsync(_details.Id);
+      _notFound = _details is null;
+      if (_details is not null)
+      {
+        _status = _details.Status;
+      }
+
+      await LoadHistoryAsync();
+      _reviewVersion++;
+    }
+    catch (KeyNotFoundException)
+    {
+      _notFound = true;
+    }
+  }
+
+  private void FillFields()
+  {
+    _nameEdited = _details is not null;
+    _name = _details?.Name;
+    _roleId = _details?.RoleId;
+    _languageId = _details?.LanguageId ?? _languages.FirstOrDefault(l => l.Code == "ru")?.Id;
+    _format = _details?.WorkFormat ?? WorkFormat.Remote;
+    _locationIds = _details?.LocationIds.ToList() ?? [];
+    _platformIds = _details?.PlatformIds.ToList() ?? [];
+    _engineIds = _details?.EngineIds.ToList() ?? [];
+    _industries = _details is null ? null : string.Join('\n', _details.Industries);
+    _positioning = _details?.Positioning;
+    _primaryCvId = _details?.PrimaryCvDocumentId;
+    _status = _details?.Status ?? TrackStatus.Draft;
+  }
+
+  private void SuggestName()
+  {
+    if (_nameEdited)
+    {
+      return;
+    }
+
+    var role = RoleName(_roleId);
+    var code = _languages.FirstOrDefault(l => l.Id == _languageId)?.Code;
+    _name = role.Length == 0 || code is null ? role : $"{role} {code.ToUpperInvariant()}";
+  }
+
+  private void OnNameChanged(string? name)
+  {
+    _name = name;
+    _nameEdited = true;
+  }
+
+  private void OnRoleChanged(Guid? roleId)
+  {
+    _roleId = roleId;
+    SuggestName();
+  }
+
+  private void OnLanguageChanged(Guid? languageId)
+  {
+    _languageId = languageId;
+    SuggestName();
+  }
+
+  private void OnLocationsChanged(IReadOnlyCollection<Guid>? locationIds)
+  {
+    _locationIds = locationIds?.ToList() ?? [];
+  }
+
+  private void OnPlatformsChanged(IReadOnlyCollection<Guid>? platformIds)
+  {
+    _platformIds = platformIds?.ToList() ?? [];
+  }
+
+  private string RoleName(Guid? id)
+  {
+    return _roles.FirstOrDefault(r => r.Id == id)?.Name ?? "";
+  }
+
+  private string LanguageName(Guid? id)
+  {
+    return _languages.FirstOrDefault(l => l.Id == id)?.Name ?? "";
+  }
+
+  private string LocationName(Guid id)
+  {
+    return _locationOptions.FirstOrDefault(l => l.Id == id)?.Name ?? "";
+  }
+
+  private static string JoinNames(IReadOnlyList<string?> names)
+  {
+    return string.Join(", ", names);
+  }
+
+  private void OnEnginesChanged(IReadOnlyCollection<Guid>? engineIds)
+  {
+    _engineIds = engineIds?.ToList() ?? [];
+  }
+
+  private string EngineName(Guid id)
+  {
+    return _engineOptions.FirstOrDefault(e => e.Id == id)?.Name ?? "";
+  }
+
+  private string PlatformName(Guid id)
+  {
+    return _platformOptions.FirstOrDefault(p => p.Id == id)?.Name ?? "";
+  }
+
+  private string? EmptyHint(IReadOnlyList<CatalogListItem> items)
+  {
+    return items.Count == 0 ? L["Track.EmptyHint"].Value : null;
+  }
+
+  private bool HasFormat(WorkFormat flag)
+  {
+    return _format.HasFlag(flag);
+  }
+
+  private void SetFormat(WorkFormat flag, bool value)
+  {
+    _format = value ? _format | flag : _format & ~flag;
+  }
+
+  private bool HasError(string key)
+  {
+    return _errors.ContainsKey(key);
+  }
+
+  private string? ErrorOf(string key)
+  {
+    return _errors.GetValueOrDefault(key);
+  }
+
+  private static IReadOnlyList<string> SplitLines(string? text)
+  {
+    return (text ?? "")
+      .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+      .ToList();
+  }
+
+  private async Task SaveAsync()
+  {
+    var input = new TrackInput(
+      _name ?? "",
+      _roleId,
+      _locationIds.ToList(),
+      _platformIds.ToList(),
+      _engineIds.ToList(),
+      SplitLines(_industries),
+      _format,
+      _languageId,
+      _positioning,
+      _primaryCvId,
+      _status);
+
+    _saving = true;
+    try
+    {
+      var saved = _details is null
+        ? await TrackService.CreateAsync(input)
+        : await TrackService.UpdateAsync(_details.Id, input);
+
+      _errors = new Dictionary<string, string>();
+      _details = saved;
+      FillFields();
+      _reviewVersion++;
+      Snackbar.Add(L["Track.Saved"], Severity.Success);
+      if (Id != saved.Id)
+      {
+        Navigation.NavigateTo($"/tracks/{saved.Id}");
+      }
+    }
+    catch (ValidationFailedException exception)
+    {
+      _errors = exception.Errors;
+    }
+    catch (KeyNotFoundException)
+    {
+      _notFound = true;
+    }
+    finally
+    {
+      _saving = false;
+    }
+  }
+
+  private async Task DeleteAsync()
+  {
+    var confirmed = await DialogService.ShowMessageBoxAsync(
+      L["Track.DeleteTitle"],
+      L["Track.DeleteMessage", _details!.Name],
+      yesText: L["Track.DeleteConfirm"],
+      cancelText: L["Track.Cancel"]);
+    if (confirmed != true)
+    {
+      return;
+    }
+
+    try
+    {
+      await TrackService.DeleteAsync(_details.Id);
+      Navigation.NavigateTo("/tracks");
+    }
+    catch (ValidationFailedException exception)
+    {
+      Snackbar.Add(exception.Message, Severity.Error);
+    }
+    catch (KeyNotFoundException)
+    {
+      _notFound = true;
+    }
+  }
+}

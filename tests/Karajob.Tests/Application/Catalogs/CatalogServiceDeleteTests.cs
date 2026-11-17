@@ -2,7 +2,7 @@ using Karajob.Application.Catalogs;
 using Karajob.Application.Common;
 using Karajob.Domain.Cvs;
 using Karajob.Domain.Goals;
-using Karajob.Domain.Hypotheses;
+using Karajob.Domain.Tracks;
 using Karajob.Domain.Vacancies;
 using Karajob.Infrastructure.Persistence;
 using Karajob.Tests.Infrastructure.Persistence;
@@ -47,18 +47,18 @@ public class CatalogServiceDeleteTests : CatalogServiceFixture
   }
 
   [Fact]
-  public async Task DeleteAsync_RoleUsedByHypothesis_ThrowsValidationWithEmptyKeyAndKeepsIt()
+  public async Task DeleteAsync_RoleUsedByTrack_ThrowsValidationWithEmptyKeyAndKeepsIt()
   {
-    await PersistenceFixtures.AddHypothesisAsync(Database, SeedData.OwnerId);
+    await PersistenceFixtures.AddTrackAsync(Database, SeedData.OwnerId);
 
     await AssertDeleteBlockedAsync(CatalogKind.Role, SeedData.UnityDeveloperRoleId);
   }
 
   [Fact]
-  public async Task DeleteAsync_RoleUsedByHypothesisOfAnotherUser_ThrowsValidationWithEmptyKey()
+  public async Task DeleteAsync_RoleUsedByTrackOfAnotherUser_ThrowsValidationWithEmptyKey()
   {
     var other = await PersistenceFixtures.AddUserAsync(Database);
-    await PersistenceFixtures.AddHypothesisAsync(Database, other.Id);
+    await PersistenceFixtures.AddTrackAsync(Database, other.Id);
 
     await AssertDeleteBlockedAsync(CatalogKind.Role, SeedData.UnityDeveloperRoleId);
   }
@@ -81,18 +81,18 @@ public class CatalogServiceDeleteTests : CatalogServiceFixture
   }
 
   [Fact]
-  public async Task DeleteAsync_LocationUsedByHypothesis_ThrowsValidationWithEmptyKeyAndKeepsIt()
+  public async Task DeleteAsync_LocationUsedByTrack_ThrowsValidationWithEmptyKeyAndKeepsIt()
   {
-    await AddHypothesisWithLocationAsync(SeedData.OwnerId, SeedData.EuLocationId);
+    await AddTrackWithLocationAsync(SeedData.OwnerId, SeedData.EuLocationId);
 
     await AssertDeleteBlockedAsync(CatalogKind.Location, SeedData.EuLocationId);
   }
 
   [Fact]
-  public async Task DeleteAsync_LocationUsedByHypothesisOfAnotherUser_ThrowsValidationWithEmptyKey()
+  public async Task DeleteAsync_LocationUsedByTrackOfAnotherUser_ThrowsValidationWithEmptyKey()
   {
     var other = await PersistenceFixtures.AddUserAsync(Database);
-    await AddHypothesisWithLocationAsync(other.Id, SeedData.EuLocationId);
+    await AddTrackWithLocationAsync(other.Id, SeedData.EuLocationId);
 
     await AssertDeleteBlockedAsync(CatalogKind.Location, SeedData.EuLocationId);
   }
@@ -106,9 +106,9 @@ public class CatalogServiceDeleteTests : CatalogServiceFixture
   }
 
   [Fact]
-  public async Task DeleteAsync_LanguageUsedByHypothesis_ThrowsValidationWithEmptyKeyAndKeepsIt()
+  public async Task DeleteAsync_LanguageUsedByTrack_ThrowsValidationWithEmptyKeyAndKeepsIt()
   {
-    await PersistenceFixtures.AddHypothesisAsync(Database, SeedData.OwnerId);
+    await PersistenceFixtures.AddTrackAsync(Database, SeedData.OwnerId);
 
     await AssertDeleteBlockedAsync(CatalogKind.Language, SeedData.EnglishLanguageId);
   }
@@ -152,10 +152,10 @@ public class CatalogServiceDeleteTests : CatalogServiceFixture
   }
 
   [Fact]
-  public async Task DeleteAsync_LanguageUsedByHypothesisOfAnotherUser_ThrowsValidationWithEmptyKey()
+  public async Task DeleteAsync_LanguageUsedByTrackOfAnotherUser_ThrowsValidationWithEmptyKey()
   {
     var other = await PersistenceFixtures.AddUserAsync(Database);
-    await PersistenceFixtures.AddHypothesisAsync(Database, other.Id);
+    await PersistenceFixtures.AddTrackAsync(Database, other.Id);
 
     await AssertDeleteBlockedAsync(CatalogKind.Language, SeedData.EnglishLanguageId);
   }
@@ -212,18 +212,18 @@ public class CatalogServiceDeleteTests : CatalogServiceFixture
   }
 
   [Fact]
-  public async Task DeleteAsync_PlatformUsedByHypothesis_ThrowsValidationWithEmptyKeyAndKeepsIt()
+  public async Task DeleteAsync_PlatformUsedByTrack_ThrowsValidationWithEmptyKeyAndKeepsIt()
   {
-    await AddHypothesisWithPlatformAsync(SeedData.OwnerId, SeedData.PcPlatformId);
+    await AddTrackWithPlatformAsync(SeedData.OwnerId, SeedData.PcPlatformId);
 
     await AssertDeleteBlockedAsync(CatalogKind.Platform, SeedData.PcPlatformId);
   }
 
   [Fact]
-  public async Task DeleteAsync_PlatformUsedByHypothesisOfAnotherUser_ThrowsValidationWithEmptyKey()
+  public async Task DeleteAsync_PlatformUsedByTrackOfAnotherUser_ThrowsValidationWithEmptyKey()
   {
     var other = await PersistenceFixtures.AddUserAsync(Database);
-    await AddHypothesisWithPlatformAsync(other.Id, SeedData.PcPlatformId);
+    await AddTrackWithPlatformAsync(other.Id, SeedData.PcPlatformId);
 
     await AssertDeleteBlockedAsync(CatalogKind.Platform, SeedData.PcPlatformId);
   }
@@ -299,21 +299,21 @@ public class CatalogServiceDeleteTests : CatalogServiceFixture
     await context.SaveChangesAsync();
   }
 
-  private async Task AddHypothesisWithLocationAsync(Guid userId, Guid locationId)
+  private async Task AddTrackWithLocationAsync(Guid userId, Guid locationId)
   {
-    var hypothesis = new Hypothesis(userId, "Hypo", SeedData.UnrealDeveloperRoleId, SeedData.RussianLanguageId, Moment);
-    hypothesis.SetLocations([locationId]);
+    var track = new Track(userId, "Hypo", SeedData.UnrealDeveloperRoleId, SeedData.RussianLanguageId, Moment);
+    track.SetLocations([locationId]);
     await using var context = Database.CreateContext(userId);
-    context.Hypotheses.Add(hypothesis);
+    context.Tracks.Add(track);
     await context.SaveChangesAsync();
   }
 
-  private async Task AddHypothesisWithPlatformAsync(Guid userId, Guid platformId)
+  private async Task AddTrackWithPlatformAsync(Guid userId, Guid platformId)
   {
-    var hypothesis = new Hypothesis(userId, "Hypo", SeedData.UnrealDeveloperRoleId, SeedData.RussianLanguageId, Moment);
-    hypothesis.SetPlatforms([platformId]);
+    var track = new Track(userId, "Hypo", SeedData.UnrealDeveloperRoleId, SeedData.RussianLanguageId, Moment);
+    track.SetPlatforms([platformId]);
     await using var context = Database.CreateContext(userId);
-    context.Hypotheses.Add(hypothesis);
+    context.Tracks.Add(track);
     await context.SaveChangesAsync();
   }
 

@@ -1,6 +1,6 @@
 # Karajob
 
-A family job-search tracker: hypotheses → vacancies → applications → metrics → a decision on the hypothesis.
+A family job-search tracker: tracks → vacancies → applications → metrics → a decision on the track.
 
 Self-hosted: a single Docker container (ASP.NET Core + Blazor Server + SQLite) on a home network.
 

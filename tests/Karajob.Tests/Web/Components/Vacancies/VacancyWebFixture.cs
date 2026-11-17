@@ -3,12 +3,12 @@ using Karajob.Application.Applications;
 using Karajob.Application.Catalogs;
 using Karajob.Application.Companies;
 using Karajob.Application.Cvs;
-using Karajob.Application.Hypotheses;
+using Karajob.Application.Tracks;
 using Karajob.Application.Persistence;
 using Karajob.Application.Users;
 using Karajob.Application.Vacancies;
 using Karajob.Domain.Applications;
-using Karajob.Domain.Hypotheses;
+using Karajob.Domain.Tracks;
 using Karajob.Domain.Vacancies;
 using Karajob.Infrastructure.Persistence;
 using Karajob.Infrastructure.Users;
@@ -33,7 +33,7 @@ public abstract class VacancyWebFixture : IAsyncLifetime
   protected VacancyService Vacancies { get; private set; } = null!;
   protected ApplicationService Applications { get; private set; } = null!;
   protected CompanyService Companies { get; private set; } = null!;
-  protected HypothesisService Hypotheses { get; private set; } = null!;
+  protected TrackService Tracks { get; private set; } = null!;
   protected CatalogService Catalogs { get; private set; } = null!;
   protected CvService Cvs { get; private set; } = null!;
   internal InMemoryFileStorage Storage { get; } = new();
@@ -43,20 +43,20 @@ public abstract class VacancyWebFixture : IAsyncLifetime
     string url,
     Guid? companyId = null,
     Guid? roleId = null,
-    IReadOnlyList<Guid>? hypothesisIds = null,
+    IReadOnlyList<Guid>? trackIds = null,
     string? title = null)
   {
-    return new VacancyInput(url, title, companyId, roleId, null, [], [], null, null, null, null, null, hypothesisIds ?? [], null, null);
+    return new VacancyInput(url, title, companyId, roleId, null, [], [], null, null, null, null, null, trackIds ?? [], null, null);
   }
 
-  protected async Task<Guid> CreateHypothesisAsync(
+  protected async Task<Guid> CreateTrackAsync(
     string name = "Unity Developer RU",
     Guid? roleId = null,
     IReadOnlyList<Guid>? platformIds = null,
     WorkFormat workFormat = WorkFormat.Remote,
     Guid? languageId = null)
   {
-    var hypothesis = await Hypotheses.CreateAsync(new HypothesisInput(
+    var track = await Tracks.CreateAsync(new TrackInput(
       name,
       roleId ?? SeedData.UnityDeveloperRoleId,
       [],
@@ -67,8 +67,8 @@ public abstract class VacancyWebFixture : IAsyncLifetime
       languageId ?? SeedData.RussianLanguageId,
       null,
       null,
-      HypothesisStatus.Draft));
-    return hypothesis.Id;
+      TrackStatus.Draft));
+    return track.Id;
   }
 
   protected async Task<(Guid DocumentId, Guid VersionId)> CreateCvAsync(string name = "Main CV", string fileName = "cv.pdf")
@@ -80,22 +80,22 @@ public abstract class VacancyWebFixture : IAsyncLifetime
     return (details.Id, details.Versions[0].Id);
   }
 
-  protected async Task SetPrimaryCvAsync(Guid hypothesisId, Guid cvDocumentId)
+  protected async Task SetPrimaryCvAsync(Guid trackId, Guid cvDocumentId)
   {
     await using var context = Database.CreateContext(SeedData.OwnerId);
-    var hypothesis = await context.Hypotheses.SingleAsync(h => h.Id == hypothesisId);
-    hypothesis.PrimaryCvDocumentId = cvDocumentId;
+    var track = await context.Tracks.SingleAsync(h => h.Id == trackId);
+    track.PrimaryCvDocumentId = cvDocumentId;
     await context.SaveChangesAsync();
   }
 
   protected async Task<Guid> CreateOnBoardAsync(
     VacancyStage stage,
-    Guid hypothesisId,
+    Guid trackId,
     string url,
     ApplicationOutcome outcome = ApplicationOutcome.Rejected,
     string? coverLetter = null)
   {
-    var vacancy = await Vacancies.CreateAsync(Input(url, hypothesisIds: [hypothesisId]));
+    var vacancy = await Vacancies.CreateAsync(Input(url, trackIds: [trackId]));
     var at = vacancy.DiscoveredAt.AddMinutes(1);
     Guid? cvVersionId = stage is VacancyStage.Applied or VacancyStage.Interviewing or VacancyStage.Closed
       ? (await CreateCvAsync($"CV for {url}", "board.pdf")).VersionId
@@ -111,7 +111,7 @@ public abstract class VacancyWebFixture : IAsyncLifetime
         return;
       }
 
-      v.Apply(hypothesisId, cvVersionId!.Value, ApplicationChannel.Website, at, coverLetter);
+      v.Apply(trackId, cvVersionId!.Value, ApplicationChannel.Website, at, coverLetter);
       if (stage == VacancyStage.Interviewing)
       {
         v.MoveTo(VacancyStage.Interviewing, at);
@@ -153,7 +153,7 @@ public abstract class VacancyWebFixture : IAsyncLifetime
     Vacancies = TestDbContextFactory.CreateVacancyService(Database, SeedData.OwnerId, TimeProvider.System, TitleReader);
     Applications = TestDbContextFactory.CreateApplicationService(Database, SeedData.OwnerId);
     Companies = TestDbContextFactory.CreateCompanyService(Database, SeedData.OwnerId);
-    Hypotheses = TestDbContextFactory.CreateHypothesisService(Database, SeedData.OwnerId, TimeProvider.System);
+    Tracks = TestDbContextFactory.CreateTrackService(Database, SeedData.OwnerId, TimeProvider.System);
     Catalogs = TestDbContextFactory.CreateCatalogService(Database, SeedData.OwnerId);
     Cvs = TestDbContextFactory.CreateCvService(Database, SeedData.OwnerId, Storage, TimeProvider.System, new CvOptions { MaxFileSizeMb = 5 });
     Context.Services.AddSingleton<IKarajobDbContextFactory>(new TestDbContextFactory(Database, SeedData.OwnerId));
@@ -163,7 +163,7 @@ public abstract class VacancyWebFixture : IAsyncLifetime
     Context.Services.AddSingleton(Vacancies);
     Context.Services.AddSingleton(Applications);
     Context.Services.AddSingleton(Companies);
-    Context.Services.AddSingleton(Hypotheses);
+    Context.Services.AddSingleton(Tracks);
     Context.Services.AddSingleton(Catalogs);
     Context.Services.AddSingleton(Cvs);
     Context.Services.AddScoped<InboxNotifier>();
