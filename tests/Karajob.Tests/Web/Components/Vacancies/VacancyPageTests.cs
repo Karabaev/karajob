@@ -72,6 +72,58 @@ public class VacancyPageTests : VacancyWebFixture
   }
 
   [Fact]
+  public async Task Render_ExistingVacancy_ShowsOpenLinkToVacancyUrlInNewTab()
+  {
+    var created = await Vacancies.CreateAsync(Input("https://example.com/jobs/1"));
+
+    var cut = Context.Render<VacancyPage>(p => p.Add(c => c.Id, created.Id));
+
+    cut.WaitForAssertion(() =>
+    {
+      var link = cut.Find(".vacancy-open-link");
+      Assert.Equal(created.Url, link.GetAttribute("href"));
+      Assert.Equal("_blank", link.GetAttribute("target"));
+      Assert.Contains("noopener", link.GetAttribute("rel"));
+    });
+  }
+
+  [Fact]
+  public async Task Input_AnotherValidUrl_UpdatesOpenLinkHref()
+  {
+    var created = await Vacancies.CreateAsync(Input("https://example.com/jobs/1"));
+    var cut = Context.Render<VacancyPage>(p => p.Add(c => c.Id, created.Id));
+    cut.WaitForElement(".vacancy-open-link");
+
+    cut.Find(".vacancy-url input").Input("https://example.org/careers/7");
+
+    cut.WaitForAssertion(() =>
+      Assert.Equal("https://example.org/careers/7", cut.Find(".vacancy-open-link").GetAttribute("href")));
+  }
+
+  [Theory]
+  [InlineData("not a url")]
+  [InlineData("javascript:alert(1)")]
+  public async Task Input_NonHttpUrl_HidesOpenLink(string value)
+  {
+    var created = await Vacancies.CreateAsync(Input("https://example.com/jobs/1"));
+    var cut = Context.Render<VacancyPage>(p => p.Add(c => c.Id, created.Id));
+    cut.WaitForElement(".vacancy-open-link");
+
+    cut.Find(".vacancy-url input").Input(value);
+
+    cut.WaitForAssertion(() => Assert.Empty(cut.FindAll(".vacancy-open-link")));
+  }
+
+  [Fact]
+  public void Render_NewVacancyWithEmptyUrl_HasNoOpenLink()
+  {
+    var cut = Context.Render<VacancyPage>();
+
+    cut.WaitForElement(".vacancy-url");
+    Assert.Empty(cut.FindAll(".vacancy-open-link"));
+  }
+
+  [Fact]
   public void Render_UnknownId_ShowsNotFoundHeading()
   {
     var cut = Context.Render<VacancyPage>(p => p.Add(c => c.Id, Guid.NewGuid()));
