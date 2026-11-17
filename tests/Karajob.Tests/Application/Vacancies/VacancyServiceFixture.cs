@@ -93,7 +93,15 @@ public abstract class VacancyServiceFixture : IAsyncLifetime
       SeedData.RussianLanguageId,
       null,
       null,
-      status));
+      status is HypothesisStatus.Expanded or HypothesisStatus.Disabled ? HypothesisStatus.Draft : status));
+    if (status is HypothesisStatus.Expanded or HypothesisStatus.Disabled)
+    {
+      await using var context = Database.CreateContext(userId ?? SeedData.OwnerId);
+      var stored = await context.Hypotheses.SingleAsync(h => h.Id == hypothesis.Id);
+      stored.Status = status;
+      await context.SaveChangesAsync();
+    }
+
     return hypothesis.Id;
   }
 

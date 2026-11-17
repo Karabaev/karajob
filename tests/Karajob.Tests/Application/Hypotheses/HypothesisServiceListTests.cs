@@ -10,11 +10,11 @@ public class HypothesisServiceListTests : HypothesisServiceFixture
   [Fact]
   public async Task ListAsync_OrdersByStatusThenName()
   {
-    await Service.CreateAsync(Input(name: "z disabled", status: HypothesisStatus.Disabled));
+    await CreateWithStatusAsync("z disabled", HypothesisStatus.Disabled);
     await Service.CreateAsync(Input(name: "paused", status: HypothesisStatus.Paused));
     await Service.CreateAsync(Input(name: "draft b", status: HypothesisStatus.Draft));
     await Service.CreateAsync(Input(name: "Draft a", status: HypothesisStatus.Draft));
-    await Service.CreateAsync(Input(name: "expanded", status: HypothesisStatus.Expanded));
+    await CreateWithStatusAsync("expanded", HypothesisStatus.Expanded);
     await Service.CreateAsync(Input(name: "b active", status: HypothesisStatus.Active));
     await Service.CreateAsync(Input(name: "A active", status: HypothesisStatus.Active));
 

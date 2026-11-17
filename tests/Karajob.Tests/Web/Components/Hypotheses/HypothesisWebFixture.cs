@@ -20,6 +20,7 @@ public abstract class HypothesisWebFixture : IAsyncLifetime
   protected SqliteTestDatabase Database { get; private set; } = null!;
   protected HypothesisService Service { get; private set; } = null!;
   protected CatalogService Catalogs { get; private set; } = null!;
+  protected HypothesisDecisionService Decisions { get; private set; } = null!;
 
   protected static HypothesisInput Input(string name, Guid? roleId = null)
   {
@@ -42,12 +43,14 @@ public abstract class HypothesisWebFixture : IAsyncLifetime
     Database = await SqliteTestDatabase.CreateAsync();
     Service = TestDbContextFactory.CreateHypothesisService(Database, SeedData.OwnerId, TimeProvider.System);
     Catalogs = TestDbContextFactory.CreateCatalogService(Database, SeedData.OwnerId);
+    Decisions = TestDbContextFactory.CreateHypothesisDecisionService(Database, SeedData.OwnerId, TimeProvider.System);
     Context.Services.AddSingleton<IKarajobDbContextFactory>(new TestDbContextFactory(Database, SeedData.OwnerId));
     Context.Services.AddSingleton<ICurrentUser>(new FixedCurrentUser(SeedData.OwnerId));
     Context.Services.AddSingleton(TimeProvider.System);
     Context.Services.AddScoped<UserDates>();
     Context.Services.AddSingleton(Service);
     Context.Services.AddSingleton(Catalogs);
+    Context.Services.AddSingleton(Decisions);
     Context.Services.AddSingleton(TestDbContextFactory.CreateHypothesisMetricsService(Database, SeedData.OwnerId, TimeProvider.System));
   }
 
