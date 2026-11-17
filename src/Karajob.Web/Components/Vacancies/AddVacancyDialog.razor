@@ -4,10 +4,10 @@
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
 
-<MudDialog>
+<MudDialog DefaultFocus="DefaultFocus.None">
   <DialogContent>
     <MudStack Spacing="2">
-      <MudTextField T="string" Class="quick-add-url" Label="@L["AddVacancy.Url"]" Placeholder="https://…" AutoFocus="true"
+      <MudTextField T="string" Class="quick-add-url" Label="@L["AddVacancy.Url"]" Placeholder="https://…" @ref="_urlField"
                     InputType="InputType.Url" Immediate="true" @bind-Value="_url" @bind-Value:after="OnUrlChangedAsync" OnKeyDown="OnKeyDown"
                     Error="_urlError is not null" ErrorText="@_urlError" />
       <div>
@@ -43,6 +43,7 @@
   private bool _saving;
   private bool _fetchingTitle;
   private CancellationTokenSource? _titleFetch;
+  private MudTextField<string> _urlField = null!;
 
   [CascadingParameter]
   private IMudDialogInstance MudDialog { get; set; } = null!;
@@ -54,6 +55,14 @@
   {
     _titleFetch?.Cancel();
     _titleFetch?.Dispose();
+  }
+
+  protected override async Task OnAfterRenderAsync(bool firstRender)
+  {
+    if (!firstRender) return;
+
+    // The dialog's focus trap focuses itself by default (DefaultFocus.Element), after the input's AutoFocus, so it takes the focus away.
+    await _urlField.FocusAsync();
   }
 
   private async Task OnUrlChangedAsync()
