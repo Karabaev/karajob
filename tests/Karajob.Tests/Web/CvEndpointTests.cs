@@ -92,6 +92,22 @@ public class CvEndpointTests : IDisposable
   }
 
   [Fact]
+  public async Task GetVersionFile_PdfInlineWithLongCyrillicName_ReturnsInlineWithEncodedFileName()
+  {
+    const string fileName = "Резюме Иван Иванович Иванов Senior Unity Developer 2026 final version.pdf";
+    var versionId = await CreateCvAsync(fileName, [1, 2, 3]);
+    var client = await ProfileClient.AuthenticatedClientAsync(factory, SeedData.OwnerId);
+
+    var response = await client.GetAsync($"/cvs/versions/{versionId}/file?inline=true");
+
+    Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    var disposition = response.Content.Headers.ContentDisposition;
+    Assert.NotNull(disposition);
+    Assert.Equal("inline", disposition.DispositionType);
+    Assert.Equal(fileName, disposition.FileNameStar);
+  }
+
+  [Fact]
   public async Task GetVersionFile_PdfInline_DoesNotBlockSameOriginFraming()
   {
     var versionId = await CreateCvAsync("Frame.pdf", [1, 2, 3]);

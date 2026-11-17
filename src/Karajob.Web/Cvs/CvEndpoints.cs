@@ -1,5 +1,5 @@
-using System.Net.Mime;
 using Karajob.Application.Cvs;
+using Microsoft.Net.Http.Headers;
 
 namespace Karajob.Web.Cvs;
 
@@ -33,7 +33,8 @@ public static class CvEndpoints
         return Results.File(file.Content, file.ContentType, fileDownloadName: file.FileName);
       }
 
-      var disposition = new ContentDisposition { Inline = true, FileName = file.FileName };
+      var disposition = new ContentDispositionHeaderValue("inline");
+      disposition.SetHttpFileName(file.FileName);
       httpContext.Response.Headers.ContentDisposition = disposition.ToString();
       httpContext.Response.Headers.XContentTypeOptions = "nosniff";
       return Results.File(file.Content, file.ContentType, enableRangeProcessing: true);
