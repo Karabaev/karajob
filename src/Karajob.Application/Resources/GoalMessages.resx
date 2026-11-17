@@ -18,4 +18,5 @@
   <data name="Error.IncomeRequired" xml:space="preserve"><value>Desired income is required</value></data>
   <data name="Error.CurrencyCodeInvalid" xml:space="preserve"><value>Currency must be 3 Latin letters</value></data>
   <data name="Error.CurrencyNotFound" xml:space="preserve"><value>Currency not found</value></data>
+  <data name="Error.WellBeingThresholdRange" xml:space="preserve"><value>The well-being threshold must be between {0} and {1}</value></data>
 </root>

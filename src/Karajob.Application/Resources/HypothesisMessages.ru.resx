@@ -15,4 +15,13 @@
   <data name="Error.EngineNotFound" xml:space="preserve"><value>Движок не найден</value></data>
   <data name="Error.WorkFormatRequired" xml:space="preserve"><value>Выберите хотя бы один формат</value></data>
   <data name="Error.CvNotFound" xml:space="preserve"><value>CV не найдено</value></data>
+  <data name="Error.StatusViaDecision" xml:space="preserve"><value>Статусы Расширена и Отключена устанавливаются только записью решения</value></data>
+  <data name="Error.StatusNotAllowed" xml:space="preserve"><value>Это возможно только для активной или расширенной гипотезы</value></data>
+  <data name="Error.CheckInFuture" xml:space="preserve"><value>Чек-ин нельзя сделать за будущую неделю</value></data>
+  <data name="Error.MotivationRange" xml:space="preserve"><value>Мотивация должна быть от {0} до {1}</value></data>
+  <data name="Error.ConfidenceRange" xml:space="preserve"><value>Уверенность должна быть от {0} до {1}</value></data>
+  <data name="Error.ChangesRequired" xml:space="preserve"><value>Опишите, что было изменено</value></data>
+  <data name="Error.ReasonRequired" xml:space="preserve"><value>Для отключения гипотезы нужна причина</value></data>
+  <data name="Error.DraftNotFound" xml:space="preserve"><value>Выберите существующую гипотезу-черновик для активации</value></data>
+  <data name="Error.DraftOnlyOnDisable" xml:space="preserve"><value>Черновик можно активировать только вместе с отключением</value></data>
 </root>

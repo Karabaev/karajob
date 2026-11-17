@@ -18,4 +18,5 @@
   <data name="Error.IncomeRequired" xml:space="preserve"><value>Укажите желаемый доход</value></data>
   <data name="Error.CurrencyCodeInvalid" xml:space="preserve"><value>Валюта — 3 латинские буквы</value></data>
   <data name="Error.CurrencyNotFound" xml:space="preserve"><value>Валюта не найдена</value></data>
+  <data name="Error.WellBeingThresholdRange" xml:space="preserve"><value>Порог самочувствия должен быть от {0} до {1}</value></data>
 </root>
