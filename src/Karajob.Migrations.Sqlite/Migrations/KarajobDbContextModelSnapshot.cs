@@ -261,6 +261,10 @@ namespace Karajob.Migrations.Sqlite.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("TimeZoneId")
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
                     b.HasKey("Id");
 
                     b.HasIndex("NormalizedName")
@@ -285,7 +289,8 @@ namespace Karajob.Migrations.Sqlite.Migrations
                         {
                             Id = new Guid("019a7c1e-0000-7000-8000-000000000203"),
                             Name = "Serbia",
-                            NormalizedName = "serbia"
+                            NormalizedName = "serbia",
+                            TimeZoneId = "Europe/Belgrade"
                         });
                 });
 

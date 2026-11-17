@@ -10,4 +10,5 @@
   <data name="Error.CurrencyCodeInvalid" xml:space="preserve"><value>Код — 3 латинские буквы</value></data>
   <data name="Error.LanguageCodeInvalid" xml:space="preserve"><value>Код — 2–3 латинские буквы</value></data>
   <data name="Error.CodeExists" xml:space="preserve"><value>Такой код уже есть</value></data>
+  <data name="Error.TimeZoneInvalid" xml:space="preserve"><value>Выберите часовой пояс из списка</value></data>
 </root>

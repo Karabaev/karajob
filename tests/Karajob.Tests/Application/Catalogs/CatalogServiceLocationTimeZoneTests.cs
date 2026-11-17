@@ -40,7 +40,7 @@ public class CatalogServiceLocationTimeZoneTests : CatalogServiceFixture
   [Fact]
   public async Task UpdateLocationAsync_WindowsZoneId_StoresIanaId()
   {
-    var updated = await Service.UpdateLocationAsync(SeedData.EuLocationId, "EU", "Central European Standard Time");
+    var updated = await Service.UpdateLocationAsync(SeedData.EuLocationId, "EU", "W. Europe Standard Time");
 
     Assert.Equal("Europe/Berlin", updated.TimeZoneId);
   }

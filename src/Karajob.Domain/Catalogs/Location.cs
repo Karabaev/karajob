@@ -1,3 +1,5 @@
+using Karajob.Domain.Common;
+
 namespace Karajob.Domain.Catalogs;
 
 public class Location(string name) : CatalogEntry(name)
@@ -6,6 +8,6 @@ public class Location(string name) : CatalogEntry(name)
 
   public void SetTimeZone(string? timeZoneId)
   {
-    throw new NotImplementedException();
+    TimeZoneId = string.IsNullOrWhiteSpace(timeZoneId) ? null : UserTime.NormalizeId(timeZoneId);
   }
 }

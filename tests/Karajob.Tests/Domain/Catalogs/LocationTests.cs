@@ -16,7 +16,7 @@ public class LocationTests
   [InlineData("Europe/Belgrade", "Europe/Belgrade")]
   [InlineData("  Europe/Belgrade ", "Europe/Belgrade")]
   [InlineData("UTC", "UTC")]
-  [InlineData("Central European Standard Time", "Europe/Berlin")]
+  [InlineData("W. Europe Standard Time", "Europe/Berlin")]
   public void SetTimeZone_ValidId_StoresNormalizedIanaId(string id, string expected)
   {
     var location = new Location("Serbia");

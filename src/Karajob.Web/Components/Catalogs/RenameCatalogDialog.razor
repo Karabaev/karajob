@@ -1,10 +1,20 @@
 @inject CatalogService CatalogService
 @inject ISnackbar Snackbar
+@inject TimeProvider TimeProvider
 
 <MudDialog>
   <DialogContent>
-    <MudTextField T="string" Label="@L["Catalog.Name"]" @bind-Value="_name" Immediate="true" AutoFocus="true"
-                  Error="@(_error is not null)" ErrorText="@_error" />
+    <MudStack Spacing="3">
+      <MudTextField T="string" Label="@L["Catalog.Name"]" @bind-Value="_name" Immediate="true" AutoFocus="true"
+                    Error="@(_error is not null)" ErrorText="@_error" />
+      @if (Kind == CatalogKind.Location)
+      {
+        <MudAutocomplete T="string" Class="catalog-time-zone" Label="@L["Catalog.TimeZone"]"
+                         @bind-Value="_timeZoneId" @bind-Value:after="ClearTimeZoneError"
+                         SearchFunc="SearchTimeZones" ToStringFunc="TimeZoneLabel" MaxItems="null" Clearable="true"
+                         Error="_timeZoneError is not null" ErrorText="@_timeZoneError" />
+      }
+    </MudStack>
   </DialogContent>
   <DialogActions>
     <MudButton OnClick="Cancel">@L["Catalog.Cancel"]</MudButton>
@@ -15,6 +25,9 @@
 @code {
   private string _name = string.Empty;
   private string? _error;
+  private string? _timeZoneId;
+  private string? _timeZoneError;
+  private IReadOnlyList<TimeZoneOption> _timeZones = [];
 
   [CascadingParameter]
   private IMudDialogInstance MudDialog { get; set; } = null!;
@@ -28,17 +41,49 @@
   protected override void OnInitialized()
   {
     _name = Item.Name;
+    _timeZoneId = Item.TimeZoneId;
+    if (Kind == CatalogKind.Location)
+    {
+      _timeZones = TimeZoneOption.All(TimeProvider.GetUtcNow().UtcDateTime);
+    }
+  }
+
+  private void ClearTimeZoneError()
+  {
+    _timeZoneError = null;
+  }
+
+  private Task<IEnumerable<string>> SearchTimeZones(string? text, CancellationToken cancellationToken)
+  {
+    var found = string.IsNullOrWhiteSpace(text)
+      ? _timeZones
+      : _timeZones.Where(zone => zone.Label.Contains(text.Trim(), StringComparison.OrdinalIgnoreCase));
+    return Task.FromResult(found.Select(zone => zone.Id));
+  }
+
+  private string TimeZoneLabel(string? id)
+  {
+    return _timeZones.FirstOrDefault(zone => zone.Id == id)?.Label ?? id ?? string.Empty;
   }
 
   private async Task SaveAsync()
   {
     try
     {
-      await CatalogService.RenameAsync(Kind, Item.Id, _name);
+      if (Kind == CatalogKind.Location)
+      {
+        await CatalogService.UpdateLocationAsync(Item.Id, _name, _timeZoneId);
+      }
+      else
+      {
+        await CatalogService.RenameAsync(Kind, Item.Id, _name);
+      }
     }
     catch (ValidationFailedException ex)
     {
-      _error = string.Join(" ", ex.Errors.Values);
+      _timeZoneError = ex.Errors.GetValueOrDefault(nameof(UserInput.TimeZoneId));
+      var nameErrors = ex.Errors.Where(e => e.Key != nameof(UserInput.TimeZoneId)).Select(e => e.Value);
+      _error = nameErrors.Any() ? string.Join(" ", nameErrors) : null;
       return;
     }
     catch (KeyNotFoundException)
