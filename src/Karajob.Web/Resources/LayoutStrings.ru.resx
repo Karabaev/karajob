@@ -17,4 +17,7 @@
   <data name="Layout.Profile" xml:space="preserve"><value>Профиль: {0}</value></data>
   <data name="Layout.AllProfiles" xml:space="preserve"><value>Все профили</value></data>
   <data name="Layout.Applications" xml:space="preserve"><value>Отклики</value></data>
+  <data name="Layout.CopyVersion" xml:space="preserve"><value>Скопировать версию</value></data>
+  <data name="Layout.VersionCopied" xml:space="preserve"><value>Версия скопирована</value></data>
+  <data name="Layout.VersionCopyFailed" xml:space="preserve"><value>Не удалось скопировать версию</value></data>
 </root>

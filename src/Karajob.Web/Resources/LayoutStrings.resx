@@ -17,4 +17,7 @@
   <data name="Layout.Profile" xml:space="preserve"><value>Profile: {0}</value></data>
   <data name="Layout.AllProfiles" xml:space="preserve"><value>All profiles</value></data>
   <data name="Layout.Applications" xml:space="preserve"><value>Applications</value></data>
+  <data name="Layout.CopyVersion" xml:space="preserve"><value>Copy version</value></data>
+  <data name="Layout.VersionCopied" xml:space="preserve"><value>Version copied</value></data>
+  <data name="Layout.VersionCopyFailed" xml:space="preserve"><value>Could not copy the version</value></data>
 </root>

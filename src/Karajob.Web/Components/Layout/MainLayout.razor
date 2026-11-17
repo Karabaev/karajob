@@ -22,6 +22,9 @@
   <MudDrawer @bind-Open="_drawerOpen" Variant="DrawerVariant.Responsive" Breakpoint="Breakpoint.Md"
              ClipMode="DrawerClipMode.Always" Elevation="1">
     <NavMenu />
+    <div class="mt-auto pa-2">
+      <AppVersionLabel />
+    </div>
   </MudDrawer>
 
   <MudMainContent>

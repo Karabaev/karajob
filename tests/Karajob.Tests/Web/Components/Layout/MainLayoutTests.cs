@@ -86,6 +86,14 @@ public class MainLayoutTests : IAsyncLifetime
   }
 
   [Fact]
+  public void Render_HasAppVersionLabel()
+  {
+    var cut = RenderLayout();
+
+    Assert.Single(cut.FindAll(".app-version"));
+  }
+
+  [Fact]
   public void Render_DoesNotShowDialogInitially()
   {
     var cut = RenderLayout();

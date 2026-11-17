@@ -13,7 +13,9 @@ COPY src/Karajob.Web/Karajob.Web.csproj src/Karajob.Web/
 RUN dotnet restore src/Karajob.Web/Karajob.Web.csproj
 
 COPY src/ src/
-RUN dotnet publish src/Karajob.Web/Karajob.Web.csproj -c Release --no-restore -o /app
+# .git is not in the build context, so the commit hash shown in the UI comes from this argument.
+ARG SOURCE_REVISION=
+RUN dotnet publish src/Karajob.Web/Karajob.Web.csproj -c Release --no-restore -o /app -p:SourceRevisionId=$SOURCE_REVISION
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
