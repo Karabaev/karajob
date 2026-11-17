@@ -305,7 +305,7 @@ public class CompanyService(IKarajobDbContextFactory dbContextFactory, ICurrentU
       }
     }
 
-    var locationIds = (input.LocationIds ?? []).Distinct().ToList();
+    var locationIds = input.LocationIds.Distinct().ToList();
     if (locationIds.Count > 0 && await db.Locations.CountAsync(l => locationIds.Contains(l.Id), cancellationToken) != locationIds.Count)
     {
       errors[nameof(CompanyInput.LocationIds)] = localizer["Error.LocationNotFound"];

@@ -69,7 +69,7 @@ public abstract class VacancyServiceFixture : IAsyncLifetime
 
   protected async Task<Guid> CreateCompanyAsync(string slug = "pixel-forge")
   {
-    var company = await Companies.CreateAsync(new CompanyInput(slug, slug, null, null, [], []));
+    var company = await Companies.CreateAsync(new CompanyInput(slug, slug, null, null, [], [], []));
     return company.Id;
   }
 

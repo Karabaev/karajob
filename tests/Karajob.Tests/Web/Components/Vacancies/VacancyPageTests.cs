@@ -156,7 +156,7 @@ public class VacancyPageTests : VacancyWebFixture
   [Fact]
   public async Task Render_ExistingVacancyWithSimilarOne_ShowsWarningWithLink()
   {
-    var company = await Companies.CreateAsync(new CompanyInput("pixel-forge", "Pixel Forge", null, null, [], []));
+    var company = await Companies.CreateAsync(new CompanyInput("pixel-forge", "Pixel Forge", null, null, [], [], []));
     var first = await Vacancies.CreateAsync(Input("https://example.com/jobs/1", company.Id, SeedData.UnityDeveloperRoleId));
     var second = await Vacancies.CreateAsync(Input("https://example.com/jobs/2", company.Id, SeedData.UnityDeveloperRoleId));
 
@@ -397,7 +397,7 @@ public class VacancyPageTests : VacancyWebFixture
   [Fact]
   public async Task Select_CompanyAndRoleMatchingExistingVacancyOnNewPage_ShowsSimilarWarning()
   {
-    var company = await Companies.CreateAsync(new CompanyInput("pixel-forge", "Pixel Forge", null, null, [], []));
+    var company = await Companies.CreateAsync(new CompanyInput("pixel-forge", "Pixel Forge", null, null, [], [], []));
     await Vacancies.CreateAsync(Input("https://example.com/jobs/1", company.Id, SeedData.UnityDeveloperRoleId));
     var cut = Context.Render<VacancyPage>();
     cut.WaitForElement(".vacancy-url");
@@ -429,7 +429,7 @@ public class VacancyPageTests : VacancyWebFixture
   [Fact]
   public async Task Select_CreateEntryAndCancelDialog_KeepsPreviousCompany()
   {
-    var company = await Companies.CreateAsync(new CompanyInput("pixel-forge", "Pixel Forge", null, null, [], []));
+    var company = await Companies.CreateAsync(new CompanyInput("pixel-forge", "Pixel Forge", null, null, [], [], []));
     await Vacancies.CreateAsync(Input("https://example.com/jobs/1", company.Id, SeedData.UnityDeveloperRoleId));
     Context.Render<MudPopoverProvider>();
     var provider = Context.Render<MudDialogProvider>();

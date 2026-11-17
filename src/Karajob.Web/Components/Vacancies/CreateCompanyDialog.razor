@@ -81,7 +81,7 @@
     if (_saving) return;
 
     IReadOnlyList<string> domains = string.IsNullOrWhiteSpace(_domain) ? [] : [_domain];
-    var input = new CompanyInput(_slug ?? "", _name ?? "", null, null, domains, []);
+    var input = new CompanyInput(_slug ?? "", _name ?? "", null, null, domains, [], []);
 
     _saving = true;
     try

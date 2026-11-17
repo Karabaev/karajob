@@ -54,7 +54,7 @@ public class ApplicationsPageTests : VacancyWebFixture
   public async Task Render_Row_ShowsCompanyAndHypothesis()
   {
     var hypothesisId = await CreateHypothesisAsync("Unity Developer RU");
-    var company = await Companies.CreateAsync(new CompanyInput("pixel-forge", "Pixel Forge", null, null, [], []));
+    var company = await Companies.CreateAsync(new CompanyInput("pixel-forge", "Pixel Forge", null, null, [], [], []));
     var id = await CreateOnBoardAsync(VacancyStage.Applied, hypothesisId, "https://example.com/jobs/1");
     await MutateAsync(id, v => v.CompanyId = company.Id);
 
@@ -125,8 +125,8 @@ public class ApplicationsPageTests : VacancyWebFixture
   public async Task Search_ByCompanyName_NarrowsRows()
   {
     var hypothesisId = await CreateHypothesisAsync();
-    var pixel = await Companies.CreateAsync(new CompanyInput("pixel-forge", "Pixel Forge", null, null, [], []));
-    var acme = await Companies.CreateAsync(new CompanyInput("acme", "Acme Corp", null, null, [], []));
+    var pixel = await Companies.CreateAsync(new CompanyInput("pixel-forge", "Pixel Forge", null, null, [], [], []));
+    var acme = await Companies.CreateAsync(new CompanyInput("acme", "Acme Corp", null, null, [], [], []));
     var pixelVacancy = await CreateOnBoardAsync(VacancyStage.Applied, hypothesisId, "https://example.com/jobs/1");
     var acmeVacancy = await CreateOnBoardAsync(VacancyStage.Applied, hypothesisId, "https://example.com/jobs/2");
     await MutateAsync(pixelVacancy, v => v.CompanyId = pixel.Id);

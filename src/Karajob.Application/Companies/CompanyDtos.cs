@@ -9,7 +9,7 @@ public record CompanyInput(
   string? Description,
   IReadOnlyList<string> Domains,
   IReadOnlyList<string> Aliases,
-  IReadOnlyList<Guid>? LocationIds = null);
+  IReadOnlyList<Guid> LocationIds);
 
 public record CompanyListItem(
   Guid Id,

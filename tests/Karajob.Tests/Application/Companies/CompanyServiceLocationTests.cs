@@ -57,14 +57,12 @@ public class CompanyServiceLocationTests : CompanyServiceFixture
     Assert.Equal(new[] { SeedData.SerbiaLocationId, SeedData.UsaLocationId }.Order(), found!.LocationIds.Order());
   }
 
-  [Theory]
-  [InlineData(true)]
-  [InlineData(false)]
-  public async Task UpdateAsync_EmptyOrNullLocations_ClearsThem(bool useNull)
+  [Fact]
+  public async Task UpdateAsync_EmptyLocations_ClearsThem()
   {
     var created = await Service.CreateAsync(Input() with { LocationIds = [SeedData.EuLocationId] });
 
-    var updated = await Service.UpdateAsync(created.Id, Input() with { LocationIds = useNull ? null : [] });
+    var updated = await Service.UpdateAsync(created.Id, Input() with { LocationIds = [] });
 
     Assert.Empty(updated.LocationIds);
     Assert.Empty((await Service.FindBySlugAsync("pixel-forge"))!.LocationIds);

@@ -296,7 +296,7 @@ public class BoardPageTests : VacancyWebFixture
   public async Task Render_CardWithoutTitleButWithCompanyAndRole_ShowsCompanyAndRoleInCardLink()
   {
     var hypothesisId = await CreateHypothesisAsync();
-    var company = await Companies.CreateAsync(new Karajob.Application.Companies.CompanyInput("pixel-forge", "Pixel Forge", null, null, [], []));
+    var company = await Companies.CreateAsync(new Karajob.Application.Companies.CompanyInput("pixel-forge", "Pixel Forge", null, null, [], [], []));
     var vacancy = await Vacancies.CreateAsync(Input("https://example.com/jobs/1", company.Id, Karajob.Infrastructure.Persistence.SeedData.UnityDeveloperRoleId, [hypothesisId]));
     await MutateAsync(vacancy.Id, v => v.MoveTo(VacancyStage.Targeted, vacancy.DiscoveredAt.AddMinutes(1)));
 

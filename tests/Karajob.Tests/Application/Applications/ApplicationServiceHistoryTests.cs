@@ -35,7 +35,7 @@ public class ApplicationServiceHistoryTests : VacancyServiceFixture
 
   private async Task<Guid> CreateCompanyNamedAsync(string slug, string name)
   {
-    var company = await Companies.CreateAsync(new CompanyInput(slug, name, null, null, [], []));
+    var company = await Companies.CreateAsync(new CompanyInput(slug, name, null, null, [], [], []));
     return company.Id;
   }
 

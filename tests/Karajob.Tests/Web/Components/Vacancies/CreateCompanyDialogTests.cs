@@ -40,7 +40,7 @@ public class CreateCompanyDialogTests : VacancyWebFixture
   [Fact]
   public async Task Save_SlugTakenByAnotherCompany_ShowsConflictAndStaysOpen()
   {
-    await Companies.CreateAsync(new CompanyInput("pixel-forge", "Taken Studio", null, null, [], []));
+    await Companies.CreateAsync(new CompanyInput("pixel-forge", "Taken Studio", null, null, [], [], []));
     var (provider, reference) = await ShowDialogAsync(ParametersFor("Pixel Forge"));
     provider.WaitForElement(".company-save").Click();
 
