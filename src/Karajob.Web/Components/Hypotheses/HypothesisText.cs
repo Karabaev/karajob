@@ -83,7 +83,19 @@ public static class HypothesisText
 
   public static string Summary(HypothesisListItem item)
   {
-    throw new NotImplementedException();
+    var parts = new List<string> { item.LanguageCode.ToUpperInvariant() };
+    if (item.PlatformNames.Count > 0)
+    {
+      parts.Add(string.Join(", ", item.PlatformNames));
+    }
+
+    var format = Format(item.WorkFormat);
+    if (format.Length > 0)
+    {
+      parts.Add(format);
+    }
+
+    return string.Join(" · ", parts);
   }
 
   public static string Format(WorkFormat format)

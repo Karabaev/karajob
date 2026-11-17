@@ -134,6 +134,8 @@ Order: block A → block B; blocks C, D, E, G are independent after #41.
 
 - [x] #106 Time zone on a location: an optional IANA time zone, shown in the Locations table and edited in the location dialog (searchable, clearable); Serbia is seeded as `Europe/Belgrade`.
 
+- [x] #107 Hypothesis details in the To board dialog: language, platforms and work format shown as a secondary line under each hypothesis name.
+
 ### Not in Phase 0.5
 
 Any AI and MCP, building the master profile from a CV with AI, CV adaptation and generation, the Contact entity and "Activity" goals for contacts and CV adaptations, job boards and a scanner, calendar, public access and OAuth. If you feel like adding something from this list along the way, write it into the backlog and move on.
