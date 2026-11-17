@@ -249,7 +249,16 @@ public class AddVacancyDialogTests : VacancyWebFixture
     Assert.Contains(ElementReferenceId(provider, ".quick-add-url input"), ExplicitFocusTargets());
   }
 
-  // AutoFocus focuses with preventScroll=true; an explicit FocusAsync() call focuses with preventScroll=false.
+  [Fact]
+  public async Task Open_DialogFocusTrapDoesNotTakeFocus()
+  {
+    var (provider, _) = await ShowDialogAsync(new DialogParameters<AddVacancyDialog>());
+    provider.WaitForElement(".quick-add-url input");
+
+    Assert.Equal([ElementReferenceId(provider, ".quick-add-url input")], ExplicitFocusTargets());
+  }
+
+  // Keeps only explicit FocusAsync() calls (preventScroll=false), not the dialog's own focus handling.
   private HashSet<string> ExplicitFocusTargets()
   {
     return Context.JSInterop.Invocations
