@@ -127,7 +127,7 @@ public class ProfileSettingsApiTokenTests : ProfileWebFixture
     await cut.WaitForAssertionAsync(() => Assert.StartsWith("kj_", TokenText(cut)));
     var token = TokenText(cut);
 
-    var reopened = RenderPage();
+    var reopened = Context.Render<ProfileSettings>();
     OpenApiTokenTab(reopened);
 
     Assert.Empty(reopened.FindAll(".api-token-value"));

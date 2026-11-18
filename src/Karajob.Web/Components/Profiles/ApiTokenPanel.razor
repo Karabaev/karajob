@@ -1,7 +1,7 @@
 @using Karajob.Web.Components.Common
 @inject UserService Users
 @inject ProfileCurrentUser CurrentUser
-@inject ICurrentUser Viewer
+@inject UserDates Dates
 @inject TimeProvider TimeProvider
 @inject IDialogService DialogService
 @inject IJSRuntime JS
@@ -29,7 +29,7 @@
 
     @if (_status.Exists)
     {
-      <MudText Class="api-token-created" Typo="Typo.body2">@L["ApiToken.Created", new UserDates(Viewer, TimeProvider).FormatDateTime(_status.CreatedAt!.Value)]</MudText>
+      <MudText Class="api-token-created" Typo="Typo.body2">@L["ApiToken.Created", Dates.FormatDateTime(_status.CreatedAt!.Value)]</MudText>
       <MudStack Row="true" Spacing="2">
         <MudButton Class="api-token-regenerate" Variant="Variant.Outlined" Color="Color.Primary" Disabled="_busy" OnClick="RegenerateAsync">@L["ApiToken.Regenerate"]</MudButton>
         <MudButton Class="api-token-revoke" Variant="Variant.Outlined" Color="Color.Error" Disabled="_busy" OnClick="RevokeAsync">@L["ApiToken.Revoke"]</MudButton>
