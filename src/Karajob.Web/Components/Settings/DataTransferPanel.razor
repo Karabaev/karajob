@@ -1,0 +1,71 @@
+@using Karajob.Application.Transfer
+@using Karajob.Web.Resources
+@using Karajob.Web.Transfer
+@inject IStringLocalizer<PagesStrings> L
+@inject IDatabaseTransfer Transfer
+@inject TransferOptions Options
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+
+<MudPaper Class="pa-4 settings-transfer">
+  <MudStack Spacing="2">
+    <MudText Typo="Typo.h6" HtmlTag="h2">@L["Pages.Transfer"]</MudText>
+    <MudText Typo="Typo.body2">@L["Pages.TransferHelp"]</MudText>
+    @if (_error is not null)
+    {
+      <MudAlert Class="settings-transfer-error" Severity="Severity.Error">@_error</MudAlert>
+    }
+    <MudStack Row="true" Spacing="2">
+      <MudButton Class="settings-export" Variant="Variant.Outlined" Color="Color.Primary" Href="@TransferEndpoints.ExportPath"
+                 StartIcon="@Icons.Material.Filled.Download" UserAttributes="@(new Dictionary<string, object> { ["download"] = true })">@L["Pages.TransferExport"]</MudButton>
+      <MudFileUpload T="IBrowserFile" Accept=".zip" FilesChanged="ImportAsync" Disabled="_importing">
+        <CustomContent>
+          <MudButton Class="settings-import" Variant="Variant.Outlined" Color="Color.Error" Disabled="_importing"
+                     StartIcon="@Icons.Material.Filled.Upload" OnClick="@context.OpenFilePickerAsync">@L["Pages.TransferImport"]</MudButton>
+        </CustomContent>
+      </MudFileUpload>
+    </MudStack>
+  </MudStack>
+</MudPaper>
+
+@code {
+  private string? _error;
+  private bool _importing;
+
+  private async Task ImportAsync(IBrowserFile? file)
+  {
+    if (file is null) return;
+
+    var confirmed = await DialogService.ShowMessageBoxAsync(
+      L["Pages.TransferImportTitle"],
+      (MarkupString)System.Net.WebUtility.HtmlEncode(L["Pages.TransferImportWarning", file.Name].Value),
+      yesText: L["Pages.TransferImportConfirm"],
+      cancelText: L["Pages.TagCancel"]);
+    if (confirmed != true) return;
+
+    _error = null;
+    _importing = true;
+    try
+    {
+      // OpenReadStream defaults to a 500 KB cap, so pass the configured limit explicitly.
+      await using var stream = file.OpenReadStream(Options.MaxImportSizeBytes);
+      var summary = await Transfer.ImportAsync(stream);
+      Snackbar.Add(L["Pages.TransferImported", summary.TotalRows, summary.FileCount], Severity.Success);
+      // The signed-in profile may not exist in the imported data, so restart from the profile selection.
+      Navigation.NavigateTo("/", forceLoad: true);
+    }
+    catch (DatabaseTransferException exception)
+    {
+      _error = L[$"Pages.TransferFailure.{exception.Failure}"];
+    }
+    catch (IOException exception)
+    {
+      _error = exception.Message;
+    }
+    finally
+    {
+      _importing = false;
+    }
+  }
+}

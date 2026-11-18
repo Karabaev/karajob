@@ -4,6 +4,7 @@ using Karajob.Application.Companies;
 using Karajob.Application.Cvs;
 using Karajob.Application.Goals;
 using Karajob.Application.Tracks;
+using Karajob.Application.Transfer;
 using Karajob.Application.MasterProfiles;
 using Karajob.Application.Metrics;
 using Karajob.Application.Users;
@@ -16,6 +17,7 @@ using Karajob.Web.Components;
 using Karajob.Web.Components.Common;
 using Karajob.Web.Cvs;
 using Karajob.Web.Persistence;
+using Karajob.Web.Transfer;
 using Karajob.Web.Users;
 using Karajob.Web.Vacancies;
 using Microsoft.AspNetCore.Authentication;
@@ -99,6 +101,13 @@ builder.Services.AddKarajobFileStorage(new FileStorageOptions
 {
   RootDirectory = Path.GetFullPath(Path.Combine(builder.Environment.ContentRootPath, fileStorageOptions.RootDirectory))
 });
+var transferOptions = builder.Configuration.GetRequiredSection(TransferOptions.SectionName).Get<TransferOptions>()
+  ?? throw new InvalidOperationException($"Configuration section '{TransferOptions.SectionName}' is empty.");
+if (transferOptions.MaxImportSizeMb <= 0)
+{
+  throw new InvalidOperationException($"{TransferOptions.SectionName}:{nameof(TransferOptions.MaxImportSizeMb)} must be positive.");
+}
+builder.Services.AddSingleton(transferOptions);
 builder.Services.AddScoped<CvService>();
 builder.Services.AddScoped<TagService>();
 
@@ -140,6 +149,7 @@ app.MapStaticAssets();
 app.MapRazorComponents<App>()
   .AddInteractiveServerRenderMode();
 app.MapCvEndpoints();
+app.MapTransferEndpoints();
 app.MapProfileEndpoints();
 app.MapInboxApiEndpoints();
 

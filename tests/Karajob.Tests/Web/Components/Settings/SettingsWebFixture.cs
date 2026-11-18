@@ -2,6 +2,7 @@ using Bunit;
 using Karajob.Application.Catalogs;
 using Karajob.Application.Goals;
 using Karajob.Application.Persistence;
+using Karajob.Application.Transfer;
 using Karajob.Application.Users;
 using Karajob.Infrastructure.Persistence;
 using Karajob.Infrastructure.Users;
@@ -18,6 +19,7 @@ public abstract class SettingsWebFixture : IAsyncLifetime
   protected SqliteTestDatabase Database { get; private set; } = null!;
   protected SearchGoalService Service { get; private set; } = null!;
   protected CatalogService Catalogs { get; private set; } = null!;
+  protected StubDatabaseTransfer Transfer { get; } = new();
 
   public async Task InitializeAsync()
   {
@@ -29,6 +31,8 @@ public abstract class SettingsWebFixture : IAsyncLifetime
     Context.Services.AddSingleton(TimeProvider.System);
     Context.Services.AddSingleton(Service);
     Context.Services.AddSingleton(Catalogs);
+    Context.Services.AddSingleton<IDatabaseTransfer>(Transfer);
+    Context.Services.AddSingleton(new TransferOptions { MaxImportSizeMb = 1 });
   }
 
   // MudBlazor services are IAsyncDisposable only, and xUnit v2 disposes test classes synchronously.

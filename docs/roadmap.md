@@ -105,7 +105,7 @@ Order: block A → block B; blocks C, D, E, G are independent after #41.
 
 ### E. Data transfer
 
-- [ ] #50 Export/import of the whole database to JSON (import only into an empty database).
+- [x] #50 Export/import of the whole database: a ZIP with `database.json` (format version, schema migration, all profiles and reference data) and the CV files, Export/Import buttons on `/settings`; import replaces all existing data after a confirmation (a file database is backed up first).
 
 ### F. Localization
 

@@ -121,4 +121,18 @@
   <data name="Pages.TagDelete" xml:space="preserve"><value>Delete</value></data>
   <data name="Pages.TagCancel" xml:space="preserve"><value>Cancel</value></data>
   <data name="Pages.TagDeleteLabel" xml:space="preserve"><value>Delete tag</value></data>
+  <data name="Pages.Transfer" xml:space="preserve"><value>Data transfer</value></data>
+  <data name="Pages.TransferHelp" xml:space="preserve"><value>Export the whole database (all profiles, reference data and CV files) as a ZIP archive, or load such an archive back.</value></data>
+  <data name="Pages.TransferExport" xml:space="preserve"><value>Export</value></data>
+  <data name="Pages.TransferImport" xml:space="preserve"><value>Import…</value></data>
+  <data name="Pages.TransferImportTitle" xml:space="preserve"><value>Replace all data?</value></data>
+  <data name="Pages.TransferImportWarning" xml:space="preserve"><value>All current data of ALL profiles, including CV files, will be erased and replaced with the content of &quot;{0}&quot;. This cannot be undone.</value></data>
+  <data name="Pages.TransferImportConfirm" xml:space="preserve"><value>Erase and import</value></data>
+  <data name="Pages.TransferImported" xml:space="preserve"><value>Imported {0} rows and {1} files</value></data>
+  <data name="Pages.TransferFailure.NotAnArchive" xml:space="preserve"><value>The file is not a valid export archive.</value></data>
+  <data name="Pages.TransferFailure.DataFileMissing" xml:space="preserve"><value>The archive has no database.json.</value></data>
+  <data name="Pages.TransferFailure.UnsupportedFormatVersion" xml:space="preserve"><value>This export format version is not supported.</value></data>
+  <data name="Pages.TransferFailure.SchemaMismatch" xml:space="preserve"><value>The export was made on a different database schema version.</value></data>
+  <data name="Pages.TransferFailure.InvalidData" xml:space="preserve"><value>The archive contains invalid data.</value></data>
+  <data name="Pages.TransferFailure.CvFileMissing" xml:space="preserve"><value>A CV file referenced by the data is missing.</value></data>
 </root>
