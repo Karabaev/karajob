@@ -149,6 +149,7 @@ Order: block A → block B; blocks C, D, E, G are independent after #41.
 - [x] #107 Track details in the To board dialog: language, platforms and work format shown as a secondary line under each track name.
 - [x] #99 Profile settings page: name, color and time zone of the current profile are edited on `/profile-settings`, reached from the profile dropdown; the edit action is gone from "All profiles", and the avatar and time zone update without a reload.
 - [x] #93 Open link icon button on the board card: opens the vacancy URL in a new tab for any stage, shown only for an absolute http(s) URL; the check is shared with the vacancy page via `VacancyText.OpenableUrl`.
+- [x] #129 Time zones in Docker: `tzdata` is installed in the runtime image, and startup fails fast (`UserTime.EnsureTimeZoneDatabase`) when only UTC is available.
 
 ### Not in Phase 0.5
 
