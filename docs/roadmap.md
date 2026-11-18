@@ -100,7 +100,7 @@ Order: block A → block B; blocks C, D, E, G are independent after #41.
 
 ### D. Access from a phone
 
-- [ ] #48 A personal profile token and `POST /api/inbox` for an iPhone Shortcuts quick command.
+- [x] #48 A personal profile token (generated, regenerated and revoked on demand in Profile Settings → API token; stored hashed, shown once) and `POST /api/inbox` with `Authorization: Bearer` for an iPhone Shortcuts quick command; Profile Settings got a vertical menu (General, API token). Instruction: `docs/iphone-shortcuts.md`.
 - [ ] #49 HTTPS on a reverse proxy, PWA and Web Share Target → Quick Add; responsive layout of Inbox and Quick Add.
 
 ### E. Data transfer
