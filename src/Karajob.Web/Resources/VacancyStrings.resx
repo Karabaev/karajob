@@ -119,4 +119,6 @@
   <data name="Reopen.Submit" xml:space="preserve"><value>Reopen</value></data>
   <data name="Page.Reopen" xml:space="preserve"><value>Reopen</value></data>
   <data name="Page.ReopenTitle" xml:space="preserve"><value>Reopen vacancy</value></data>
+  <data name="Api.Inbox.Added" xml:space="preserve"><value>Added to Inbox</value></data>
+  <data name="Api.Inbox.AlreadyExists" xml:space="preserve"><value>Vacancy already exists</value></data>
 </root>

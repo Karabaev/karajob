@@ -119,4 +119,6 @@
   <data name="Reopen.Submit" xml:space="preserve"><value>Вернуть</value></data>
   <data name="Page.Reopen" xml:space="preserve"><value>Вернуть в работу</value></data>
   <data name="Page.ReopenTitle" xml:space="preserve"><value>Вернуть вакансию в работу</value></data>
+  <data name="Api.Inbox.Added" xml:space="preserve"><value>Добавлено во входящие</value></data>
+  <data name="Api.Inbox.AlreadyExists" xml:space="preserve"><value>Вакансия уже существует</value></data>
 </root>
