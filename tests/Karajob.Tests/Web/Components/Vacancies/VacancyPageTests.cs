@@ -788,4 +788,61 @@ public class VacancyPageTests : VacancyWebFixture
 
     return Assert.Single(items);
   }
+
+  [Fact]
+  public async Task Render_VacancyWithMarkdownDescription_ShowsRenderedPreview()
+  {
+    var created = await Vacancies.CreateAsync(Input("https://example.com/jobs/1") with { Description = "## Duties\n\n- one\n- two" });
+
+    var cut = Context.Render<VacancyPage>(p => p.Add(c => c.Id, created.Id));
+
+    cut.WaitForAssertion(() =>
+    {
+      var preview = cut.Find(".vacancy-description .markdown-field-preview");
+      Assert.NotNull(preview.QuerySelector("h2"));
+      Assert.Equal(2, preview.QuerySelectorAll("li").Length);
+    });
+  }
+
+  [Fact]
+  public async Task Render_VacancyWithDescription_ShowsRawMarkdownInTextarea()
+  {
+    var created = await Vacancies.CreateAsync(Input("https://example.com/jobs/1") with { Description = "## Duties" });
+
+    var cut = Context.Render<VacancyPage>(p => p.Add(c => c.Id, created.Id));
+
+    cut.WaitForAssertion(() => Assert.Contains("## Duties", cut.Find(".vacancy-description textarea").TextContent));
+  }
+
+  [Fact]
+  public async Task Save_DescriptionEdited_PersistsRawMarkdown()
+  {
+    var created = await Vacancies.CreateAsync(Input("https://example.com/jobs/1") with { Description = "old" });
+    var cut = Context.Render<VacancyPage>(p => p.Add(c => c.Id, created.Id));
+    cut.WaitForAssertion(() => Assert.Contains("old", cut.Find(".vacancy-description textarea").TextContent));
+    cut.Find(".vacancy-description textarea").Input("## New\n\n- item");
+
+    cut.Find(".vacancy-save").Click();
+
+    var deadline = DateTime.UtcNow.AddSeconds(5);
+    var found = await Vacancies.FindAsync(created.Id);
+    while (DateTime.UtcNow < deadline && found!.Description != "## New\n\n- item")
+    {
+      await Task.Delay(50);
+      found = await Vacancies.FindAsync(created.Id);
+    }
+    Assert.Equal("## New\n\n- item", found!.Description);
+  }
+
+  [Fact]
+  public async Task Input_DescriptionTyped_UpdatesPreviewOnPage()
+  {
+    var created = await Vacancies.CreateAsync(Input("https://example.com/jobs/1"));
+    var cut = Context.Render<VacancyPage>(p => p.Add(c => c.Id, created.Id));
+    cut.WaitForAssertion(() => Assert.NotNull(cut.Find(".vacancy-description textarea")));
+
+    cut.Find(".vacancy-description textarea").Input("# Heading");
+
+    cut.WaitForAssertion(() => Assert.NotNull(cut.Find(".vacancy-description .markdown-field-preview").QuerySelector("h1")));
+  }
 }

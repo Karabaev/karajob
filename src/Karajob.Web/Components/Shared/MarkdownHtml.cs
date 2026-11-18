@@ -3,7 +3,7 @@ using Markdig.Syntax;
 using Markdig.Syntax.Inlines;
 using Microsoft.AspNetCore.Components;
 
-namespace Karajob.Web.Components.MasterProfiles;
+namespace Karajob.Web.Components.Shared;
 
 public static class MarkdownHtml
 {

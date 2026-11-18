@@ -1,6 +1,6 @@
-using Karajob.Web.Components.MasterProfiles;
+using Karajob.Web.Components.Shared;
 
-namespace Karajob.Tests.Web.Components.MasterProfiles;
+namespace Karajob.Tests.Web.Components.Shared;
 
 public class MarkdownHtmlTests
 {
@@ -74,5 +74,37 @@ public class MarkdownHtmlTests
   public void Render_RelativeLink_KeepsHref()
   {
     Assert.Contains("href=\"/vacancies\"", Html("[x](/vacancies)"));
+  }
+
+  [Fact]
+  public void Render_BulletList_ProducesUlAndLi()
+  {
+    var html = Html("- one\n- two");
+
+    Assert.Contains("<ul", html);
+    Assert.Contains("<li", html);
+  }
+
+  [Fact]
+  public void Render_H1Heading_ProducesH1()
+  {
+    Assert.Contains("<h1", Html("# T"));
+  }
+
+  [Fact]
+  public void Render_BlankLineSeparatedText_ProducesTwoParagraphs()
+  {
+    var html = Html("first\n\nsecond");
+
+    Assert.Equal(2, System.Text.RegularExpressions.Regex.Matches(html, "<p>").Count);
+  }
+
+  [Fact]
+  public void Render_ImgWithOnerror_IsEscaped()
+  {
+    var html = Html("<img src=x onerror=alert(1)>");
+
+    Assert.DoesNotContain("<img", html, StringComparison.OrdinalIgnoreCase);
+    Assert.Contains("&lt;img", html);
   }
 }
