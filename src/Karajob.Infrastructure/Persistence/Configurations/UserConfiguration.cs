@@ -12,6 +12,9 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
     builder.Property(u => u.Color).HasMaxLength(7).HasDefaultValue(SeedData.OwnerColor);
     builder.Property(u => u.TimeZoneId).HasMaxLength(64).HasDefaultValue(UserTime.DefaultTimeZoneId);
 
+    builder.Property(u => u.ApiTokenHash).HasMaxLength(64);
+    builder.HasIndex(u => u.ApiTokenHash).IsUnique();
+
     builder.HasData(new
     {
       Id = SeedData.OwnerId,

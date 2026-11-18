@@ -18,6 +18,7 @@ using Karajob.Web.Cvs;
 using Karajob.Web.Persistence;
 using Karajob.Web.Users;
 using Karajob.Web.Vacancies;
+using Microsoft.AspNetCore.Authentication;
 using MudBlazor.Services;
 using Microsoft.AspNetCore.DataProtection;
 
@@ -63,6 +64,8 @@ if (databaseOptions.Provider == DatabaseOptions.SqliteProvider)
   builder.Services.AddHostedService<DailyBackupHostedService>();
 }
 builder.Services.AddProfileAuthentication();
+builder.Services.AddAuthentication()
+  .AddScheme<AuthenticationSchemeOptions, ApiTokenAuthenticationHandler>(ApiTokenAuthenticationHandler.Scheme, null);
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<SearchGoalService>();
 builder.Services.AddScoped<MasterProfileService>();
@@ -138,5 +141,6 @@ app.MapRazorComponents<App>()
   .AddInteractiveServerRenderMode();
 app.MapCvEndpoints();
 app.MapProfileEndpoints();
+app.MapInboxApiEndpoints();
 
 await app.RunAsync();
