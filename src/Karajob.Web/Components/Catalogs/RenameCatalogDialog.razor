@@ -55,10 +55,7 @@
 
   private Task<IEnumerable<string>> SearchTimeZones(string? text, CancellationToken cancellationToken)
   {
-    var found = string.IsNullOrWhiteSpace(text)
-      ? _timeZones
-      : _timeZones.Where(zone => zone.Label.Contains(text.Trim(), StringComparison.OrdinalIgnoreCase));
-    return Task.FromResult(found.Select(zone => zone.Id));
+    return Task.FromResult(TimeZoneOption.Search(_timeZones, text));
   }
 
   private string TimeZoneLabel(string? id)

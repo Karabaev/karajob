@@ -19,6 +19,18 @@ public record TimeZoneOption(string Id, string Label)
       .ToList();
   }
 
+  // The autocomplete searches by the field text, which for a selected zone is its full label; without this
+  // the list would open with only that zone.
+  public static IEnumerable<string> Search(IReadOnlyList<TimeZoneOption> zones, string? text)
+  {
+    var query = text?.Trim();
+    var showAll = string.IsNullOrEmpty(query)
+      || zones.Any(zone => string.Equals(zone.Label, query, StringComparison.Ordinal));
+    return zones
+      .Where(zone => showAll || zone.Label.Contains(query!, StringComparison.OrdinalIgnoreCase))
+      .Select(zone => zone.Id);
+  }
+
   private static string? TryNormalize(string id)
   {
     try

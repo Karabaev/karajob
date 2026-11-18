@@ -20,12 +20,6 @@ RUN dotnet publish src/Karajob.Web/Karajob.Web.csproj -c Release --no-restore -o
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
 
-# The aspnet image has no /usr/share/zoneinfo, so TimeZoneInfo would only know UTC.
-USER root
-RUN apt-get update \
-  && apt-get install -y --no-install-recommends tzdata \
-  && rm -rf /var/lib/apt/lists/*
-
 # Owned by the non-root app user so the container also works without a mounted volume.
 RUN mkdir /data && chown app:app /data
 

@@ -9,6 +9,8 @@ namespace Karajob.Tests.Web.Components.Profiles;
 
 public class ProfileFormTests : ProfileWebFixture
 {
+  private IRenderedComponent<MudPopoverProvider> _popovers = null!;
+
   [Fact]
   public void Render_CreateMode_ShowsOneSwatchPerPaletteColor()
   {
@@ -161,11 +163,24 @@ public class ProfileFormTests : ProfileWebFixture
     Assert.Equal("Asia/Tokyo", (await Users.GetAsync(created.Id))!.TimeZoneId);
   }
 
+  [Fact]
+  public async Task OpenTimeZoneList_ProfileHasZone_OffersEveryZone()
+  {
+    var created = await Users.CreateAsync(new UserInput("Anna", ProfilePalette.Colors[0], "Asia/Tokyo"));
+    var cut = RenderForm(created, out _);
+    var input = cut.WaitForElement(".profile-time-zone input");
+
+    input.Focus();
+
+    _popovers.WaitForElements(".mud-list-item");
+    Assert.True(_popovers.FindAll(".mud-list-item").Count > 50);
+  }
+
   private IRenderedComponent<ProfileForm> RenderForm(UserDto? profile, out List<UserDto> saved)
   {
     var raised = new List<UserDto>();
     saved = raised;
-    Context.Render<MudPopoverProvider>();
+    _popovers = Context.Render<MudPopoverProvider>();
     return Context.Render<ProfileForm>(p => p
       .Add(f => f.Profile, profile)
       .Add(f => f.OnSaved, EventCallback.Factory.Create<UserDto>(this, raised.Add)));
