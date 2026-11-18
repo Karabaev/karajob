@@ -14,4 +14,21 @@
   <data name="Profile.NewTitle" xml:space="preserve"><value>New profile</value></data>
   <data name="Profile.SettingsTitle" xml:space="preserve"><value>Profile settings</value></data>
   <data name="Profile.Saved" xml:space="preserve"><value>Saved</value></data>
+  <data name="Profile.TabGeneral" xml:space="preserve"><value>General</value></data>
+  <data name="Profile.TabApiToken" xml:space="preserve"><value>API token</value></data>
+  <data name="ApiToken.Title" xml:space="preserve"><value>API token</value></data>
+  <data name="ApiToken.Description" xml:space="preserve"><value>Use a personal token to add links to your inbox from other apps, for example an iPhone Shortcut. Only a hash of the token is stored.</value></data>
+  <data name="ApiToken.Generate" xml:space="preserve"><value>Generate token</value></data>
+  <data name="ApiToken.Regenerate" xml:space="preserve"><value>Regenerate</value></data>
+  <data name="ApiToken.Revoke" xml:space="preserve"><value>Revoke</value></data>
+  <data name="ApiToken.Created" xml:space="preserve"><value>Created {0}</value></data>
+  <data name="ApiToken.ShownOnce" xml:space="preserve"><value>Copy the token now. It cannot be shown again.</value></data>
+  <data name="ApiToken.Copy" xml:space="preserve"><value>Copy</value></data>
+  <data name="ApiToken.Copied" xml:space="preserve"><value>Token copied</value></data>
+  <data name="ApiToken.CopyFailed" xml:space="preserve"><value>Could not copy, select the token and copy it manually</value></data>
+  <data name="ApiToken.UsageHint" xml:space="preserve"><value>Send it as a Bearer token to POST /api/inbox, for example:</value></data>
+  <data name="ApiToken.RegenerateTitle" xml:space="preserve"><value>Regenerate token?</value></data>
+  <data name="ApiToken.RegenerateText" xml:space="preserve"><value>The current token stops working immediately. Apps using it must be updated with the new one.</value></data>
+  <data name="ApiToken.RevokeTitle" xml:space="preserve"><value>Revoke token?</value></data>
+  <data name="ApiToken.RevokeText" xml:space="preserve"><value>The current token stops working immediately.</value></data>
 </root>

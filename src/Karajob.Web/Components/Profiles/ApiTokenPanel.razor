@@ -1,0 +1,112 @@
+@using Karajob.Web.Components.Common
+@inject UserService Users
+@inject ProfileCurrentUser CurrentUser
+@inject ICurrentUser Viewer
+@inject TimeProvider TimeProvider
+@inject IDialogService DialogService
+@inject IJSRuntime JS
+@inject ISnackbar Snackbar
+
+@if (_status is not null)
+{
+  <MudStack Spacing="3">
+    <MudText Typo="Typo.h6" HtmlTag="h2">@L["ApiToken.Title"]</MudText>
+    <MudText Typo="Typo.body2">@L["ApiToken.Description"]</MudText>
+
+    @if (_token is not null)
+    {
+      <MudAlert Severity="Severity.Warning" Dense="true">@L["ApiToken.ShownOnce"]</MudAlert>
+      <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+        <MudText Class="api-token-value" Typo="Typo.body1" Style="font-family: monospace; overflow-wrap: anywhere; user-select: all;">@_token</MudText>
+        <MudTooltip Text="@L["ApiToken.Copy"]">
+          <MudIconButton Class="api-token-copy" Icon="@Icons.Material.Filled.ContentCopy" Size="Size.Small"
+                         aria-label="@L["ApiToken.Copy"]" OnClick="CopyAsync" />
+        </MudTooltip>
+      </MudStack>
+      <MudText Typo="Typo.caption">@L["ApiToken.UsageHint"]</MudText>
+      <MudText Typo="Typo.caption" Style="font-family: monospace; overflow-wrap: anywhere;">curl -X POST -H "Authorization: Bearer &lt;token&gt;" -H "Content-Type: application/json" -d '{"url":"https://..."}' &lt;host&gt;/api/inbox</MudText>
+    }
+
+    @if (_status.Exists)
+    {
+      <MudText Class="api-token-created" Typo="Typo.body2">@L["ApiToken.Created", new UserDates(Viewer, TimeProvider).FormatDateTime(_status.CreatedAt!.Value)]</MudText>
+      <MudStack Row="true" Spacing="2">
+        <MudButton Class="api-token-regenerate" Variant="Variant.Outlined" Color="Color.Primary" Disabled="_busy" OnClick="RegenerateAsync">@L["ApiToken.Regenerate"]</MudButton>
+        <MudButton Class="api-token-revoke" Variant="Variant.Outlined" Color="Color.Error" Disabled="_busy" OnClick="RevokeAsync">@L["ApiToken.Revoke"]</MudButton>
+      </MudStack>
+    }
+    else
+    {
+      <div>
+        <MudButton Class="api-token-generate" Variant="Variant.Filled" Color="Color.Primary" Disabled="_busy" OnClick="GenerateAsync">@L["ApiToken.Generate"]</MudButton>
+      </div>
+    }
+  </MudStack>
+}
+
+@code {
+  private ApiTokenStatus? _status;
+  private string? _token;
+  private bool _busy;
+
+  protected override async Task OnInitializedAsync()
+  {
+    _status = await Users.GetApiTokenStatusAsync(CurrentUser.UserId);
+  }
+
+  private async Task GenerateAsync()
+  {
+    if (_busy) return;
+
+    _busy = true;
+    try
+    {
+      _token = await Users.IssueApiTokenAsync(CurrentUser.UserId);
+      _status = await Users.GetApiTokenStatusAsync(CurrentUser.UserId);
+    }
+    finally
+    {
+      _busy = false;
+    }
+  }
+
+  private async Task RegenerateAsync()
+  {
+    var confirmed = await DialogService.ShowMessageBoxAsync(
+      L["ApiToken.RegenerateTitle"],
+      L["ApiToken.RegenerateText"].Value,
+      yesText: L["ApiToken.Regenerate"],
+      cancelText: L["Profile.Cancel"]);
+    if (confirmed != true) return;
+
+    await GenerateAsync();
+  }
+
+  private async Task RevokeAsync()
+  {
+    var confirmed = await DialogService.ShowMessageBoxAsync(
+      L["ApiToken.RevokeTitle"],
+      L["ApiToken.RevokeText"].Value,
+      yesText: L["ApiToken.Revoke"],
+      cancelText: L["Profile.Cancel"]);
+    if (confirmed != true) return;
+
+    await Users.RevokeApiTokenAsync(CurrentUser.UserId);
+    _token = null;
+    _status = await Users.GetApiTokenStatusAsync(CurrentUser.UserId);
+  }
+
+  // navigator.clipboard exists only in a secure context (HTTPS or localhost); over plain HTTP the call fails.
+  private async Task CopyAsync()
+  {
+    try
+    {
+      await JS.InvokeVoidAsync("navigator.clipboard.writeText", _token);
+      Snackbar.Add(L["ApiToken.Copied"], Severity.Success);
+    }
+    catch (JSException)
+    {
+      Snackbar.Add(L["ApiToken.CopyFailed"], Severity.Warning);
+    }
+  }
+}

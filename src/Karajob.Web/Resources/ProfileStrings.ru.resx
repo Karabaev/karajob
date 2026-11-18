@@ -14,4 +14,21 @@
   <data name="Profile.NewTitle" xml:space="preserve"><value>Новый профиль</value></data>
   <data name="Profile.SettingsTitle" xml:space="preserve"><value>Настройки профиля</value></data>
   <data name="Profile.Saved" xml:space="preserve"><value>Сохранено</value></data>
+  <data name="Profile.TabGeneral" xml:space="preserve"><value>Общие</value></data>
+  <data name="Profile.TabApiToken" xml:space="preserve"><value>API-токен</value></data>
+  <data name="ApiToken.Title" xml:space="preserve"><value>API-токен</value></data>
+  <data name="ApiToken.Description" xml:space="preserve"><value>Личный токен позволяет добавлять ссылки во входящие из других приложений, например из команды iPhone. Хранится только хеш токена.</value></data>
+  <data name="ApiToken.Generate" xml:space="preserve"><value>Сгенерировать токен</value></data>
+  <data name="ApiToken.Regenerate" xml:space="preserve"><value>Перегенерировать</value></data>
+  <data name="ApiToken.Revoke" xml:space="preserve"><value>Отозвать</value></data>
+  <data name="ApiToken.Created" xml:space="preserve"><value>Создан {0}</value></data>
+  <data name="ApiToken.ShownOnce" xml:space="preserve"><value>Скопируйте токен сейчас. Повторно показать его нельзя.</value></data>
+  <data name="ApiToken.Copy" xml:space="preserve"><value>Копировать</value></data>
+  <data name="ApiToken.Copied" xml:space="preserve"><value>Токен скопирован</value></data>
+  <data name="ApiToken.CopyFailed" xml:space="preserve"><value>Не удалось скопировать, выделите токен и скопируйте вручную</value></data>
+  <data name="ApiToken.UsageHint" xml:space="preserve"><value>Передавайте его как Bearer-токен в POST /api/inbox, например:</value></data>
+  <data name="ApiToken.RegenerateTitle" xml:space="preserve"><value>Перегенерировать токен?</value></data>
+  <data name="ApiToken.RegenerateText" xml:space="preserve"><value>Текущий токен сразу перестанет работать. Приложения, которые его используют, нужно обновить.</value></data>
+  <data name="ApiToken.RevokeTitle" xml:space="preserve"><value>Отозвать токен?</value></data>
+  <data name="ApiToken.RevokeText" xml:space="preserve"><value>Текущий токен сразу перестанет работать.</value></data>
 </root>

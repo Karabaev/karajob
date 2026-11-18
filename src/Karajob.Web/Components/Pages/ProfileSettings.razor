@@ -12,8 +12,17 @@
 
 @if (_profile is not null)
 {
-  <MudPaper Class="pa-4" MaxWidth="600px">
-    <ProfileForm Profile="_profile" OnSaved="OnSaved" />
+  <MudPaper Class="pa-4" MaxWidth="900px">
+    <MudTabs Position="Position.Start" Elevation="0" PanelClass="pa-4">
+      <MudTabPanel Text="@ProfileL["Profile.TabGeneral"]">
+        <div style="max-width:600px">
+          <ProfileForm Profile="_profile" OnSaved="OnSaved" />
+        </div>
+      </MudTabPanel>
+      <MudTabPanel Text="@ProfileL["Profile.TabApiToken"]">
+        <ApiTokenPanel />
+      </MudTabPanel>
+    </MudTabs>
   </MudPaper>
 }
 
