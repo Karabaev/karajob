@@ -90,7 +90,7 @@ A vacancy can be added in 1–2 clicks from any device. The input is only a URL 
 | Where you are | How to add |
 | --- | --- |
 | In the app, any screen | The "+ Vacancy" button in the header (a floating button on a phone) → URL field, paste from the clipboard → Enter |
-| Android phone | The app is installed as a PWA and appears in the Share menu (Web Share Target): from the browser or the LinkedIn app, "Share → Karajob" |
+| Android phone | The app is installed as a PWA and appears in the Share menu (Web Share Target): from the browser or the LinkedIn app, "Share → Karajob" opens the `/quick-add` page with the link prefilled (the link is taken from the `url` or `text` parameter) |
 | iPhone | A PWA on iOS has no Share menu entry, so use a Shortcut that sends the URL to the REST `POST /api/inbox` |
 | Desktop browser | The "To tracker" bookmarklet (see section 5): one click, and it also grabs the text of closed pages |
 | Chat with Claude | "add \<url>" → MCP `ingest_vacancy` |

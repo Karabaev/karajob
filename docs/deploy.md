@@ -42,6 +42,24 @@ Check from the phone:
 
 The interface is English by default. For the Russian interface set `Localization__DefaultCulture=ru` in `.env` / the container environment and restart; the setting applies to everyone, the browser language is ignored.
 
+## HTTPS, PWA and Share to Karajob
+
+TLS is terminated outside the container: the router serves the family domain over HTTPS and proxies plain HTTP to `KARAJOB_PORT` on the server. The container itself speaks only HTTP. Installing the PWA and the Android Share menu entry work only on that HTTPS domain, never on `http://<server-ip>:<port>`.
+
+What the router proxy must do:
+
+- Send `X-Forwarded-Proto: https` (and `X-Forwarded-For`). `compose.yaml` sets `ASPNETCORE_FORWARDEDHEADERS_ENABLED=true`, so the app trusts these headers: the profile cookie then gets the `Secure` flag. That setting trusts any sender, so keep the container port reachable only from the router, never from the internet.
+- Pass WebSocket upgrades (Blazor Server runs over a SignalR connection) and do not use short idle timeouts.
+
+The app ships `manifest.webmanifest`, icons and a minimal service worker (no offline mode). The manifest declares a share target: `GET /quick-add?title=&text=&url=`. Android often puts the link into `text` instead of `url`; the page takes the link from either and keeps the rest of the text as the note. The share target is a GET request, so a very long shared text (about 8 KB once percent-encoded, which Cyrillic reaches sooner) is rejected by Kestrel's request line limit; share the link, not the whole page text.
+
+Manual check on an Android phone (after each deploy that touches these files):
+
+1. Open the domain in Chrome, choose **Install app** (or **Add to Home screen**), and open Karajob from the home screen: it starts without the browser bar.
+2. In Chrome, open a vacancy page and choose **Share → Karajob**: Quick Add opens with the link filled in; add it and see it in Inbox.
+3. Do the same from the LinkedIn app (the link arrives inside `text`).
+4. Remove the profile cookie (or use a fresh browser profile) and share again: the profile picker appears, and after choosing a profile you return to Quick Add with the same link.
+
 ## 3. Update and roll back
 
 Write down the tag that is running now (`KARAJOB_TAG` in `.env`): it is the rollback target. Then set `KARAJOB_TAG` to the new tag and run:
