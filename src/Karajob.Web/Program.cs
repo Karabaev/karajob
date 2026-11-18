@@ -28,7 +28,11 @@ builder.Services.AddRazorComponents()
   // Each keystroke in the master profile editor sends the whole text; the 32 KB default drops the circuit
   // at ~16k Cyrillic characters, while the profile has no length limit.
   .AddHubOptions(options => options.MaximumReceiveMessageSize = 2 * 1024 * 1024);
-builder.Services.AddMudServices();
+builder.Services.AddMudServices(config =>
+{
+  config.SnackbarConfiguration.ShowTransitionDuration = 250;
+  config.SnackbarConfiguration.HideTransitionDuration = 250;
+});
 builder.Services.AddLocalization();
 
 var defaultCulture = builder.Configuration["Localization:DefaultCulture"]
