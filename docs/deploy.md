@@ -51,7 +51,7 @@ What the router proxy must do:
 - Send `X-Forwarded-Proto: https` (and `X-Forwarded-For`). `compose.yaml` sets `ASPNETCORE_FORWARDEDHEADERS_ENABLED=true`, so the app trusts these headers: the profile cookie then gets the `Secure` flag. That setting trusts any sender, so keep the container port reachable only from the router, never from the internet.
 - Pass WebSocket upgrades (Blazor Server runs over a SignalR connection) and do not use short idle timeouts.
 
-The app ships `manifest.webmanifest`, icons and a minimal service worker (no offline mode). The manifest declares a share target: `GET /quick-add?title=&text=&url=`. Android often puts the link into `text` instead of `url`; the page takes the link from either and keeps the rest of the text as the note.
+The app ships `manifest.webmanifest`, icons and a minimal service worker (no offline mode). The manifest declares a share target: `GET /quick-add?title=&text=&url=`. Android often puts the link into `text` instead of `url`; the page takes the link from either and keeps the rest of the text as the note. The share target is a GET request, so a very long shared text (about 8 KB once percent-encoded, which Cyrillic reaches sooner) is rejected by Kestrel's request line limit; share the link, not the whole page text.
 
 Manual check on an Android phone (after each deploy that touches these files):
 

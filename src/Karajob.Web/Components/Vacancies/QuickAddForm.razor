@@ -51,6 +51,9 @@
   public string? InitialNote { get; set; }
 
   [Parameter]
+  public bool AutoFocus { get; set; } = true;
+
+  [Parameter]
   public EventCallback<QuickAddResult> Completed { get; set; }
 
   [Parameter]
@@ -69,6 +72,8 @@
   {
     _url = InitialUrl;
     _title = InitialTitle;
+    // A shared title came from the page behind the link, so it follows the link like a fetched one.
+    _fetchedTitle = InitialTitle;
     _note = InitialNote;
   }
 
@@ -77,8 +82,13 @@
     if (!firstRender) return;
 
     // The dialog's focus trap focuses itself by default (DefaultFocus.Element), after the input's AutoFocus, so it takes the focus away.
-    await _urlField.FocusAsync();
-    if (string.IsNullOrWhiteSpace(_url) || !TitleIsAuto) return;
+    if (AutoFocus)
+    {
+      await _urlField.FocusAsync();
+    }
+
+    // A title that came with the share is already there; only an empty one is fetched.
+    if (string.IsNullOrWhiteSpace(_url) || !string.IsNullOrWhiteSpace(_title)) return;
 
     await OnUrlChangedAsync();
     StateHasChanged();

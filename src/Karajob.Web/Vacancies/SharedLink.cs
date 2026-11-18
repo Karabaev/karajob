@@ -13,17 +13,42 @@ public static partial class SharedLink
     var candidate = url?.Trim();
     if (IsHttpUrl(candidate))
     {
-      return new SharedLinkResult(candidate!, cleanTitle, NullIfBlank(trimmedText));
+      var withoutUrl = trimmedText?.Replace(candidate!, string.Empty, StringComparison.OrdinalIgnoreCase);
+      return new SharedLinkResult(candidate!, cleanTitle, NullIfBlank(withoutUrl));
     }
 
     var match = string.IsNullOrEmpty(trimmedText) ? null : LinkPattern().Match(trimmedText);
     if (match is not { Success: true })
     {
-      return new SharedLinkResult(string.Empty, cleanTitle, NullIfBlank(trimmedText));
+      // A scheme-less value such as "www.x.com/job" is kept in the field so Add can report it instead of losing it.
+      var raw = !string.IsNullOrEmpty(candidate) && !Uri.TryCreate(candidate, UriKind.Absolute, out _) ? candidate : string.Empty;
+      return new SharedLinkResult(raw, cleanTitle, NullIfBlank(trimmedText));
     }
 
+    var link = TrimTrailingPunctuation(match.Value);
     var rest = trimmedText!.Remove(match.Index, match.Length).Trim();
-    return new SharedLinkResult(match.Value, cleanTitle, NullIfBlank(rest));
+    return new SharedLinkResult(link, cleanTitle, NullIfBlank(rest));
+  }
+
+  private static string TrimTrailingPunctuation(string link)
+  {
+    var end = link.Length;
+    while (end > 0)
+    {
+      var last = link[end - 1];
+      var closer = last is ')' or ']' or '}';
+      var balanced = closer && link.AsSpan(0, end).Count(OpeningFor(last)) >= link.AsSpan(0, end).Count(last);
+      if (!(".,;:!?>\"'»”’".Contains(last) || (closer && !balanced))) break;
+
+      end--;
+    }
+
+    return link[..end];
+  }
+
+  private static char OpeningFor(char closer)
+  {
+    return closer switch { ')' => '(', ']' => '[', _ => '{' };
   }
 
   private static bool IsHttpUrl(string? value)

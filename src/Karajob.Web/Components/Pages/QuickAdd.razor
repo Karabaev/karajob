@@ -6,7 +6,7 @@
 <MudText Typo="Typo.h5" HtmlTag="h1" GutterBottom="true">@L["Pages.QuickAdd"]</MudText>
 
 @* Keyed so a new share while the page is open (new query string) resets the form instead of keeping the old input. *@
-<QuickAddForm @key="_shared" InitialUrl="@_shared.Url" InitialTitle="@_shared.Title" InitialNote="@_shared.Note"
+<QuickAddForm @key="_shared" InitialUrl="@_shared.Url" InitialTitle="@_shared.Title" InitialNote="@_shared.Note" AutoFocus="false"
               Completed="OnCompleted" Cancelled="OnCancelled" />
 
 @code {

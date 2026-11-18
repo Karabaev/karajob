@@ -127,4 +127,44 @@ public class SharedLinkTests
     Assert.Equal("", result.Url);
     Assert.Null(result.Note);
   }
+
+  [Theory]
+  [InlineData("Look at this: https://x.com/jobs/1.", "https://x.com/jobs/1", "Look at this:")]
+  [InlineData("See (https://x.com/jobs/1) now", "https://x.com/jobs/1", "See ( now")]
+  [InlineData("\"https://x.com/jobs/1\", wow", "https://x.com/jobs/1", "\" wow")]
+  [InlineData("Wiki https://x.com/a_(b)", "https://x.com/a_(b)", "Wiki")]
+  public void Extract_LinkInTextWithPunctuation_DoesNotKeepClosingPunctuationInUrl(string text, string expectedUrl, string expectedNote)
+  {
+    var result = SharedLink.Extract(null, text, null);
+
+    Assert.Equal(expectedUrl, result.Url);
+    Assert.Equal(expectedNote, result.Note);
+  }
+
+  [Theory]
+  [InlineData("https://x.com/job/1")]
+  [InlineData("  HTTPS://X.COM/JOB/1  ")]
+  public void Extract_TextEqualToUrl_ReturnsNullNote(string text)
+  {
+    var result = SharedLink.Extract("https://x.com/job/1", text, null);
+
+    Assert.Equal("https://x.com/job/1", result.Url);
+    Assert.Null(result.Note);
+  }
+
+  [Fact]
+  public void Extract_TextWithTitleAndSameUrl_DropsTheUrlFromNote()
+  {
+    var result = SharedLink.Extract("https://x.com/job/1", "Senior Dev https://x.com/job/1", null);
+
+    Assert.Equal("Senior Dev", result.Note);
+  }
+
+  [Fact]
+  public void Extract_SchemelessUrlParamAndNoLink_KeepsRawValueInUrl()
+  {
+    var result = SharedLink.Extract("www.x.com/job/1", null, null);
+
+    Assert.Equal("www.x.com/job/1", result.Url);
+  }
 }
