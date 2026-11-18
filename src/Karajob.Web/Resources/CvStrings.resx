@@ -38,7 +38,6 @@
   <data name="Cv.OpenInNewTab" xml:space="preserve"><value>Open in new tab</value></data>
   <data name="Cv.Close" xml:space="preserve"><value>Close</value></data>
   <data name="Cv.TagsHint" xml:space="preserve"><value>Separate tags with commas</value></data>
-  <data name="Cv.TagColorTitle" xml:space="preserve"><value>Tag color</value></data>
   <data name="Cv.TagColor" xml:space="preserve"><value>Color (#rrggbb)</value></data>
   <data name="Cv.TagColorClear" xml:space="preserve"><value>Clear</value></data>
 </root>

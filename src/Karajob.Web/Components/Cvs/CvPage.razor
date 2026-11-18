@@ -243,7 +243,10 @@ else if (_loaded)
     }
 
     CommitTags(text, keepLastSegment: true);
-    await ResetTagInputAsync();
+    if (string.IsNullOrEmpty(_tagText))
+    {
+      await ResetTagInputAsync();
+    }
   }
 
   private async Task OnTagSelected(string? name)
@@ -259,7 +262,7 @@ else if (_loaded)
 
   private async Task OnTagKeyDown(KeyboardEventArgs args)
   {
-    if (args.Key != "Enter")
+    if (args.Key != "Enter" || _tagInput is { Open: true })
     {
       return;
     }
@@ -276,25 +279,22 @@ else if (_loaded)
     }
   }
 
-  // Everything before the last comma becomes a chip; the text after it stays in the input unless keepLastSegment is false.
   private void CommitTags(string? text, bool keepLastSegment)
   {
     var segments = (text ?? "").Split(',').ToList();
-    _tagText = keepLastSegment ? segments[^1] : null;
+    var remainder = keepLastSegment ? segments[^1].TrimStart() : null;
     if (keepLastSegment)
     {
       segments.RemoveAt(segments.Count - 1);
     }
 
-    foreach (var name in segments.Select(s => s.Trim().ToLowerInvariant()).Where(s => s.Length > 0))
+    foreach (var name in CvService.NormalizeTagNames(segments).Where(name => !_tagNames.Contains(name)))
     {
-      if (!_tagNames.Contains(name))
-      {
-        _tagNames.Add(name);
-      }
+      _tagNames.Add(name);
     }
 
     _tagNames.Sort(StringComparer.OrdinalIgnoreCase);
+    _tagText = remainder;
   }
 
   private void RemoveTag(string name)

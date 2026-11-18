@@ -153,6 +153,58 @@ public class CvPageTagTests : CvWebFixture
   }
 
   [Fact]
+  public void Type_TextWithCommaAndRemainder_AddsChipAndKeepsRemainderInInput()
+  {
+    var cut = RenderPage();
+
+    Type(cut, "unity, games");
+
+    cut.WaitForAssertion(() =>
+    {
+      Assert.Equal(["unity"], ChipTexts(cut));
+      Assert.Equal("games", cut.Find(TagInputSelector).GetAttribute("value"));
+    });
+  }
+
+  [Fact]
+  public async Task Save_TextLeftInInput_IsSavedAsTag()
+  {
+    var cut = RenderPage();
+    cut.WaitForElement(".cv-name input").Input("Fresh CV");
+    Type(cut, "unity, games");
+    cut.WaitForAssertion(() => Assert.Single(cut.FindAll(ChipSelector)));
+    var upload = cut.FindComponent<InputFile>();
+    await cut.InvokeAsync(() => upload.UploadFiles(InputFileContent.CreateFromBinary([1, 2, 3, 4], "cv.pdf", contentType: "application/pdf")));
+
+    cut.Find(".cv-save").Click();
+
+    var deadline = DateTime.UtcNow.AddSeconds(5);
+    var items = await Service.ListAsync();
+    while (DateTime.UtcNow < deadline && items.Count == 0)
+    {
+      await Task.Delay(50);
+      items = await Service.ListAsync();
+    }
+
+    Assert.Equal(["games", "unity"], Assert.Single(items).Tags.Select(t => t.Name).Order());
+  }
+
+  [Fact]
+  public async Task Type_PrefixWithOpenSuggestionsAndEnter_DoesNotCommitThePrefix()
+  {
+    await PersistenceFixtures.AddTagAsync(Database, SeedData.OwnerId, "unity");
+    var cut = RenderPage();
+    var input = cut.WaitForElement(TagInputSelector);
+    await cut.InvokeAsync(() => input.Focus());
+    input.Input("un");
+    cut.WaitForAssertion(() => Assert.NotEmpty(popovers.FindAll(".mud-popover-open .mud-list-item")));
+
+    cut.Find(TagInputSelector).KeyDown(new KeyboardEventArgs { Key = "Enter" });
+
+    Assert.DoesNotContain("un", ChipTexts(cut));
+  }
+
+  [Fact]
   public async Task Chip_CloseClicked_RemovesChip()
   {
     var unity = await PersistenceFixtures.AddTagAsync(Database, SeedData.OwnerId, "unity");

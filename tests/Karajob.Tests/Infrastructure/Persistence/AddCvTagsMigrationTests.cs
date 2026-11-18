@@ -11,7 +11,8 @@ public class AddCvTagsMigrationTests : IAsyncLifetime
 {
   private const string LastMigrationBeforeTags = "20261117165203_RenameHypothesisToTrack";
   private const string SecondUserId = "CCCCCCCC-CCCC-CCCC-CCCC-CCCCCCCCCCCC";
-  private const string OwnerSql = $"(SELECT Id FROM Users WHERE Id <> '{SecondUserId}' LIMIT 1)";
+  private const string ThirdUserId = "DDDDDDDD-DDDD-DDDD-DDDD-DDDDDDDDDDDD";
+  private const string OwnerSql = $"(SELECT Id FROM Users WHERE Id NOT IN ('{SecondUserId}', '{ThirdUserId}') LIMIT 1)";
 
   private static readonly string LongTag = new('a', 60);
 
@@ -49,6 +50,14 @@ public class AddCvTagsMigrationTests : IAsyncLifetime
   }
 
   [Fact]
+  public async Task Migrate_CyrillicTagsDifferingOnlyByCase_AreLowercasedAndMerged()
+  {
+    var names = await QueryStringsAsync($"SELECT Name FROM Tags WHERE UserId = '{ThirdUserId}' ORDER BY Name");
+
+    Assert.Equal(["бэкенд", "ёж"], names);
+  }
+
+  [Fact]
   public async Task Migrate_LegacyJsonTags_LinksEachCvToItsDedupedTags()
   {
     var links = await QueryStringsAsync(
@@ -61,7 +70,7 @@ public class AddCvTagsMigrationTests : IAsyncLifetime
       """);
 
     Assert.Equal(
-      ["first:c#", "first:unity", "second:games", "second:unity", "theirs:" + new string('a', 50), "theirs:unity"],
+      ["cyrillic:бэкенд", "cyrillic:ёж", "first:c#", "first:unity", "second:games", "second:unity", "theirs:" + new string('a', 50), "theirs:unity"],
       links);
   }
 
@@ -106,8 +115,8 @@ public class AddCvTagsMigrationTests : IAsyncLifetime
     var linkedDocuments = await QueryStringsAsync(
       "SELECT DISTINCT d.Name FROM CvDocumentTags l JOIN CvDocuments d ON d.Id = l.CvDocumentId ORDER BY d.Name");
 
-    Assert.Equal(["empty", "first", "garbage", "none", "second", "theirs"], documents);
-    Assert.Equal(["first", "second", "theirs"], linkedDocuments);
+    Assert.Equal(["cyrillic", "empty", "first", "garbage", "none", "second", "theirs"], documents);
+    Assert.Equal(["cyrillic", "first", "second", "theirs"], linkedDocuments);
   }
 
   [Fact]
@@ -174,7 +183,7 @@ public class AddCvTagsMigrationTests : IAsyncLifetime
 
     Assert.Contains("Tags", columns);
     Assert.DoesNotContain("CvDocumentTags", tables);
-    Assert.Equal(6, documents.Count);
+    Assert.Equal(7, documents.Count);
   }
 
   private async Task SeedOldSchemaAsync()
@@ -187,6 +196,8 @@ public class AddCvTagsMigrationTests : IAsyncLifetime
       CvInsert("33333333-3333-3333-3333-333333333333", OwnerSql, "empty", ""),
       CvInsert("44444444-4444-4444-4444-444444444444", OwnerSql, "garbage", "not json"),
       CvInsert("55555555-5555-5555-5555-555555555555", OwnerSql, "none", "[]"),
+      $"INSERT INTO Users (Id, Name, Color, CreatedAt, TimeZoneId) VALUES ('{ThirdUserId}', 'Third', '#26a69a', '2026-11-01 00:00:00', 'UTC')",
+      CvInsert("77777777-7777-7777-7777-777777777777", $"'{ThirdUserId}'", "cyrillic", "[\"Бэкенд\",\"бэкенд\",\"Ёж\"]"),
       CvInsert("66666666-6666-6666-6666-666666666666", $"'{SecondUserId}'", "theirs", $"[\"Unity\",\"{LongTag}\"]"),
     ];
 

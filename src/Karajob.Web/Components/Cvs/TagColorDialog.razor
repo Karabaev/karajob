@@ -62,6 +62,10 @@
     {
       _error = exception.Errors.GetValueOrDefault(TagService.ColorErrorKey);
     }
+    catch (KeyNotFoundException)
+    {
+      MudDialog.Close(DialogResult.Ok(true));
+    }
   }
 
   private void Cancel()

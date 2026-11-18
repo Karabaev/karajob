@@ -86,11 +86,17 @@ namespace Karajob.Migrations.Sqlite.Migrations
                 unique: true);
 
             // EF stores Guids in SQLite as upper-case text and compares them case-sensitively, so ids are generated upper-case.
-            // SQLite lower() only folds ASCII; non-ASCII tags keep their case here.
+            // SQLite lower() only folds ASCII, so the Cyrillic capitals are folded explicitly to match ToLowerInvariant in code.
+            var lowered = "lower(trim(j.value))";
+            foreach (var capital in Enumerable.Range(0x0410, 32).Append(0x0401).Select(code => (char)code))
+            {
+                lowered = $"replace({lowered}, '{capital}', '{char.ToLowerInvariant(capital)}')";
+            }
+
             migrationBuilder.Sql(
-                """
+                $$"""
                 CREATE TEMP TABLE CvTagSource AS
-                SELECT DISTINCT d.UserId AS UserId, d.Id AS CvDocumentId, substr(lower(trim(j.value)), 1, 50) AS Name
+                SELECT DISTINCT d.UserId AS UserId, d.Id AS CvDocumentId, substr({{lowered}}, 1, 50) AS Name
                 FROM CvDocuments d, json_each(CASE WHEN json_valid(d.Tags) THEN d.Tags ELSE '[]' END) j
                 WHERE trim(j.value) <> '';
                 """);

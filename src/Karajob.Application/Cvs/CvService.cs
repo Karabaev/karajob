@@ -52,7 +52,17 @@ public class CvService(
     return document is null ? null : ToDetails(document, await LoadTagItemsAsync(db, cancellationToken));
   }
 
-  public async Task<CvDetails> CreateAsync(CvInput input, CvUpload? upload, CancellationToken cancellationToken = default)
+  public Task<CvDetails> CreateAsync(CvInput input, CvUpload? upload, CancellationToken cancellationToken = default)
+  {
+    return RetryOnTagConflictAsync(() => CreateOnceAsync(input, upload, cancellationToken));
+  }
+
+  public Task<CvDetails> UpdateAsync(Guid cvDocumentId, CvInput input, CancellationToken cancellationToken = default)
+  {
+    return RetryOnTagConflictAsync(() => UpdateOnceAsync(cvDocumentId, input, cancellationToken));
+  }
+
+  private async Task<CvDetails> CreateOnceAsync(CvInput input, CvUpload? upload, CancellationToken cancellationToken)
   {
     await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
     var errors = await ValidateInputAsync(db, input, cancellationToken);
@@ -61,16 +71,25 @@ public class CvService(
 
     var now = timeProvider.GetUtcNow().UtcDateTime;
     var document = new CvDocument(currentUser.UserId, input.Name.Trim(), input.LanguageId!.Value, now);
-    document.SetTags((await ResolveTagsAsync(db, input.Tags, cancellationToken)).Select(t => t.Id));
+    var (tags, createdTags) = await ResolveTagsAsync(db, input.Tags, cancellationToken);
+    document.SetTags(tags.Select(t => t.Id));
 
     var storagePath = await StoreAsync(upload!, file!, cancellationToken);
     document.AddVersion(file!.FileName, storagePath, file.ContentType, upload!.SizeBytes, BlankToNull(upload.Comment), now);
     db.CvDocuments.Add(document);
-    await SaveOrDiscardFileAsync(db, [storagePath], cancellationToken);
+    try
+    {
+      await SaveOrDiscardFileAsync(db, [storagePath], cancellationToken);
+    }
+    catch (DbUpdateException) when (createdTags)
+    {
+      throw new TagConflictException();
+    }
+
     return ToDetails(document, await LoadTagItemsAsync(db, cancellationToken));
   }
 
-  public async Task<CvDetails> UpdateAsync(Guid cvDocumentId, CvInput input, CancellationToken cancellationToken = default)
+  private async Task<CvDetails> UpdateOnceAsync(Guid cvDocumentId, CvInput input, CancellationToken cancellationToken)
   {
     await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
     var document = await db.CvDocuments.Include(d => d.Versions).FirstOrDefaultAsync(d => d.Id == cvDocumentId, cancellationToken)
@@ -79,9 +98,18 @@ public class CvService(
 
     document.Name = input.Name.Trim();
     document.LanguageId = input.LanguageId!.Value;
-    document.SetTags((await ResolveTagsAsync(db, input.Tags, cancellationToken)).Select(t => t.Id));
+    var (tags, createdTags) = await ResolveTagsAsync(db, input.Tags, cancellationToken);
+    document.SetTags(tags.Select(t => t.Id));
 
-    await db.SaveChangesAsync(cancellationToken);
+    try
+    {
+      await db.SaveChangesAsync(cancellationToken);
+    }
+    catch (DbUpdateException) when (createdTags)
+    {
+      throw new TagConflictException();
+    }
+
     return ToDetails(document, await LoadTagItemsAsync(db, cancellationToken));
   }
 
@@ -213,7 +241,7 @@ public class CvService(
       errors[nameof(CvInput.LanguageId)] = localizer["Error.LanguageNotFound"];
     }
 
-    if (CleanTagNames(input.Tags).Any(n => n.Length > Tag.MaxNameLength))
+    if (NormalizeTagNames(input.Tags).Any(n => n.Length > Tag.MaxNameLength))
     {
       errors[nameof(CvInput.Tags)] = localizer["Error.TagTooLong", Tag.MaxNameLength];
     }
@@ -280,6 +308,19 @@ public class CvService(
         .Select(v => new CvVersionItem(v.Id, v.FileName, v.SizeBytes, v.Comment, v.CreatedAt))
         .ToList());
   }
+  // Two saves can both see a new tag name as missing; the unique (UserId, Name) index rejects the second, which then finds the tag on retry.
+  private static async Task<CvDetails> RetryOnTagConflictAsync(Func<Task<CvDetails>> save)
+  {
+    try
+    {
+      return await save();
+    }
+    catch (TagConflictException)
+    {
+      return await save();
+    }
+  }
+
   private static async Task<Dictionary<Guid, TagItem>> LoadTagItemsAsync(IKarajobDbContext db, CancellationToken cancellationToken)
   {
     var tags = await db.Tags.AsNoTracking().ToListAsync(cancellationToken);
@@ -289,24 +330,25 @@ public class CvService(
   private static IReadOnlyList<TagItem> ToTagItems(IEnumerable<CvDocumentTag> links, IReadOnlyDictionary<Guid, TagItem> tagItems)
   {
     return links
+      .Where(l => tagItems.ContainsKey(l.TagId))
       .Select(l => tagItems[l.TagId])
       .OrderBy(t => t.Name, StringComparer.OrdinalIgnoreCase)
       .ToList();
   }
 
-  private async Task<List<Tag>> ResolveTagsAsync(IKarajobDbContext db, IEnumerable<string> names, CancellationToken cancellationToken)
+  private async Task<(List<Tag> Tags, bool Created)> ResolveTagsAsync(IKarajobDbContext db, IEnumerable<string> names, CancellationToken cancellationToken)
   {
-    var wanted = CleanTagNames(names);
+    var wanted = NormalizeTagNames(names);
     var existing = await db.Tags.Where(t => wanted.Contains(t.Name)).ToListAsync(cancellationToken);
     var created = wanted
       .Except(existing.Select(t => t.Name))
       .Select(name => new Tag(currentUser.UserId, name))
       .ToList();
     db.Tags.AddRange(created);
-    return [.. existing, .. created];
+    return ([.. existing, .. created], created.Count > 0);
   }
 
-  private static List<string> CleanTagNames(IEnumerable<string> names)
+  public static List<string> NormalizeTagNames(IEnumerable<string> names)
   {
     return names
       .Where(n => !string.IsNullOrWhiteSpace(n))
@@ -319,6 +361,8 @@ public class CvService(
   {
     return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
   }
+
+  private class TagConflictException : Exception;
 
   private record ValidatedFile(string FileName, string Extension, string ContentType);
 }

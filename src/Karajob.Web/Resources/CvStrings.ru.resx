@@ -38,7 +38,6 @@
   <data name="Cv.OpenInNewTab" xml:space="preserve"><value>Открыть в новой вкладке</value></data>
   <data name="Cv.Close" xml:space="preserve"><value>Закрыть</value></data>
   <data name="Cv.TagsHint" xml:space="preserve"><value>Теги через запятую</value></data>
-  <data name="Cv.TagColorTitle" xml:space="preserve"><value>Цвет тега</value></data>
   <data name="Cv.TagColor" xml:space="preserve"><value>Цвет (#rrggbb)</value></data>
   <data name="Cv.TagColorClear" xml:space="preserve"><value>Сбросить</value></data>
 </root>

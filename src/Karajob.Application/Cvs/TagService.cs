@@ -29,11 +29,12 @@ public class TagService(IKarajobDbContextFactory dbContextFactory, IStringLocali
   public async Task<IReadOnlyList<TagItem>> SearchAsync(string? prefix, int limit, CancellationToken cancellationToken = default)
   {
     await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-    var tags = await db.Tags.AsNoTracking().ToListAsync(cancellationToken);
     var normalized = string.IsNullOrWhiteSpace(prefix) ? "" : prefix.Trim().ToLowerInvariant();
+    var tags = await db.Tags.AsNoTracking()
+      .Where(t => t.Name.StartsWith(normalized))
+      .ToListAsync(cancellationToken);
 
     return tags
-      .Where(t => t.Name.StartsWith(normalized, StringComparison.Ordinal))
       .OrderBy(t => t.Name, StringComparer.OrdinalIgnoreCase)
       .Take(limit)
       .Select(t => new TagItem(t.Id, t.Name, t.Color))
