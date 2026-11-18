@@ -249,9 +249,7 @@ else if (_loaded)
   [Parameter]
   public Guid? Id { get; set; }
 
-  private string? OpenUrl => Uri.TryCreate(_url?.Trim(), UriKind.Absolute, out var uri) && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps)
-    ? uri.AbsoluteUri
-    : null;
+  private string? OpenUrl => VacancyText.OpenableUrl(_url);
 
   private string Title => _details is not null ? L["Page.Title"].Value : Id is null ? L["Page.New"].Value : L["Page.NotFound"].Value;
 

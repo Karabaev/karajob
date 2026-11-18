@@ -7,6 +7,13 @@ namespace Karajob.Web.Components.Vacancies;
 
 public static class VacancyText
 {
+  public static string? OpenableUrl(string? url)
+  {
+    return Uri.TryCreate(url?.Trim(), UriKind.Absolute, out var uri) && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps)
+      ? uri.AbsoluteUri
+      : null;
+  }
+
   public static string Stage(VacancyStage stage)
   {
     return stage switch
