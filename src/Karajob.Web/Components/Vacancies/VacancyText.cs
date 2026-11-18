@@ -7,6 +7,8 @@ namespace Karajob.Web.Components.Vacancies;
 
 public static class VacancyText
 {
+  public static string? OpenableUrl(string? url) => throw new NotImplementedException();
+
   public static string Stage(VacancyStage stage)
   {
     return stage switch
