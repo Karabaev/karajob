@@ -137,6 +137,7 @@
       InboxNotifier.NotifyChanged();
       Snackbar.Add(L["AddVacancy.Added"], Severity.Success, options =>
       {
+        options.RequireInteraction = false;
         options.Action = L["AddVacancy.Open"];
         options.OnClick = _ =>
         {

@@ -32,6 +32,8 @@ builder.Services.AddMudServices(config =>
 {
   config.SnackbarConfiguration.ShowTransitionDuration = 250;
   config.SnackbarConfiguration.HideTransitionDuration = 250;
+  config.SnackbarConfiguration.VisibleStateDuration = 2500;
+  config.SnackbarConfiguration.RequireInteraction = false;
 });
 builder.Services.AddLocalization();
 
