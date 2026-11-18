@@ -18,6 +18,19 @@ public static class UserTime
     }
   }
 
+  public static void EnsureTimeZoneDatabase()
+  {
+    EnsureTimeZoneDatabase(TimeZoneInfo.GetSystemTimeZones());
+  }
+
+  public static void EnsureTimeZoneDatabase(IReadOnlyCollection<TimeZoneInfo> zones)
+  {
+    if (zones.Any(zone => !string.Equals(zone.Id, DefaultTimeZoneId, StringComparison.OrdinalIgnoreCase))) return;
+
+    throw new InvalidOperationException(
+      "The time zone database is missing: only UTC is available. Install tzdata (/usr/share/zoneinfo) on the host or in the container image.");
+  }
+
   public static string NormalizeId(string timeZoneId)
   {
     var zone = Find(timeZoneId);

@@ -143,4 +143,34 @@ public class UserTimeTests
   {
     Assert.ThrowsAny<ArgumentException>(() => UserTime.NormalizeId(id));
   }
+
+  [Fact]
+  public void EnsureTimeZoneDatabase_OnlyUtc_Throws()
+  {
+    Assert.Throws<InvalidOperationException>(() => UserTime.EnsureTimeZoneDatabase([TimeZoneInfo.Utc]));
+  }
+
+  [Fact]
+  public void EnsureTimeZoneDatabase_Empty_Throws()
+  {
+    Assert.Throws<InvalidOperationException>(() => UserTime.EnsureTimeZoneDatabase([]));
+  }
+
+  [Fact]
+  public void EnsureTimeZoneDatabase_UtcAndAnotherZone_DoesNotThrow()
+  {
+    var other = TimeZoneInfo.CreateCustomTimeZone("Test/Belgrade", TimeSpan.FromHours(1), "Test", "Test");
+
+    var exception = Record.Exception(() => UserTime.EnsureTimeZoneDatabase([TimeZoneInfo.Utc, other]));
+
+    Assert.Null(exception);
+  }
+
+  [Fact]
+  public void EnsureTimeZoneDatabase_NoArguments_DoesNotThrowOnThisHost()
+  {
+    var exception = Record.Exception(() => UserTime.EnsureTimeZoneDatabase());
+
+    Assert.Null(exception);
+  }
 }

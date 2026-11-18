@@ -10,6 +10,7 @@ using Karajob.Application.Metrics;
 using Karajob.Application.Users;
 using Karajob.Application.Vacancies;
 using Karajob.Application.WeeklyReviews;
+using Karajob.Domain.Common;
 using Karajob.Infrastructure.Files;
 using Karajob.Infrastructure.Persistence;
 using Karajob.Infrastructure.Vacancies;
@@ -112,6 +113,8 @@ builder.Services.AddScoped<CvService>();
 builder.Services.AddScoped<TagService>();
 
 var app = builder.Build();
+
+UserTime.EnsureTimeZoneDatabase();
 
 // Before Run: Kestrel is not listening yet, so no request ever sees an unmigrated schema.
 try
