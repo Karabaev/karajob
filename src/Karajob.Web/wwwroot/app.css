@@ -101,6 +101,16 @@ h1:focus {
   padding-left: 1.5em;
 }
 
+.markdown-body a {
+  color: var(--mud-palette-primary);
+  text-decoration: underline;
+}
+
+.markdown-body a:hover {
+  color: var(--mud-palette-primary-darken);
+  text-decoration-thickness: 2px;
+}
+
 .markdown-body table {
   border-collapse: collapse;
   display: block;

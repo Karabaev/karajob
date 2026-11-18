@@ -96,6 +96,7 @@ Order: block A → block B; blocks C, D, E, G are independent after #41.
 
 - [x] #98 Master profile access moved from the side menu to the profile dropdown (above "All profiles").
 - [x] #100 Settings access moved from the side menu to the profile dropdown (after "Master profile").
+- [x] #92 Links in the master profile Preview and the version dialog (`.markdown-body a`) use the theme primary color with an underline and a darker hover state.
 
 ### D. Access from a phone
 
