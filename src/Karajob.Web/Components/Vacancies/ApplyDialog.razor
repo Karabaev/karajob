@@ -43,7 +43,7 @@
             <MudSelectItem T="ApplicationChannel" Value="channel">@VacancyText.Channel(channel)</MudSelectItem>
           }
         </MudSelect>
-        <MudDatePicker Class="apply-date" Label="@L["Apply.Date"]" @bind-Date="_date" Editable="true"
+        <AppDatePicker Class="apply-date" Label="@L["Apply.Date"]" @bind-Date="_date" Editable="true"
                        Error="HasError(nameof(ApplyInput.AppliedAt))" ErrorText="@ErrorOf(nameof(ApplyInput.AppliedAt))" />
         <MudTextField T="string" Class="apply-cover-letter" Label="@L["Apply.CoverLetter"]" Lines="4" Sizing="InputSizing.Auto"
                       Immediate="true" @bind-Value="_coverLetter"

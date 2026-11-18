@@ -69,7 +69,7 @@
             <MudNumericField T="int" Class="settings-weekly-target" Label="@L["Pages.WeeklyTarget"]" Min="0"
                              @bind-Value="_weeklyTarget"
                              Error="HasError(nameof(SearchGoalInput.WeeklyApplicationTarget))" ErrorText="@ErrorOf(nameof(SearchGoalInput.WeeklyApplicationTarget))" />
-            <MudDatePicker Class="settings-deadline" Label="@L["Pages.Deadline"]" Clearable="true" DateFormat="dd.MM.yyyy"
+            <AppDatePicker Class="settings-deadline" Label="@L["Pages.Deadline"]" Clearable="true" DateFormat="dd.MM.yyyy"
                            @bind-Date="_deadline"
                            Error="HasError(nameof(SearchGoalInput.Deadline))" ErrorText="@ErrorOf(nameof(SearchGoalInput.Deadline))" />
             <MudGrid Spacing="2">
