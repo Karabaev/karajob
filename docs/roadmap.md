@@ -131,6 +131,10 @@ Order: block A → block B; blocks C, D, E, G are independent after #41.
 
 - [x] #96 CV PDF preview: a "Preview" button on PDF versions opens a dialog with the file in an `<iframe>` (the version file endpoint serves PDFs inline with `?inline=true`) and an "Open in new tab" link for phone browsers; DOCX versions keep only "Download".
 
+### CV tags
+
+- [x] #95 CV tags as a per-user entity: comma-separated input with autocomplete (a new tag is created on the fly), a tag directory page (`/tags`) with delete (detaches the tag from CVs) and a free hex color, colored chips in the CV list; existing tags are carried over by the `AddCvTags` migration.
+
 ### H. Branding
 
 - [x] #82 Logo and favicon: transparent logo and icon, the favicon, the logo in the app bar instead of the text.
