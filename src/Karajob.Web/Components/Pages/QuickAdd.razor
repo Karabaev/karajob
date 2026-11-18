@@ -1,8 +1,41 @@
 @page "/quick-add"
+@inject NavigationManager Navigation
+
+<AppTitle Text="@L["Pages.QuickAdd"]" />
+
+<MudText Typo="Typo.h5" HtmlTag="h1" GutterBottom="true">@L["Pages.QuickAdd"]</MudText>
+
+@* Keyed so a new share while the page is open (new query string) resets the form instead of keeping the old input. *@
+<QuickAddForm @key="_shared" InitialUrl="@_shared.Url" InitialTitle="@_shared.Title" InitialNote="@_shared.Note"
+              Completed="OnCompleted" Cancelled="OnCancelled" />
 
 @code {
-  public QuickAdd()
+  private SharedLinkResult _shared = new("", null, null);
+
+  [SupplyParameterFromQuery(Name = "url")]
+  public string? Url { get; set; }
+
+  [SupplyParameterFromQuery(Name = "text")]
+  public string? Text { get; set; }
+
+  [SupplyParameterFromQuery(Name = "title")]
+  public string? Title { get; set; }
+
+  protected override void OnParametersSet()
   {
-    throw new NotImplementedException();
+    _shared = SharedLink.Extract(Url, Text, Title);
+  }
+
+  private void OnCompleted(QuickAddResult result)
+  {
+    // An existing vacancy sends the form itself to its card.
+    if (result.AlreadyExisted) return;
+
+    Navigation.NavigateTo("/inbox");
+  }
+
+  private void OnCancelled()
+  {
+    Navigation.NavigateTo("/");
   }
 }

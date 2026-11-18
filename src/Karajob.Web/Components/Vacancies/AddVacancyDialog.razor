@@ -1,162 +1,19 @@
-@implements IDisposable
-@inject VacancyService VacancyService
-@inject InboxNotifier InboxNotifier
-@inject ISnackbar Snackbar
-@inject NavigationManager Navigation
-
 <MudDialog DefaultFocus="DefaultFocus.None">
   <DialogContent>
-    <MudStack Spacing="2">
-      <MudTextField T="string" Class="quick-add-url" Label="@L["AddVacancy.Url"]" Placeholder="https://…" @ref="_urlField"
-                    InputType="InputType.Url" Immediate="true" @bind-Value="_url" @bind-Value:after="OnUrlChangedAsync" OnKeyDown="OnKeyDown"
-                    Error="_urlError is not null" ErrorText="@_urlError" />
-      <div>
-        <MudTextField T="string" Class="quick-add-title" Label="@L["AddVacancy.Title"]" MaxLength="Vacancy.TitleMaxLength"
-                      Immediate="true" @bind-Value="_title" OnKeyDown="OnKeyDown" />
-        <div style="height: 4px;">
-          @if (_fetchingTitle)
-          {
-            <MudProgressLinear Class="quick-add-title-progress" Color="Color.Primary" Indeterminate="true" Size="Size.Small" />
-          }
-        </div>
-      </div>
-      <MudTextField T="string" Class="quick-add-note" Label="@L["AddVacancy.Note"]" Lines="2" Sizing="InputSizing.Auto"
-                    Immediate="true" @bind-Value="_note" />
-    </MudStack>
+    <QuickAddForm Completed="OnCompleted" Cancelled="OnCancelled" />
   </DialogContent>
-  <DialogActions>
-    <MudButton OnClick="Cancel">@L["Common.Cancel"]</MudButton>
-    <MudButton Class="quick-add-submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="_saving" OnClick="SubmitAsync">
-      @L["Common.Add"]
-    </MudButton>
-  </DialogActions>
 </MudDialog>
 
 @code {
-  private static readonly TimeSpan TitleFetchDelay = TimeSpan.FromMilliseconds(500);
-
-  private string? _url;
-  private string? _title;
-  private string? _fetchedTitle;
-  private string? _note;
-  private string? _urlError;
-  private bool _saving;
-  private bool _fetchingTitle;
-  private CancellationTokenSource? _titleFetch;
-  private MudTextField<string> _urlField = null!;
-
   [CascadingParameter]
   private IMudDialogInstance MudDialog { get; set; } = null!;
 
-  // The title belongs to the auto-fetch until the user types something of their own into it.
-  private bool TitleIsAuto => string.IsNullOrWhiteSpace(_title) || _title == _fetchedTitle;
-
-  public void Dispose()
+  private void OnCompleted(QuickAddResult result)
   {
-    _titleFetch?.Cancel();
-    _titleFetch?.Dispose();
+    MudDialog.Close(DialogResult.Ok(result.VacancyId));
   }
 
-  protected override async Task OnAfterRenderAsync(bool firstRender)
-  {
-    if (!firstRender) return;
-
-    // The dialog's focus trap focuses itself by default (DefaultFocus.Element), after the input's AutoFocus, so it takes the focus away.
-    await _urlField.FocusAsync();
-  }
-
-  private async Task OnUrlChangedAsync()
-  {
-    _urlError = null;
-    _titleFetch?.Cancel();
-    _titleFetch?.Dispose();
-    _titleFetch = null;
-    _fetchingTitle = false;
-    if (!TitleIsAuto) return;
-
-    // A fetched title belongs to the previous link; keep it and Add would save it on the new one.
-    _title = null;
-    _fetchedTitle = null;
-    if (string.IsNullOrWhiteSpace(_url)) return;
-
-    var fetch = new CancellationTokenSource();
-    _titleFetch = fetch;
-    try
-    {
-      // Debounce by hand rather than with MudTextField.DebounceInterval: that one also delays the bound value,
-      // so pressing Add right after typing would submit a stale link.
-      await Task.Delay(TitleFetchDelay, fetch.Token);
-      _fetchingTitle = true;
-      StateHasChanged();
-      var title = await VacancyService.FetchTitleAsync(_url, fetch.Token);
-      if (fetch.IsCancellationRequested || title is null || !TitleIsAuto) return;
-
-      _title = title;
-      _fetchedTitle = title;
-    }
-    catch (OperationCanceledException)
-    {
-    }
-    catch (ValidationFailedException)
-    {
-      // A half-typed link is normal while typing; its error is shown on Add.
-    }
-    finally
-    {
-      if (_titleFetch == fetch)
-      {
-        _fetchingTitle = false;
-      }
-    }
-  }
-
-  private async Task OnKeyDown(KeyboardEventArgs args)
-  {
-    if (args.Key != "Enter") return;
-
-    await SubmitAsync();
-  }
-
-  private async Task SubmitAsync()
-  {
-    if (_saving) return;
-
-    _saving = true;
-    try
-    {
-      var result = await VacancyService.QuickAddAsync(new QuickAddInput(_url ?? string.Empty, _note, _title));
-      var cardUrl = $"/vacancies/{result.VacancyId}";
-      MudDialog.Close(DialogResult.Ok(result.VacancyId));
-      if (result.AlreadyExisted)
-      {
-        Snackbar.Add(L["AddVacancy.AlreadyExists", VacancyText.Stage(result.Stage)], Severity.Info);
-        Navigation.NavigateTo(cardUrl);
-        return;
-      }
-
-      InboxNotifier.NotifyChanged();
-      Snackbar.Add(L["AddVacancy.Added"], Severity.Success, options =>
-      {
-        options.RequireInteraction = false;
-        options.Action = L["AddVacancy.Open"];
-        options.OnClick = _ =>
-        {
-          Navigation.NavigateTo(cardUrl);
-          return Task.CompletedTask;
-        };
-      });
-    }
-    catch (ValidationFailedException ex)
-    {
-      _urlError = ex.Errors.GetValueOrDefault(nameof(QuickAddInput.Url)) ?? ex.Message;
-    }
-    finally
-    {
-      _saving = false;
-    }
-  }
-
-  private void Cancel()
+  private void OnCancelled()
   {
     MudDialog.Cancel();
   }

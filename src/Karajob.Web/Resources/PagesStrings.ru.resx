@@ -42,6 +42,7 @@
   <data name="Pages.AddManually" xml:space="preserve"><value>Добавить вручную</value></data>
   <data name="Pages.InboxEmpty" xml:space="preserve"><value>В Inbox пока пусто.</value></data>
   <data name="Pages.Inbox" xml:space="preserve"><value>Inbox</value></data>
+  <data name="Pages.QuickAdd" xml:space="preserve"><value>Добавить вакансию</value></data>
   <data name="Pages.Cvs" xml:space="preserve"><value>CV</value></data>
   <data name="Pages.Error" xml:space="preserve"><value>Ошибка</value></data>
   <data name="Pages.Vacancy" xml:space="preserve"><value>Вакансия</value></data>
