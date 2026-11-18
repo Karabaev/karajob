@@ -1,0 +1,75 @@
+@inject TagService TagService
+
+<MudDialog>
+  <DialogContent>
+    <MudStack Spacing="3">
+      <MudTextField T="string" Class="tag-color-input" Label="@L["Cv.TagColor"]" @bind-Value="_color" Immediate="true"
+                    Error="@(_error is not null)" ErrorText="@_error" />
+      <input type="color" class="tag-color-picker" value="@PickerValue" @onchange="OnPicked" aria-label="@L["Cv.TagColor"]" />
+    </MudStack>
+  </DialogContent>
+  <DialogActions>
+    <MudButton Class="tag-color-clear" OnClick="ClearAsync">@L["Cv.TagColorClear"]</MudButton>
+    <MudButton OnClick="Cancel">@L["Cv.Cancel"]</MudButton>
+    <MudButton Class="tag-color-save" Color="Color.Primary" Variant="Variant.Filled" OnClick="SaveAsync">@L["Cv.Save"]</MudButton>
+  </DialogActions>
+</MudDialog>
+
+@code {
+  private string? _color;
+  private string? _error;
+
+  [CascadingParameter]
+  private IMudDialogInstance MudDialog { get; set; } = null!;
+
+  [Parameter, EditorRequired]
+  public Guid TagId { get; set; }
+
+  [Parameter]
+  public string? CurrentColor { get; set; }
+
+  // <input type="color"> only accepts a full #rrggbb value, so anything else shows black until it is typed in full.
+  private string PickerValue => _color is { Length: 7 } && _color[0] == '#' ? _color : "#000000";
+
+  protected override void OnInitialized()
+  {
+    _color = CurrentColor;
+  }
+
+  private void OnPicked(ChangeEventArgs args)
+  {
+    _color = args.Value?.ToString();
+  }
+
+  private Task ClearAsync()
+  {
+    return SaveColorAsync(null);
+  }
+
+  private Task SaveAsync()
+  {
+    return SaveColorAsync(string.IsNullOrWhiteSpace(_color) ? null : _color.Trim());
+  }
+
+  private async Task SaveColorAsync(string? color)
+  {
+    try
+    {
+      await TagService.SetColorAsync(TagId, color);
+      MudDialog.Close(DialogResult.Ok(true));
+    }
+    catch (ValidationFailedException exception)
+    {
+      _error = exception.Errors.GetValueOrDefault(TagService.ColorErrorKey);
+    }
+    catch (KeyNotFoundException)
+    {
+      MudDialog.Close(DialogResult.Ok(true));
+    }
+  }
+
+  private void Cancel()
+  {
+    MudDialog.Cancel();
+  }
+}

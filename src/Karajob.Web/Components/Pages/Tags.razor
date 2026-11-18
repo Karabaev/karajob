@@ -1,0 +1,91 @@
+@page "/tags"
+@inject TagService TagService
+@inject IDialogService DialogService
+
+<AppTitle Text="@L["Pages.Tags"]" />
+
+<MudText Typo="Typo.h4" HtmlTag="h1" Class="mb-4">@L["Pages.Tags"]</MudText>
+
+@if (_items is null)
+{
+  <MudProgressLinear Indeterminate="true" />
+}
+else if (_items.Count == 0)
+{
+  <MudText Class="mud-text-secondary">@L["Pages.NoTags"]</MudText>
+}
+else
+{
+  <MudTable Items="_items" Breakpoint="Breakpoint.Sm" Hover="true" Dense="true" RowClass="tag-row">
+    <HeaderContent>
+      <MudTh>@L["Pages.Name"]</MudTh>
+      <MudTh>@L["Pages.TagCvCount"]</MudTh>
+      <MudTh></MudTh>
+    </HeaderContent>
+    <RowTemplate>
+      <MudTd DataLabel="@L["Pages.Name"]">
+        <MudChip T="string" Size="Size.Small" Style="@TagStyle.ChipStyle(context.Color)">@context.Name</MudChip>
+      </MudTd>
+      <MudTd DataLabel="@L["Pages.TagCvCount"]">@context.CvCount</MudTd>
+      <MudTd>
+        <MudIconButton Class="tag-color" Icon="@Icons.Material.Filled.Palette" Size="Size.Small"
+                       aria-label="@L["Pages.TagColor"]" OnClick="() => EditColorAsync(context)" />
+        <MudIconButton Class="tag-delete" Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
+                       aria-label="@L["Pages.TagDeleteLabel"]" OnClick="() => DeleteAsync(context)" />
+      </MudTd>
+    </RowTemplate>
+  </MudTable>
+}
+
+@code {
+  private IReadOnlyList<TagListItem>? _items;
+
+  protected override async Task OnInitializedAsync()
+  {
+    await LoadAsync();
+  }
+
+  private async Task LoadAsync()
+  {
+    _items = await TagService.ListAsync();
+  }
+
+  private async Task EditColorAsync(TagListItem tag)
+  {
+    var parameters = new DialogParameters<TagColorDialog>
+    {
+      { d => d.TagId, tag.Id },
+      { d => d.CurrentColor, tag.Color }
+    };
+    var dialog = await DialogService.ShowAsync<TagColorDialog>(L["Pages.TagColor"], parameters);
+    var result = await dialog.Result;
+    if (result is { Canceled: false })
+    {
+      await LoadAsync();
+    }
+  }
+
+  private async Task DeleteAsync(TagListItem tag)
+  {
+    var confirmed = await DialogService.ShowMessageBoxAsync(
+      L["Pages.TagDeleteTitle"],
+      L["Pages.TagDeleteMessage", tag.Name, tag.CvCount],
+      yesText: L["Pages.TagDelete"],
+      cancelText: L["Pages.TagCancel"]);
+    if (confirmed != true)
+    {
+      return;
+    }
+
+    try
+    {
+      await TagService.DeleteAsync(tag.Id);
+    }
+    catch (KeyNotFoundException)
+    {
+      // Already deleted elsewhere; the reload below shows the current list.
+    }
+
+    await LoadAsync();
+  }
+}

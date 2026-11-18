@@ -47,6 +47,8 @@ public class KarajobDbContext(DbContextOptions<KarajobDbContext> options, ICurre
   public DbSet<TrackDecision> TrackDecisions => Set<TrackDecision>();
   public DbSet<CvDocument> CvDocuments => Set<CvDocument>();
   public DbSet<CvVersion> CvVersions => Set<CvVersion>();
+  public DbSet<Tag> Tags => Set<Tag>();
+  public DbSet<CvDocumentTag> CvDocumentTags => Set<CvDocumentTag>();
   public DbSet<Vacancy> Vacancies => Set<Vacancy>();
   public DbSet<VacancyMatch> VacancyMatches => Set<VacancyMatch>();
   public DbSet<VacancyPlatform> VacancyPlatforms => Set<VacancyPlatform>();

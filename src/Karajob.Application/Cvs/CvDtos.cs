@@ -9,7 +9,7 @@ public record CvListItem(
   Guid Id,
   string Name,
   string LanguageCode,
-  IReadOnlyList<string> Tags,
+  IReadOnlyList<TagItem> Tags,
   int VersionCount,
   DateTime LatestVersionAt);
 
@@ -17,9 +17,13 @@ public record CvDetails(
   Guid Id,
   string Name,
   Guid LanguageId,
-  IReadOnlyList<string> Tags,
+  IReadOnlyList<TagItem> Tags,
   IReadOnlyList<CvVersionItem> Versions);
 
 public record CvVersionItem(Guid Id, string FileName, long SizeBytes, string? Comment, DateTime CreatedAt);
 
 public record CvFile(Stream Content, string FileName, string ContentType);
+
+public record TagItem(Guid Id, string Name, string? Color);
+
+public record TagListItem(Guid Id, string Name, string? Color, int CvCount);

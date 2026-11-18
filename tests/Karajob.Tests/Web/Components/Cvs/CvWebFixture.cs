@@ -23,6 +23,7 @@ public abstract class CvWebFixture : IAsyncLifetime
   protected CvOptions Options { get; } = new() { MaxFileSizeMb = 5 };
   protected CvService Service { get; private set; } = null!;
   protected CatalogService Catalogs { get; private set; } = null!;
+  protected TagService Tags { get; private set; } = null!;
 
   protected static CvInput Input(string name, IReadOnlyList<string>? tags = null)
   {
@@ -40,6 +41,7 @@ public abstract class CvWebFixture : IAsyncLifetime
     Database = await SqliteTestDatabase.CreateAsync();
     Service = TestDbContextFactory.CreateCvService(Database, SeedData.OwnerId, Storage, TimeProvider.System, Options);
     Catalogs = TestDbContextFactory.CreateCatalogService(Database, SeedData.OwnerId);
+    Tags = TestDbContextFactory.CreateTagService(Database, SeedData.OwnerId);
     Context.Services.AddSingleton<IKarajobDbContextFactory>(new TestDbContextFactory(Database, SeedData.OwnerId));
     Context.Services.AddSingleton<ICurrentUser>(new FixedCurrentUser(SeedData.OwnerId));
     Context.Services.AddSingleton(TimeProvider.System);
@@ -48,6 +50,7 @@ public abstract class CvWebFixture : IAsyncLifetime
     Context.Services.AddSingleton(Options);
     Context.Services.AddSingleton(Service);
     Context.Services.AddSingleton(Catalogs);
+    Context.Services.AddSingleton(Tags);
   }
 
   // MudBlazor services are IAsyncDisposable only, and xUnit v2 disposes test classes synchronously.

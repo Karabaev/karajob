@@ -54,6 +54,31 @@ internal static class PersistenceFixtures
     return (document, version);
   }
 
+  public static async Task<Tag> AddTagAsync(SqliteTestDatabase database, Guid userId, string name = "unity", string? color = null)
+  {
+    var tag = new Tag(userId, name);
+    tag.SetColor(color);
+    await using var context = database.CreateContext(userId);
+    context.Tags.Add(tag);
+    await context.SaveChangesAsync();
+    return tag;
+  }
+
+  public static async Task<CvDocument> AddCvWithTagsAsync(
+    SqliteTestDatabase database,
+    Guid userId,
+    string name,
+    params Tag[] tags)
+  {
+    var document = new CvDocument(userId, name, SeedData.EnglishLanguageId, Moment);
+    document.AddVersion("cv.pdf", $"cv/{Guid.NewGuid():N}.pdf", "application/pdf", 1234, null, Moment);
+    document.SetTags(tags.Select(t => t.Id));
+    await using var context = database.CreateContext(userId);
+    context.CvDocuments.Add(document);
+    await context.SaveChangesAsync();
+    return document;
+  }
+
   public static async Task<Vacancy> AddVacancyAsync(SqliteTestDatabase database, Guid userId, string url = "https://example.com/jobs/1")
   {
     var vacancy = new Vacancy(userId, url, VacancySource.Manual, Moment);

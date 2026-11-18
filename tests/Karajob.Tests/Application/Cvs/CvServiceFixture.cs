@@ -56,6 +56,11 @@ public abstract class CvServiceFixture : IAsyncLifetime
     return TestDbContextFactory.CreateCvService(Database, userId, Storage, Clock, Options);
   }
 
+  protected TagService TagServiceFor(Guid userId)
+  {
+    return TestDbContextFactory.CreateTagService(Database, userId);
+  }
+
   protected async Task<Guid> AddApplicationAsync(Guid userId, Guid cvVersionId)
   {
     var track = await PersistenceFixtures.AddTrackAsync(Database, userId);

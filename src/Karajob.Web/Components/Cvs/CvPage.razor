@@ -7,6 +7,7 @@
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 @inject UserDates Dates
+@inject TagService TagService
 
 <AppTitle Text="@Title" />
 
@@ -37,9 +38,20 @@ else if (_loaded)
               <MudSelectItem T="Guid?" Value="@((Guid?)language.Id)">@language.Name</MudSelectItem>
             }
           </MudSelect>
-          <MudTextField T="string" Class="cv-tags" Label="@L["Cv.Tags"]" HelperText="@L["Cv.OnePerLine"]"
-                        Lines="3" Sizing="InputSizing.Auto" @bind-Value="_tags"
-                        Error="HasError(nameof(CvInput.Tags))" ErrorText="@ErrorOf(nameof(CvInput.Tags))" />
+          <div>
+            <MudAutocomplete T="string" @ref="_tagInput" Class="cv-tag-input" Label="@L["Cv.Tags"]" HelperText="@L["Cv.TagsHint"]"
+                             Text="@_tagText" TextChanged="OnTagTextChanged" ValueChanged="OnTagSelected"
+                             SearchFunc="SearchTagsAsync" OnKeyDown="OnTagKeyDown" CoerceText="false" CoerceValue="false"
+                             ResetValueOnEmptyText="true" DebounceInterval="200"
+                             Error="HasError(nameof(CvInput.Tags))" ErrorText="@ErrorOf(nameof(CvInput.Tags))" />
+            <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="1" Class="mt-2">
+              @foreach (var tag in _tagNames)
+              {
+                var name = tag;
+                <MudChip T="string" Class="cv-tag" Size="Size.Small" OnClose="() => RemoveTag(name)">@name</MudChip>
+              }
+            </MudStack>
+          </div>
 
           @if (_details is null)
           {
@@ -131,7 +143,9 @@ else if (_loaded)
   private bool _saving;
   private string? _name;
   private Guid? _languageId;
-  private string? _tags;
+  private readonly List<string> _tagNames = [];
+  private MudAutocomplete<string>? _tagInput;
+  private string? _tagText;
   private string? _comment;
   private IBrowserFile? _file;
   private string? _versionComment;
@@ -182,7 +196,9 @@ else if (_loaded)
   {
     _name = _details?.Name;
     _languageId = _details?.LanguageId ?? _languages.FirstOrDefault(l => l.Code == "ru")?.Id;
-    _tags = _details is null ? null : string.Join('\n', _details.Tags);
+    _tagNames.Clear();
+    _tagNames.AddRange(_details?.Tags.Select(t => t.Name) ?? []);
+    _tagText = null;
   }
 
   private void OnFileChanged(IBrowserFile? file)
@@ -210,11 +226,80 @@ else if (_loaded)
     return _errors.GetValueOrDefault(key);
   }
 
-  private static IReadOnlyList<string> SplitLines(string? text)
+
+  private async Task<IEnumerable<string>> SearchTagsAsync(string? text, CancellationToken cancellationToken)
   {
-    return (text ?? "")
-      .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-      .ToList();
+    var current = text?.Split(',')[^1].Trim();
+    var found = await TagService.SearchAsync(current, 10, cancellationToken);
+    return found.Select(t => t.Name).Where(name => !_tagNames.Contains(name));
+  }
+
+  private async Task OnTagTextChanged(string? text)
+  {
+    _tagText = text;
+    if (text is null || !text.Contains(','))
+    {
+      return;
+    }
+
+    CommitTags(text, keepLastSegment: true);
+    if (string.IsNullOrEmpty(_tagText))
+    {
+      await ResetTagInputAsync();
+    }
+  }
+
+  private async Task OnTagSelected(string? name)
+  {
+    if (string.IsNullOrWhiteSpace(name))
+    {
+      return;
+    }
+
+    CommitTags(name, keepLastSegment: false);
+    await ResetTagInputAsync();
+  }
+
+  private async Task OnTagKeyDown(KeyboardEventArgs args)
+  {
+    if (args.Key != "Enter" || _tagInput is { Open: true })
+    {
+      return;
+    }
+
+    CommitTags(_tagText, keepLastSegment: false);
+    await ResetTagInputAsync();
+  }
+
+  private async Task ResetTagInputAsync()
+  {
+    if (_tagInput is not null)
+    {
+      await _tagInput.ClearAsync();
+    }
+  }
+
+  private void CommitTags(string? text, bool keepLastSegment)
+  {
+    var segments = (text ?? "").Split(',').ToList();
+    var remainder = keepLastSegment ? segments[^1].TrimStart() : null;
+    if (keepLastSegment)
+    {
+      segments.RemoveAt(segments.Count - 1);
+    }
+
+    foreach (var name in CvService.NormalizeTagNames(segments).Where(name => !_tagNames.Contains(name)))
+    {
+      _tagNames.Add(name);
+    }
+
+    _tagNames.Sort(StringComparer.OrdinalIgnoreCase);
+    _tagText = remainder;
+  }
+
+  private void RemoveTag(string name)
+  {
+    _tagNames.Remove(name);
   }
 
   private string FormatSize(long bytes)
@@ -237,7 +322,8 @@ else if (_loaded)
 
   private CvInput BuildInput()
   {
-    return new CvInput(_name ?? "", _languageId, SplitLines(_tags));
+    CommitTags(_tagText, keepLastSegment: false);
+    return new CvInput(_name ?? "", _languageId, _tagNames.ToList());
   }
 
   private async Task SaveAsync()

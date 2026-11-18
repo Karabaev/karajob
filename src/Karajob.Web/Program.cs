@@ -91,6 +91,7 @@ builder.Services.AddKarajobFileStorage(new FileStorageOptions
   RootDirectory = Path.GetFullPath(Path.Combine(builder.Environment.ContentRootPath, fileStorageOptions.RootDirectory))
 });
 builder.Services.AddScoped<CvService>();
+builder.Services.AddScoped<TagService>();
 
 var app = builder.Build();
 

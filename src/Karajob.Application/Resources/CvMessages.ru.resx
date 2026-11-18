@@ -15,4 +15,6 @@
   <data name="Error.FileTypeInvalid" xml:space="preserve"><value>Только PDF или DOCX</value></data>
   <data name="Error.FileEmpty" xml:space="preserve"><value>Файл пустой</value></data>
   <data name="Error.FileTooLarge" xml:space="preserve"><value>Файл больше {0} МБ</value></data>
+  <data name="Error.ColorInvalid" xml:space="preserve"><value>Укажите цвет вида #1a2b3c</value></data>
+  <data name="Error.TagTooLong" xml:space="preserve"><value>Тег не длиннее {0} символов</value></data>
 </root>

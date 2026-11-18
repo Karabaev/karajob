@@ -46,13 +46,13 @@ public class CvServiceTests : CvServiceFixture
   }
 
   [Fact]
-  public async Task CreateAsync_Tags_TrimsDropsBlankAndDeduplicatesCaseInsensitivelyKeepingOrder()
+  public async Task CreateAsync_Tags_TrimsLowercasesDropsBlankDeduplicatesAndSortsByName()
   {
     var details = await Service.CreateAsync(
       Input(tags: ["  Unity ", "", "   ", "unity", "C#", "UNITY", "Games", "c#"]),
       Upload());
 
-    Assert.Equal(["Unity", "C#", "Games"], details.Tags);
+    Assert.Equal(["c#", "games", "unity"], details.Tags.Select(t => t.Name));
   }
 
   [Fact]
@@ -271,7 +271,7 @@ public class CvServiceTests : CvServiceFixture
 
     Assert.Equal(created.Id, item.Id);
     Assert.Equal("en", item.LanguageCode);
-    Assert.Equal(["Unity", "Games"], item.Tags);
+    Assert.Equal(["games", "unity"], item.Tags.Select(t => t.Name));
     Assert.Equal(2, item.VersionCount);
     Assert.Equal(Now.AddDays(3), item.LatestVersionAt);
   }
@@ -330,10 +330,10 @@ public class CvServiceTests : CvServiceFixture
 
     Assert.Equal("New", updated.Name);
     Assert.Equal(SeedData.EnglishLanguageId, updated.LanguageId);
-    Assert.Equal(["a", "b"], updated.Tags);
+    Assert.Equal(["a", "b"], updated.Tags.Select(t => t.Name));
     var reloaded = await Service.FindAsync(created.Id);
     Assert.Equal("New", reloaded!.Name);
-    Assert.Equal(["a", "b"], reloaded.Tags);
+    Assert.Equal(["a", "b"], reloaded.Tags.Select(t => t.Name));
   }
 
   [Fact]

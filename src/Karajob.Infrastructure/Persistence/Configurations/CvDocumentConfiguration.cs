@@ -11,5 +11,7 @@ public class CvDocumentConfiguration : IEntityTypeConfiguration<CvDocument>
   {
     builder.HasOne<Language>().WithMany().HasForeignKey(d => d.LanguageId).OnDelete(DeleteBehavior.Restrict);
     builder.HasMany(d => d.Versions).WithOne().HasForeignKey(v => v.CvDocumentId).OnDelete(DeleteBehavior.Cascade);
+    builder.HasMany(d => d.Tags).WithOne().HasForeignKey(t => t.CvDocumentId).OnDelete(DeleteBehavior.Cascade);
+    builder.Navigation(d => d.Tags).AutoInclude();
   }
 }

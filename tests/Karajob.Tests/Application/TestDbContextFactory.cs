@@ -46,6 +46,11 @@ internal class TestDbContextFactory(SqliteTestDatabase database, Guid userId) : 
     return new CvService(new TestDbContextFactory(database, userId), new FixedCurrentUser(userId), fileStorage, timeProvider, options, NullLogger<CvService>.Instance, TestLocalizer.For<CvMessages>());
   }
 
+  public static TagService CreateTagService(SqliteTestDatabase database, Guid userId)
+  {
+    return new TagService(new TestDbContextFactory(database, userId), TestLocalizer.For<CvMessages>());
+  }
+
   public static MasterProfileService CreateMasterProfileService(SqliteTestDatabase database, Guid userId, TimeProvider timeProvider)
   {
     return new MasterProfileService(new TestDbContextFactory(database, userId), new FixedCurrentUser(userId), timeProvider, TestLocalizer.For<MasterProfileMessages>());

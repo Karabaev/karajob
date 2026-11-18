@@ -33,7 +33,7 @@ else
       <MudTd DataLabel="@L["Pages.Tags"]">
         @foreach (var tag in context.Tags)
         {
-          <MudChip T="string" Size="Size.Small">@tag</MudChip>
+          <MudChip T="string" Class="cv-tag-chip" Size="Size.Small" Style="@TagStyle.ChipStyle(tag.Color)">@tag.Name</MudChip>
         }
       </MudTd>
       <MudTd DataLabel="@L["Pages.Versions"]">@context.VersionCount</MudTd>

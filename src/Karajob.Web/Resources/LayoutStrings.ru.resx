@@ -22,4 +22,5 @@
   <data name="Layout.CopyVersion" xml:space="preserve"><value>Скопировать версию</value></data>
   <data name="Layout.VersionCopied" xml:space="preserve"><value>Версия скопирована</value></data>
   <data name="Layout.VersionCopyFailed" xml:space="preserve"><value>Не удалось скопировать версию</value></data>
+  <data name="Layout.Tags" xml:space="preserve"><value>Теги</value></data>
 </root>
