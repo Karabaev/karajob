@@ -10,7 +10,7 @@
       {
         <MudAlert Severity="Severity.Error">@general</MudAlert>
       }
-      <MudDatePicker Class="checkin-date" Label="@L["CheckIn.Date"]" DateFormat="dd.MM.yyyy" MaxDate="_today" FirstDayOfWeek="DayOfWeek.Monday"
+      <AppDatePicker Class="checkin-date" Label="@L["CheckIn.Date"]" DateFormat="dd.MM.yyyy" MaxDate="_today"
                      Date="_date" DateChanged="OnDateChanged"
                      HelperText="@L["CheckIn.Week", MetricsText.WeekOf(WeekStart(_date))]"
                      Error="HasError(nameof(CheckInInput.Day))" ErrorText="@ErrorOf(nameof(CheckInInput.Day))" />
