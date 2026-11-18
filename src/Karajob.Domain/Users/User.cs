@@ -24,11 +24,15 @@ public class User
 
   public void IssueApiToken(string tokenHash, DateTime createdAt)
   {
-    throw new NotImplementedException();
+    var hash = Require.NotBlank(tokenHash);
+    var created = UtcGuard.Ensure(createdAt);
+    ApiTokenHash = hash;
+    ApiTokenCreatedAt = created;
   }
 
   public void RevokeApiToken()
   {
-    throw new NotImplementedException();
+    ApiTokenHash = null;
+    ApiTokenCreatedAt = null;
   }
 }

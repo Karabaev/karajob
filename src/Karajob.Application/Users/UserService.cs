@@ -7,11 +7,16 @@ using Karajob.Domain.Goals;
 using Karajob.Domain.Normalization;
 using Karajob.Domain.Users;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace Karajob.Application.Users;
 
 public class UserService(IKarajobDbContextFactory dbContextFactory, TimeProvider timeProvider, IStringLocalizer<UserMessages> localizer)
 {
+  private const string ApiTokenPrefix = "kj_";
+  private const int ApiTokenBytes = 32;
+
   public async Task<IReadOnlyList<UserDto>> ListAsync(CancellationToken cancellationToken = default)
   {
     await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
@@ -64,24 +69,47 @@ public class UserService(IKarajobDbContextFactory dbContextFactory, TimeProvider
     return UserTime.Find(timeZoneId);
   }
 
-  public Task<ApiTokenStatus> GetApiTokenStatusAsync(Guid userId, CancellationToken cancellationToken = default)
+  public async Task<ApiTokenStatus> GetApiTokenStatusAsync(Guid userId, CancellationToken cancellationToken = default)
   {
-    throw new NotImplementedException();
+    await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+    var user = await db.Users.AsNoTracking().SingleOrDefaultAsync(u => u.Id == userId, cancellationToken)
+      ?? throw new KeyNotFoundException($"Profile {userId} not found.");
+    return new ApiTokenStatus(user.ApiTokenHash is not null, user.ApiTokenCreatedAt);
   }
 
-  public Task<string> IssueApiTokenAsync(Guid userId, CancellationToken cancellationToken = default)
+  public async Task<string> IssueApiTokenAsync(Guid userId, CancellationToken cancellationToken = default)
   {
-    throw new NotImplementedException();
+    await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+    var user = await db.Users.SingleOrDefaultAsync(u => u.Id == userId, cancellationToken)
+      ?? throw new KeyNotFoundException($"Profile {userId} not found.");
+    var token = ApiTokenPrefix + Convert.ToHexStringLower(RandomNumberGenerator.GetBytes(ApiTokenBytes));
+    user.IssueApiToken(HashToken(token), timeProvider.GetUtcNow().UtcDateTime);
+    await db.SaveChangesAsync(cancellationToken);
+    return token;
   }
 
-  public Task RevokeApiTokenAsync(Guid userId, CancellationToken cancellationToken = default)
+  public async Task RevokeApiTokenAsync(Guid userId, CancellationToken cancellationToken = default)
   {
-    throw new NotImplementedException();
+    await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+    var user = await db.Users.SingleOrDefaultAsync(u => u.Id == userId, cancellationToken)
+      ?? throw new KeyNotFoundException($"Profile {userId} not found.");
+    user.RevokeApiToken();
+    await db.SaveChangesAsync(cancellationToken);
   }
 
-  public Task<UserDto?> FindByApiTokenAsync(string token, CancellationToken cancellationToken = default)
+  public async Task<UserDto?> FindByApiTokenAsync(string token, CancellationToken cancellationToken = default)
   {
-    throw new NotImplementedException();
+    if (string.IsNullOrWhiteSpace(token)) return null;
+
+    var hash = HashToken(token);
+    await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+    var user = await db.Users.AsNoTracking().SingleOrDefaultAsync(u => u.ApiTokenHash == hash, cancellationToken);
+    return user is null ? null : ToDto(user);
+  }
+
+  private static string HashToken(string token)
+  {
+    return Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(token)));
   }
 
   private void Validate(UserInput input)
