@@ -141,6 +141,7 @@ Order: block A → block B; blocks C, D, E, G are independent after #41.
 - [x] #112 Terminology: "hypothesis" is renamed to "Track" in code, UI (en/ru), the `/tracks` route, resx, tests and docs; the schema is renamed by the `RenameHypothesisToTrack` migration with data preserved.
 
 - [x] #107 Track details in the To board dialog: language, platforms and work format shown as a secondary line under each track name.
+- [x] #99 Profile settings page: name, color and time zone of the current profile are edited on `/profile-settings`, reached from the profile dropdown; the edit action is gone from "All profiles", and the avatar and time zone update without a reload.
 
 ### Not in Phase 0.5
 

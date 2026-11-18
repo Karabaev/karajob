@@ -85,14 +85,14 @@ public class ProfilesPageTests : ProfileWebFixture
   }
 
   [Fact]
-  public void ClickEdit_OpensEditProfileDialogWithName()
+  public async Task Render_HasNoEditButtons()
   {
-    var (cut, dialogs) = RenderPageWithDialogs();
+    await Users.CreateAsync(new UserInput("Anna", "#26a69a"));
+    var cut = RenderPage();
 
-    cut.WaitForElement("button[aria-label='Edit profile Owner']").Click();
+    cut.WaitForAssertion(() => Assert.Equal(2, cut.FindAll(SelectFormSelector).Count));
 
-    cut.WaitForAssertion(() => Assert.Contains("Edit profile", dialogs.Markup));
-    Assert.Equal("Owner", dialogs.WaitForElement(".profile-name input").GetAttribute("value"));
+    Assert.Empty(cut.FindAll("button[aria-label^='Edit profile']"));
   }
 
   [Fact]
@@ -110,42 +110,6 @@ public class ProfilesPageTests : ProfileWebFixture
       Assert.Contains(cut.FindAll(SelectFormSelector), f => f.TextContent.Contains("Anna"));
     });
     Assert.Contains(await Users.ListAsync(), p => p.Name == "Anna");
-  }
-
-  [Fact]
-  public async Task EditViaDialog_RenamesTile()
-  {
-    var (cut, dialogs) = RenderPageWithDialogs();
-    cut.WaitForElement("button[aria-label='Edit profile Owner']").Click();
-    dialogs.WaitForElement(".profile-name input").Input("Boss");
-
-    dialogs.Find(".profile-save").Click();
-
-    cut.WaitForAssertion(() => Assert.Contains(cut.FindAll(SelectFormSelector), f => f.TextContent.Contains("Boss")));
-    Assert.Equal("Boss", (await Users.GetAsync(SeedData.OwnerId))!.Name);
-  }
-
-  [Fact]
-  public async Task EditViaDialog_ActiveProfile_UpdatesCurrentTimeZone()
-  {
-    await Users.UpdateAsync(SeedData.OwnerId, new UserInput("Owner", SeedData.OwnerColor, "Asia/Tokyo"));
-    var (cut, dialogs) = RenderPageWithDialogs();
-    cut.WaitForElement("button[aria-label='Edit profile Owner']").Click();
-    dialogs.WaitForElement(".profile-save").Click();
-
-    cut.WaitForAssertion(() => Assert.Equal(TimeSpan.FromHours(9), CurrentUser.TimeZone.BaseUtcOffset));
-  }
-
-  [Fact]
-  public async Task EditViaDialog_OtherProfile_KeepsCurrentTimeZone()
-  {
-    await Users.CreateAsync(new UserInput("Anna", "#26a69a", "Asia/Tokyo"));
-    var (cut, dialogs) = RenderPageWithDialogs();
-    cut.WaitForElement("button[aria-label='Edit profile Anna']").Click();
-    dialogs.WaitForElement(".profile-save").Click();
-
-    cut.WaitForAssertion(() => Assert.Empty(dialogs.FindAll(".profile-save")));
-    Assert.Equal(TimeZoneInfo.Utc, CurrentUser.TimeZone);
   }
 
   private static string? ReturnUrlOf(IElement form)

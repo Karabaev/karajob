@@ -13,6 +13,7 @@
   <data name="Layout.Tracks" xml:space="preserve"><value>Треки</value></data>
   <data name="Layout.WeeklyReview" xml:space="preserve"><value>Недельный обзор</value></data>
   <data name="Layout.Catalogs" xml:space="preserve"><value>Справочники</value></data>
+  <data name="Layout.ProfileSettings" xml:space="preserve"><value>Настройки профиля</value></data>
   <data name="Layout.MasterProfile" xml:space="preserve"><value>Мастер-профиль</value></data>
   <data name="Layout.Settings" xml:space="preserve"><value>Настройки</value></data>
   <data name="Layout.Profile" xml:space="preserve"><value>Профиль: {0}</value></data>

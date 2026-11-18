@@ -190,6 +190,51 @@ public class ProfileMenuTests : ProfileWebFixture
     });
   }
 
+  [Fact]
+  public async Task Open_HasLinkToProfileSettings()
+  {
+    var (cut, popover) = RenderMenu();
+
+    await OpenAsync(cut);
+
+    await popover.WaitForAssertionAsync(() =>
+    {
+      var link = popover.FindAll("a").Single(a => a.TextContent.Trim() == "Profile settings");
+      Assert.EndsWith("profile-settings", link.GetAttribute("href"));
+    });
+  }
+
+  [Fact]
+  public async Task Open_ProfileSettingsLinkIsAboveMasterProfileLink()
+  {
+    var (cut, popover) = RenderMenu();
+
+    await OpenAsync(cut);
+
+    await popover.WaitForAssertionAsync(() =>
+    {
+      var texts = popover.FindAll("a").Select(a => a.TextContent.Trim()).ToList();
+      var settings = texts.IndexOf("Profile settings");
+      var master = texts.IndexOf("Master profile");
+      Assert.True(settings >= 0, "Profile settings link is missing");
+      Assert.True(master >= 0, "Master profile link is missing");
+      Assert.True(settings < master, "Profile settings link must precede Master profile link");
+    });
+  }
+
+  [Fact]
+  public async Task NotifyProfileUpdated_RefreshesActivatorAriaLabelWithNewName()
+  {
+    var (cut, _) = RenderMenu();
+    await cut.WaitForElementAsync(ActivatorSelector);
+
+    var updated = await Users.UpdateAsync(SeedData.OwnerId, new UserInput("Boss", SeedData.OwnerColor));
+    await cut.InvokeAsync(() => CurrentUser.NotifyProfileUpdated(updated));
+
+    await cut.WaitForElementAsync("button[aria-label='Profile: Boss']");
+    Assert.Empty(cut.FindAll(ActivatorSelector));
+  }
+
   private static async Task OpenAsync(IRenderedComponent<ProfileMenu> cut)
   {
     var activator = await cut.WaitForElementAsync(ActivatorSelector);

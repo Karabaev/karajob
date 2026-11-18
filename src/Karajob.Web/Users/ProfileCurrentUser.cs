@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Karajob.Application.Users;
+using Karajob.Domain.Common;
 
 namespace Karajob.Web.Users;
 
@@ -18,6 +19,14 @@ public class ProfileCurrentUser : ICurrentUser
   public void SetTimeZone(TimeZoneInfo timeZone)
   {
     TimeZone = timeZone;
+  }
+
+  public event Action? ProfileUpdated;
+
+  public void NotifyProfileUpdated(UserDto profile)
+  {
+    SetTimeZone(UserTime.Find(profile.TimeZoneId));
+    ProfileUpdated?.Invoke();
   }
 
   public bool IsCurrent(Guid userId)

@@ -10,8 +10,8 @@
   <data name="Profile.Save" xml:space="preserve"><value>Save</value></data>
   <data name="Profile.Title" xml:space="preserve"><value>Profiles</value></data>
   <data name="Profile.WhoAreYou" xml:space="preserve"><value>Who are you?</value></data>
-  <data name="Profile.EditAria" xml:space="preserve"><value>Edit profile {0}</value></data>
   <data name="Profile.Add" xml:space="preserve"><value>+ Profile</value></data>
   <data name="Profile.NewTitle" xml:space="preserve"><value>New profile</value></data>
-  <data name="Profile.EditTitle" xml:space="preserve"><value>Edit profile</value></data>
+  <data name="Profile.SettingsTitle" xml:space="preserve"><value>Profile settings</value></data>
+  <data name="Profile.Saved" xml:space="preserve"><value>Saved</value></data>
 </root>
