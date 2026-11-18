@@ -1094,6 +1094,13 @@ namespace Karajob.Migrations.Sqlite.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("TEXT");
 
+                    b.Property<DateTime?>("ApiTokenCreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ApiTokenHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Color")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
@@ -1116,6 +1123,9 @@ namespace Karajob.Migrations.Sqlite.Migrations
                         .HasDefaultValue("UTC");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ApiTokenHash")
+                        .IsUnique();
 
                     b.ToTable("Users");
 

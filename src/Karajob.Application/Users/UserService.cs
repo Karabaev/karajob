@@ -64,6 +64,26 @@ public class UserService(IKarajobDbContextFactory dbContextFactory, TimeProvider
     return UserTime.Find(timeZoneId);
   }
 
+  public Task<ApiTokenStatus> GetApiTokenStatusAsync(Guid userId, CancellationToken cancellationToken = default)
+  {
+    throw new NotImplementedException();
+  }
+
+  public Task<string> IssueApiTokenAsync(Guid userId, CancellationToken cancellationToken = default)
+  {
+    throw new NotImplementedException();
+  }
+
+  public Task RevokeApiTokenAsync(Guid userId, CancellationToken cancellationToken = default)
+  {
+    throw new NotImplementedException();
+  }
+
+  public Task<UserDto?> FindByApiTokenAsync(string token, CancellationToken cancellationToken = default)
+  {
+    throw new NotImplementedException();
+  }
+
   private void Validate(UserInput input)
   {
     var errors = new Dictionary<string, string>();
