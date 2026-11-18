@@ -1,4 +1,6 @@
 using Karajob.Application.Persistence;
+using Karajob.Application.Transfer;
+using Karajob.Infrastructure.Transfer;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -37,6 +39,7 @@ public static class PersistenceServiceCollectionExtensions
     services.AddSingleton(options);
     services.TryAddSingleton(TimeProvider.System);
     services.AddScoped<DatabaseInitializer>();
+    services.AddScoped<IDatabaseTransfer, DatabaseTransferService>();
     return services;
   }
 
