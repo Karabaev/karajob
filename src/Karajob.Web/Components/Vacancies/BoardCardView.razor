@@ -21,7 +21,16 @@
       {
         <MudText Typo="Typo.body2">@(Card.CompanyName ?? "—") · @(Card.RoleName ?? "—")</MudText>
       }
-      <MudText Typo="Typo.caption" Class="mud-text-secondary">@Dates.Format(Card.DiscoveredAt)</MudText>
+      <MudStack Row="true" Spacing="1" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+        <MudText Typo="Typo.caption" Class="mud-text-secondary">@Dates.Format(Card.DiscoveredAt)</MudText>
+        @if (_openUrl is { } openUrl)
+        {
+          <MudTooltip Text="@L["Page.OpenLink"]">
+            <MudIconButton Class="board-open-link" Icon="@Icons.Material.Filled.OpenInNew" Size="Size.Small" aria-label="@L["Page.OpenLink"]"
+                           Href="@openUrl" Target="_blank" rel="noopener noreferrer" draggable="false" />
+          </MudTooltip>
+        }
+      </MudStack>
       @if (Card.Outcome is { } outcome)
       {
         <MudChip T="string" Class="board-outcome" Size="Size.Small" Variant="Variant.Outlined">@VacancyText.Outcome(outcome)</MudChip>
@@ -48,6 +57,7 @@
 
 @code {
   private VacancyStage? _next;
+  private string? _openUrl;
 
   [Parameter, EditorRequired]
   public BoardCard Card { get; set; } = null!;
@@ -63,5 +73,6 @@
   protected override void OnParametersSet()
   {
     _next = BoardMoves.Next(Card.Stage);
+    _openUrl = VacancyText.OpenableUrl(Card.Url);
   }
 }
