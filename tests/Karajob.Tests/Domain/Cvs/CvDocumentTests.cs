@@ -146,4 +146,81 @@ public class CvDocumentTests
 
     Assert.Equal(2, doc.Versions.Count);
   }
+
+  [Fact]
+  public void SetTags_TwoIds_LinksBothToDocumentAndUser()
+  {
+    var doc = Create();
+    var first = Guid.NewGuid();
+    var second = Guid.NewGuid();
+
+    doc.SetTags([first, second]);
+
+    Assert.Equal(2, doc.Tags.Count);
+    Assert.Equal(new[] { first, second }.Order(), doc.Tags.Select(t => t.TagId).Order());
+    Assert.All(doc.Tags, t =>
+    {
+      Assert.Equal(doc.Id, t.CvDocumentId);
+      Assert.Equal(doc.UserId, t.UserId);
+    });
+  }
+
+  [Fact]
+  public void SetTags_DuplicateIds_LinksOnce()
+  {
+    var doc = Create();
+    var id = Guid.NewGuid();
+
+    doc.SetTags([id, id, id]);
+
+    Assert.Equal(id, Assert.Single(doc.Tags).TagId);
+  }
+
+  [Fact]
+  public void SetTags_Empty_ClearsTags()
+  {
+    var doc = Create();
+    doc.SetTags([Guid.NewGuid()]);
+
+    doc.SetTags([]);
+
+    Assert.Empty(doc.Tags);
+  }
+
+  [Fact]
+  public void SetTags_ReplacesSet_KeepsExistingLinkAndDropsMissing()
+  {
+    var doc = Create();
+    var keep = Guid.NewGuid();
+    var drop = Guid.NewGuid();
+    var add = Guid.NewGuid();
+    doc.SetTags([keep, drop]);
+    var keptLink = doc.Tags.Single(t => t.TagId == keep);
+
+    doc.SetTags([keep, add]);
+
+    Assert.Equal(new[] { keep, add }.Order(), doc.Tags.Select(t => t.TagId).Order());
+    Assert.DoesNotContain(doc.Tags, t => t.TagId == drop);
+    Assert.Same(keptLink, doc.Tags.Single(t => t.TagId == keep));
+  }
+
+  [Fact]
+  public void SetTags_SameSetTwice_DoesNotDuplicateLinks()
+  {
+    var doc = Create();
+    var id = Guid.NewGuid();
+    doc.SetTags([id]);
+
+    doc.SetTags([id]);
+
+    Assert.Single(doc.Tags);
+  }
+
+  [Fact]
+  public void SetTags_EmptyGuid_Throws()
+  {
+    var doc = Create();
+
+    Assert.ThrowsAny<ArgumentException>(() => doc.SetTags([Guid.NewGuid(), Guid.Empty]));
+  }
 }
