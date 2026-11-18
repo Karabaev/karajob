@@ -184,8 +184,7 @@ else if (_loaded)
               }
             </MudSelect>
 
-            <MudTextField T="string" Class="vacancy-description" Label="@L["Page.Description"]" Lines="4" Sizing="InputSizing.Auto"
-                          @bind-Value="_description" />
+            <MarkdownField Class="vacancy-description" Label="@L["Page.Description"]" @bind-Value="_description" />
             <MudTextField T="string" Class="vacancy-notes" Label="@L["Page.Notes"]" Lines="3" Sizing="InputSizing.Auto"
                           @bind-Value="_notes" />
 

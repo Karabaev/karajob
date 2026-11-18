@@ -1,7 +1,41 @@
+@inject IStringLocalizer<SharedStrings> L
+
+<div class="@RootClass">
+  <div class="markdown-field-toggle">
+    <MudButton Class="markdown-field-tab-editor" Size="Size.Small" Variant="@(_showPreview ? Variant.Text : Variant.Filled)"
+               Color="Color.Primary" OnClick="ShowEditor">@L["MarkdownField.Editor"]</MudButton>
+    <MudButton Class="markdown-field-tab-preview" Size="Size.Small" Variant="@(_showPreview ? Variant.Filled : Variant.Text)"
+               Color="Color.Primary" OnClick="ShowPreview">@L["MarkdownField.Preview"]</MudButton>
+  </div>
+  <div class="@PaneClass("markdown-field-editor", !_showPreview)">
+    <MudTextField T="string" Label="@Label" Lines="Lines" Variant="Variant.Outlined" Immediate="true"
+                  Value="Value" ValueChanged="OnValueChanged" />
+  </div>
+  <div class="@PaneClass("markdown-field-preview markdown-body", _showPreview)">@MarkdownHtml.Render(Value ?? string.Empty)</div>
+</div>
+
 @code {
+  private bool _showPreview;
+
   [Parameter] public string? Label { get; set; }
   [Parameter] public string? Value { get; set; }
   [Parameter] public EventCallback<string?> ValueChanged { get; set; }
-  [Parameter] public int Lines { get; set; } = 6;
+  [Parameter] public int Lines { get; set; } = 8;
   [Parameter] public string? Class { get; set; }
+
+  private string RootClass => string.IsNullOrWhiteSpace(Class) ? "markdown-field" : $"markdown-field {Class}";
+
+  // The pane is hidden by CSS on phones only; on wider screens both panes are always shown side by side.
+  private static string PaneClass(string baseClass, bool active) =>
+    active ? baseClass : $"{baseClass} markdown-field-pane-hidden";
+
+  private void ShowEditor() => _showPreview = false;
+
+  private void ShowPreview() => _showPreview = true;
+
+  private async Task OnValueChanged(string? value)
+  {
+    Value = value;
+    await ValueChanged.InvokeAsync(value);
+  }
 }

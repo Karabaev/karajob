@@ -150,6 +150,41 @@ h1:focus {
   padding: 0;
 }
 
+.markdown-field {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+
+.markdown-field-toggle {
+  display: none;
+}
+
+.markdown-field-preview {
+  border: 1px solid var(--mud-palette-lines-inputs);
+  border-radius: 4px;
+  padding: 0.75rem 1rem;
+  min-height: 100%;
+  overflow-y: auto;
+}
+
+@media (max-width: 599.98px) {
+  .markdown-field {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .markdown-field-toggle {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .markdown-field-pane-hidden {
+    display: none;
+  }
+}
+
 @media (max-width: 599.98px) {
   .inbox-to-board,
   .inbox-dismiss {
