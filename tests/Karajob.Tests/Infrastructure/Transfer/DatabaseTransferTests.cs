@@ -265,6 +265,82 @@ public class DatabaseTransferTests : IAsyncLifetime
     await AssertTargetUntouchedAsync(before);
   }
 
+  [Fact]
+  public async Task Import_UnsafeCvStoragePath_ThrowsInvalidDataAndKeepsData()
+  {
+    var before = await PrepareTargetAsync();
+    var archive = Rebuild(await ExportSeededSourceAsync(), editData: root =>
+    {
+      root["tables"]!["CvVersion"]!.AsArray()[0]!["StoragePath"] = "../escape.pdf";
+    });
+
+    var exception = await Assert.ThrowsAsync<DatabaseTransferException>(
+      () => CreateService(target, targetStorage).ImportAsync(new MemoryStream(archive)));
+
+    Assert.Equal(DatabaseTransferFailure.InvalidData, exception.Failure);
+    await AssertTargetUntouchedAsync(before);
+  }
+
+  [Fact]
+  public async Task Import_DuplicateCvStoragePath_ThrowsInvalidDataAndKeepsData()
+  {
+    var before = await PrepareTargetAsync();
+    var archive = Rebuild(await ExportSeededSourceAsync(), editData: root =>
+    {
+      var rows = root["tables"]!["CvVersion"]!.AsArray();
+      rows[1]!["StoragePath"] = rows[0]!["StoragePath"]!.GetValue<string>();
+    });
+
+    var exception = await Assert.ThrowsAsync<DatabaseTransferException>(
+      () => CreateService(target, targetStorage).ImportAsync(new MemoryStream(archive)));
+
+    Assert.Equal(DatabaseTransferFailure.InvalidData, exception.Failure);
+    await AssertTargetUntouchedAsync(before);
+  }
+
+
+  [Fact]
+  public async Task Import_FormatVersionOfWrongType_ThrowsUnsupportedFormatVersionAndKeepsData()
+  {
+    var before = await PrepareTargetAsync();
+    var archive = Rebuild(await ExportSeededSourceAsync(), editData: root => root["formatVersion"] = "1");
+
+    var exception = await Assert.ThrowsAsync<DatabaseTransferException>(
+      () => CreateService(target, targetStorage).ImportAsync(new MemoryStream(archive)));
+
+    Assert.Equal(DatabaseTransferFailure.UnsupportedFormatVersion, exception.Failure);
+    await AssertTargetUntouchedAsync(before);
+  }
+
+  [Fact]
+  public async Task Import_TablesNotAnObject_ThrowsInvalidDataAndKeepsData()
+  {
+    var before = await PrepareTargetAsync();
+    var archive = Rebuild(await ExportSeededSourceAsync(), editData: root => root["tables"] = new JsonArray());
+
+    var exception = await Assert.ThrowsAsync<DatabaseTransferException>(
+      () => CreateService(target, targetStorage).ImportAsync(new MemoryStream(archive)));
+
+    Assert.Equal(DatabaseTransferFailure.InvalidData, exception.Failure);
+    await AssertTargetUntouchedAsync(before);
+  }
+
+  [Fact]
+  public async Task Import_VacancyRowWithoutSalaryKey_ThrowsInvalidDataAndKeepsData()
+  {
+    var before = await PrepareTargetAsync();
+    var archive = Rebuild(await ExportSeededSourceAsync(), editData: root =>
+    {
+      root["tables"]!["Vacancy"]!.AsArray()[0]!.AsObject().Remove("Salary");
+    });
+
+    var exception = await Assert.ThrowsAsync<DatabaseTransferException>(
+      () => CreateService(target, targetStorage).ImportAsync(new MemoryStream(archive)));
+
+    Assert.Equal(DatabaseTransferFailure.InvalidData, exception.Failure);
+    await AssertTargetUntouchedAsync(before);
+  }
+
   public async Task InitializeAsync()
   {
     source = await SqliteTestDatabase.CreateAsync();
@@ -496,7 +572,7 @@ public class DatabaseTransferTests : IAsyncLifetime
     return root.ToJsonString();
   }
 
-  private static byte[] Rebuild(byte[] archive, Action<JsonObject>? editData = null, Func<string, bool>? dropEntry = null)
+  private static byte[] Rebuild(byte[] archive, Action<JsonObject>? editData = null, Func<string, bool>? dropEntry = null, bool storeUncompressed = false)
   {
     using var input = new ZipArchive(new MemoryStream(archive));
     using var output = new MemoryStream();
@@ -520,7 +596,7 @@ public class DatabaseTransferTests : IAsyncLifetime
           bytes = Encoding.UTF8.GetBytes(root.ToJsonString());
         }
 
-        var created = result.CreateEntry(entry.FullName);
+        var created = result.CreateEntry(entry.FullName, storeUncompressed ? CompressionLevel.NoCompression : CompressionLevel.Optimal);
         using var createdStream = created.Open();
         createdStream.Write(bytes);
       }

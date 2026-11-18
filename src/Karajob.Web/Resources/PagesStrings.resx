@@ -128,7 +128,6 @@
   <data name="Pages.TransferImportTitle" xml:space="preserve"><value>Replace all data?</value></data>
   <data name="Pages.TransferImportWarning" xml:space="preserve"><value>All current data of ALL profiles, including CV files, will be erased and replaced with the content of &quot;{0}&quot;. This cannot be undone.</value></data>
   <data name="Pages.TransferImportConfirm" xml:space="preserve"><value>Erase and import</value></data>
-  <data name="Pages.TransferImported" xml:space="preserve"><value>Imported {0} rows and {1} files</value></data>
   <data name="Pages.TransferFailure.NotAnArchive" xml:space="preserve"><value>The file is not a valid export archive.</value></data>
   <data name="Pages.TransferFailure.DataFileMissing" xml:space="preserve"><value>The archive has no database.json.</value></data>
   <data name="Pages.TransferFailure.UnsupportedFormatVersion" xml:space="preserve"><value>This export format version is not supported.</value></data>

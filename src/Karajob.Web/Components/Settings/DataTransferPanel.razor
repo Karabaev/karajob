@@ -5,7 +5,6 @@
 @inject IDatabaseTransfer Transfer
 @inject TransferOptions Options
 @inject IDialogService DialogService
-@inject ISnackbar Snackbar
 @inject NavigationManager Navigation
 
 <MudPaper Class="pa-4 settings-transfer">
@@ -50,8 +49,7 @@
     {
       // OpenReadStream defaults to a 500 KB cap, so pass the configured limit explicitly.
       await using var stream = file.OpenReadStream(Options.MaxImportSizeBytes);
-      var summary = await Transfer.ImportAsync(stream);
-      Snackbar.Add(L["Pages.TransferImported", summary.TotalRows, summary.FileCount], Severity.Success);
+      await Transfer.ImportAsync(stream);
       // The signed-in profile may not exist in the imported data, so restart from the profile selection.
       Navigation.NavigateTo("/", forceLoad: true);
     }

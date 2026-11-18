@@ -17,6 +17,7 @@ public class DatabaseTransferService : IDatabaseTransfer
   public const string DataEntryName = "database.json";
   public const string FilesPrefix = "files/";
   public const int FormatVersion = 1;
+  public const long MaxUnpackedBytes = 1024L * 1024 * 1024;
 
   private const string FormatVersionField = "formatVersion";
   private const string ExportedAtField = "exportedAtUtc";
@@ -83,74 +84,128 @@ public class DatabaseTransferService : IDatabaseTransfer
     await source.CopyToAsync(spool, cancellationToken);
     spool.Position = 0;
 
-    using var archive = OpenArchive(spool);
-    var root = ReadData(archive);
-
-    await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
-    var schema = await GetSchemaAsync(context, cancellationToken);
-    if ((int?)root[FormatVersionField] != FormatVersion)
+    var stagingDirectory = Directory.CreateTempSubdirectory("karajob-import-");
+    try
     {
-      throw Failure(DatabaseTransferFailure.UnsupportedFormatVersion, $"Unsupported export format version '{root[FormatVersionField]}'.");
-    }
+      using var archive = OpenArchive(spool);
+      await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+      var (summary, importedPaths) = await PrepareAsync(context, archive, stagingDirectory.FullName, cancellationToken);
 
-    if ((string?)root[SchemaField] != schema)
-    {
-      throw Failure(DatabaseTransferFailure.SchemaMismatch, $"The export was made on schema '{root[SchemaField]}', this database is on '{schema}'.");
-    }
+      var oldPaths = await context.CvVersions.IgnoreQueryFilters().AsNoTracking()
+        .Select(v => v.StoragePath).ToListAsync(cancellationToken);
+      BackupBeforeImport();
 
-    var entityTypes = SortByDependency(context.Model.GetEntityTypes());
-    var summary = new Dictionary<string, int>();
-    var importedPaths = new List<string>();
-    foreach (var entityType in entityTypes)
-    {
-      var rows = root[TablesField]?[TableName(entityType)]?.AsArray()
-        ?? throw Failure(DatabaseTransferFailure.InvalidData, $"Table '{TableName(entityType)}' is missing.");
-      summary[TableName(entityType)] = rows.Count;
-      foreach (var row in rows)
+      await using (var transaction = await context.Database.BeginTransactionAsync(cancellationToken))
       {
-        var entity = FromJson(context, entityType, row);
-        if (entity is CvVersion version)
+        foreach (var entityType in Enumerable.Reverse(SortByDependency(context.Model.GetEntityTypes())))
         {
-          importedPaths.Add(version.StoragePath);
+          await DeleteAllAsync(context, entityType, cancellationToken);
+        }
+
+        await context.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+      }
+
+      foreach (var path in oldPaths.Concat(importedPaths).Distinct())
+      {
+        fileStorage.Delete(path);
+      }
+
+      for (var i = 0; i < importedPaths.Count; i++)
+      {
+        await using var content = File.OpenRead(Path.Combine(stagingDirectory.FullName, i.ToString()));
+        await fileStorage.SaveAsync(importedPaths[i], content, cancellationToken);
+      }
+
+      return new ImportSummary(summary, importedPaths.Count);
+    }
+    finally
+    {
+      stagingDirectory.Delete(recursive: true);
+    }
+  }
+
+  // Everything that can fail on a bad archive happens here, before the first write to the database or the file storage.
+  private static async Task<(Dictionary<string, int> Summary, List<string> ImportedPaths)> PrepareAsync(
+    KarajobDbContext context, ZipArchive archive, string stagingDirectory, CancellationToken cancellationToken)
+  {
+    try
+    {
+      var root = ReadData(archive);
+      var formatVersion = root[FormatVersionField] is JsonValue versionValue && versionValue.TryGetValue<int>(out var version)
+        ? version
+        : (int?)null;
+      if (formatVersion != FormatVersion)
+      {
+        throw Failure(DatabaseTransferFailure.UnsupportedFormatVersion, $"Unsupported export format version '{root[FormatVersionField]}'.");
+      }
+
+      var schema = await GetSchemaAsync(context, cancellationToken);
+      var exportedSchema = root[SchemaField] is JsonValue schemaValue && schemaValue.TryGetValue<string>(out var text) ? text : null;
+      if (exportedSchema != schema)
+      {
+        throw Failure(DatabaseTransferFailure.SchemaMismatch, $"The export was made on schema '{exportedSchema}', this database is on '{schema}'.");
+      }
+
+      var tables = root[TablesField] as JsonObject
+        ?? throw Failure(DatabaseTransferFailure.InvalidData, $"'{TablesField}' is missing or not an object.");
+      var summary = new Dictionary<string, int>();
+      var importedPaths = new List<string>();
+      foreach (var entityType in SortByDependency(context.Model.GetEntityTypes()))
+      {
+        var rows = tables[TableName(entityType)] as JsonArray
+          ?? throw Failure(DatabaseTransferFailure.InvalidData, $"Table '{TableName(entityType)}' is missing or not an array.");
+        summary[TableName(entityType)] = rows.Count;
+        foreach (var row in rows)
+        {
+          if (FromJson(context, entityType, row) is CvVersion cvVersion)
+          {
+            importedPaths.Add(cvVersion.StoragePath);
+          }
         }
       }
-    }
 
-    foreach (var path in importedPaths)
-    {
-      if (archive.GetEntry(FilesPrefix + path) is null)
+      ValidatePaths(importedPaths);
+      var totalBytes = archive.GetEntry(DataEntryName)!.Length;
+      for (var i = 0; i < importedPaths.Count; i++)
       {
-        throw Failure(DatabaseTransferFailure.CvFileMissing, $"CV file '{path}' is missing from the archive.");
+        var entry = archive.GetEntry(FilesPrefix + importedPaths[i])
+          ?? throw Failure(DatabaseTransferFailure.CvFileMissing, $"CV file '{importedPaths[i]}' is missing from the archive.");
+        totalBytes += entry.Length;
+        if (totalBytes > MaxUnpackedBytes)
+        {
+          throw Failure(DatabaseTransferFailure.InvalidData, "The archive is too large when unpacked.");
+        }
+
+        // Extracting now also verifies the entry's data (CRC), which must not first fail after the database is replaced.
+        await using var content = entry.Open();
+        await using var staged = File.Create(Path.Combine(stagingDirectory, i.ToString()));
+        await content.CopyToAsync(staged, cancellationToken);
+      }
+
+      return (summary, importedPaths);
+    }
+    catch (Exception exception) when (exception is InvalidDataException or InvalidOperationException or ArgumentException or JsonException)
+    {
+      throw new DatabaseTransferException(DatabaseTransferFailure.InvalidData, $"The archive content is invalid: {exception.Message}", exception);
+    }
+  }
+
+  private static void ValidatePaths(List<string> paths)
+  {
+    foreach (var path in paths)
+    {
+      var segments = path.Split('/');
+      if (Path.IsPathRooted(path) || path.Contains('\\') || segments.Any(s => s is "" or "." or ".."))
+      {
+        throw Failure(DatabaseTransferFailure.InvalidData, $"CV storage path '{path}' is not a safe relative path.");
       }
     }
 
-    var oldPaths = await context.CvVersions.IgnoreQueryFilters().AsNoTracking()
-      .Select(v => v.StoragePath).ToListAsync(cancellationToken);
-    BackupBeforeImport();
-
-    await using (var transaction = await context.Database.BeginTransactionAsync(cancellationToken))
+    if (paths.Distinct().Count() != paths.Count)
     {
-      foreach (var entityType in Enumerable.Reverse(entityTypes))
-      {
-        await DeleteAllAsync(context, entityType, cancellationToken);
-      }
-
-      await context.SaveChangesAsync(cancellationToken);
-      await transaction.CommitAsync(cancellationToken);
+      throw Failure(DatabaseTransferFailure.InvalidData, "Two CV versions share one storage path.");
     }
-
-    foreach (var path in oldPaths.Concat(importedPaths).Distinct())
-    {
-      fileStorage.Delete(path);
-    }
-
-    foreach (var path in importedPaths)
-    {
-      await using var content = archive.GetEntry(FilesPrefix + path)!.Open();
-      await fileStorage.SaveAsync(path, content, cancellationToken);
-    }
-
-    return new ImportSummary(summary, importedPaths.Count);
   }
 
   private void BackupBeforeImport()
@@ -279,7 +334,11 @@ public class DatabaseTransferService : IDatabaseTransfer
 
       foreach (var complex in entityType.GetComplexProperties())
       {
-        json.TryGetPropertyValue(complex.Name, out var value);
+        if (!json.TryGetPropertyValue(complex.Name, out var value))
+        {
+          throw Failure(DatabaseTransferFailure.InvalidData, $"'{TableName(entityType)}.{complex.Name}' is missing.");
+        }
+
         entry.ComplexProperty(complex.Name).CurrentValue = value.Deserialize(complex.ClrType);
       }
     }

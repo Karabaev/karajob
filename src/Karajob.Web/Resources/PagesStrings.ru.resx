@@ -128,7 +128,6 @@
   <data name="Pages.TransferImportTitle" xml:space="preserve"><value>Заменить все данные?</value></data>
   <data name="Pages.TransferImportWarning" xml:space="preserve"><value>Все текущие данные ВСЕХ профилей, включая файлы CV, будут удалены и заменены содержимым «{0}». Отменить это нельзя.</value></data>
   <data name="Pages.TransferImportConfirm" xml:space="preserve"><value>Удалить и импортировать</value></data>
-  <data name="Pages.TransferImported" xml:space="preserve"><value>Импортировано строк: {0}, файлов: {1}</value></data>
   <data name="Pages.TransferFailure.NotAnArchive" xml:space="preserve"><value>Файл не является архивом экспорта.</value></data>
   <data name="Pages.TransferFailure.DataFileMissing" xml:space="preserve"><value>В архиве нет database.json.</value></data>
   <data name="Pages.TransferFailure.UnsupportedFormatVersion" xml:space="preserve"><value>Эта версия формата экспорта не поддерживается.</value></data>
