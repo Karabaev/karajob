@@ -100,6 +100,40 @@ public class InboxEndpointTests(WebApplicationFactory<Program> factory) : IClass
   }
 
   [Fact]
+  public async Task Post_CookieOfOneProfileAndTokenOfAnother_WritesToTokenOwnerOnly()
+  {
+    var other = await CreateProfileAsync("TokenOwner");
+    var token = await IssueTokenAsync(other.Id);
+    var client = await ProfileClient.AuthenticatedClientAsync(factory, SeedData.OwnerId);
+    var url = NewUrl();
+
+    var response = await PostAsync(client, token, url);
+
+    Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+    Assert.Single(await InboxUrlsAsync(other.Id, url));
+    Assert.Empty(await InboxUrlsAsync(SeedData.OwnerId, url));
+  }
+
+  [Theory]
+  [InlineData("", "application/json")]
+  [InlineData("{not json", "application/json")]
+  [InlineData("null", "application/json")]
+  [InlineData("url=https%3A%2F%2Fjobs.example%2Fform", "application/x-www-form-urlencoded")]
+  public async Task Post_UnreadableBody_ReturnsPlainClientErrorWithoutHtml(string body, string contentType)
+  {
+    var token = await IssueTokenAsync((await CreateProfileAsync("BadBody")).Id);
+    var client = ProfileClient.CreateClient(factory);
+    var request = new HttpRequestMessage(HttpMethod.Post, InboxPath) { Content = new StringContent(body, Encoding.UTF8, contentType) };
+    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+    var response = await client.SendAsync(request);
+
+    Assert.True(response.StatusCode is HttpStatusCode.BadRequest or HttpStatusCode.UnsupportedMediaType, $"Got {(int)response.StatusCode}.");
+    Assert.Null(response.Headers.Location);
+    Assert.DoesNotContain("<html", await response.Content.ReadAsStringAsync(), StringComparison.OrdinalIgnoreCase);
+  }
+
+  [Fact]
   public async Task Post_ValidToken_ReturnsCreatedWithJsonBody()
   {
     var profile = await CreateProfileAsync("Writer");
