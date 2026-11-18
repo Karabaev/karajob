@@ -35,7 +35,6 @@ public class CvPageTagTests : CvWebFixture
   {
     var input = cut.WaitForElement(TagInputSelector);
     input.Input(text);
-    input.Change(text);
   }
 
   private static void TypeAndEnter(IRenderedComponent<CvPage> cut, string text)

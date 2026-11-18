@@ -28,7 +28,6 @@ public class TagsPageTests : CvWebFixture
   private static void SetText(IElement input, string value)
   {
     input.Input(value);
-    input.Change(value);
   }
 
   private async Task<IReadOnlyList<TagListItem>> WaitForTagsAsync(Func<IReadOnlyList<TagListItem>, bool> condition)

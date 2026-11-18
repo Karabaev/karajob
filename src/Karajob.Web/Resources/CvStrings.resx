@@ -11,7 +11,6 @@
   <data name="Cv.Language" xml:space="preserve"><value>Language</value></data>
   <data name="Cv.EmptyHint" xml:space="preserve"><value>Add in the Catalogs section</value></data>
   <data name="Cv.Tags" xml:space="preserve"><value>Tags</value></data>
-  <data name="Cv.OnePerLine" xml:space="preserve"><value>one per line</value></data>
   <data name="Cv.ChooseFile" xml:space="preserve"><value>Choose file</value></data>
   <data name="Cv.VersionComment" xml:space="preserve"><value>Version comment</value></data>
   <data name="Cv.Save" xml:space="preserve"><value>Save</value></data>
@@ -38,4 +37,8 @@
   <data name="Cv.Preview" xml:space="preserve"><value>Preview</value></data>
   <data name="Cv.OpenInNewTab" xml:space="preserve"><value>Open in new tab</value></data>
   <data name="Cv.Close" xml:space="preserve"><value>Close</value></data>
+  <data name="Cv.TagsHint" xml:space="preserve"><value>Separate tags with commas</value></data>
+  <data name="Cv.TagColorTitle" xml:space="preserve"><value>Tag color</value></data>
+  <data name="Cv.TagColor" xml:space="preserve"><value>Color (#rrggbb)</value></data>
+  <data name="Cv.TagColorClear" xml:space="preserve"><value>Clear</value></data>
 </root>

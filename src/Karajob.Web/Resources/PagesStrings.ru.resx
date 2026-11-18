@@ -112,4 +112,12 @@
   <data name="WeeklyReview.CheckInTitle" xml:space="preserve"><value>Еженедельный чекин</value></data>
   <data name="WeeklyReview.Decision" xml:space="preserve"><value>Решение</value></data>
   <data name="WeeklyReview.DecisionTitle" xml:space="preserve"><value>Решение по треку</value></data>
+  <data name="Pages.NoTags" xml:space="preserve"><value>Тегов пока нет.</value></data>
+  <data name="Pages.TagCvCount" xml:space="preserve"><value>Резюме</value></data>
+  <data name="Pages.TagColor" xml:space="preserve"><value>Цвет</value></data>
+  <data name="Pages.TagDeleteTitle" xml:space="preserve"><value>Удалить тег</value></data>
+  <data name="Pages.TagDeleteMessage" xml:space="preserve"><value>Удалить тег &quot;{0}&quot;? Он будет убран из CV: {1}.</value></data>
+  <data name="Pages.TagDelete" xml:space="preserve"><value>Удалить</value></data>
+  <data name="Pages.TagCancel" xml:space="preserve"><value>Отмена</value></data>
+  <data name="Pages.TagDeleteLabel" xml:space="preserve"><value>Удалить тег</value></data>
 </root>
