@@ -58,8 +58,15 @@
   {
     _ = InvokeAsync(async () =>
     {
-      await LoadAsync();
-      StateHasChanged();
+      try
+      {
+        await LoadAsync();
+        StateHasChanged();
+      }
+      catch (Exception ex)
+      {
+        await DispatchExceptionAsync(ex);
+      }
     });
   }
 
