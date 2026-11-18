@@ -5,6 +5,9 @@ services:
     image: ghcr.io/karabaev/karajob:${KARAJOB_TAG:?Set KARAJOB_TAG in .env to an image tag, e.g. sha-<full commit sha>}
     restart: unless-stopped
     env_file: .env
+    environment:
+      # TLS is terminated by the router; trust its X-Forwarded-* headers (see docs/deploy.md).
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
     ports:
       - "${KARAJOB_PORT:-8080}:8080"
     volumes:
