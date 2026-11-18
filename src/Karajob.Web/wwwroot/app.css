@@ -149,3 +149,10 @@ h1:focus {
   background: none;
   padding: 0;
 }
+
+@media (max-width: 599.98px) {
+  .inbox-to-board,
+  .inbox-dismiss {
+    min-height: 40px;
+  }
+}
