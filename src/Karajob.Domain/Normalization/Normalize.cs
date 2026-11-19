@@ -126,13 +126,21 @@ public static partial class Normalize
   public static string WebUrl(string value, [CallerArgumentExpression(nameof(value))] string? paramName = null)
   {
     ParseHttpUrl(value, paramName);
-    return value.Trim().ToLowerInvariant();
+    var trimmed = value.Trim();
+    var authorityStart = trimmed.IndexOf("://", StringComparison.Ordinal) + 3;
+    var authorityEnd = trimmed.IndexOfAny(['/', '?', '#'], authorityStart);
+    if (authorityEnd < 0)
+    {
+      return trimmed.ToLowerInvariant();
+    }
+
+    return trimmed[..authorityEnd].ToLowerInvariant() + trimmed[authorityEnd..];
   }
 
   public static string VacancyUrl(string value, [CallerArgumentExpression(nameof(value))] string? paramName = null)
   {
     var uri = ParseHttpUrl(value, paramName);
-    var result = new StringBuilder("https://").Append(StripWww(uri.Host));
+    var result = new StringBuilder("https://").Append(StripWww(uri.Host.ToLowerInvariant()));
     // The scheme is forced to https, so an explicit :443 on an http URL is the default port too.
     if (!uri.IsDefaultPort && uri.Port != 443)
     {
@@ -156,7 +164,7 @@ public static partial class Normalize
       result.Append(uri.Fragment);
     }
 
-    return result.ToString().ToLowerInvariant();
+    return result.ToString();
   }
 
   // Browsers submit textarea text with LF, while a Windows checkout compiles string literals with CRLF.

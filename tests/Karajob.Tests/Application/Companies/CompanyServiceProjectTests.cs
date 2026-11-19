@@ -27,7 +27,7 @@ public class CompanyServiceProjectTests : CompanyServiceFixture
     Assert.Equal(SeedData.UnityEngineId, project.EngineId);
     Assert.Equal("Unity", project.EngineName);
     Assert.Equal(ProjectStatus.Released, project.Status);
-    Assert.Equal("https://example.com/game", project.Url);
+    Assert.Equal("https://example.com/Game", project.Url);
     await using var context = Database.CreateContext(SeedData.OwnerId);
     var stored = await context.Projects.SingleAsync();
     Assert.Equal(company.Id, stored.CompanyId);
@@ -105,7 +105,7 @@ public class CompanyServiceProjectTests : CompanyServiceFixture
     Assert.Null(updated.EngineId);
     Assert.Null(updated.EngineName);
     Assert.Equal(ProjectStatus.Announced, updated.Status);
-    Assert.Equal("https://example.com/new", updated.Url);
+    Assert.Equal("https://example.com/New", updated.Url);
     await using var context = Database.CreateContext(SeedData.OwnerId);
     Assert.Equal("Renamed", (await context.Projects.SingleAsync()).Name);
   }
