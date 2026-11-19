@@ -23,6 +23,7 @@ public class NormalizeVacancyUrlTests
   [InlineData("https://linkedin.com/jobs/view/1?currentJobId=1&alternateChannel=search&eBP=x", "https://linkedin.com/jobs/view/1?currentJobId=1")]
   [InlineData("https://example.com/j?msclkid=1&_ga=2&_gl=3&igshid=4", "https://example.com/j")]
   [InlineData("https://Company.com/careers#/job/ABC", "https://company.com/careers#/job/ABC")]
+  [InlineData("https://Пример.рф/Путь", "https://пример.рф/%D0%9F%D1%83%D1%82%D1%8C")]
   [InlineData("https://company.com/careers?x=1#!/job/7", "https://company.com/careers?x=1#!/job/7")]
   public void VacancyUrl_ValidInput_ReturnsNormalized(string input, string expected)
   {
@@ -71,6 +72,10 @@ public class NormalizeVacancyUrlTests
   [Theory]
   [InlineData("https://Ubisoft.com/en-US/", "https://ubisoft.com/en-US/")]
   [InlineData("  http://store.steampowered.com/app/1  ", "http://store.steampowered.com/app/1")]
+  [InlineData("HTTPS://Example.COM:8080/Path?Q=A#F", "https://example.com:8080/Path?Q=A#F")]
+  [InlineData("https://Example.com?Q=A", "https://example.com?Q=A")]
+  [InlineData("https://Example.com#Frag", "https://example.com#Frag")]
+  [InlineData("https://Example.COM", "https://example.com")]
   public void WebUrl_ValidInput_LowercasesOnlySchemeAndHost(string input, string expected)
   {
     Assert.Equal(expected, Normalize.WebUrl(input));

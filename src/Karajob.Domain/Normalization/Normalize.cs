@@ -140,7 +140,7 @@ public static partial class Normalize
   public static string VacancyUrl(string value, [CallerArgumentExpression(nameof(value))] string? paramName = null)
   {
     var uri = ParseHttpUrl(value, paramName);
-    var result = new StringBuilder("https://").Append(StripWww(uri.Host));
+    var result = new StringBuilder("https://").Append(StripWww(uri.Host.ToLowerInvariant()));
     // The scheme is forced to https, so an explicit :443 on an http URL is the default port too.
     if (!uri.IsDefaultPort && uri.Port != 443)
     {
