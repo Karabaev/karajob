@@ -63,6 +63,35 @@ public class CvPageTests : CvWebFixture
   }
 
   [Fact]
+  public async Task Render_PdfVersion_PreviewIsIconButtonWithLabel()
+  {
+    var created = await Service.CreateAsync(Input("Main"), Upload("only.pdf"));
+
+    var cut = RenderPage(created.Id);
+
+    var preview = cut.WaitForElement(".cv-preview");
+    Assert.Equal("Preview", preview.GetAttribute("aria-label"));
+    Assert.Empty(preview.TextContent.Trim());
+    Assert.NotNull(preview.QuerySelector("svg"));
+  }
+
+  [Fact]
+  public async Task Render_Version_DownloadIsIconLinkWithLabel()
+  {
+    var created = await Service.CreateAsync(Input("Main"), Upload("only.docx"));
+    var versionId = created.Versions[0].Id;
+
+    var cut = RenderPage(created.Id);
+
+    var download = cut.WaitForElement("a.cv-download[download]");
+    Assert.Equal("Download", download.GetAttribute("aria-label"));
+    Assert.Equal("only.docx", download.GetAttribute("download"));
+    Assert.Equal($"/cvs/versions/{versionId}/file", download.GetAttribute("href"));
+    Assert.Empty(download.TextContent.Trim());
+    Assert.NotNull(download.QuerySelector("svg"));
+  }
+
+  [Fact]
   public async Task Render_DocxVersion_HasNoPreviewControlButKeepsDownload()
   {
     var created = await Service.CreateAsync(Input("Main"), Upload("only.docx"));
