@@ -7,8 +7,8 @@
 {
   <MudMenu @bind-Open="_open" Dense="true" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
     <ActivatorContent>
-      <MudIconButton Color="Color.Inherit" OnClick="ToggleMenu" aria-label="@L["Layout.Profile", _current.Name]">
-        <ProfileAvatar Profile="_current" Size="Size.Small" />
+      <MudIconButton Class="profile-menu-button" Color="Color.Inherit" OnClick="ToggleMenu" aria-label="@L["Layout.Profile", _current.Name]">
+        <ProfileAvatar Profile="_current" Class="profile-menu-avatar" />
       </MudIconButton>
     </ActivatorContent>
     <ChildContent>

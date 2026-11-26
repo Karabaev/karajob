@@ -8,6 +8,16 @@ h1:focus {
   width: auto;
 }
 
+.profile-menu-button {
+  padding: 4px;
+}
+
+/* Same diameter as the medium MudButton next to it: font-size * line-height + vertical padding. */
+.mud-avatar.profile-menu-avatar {
+  width: calc(0.875rem * 1.75 + 12px);
+  height: calc(0.875rem * 1.75 + 12px);
+}
+
 .add-vacancy-fab {
   position: fixed;
   right: 16px;
