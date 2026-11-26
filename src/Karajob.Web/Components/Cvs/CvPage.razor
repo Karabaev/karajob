@@ -116,13 +116,22 @@ else if (_loaded)
                 <MudTd DataLabel="@L["Cv.Size"]">@FormatSize(context.SizeBytes)</MudTd>
                 <MudTd DataLabel="@L["Cv.Comment"]">@context.Comment</MudTd>
                 <MudTd>
-                  @if (context.FileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
-                  {
-                    <MudButton Class="cv-preview" Size="Size.Small" OnClick="() => PreviewAsync(context)">@L["Cv.Preview"]</MudButton>
-                  }
-                  <a class="mud-link mud-link-underline-hover" href="/cvs/versions/@context.Id/file" download="@context.FileName">@L["Cv.Download"]</a>
-                  <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
-                                 aria-label="@L["Cv.DeleteVersionLabel"]" OnClick="() => DeleteVersionAsync(context)" />
+                  <div class="d-flex flex-nowrap align-center">
+                    @if (context.FileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
+                    {
+                      <MudTooltip Text="@L["Cv.Preview"]">
+                        <MudIconButton Class="cv-preview" Icon="@Icons.Material.Filled.Visibility" Size="Size.Small"
+                                       aria-label="@L["Cv.Preview"]" OnClick="() => PreviewAsync(context)" />
+                      </MudTooltip>
+                    }
+                    <MudTooltip Text="@L["Cv.Download"]">
+                      <MudIconButton Class="cv-download" Icon="@Icons.Material.Filled.Download" Size="Size.Small"
+                                     Href="@($"/cvs/versions/{context.Id}/file")" aria-label="@L["Cv.Download"]"
+                                     download="@context.FileName" />
+                    </MudTooltip>
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
+                                   aria-label="@L["Cv.DeleteVersionLabel"]" OnClick="() => DeleteVersionAsync(context)" />
+                  </div>
                 </MudTd>
               </RowTemplate>
             </MudTable>
