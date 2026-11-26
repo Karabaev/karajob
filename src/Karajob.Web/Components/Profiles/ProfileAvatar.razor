@@ -1,4 +1,4 @@
-<MudAvatar Size="Size" Style="@($"background-color:{Profile.Color}; color:#fff")">@Initial</MudAvatar>
+<MudAvatar Size="Size" Class="@Class" Style="@($"background-color:{Profile.Color}; color:#fff")">@Initial</MudAvatar>
 
 @code {
   private string Initial => char.ToUpperInvariant(Profile.Name[0]).ToString();
@@ -8,4 +8,7 @@
 
   [Parameter]
   public Size Size { get; set; } = Size.Medium;
+
+  [Parameter]
+  public string? Class { get; set; }
 }
